@@ -364,12 +364,14 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case VERSION_INFO:
-			result.set_allocated_version_info(piscsi_response.GetVersionInfo(result));
+			piscsi_response.GetVersionInfo(*result.mutable_version_info());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
 		case LOG_LEVEL_INFO:
-			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result));
+			piscsi_response.GetLogLevelInfo(*result.mutable_log_level_info());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
@@ -389,8 +391,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 				const bool status = piscsi_response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
 						filename);
 				if (status) {
-					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
+					result.set_status(true);
 					context.WriteResult(result);
 				}
 				else {

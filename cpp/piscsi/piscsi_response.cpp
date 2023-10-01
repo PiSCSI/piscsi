@@ -259,8 +259,8 @@ PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<Prima
 {
 	auto server_info = new PbServerInfo();
 
-	server_info->set_allocated_version_info(GetVersionInfo(result));
-	server_info->set_allocated_log_level_info(GetLogLevelInfo(result));
+	GetVersionInfo(*server_info->mutable_version_info());
+	GetLogLevelInfo(*server_info->mutable_log_level_info());
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
@@ -274,32 +274,20 @@ PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<Prima
 	return server_info;
 }
 
-PbVersionInfo *PiscsiResponse::GetVersionInfo(PbResult& result) const
+void PiscsiResponse::GetVersionInfo(PbVersionInfo& version_info) const
 {
-	auto version_info = new PbVersionInfo();
-
-	version_info->set_major_version(piscsi_major_version);
-	version_info->set_minor_version(piscsi_minor_version);
-	version_info->set_patch_version(piscsi_patch_version);
-
-	result.set_status(true);
-
-	return version_info;
+	version_info.set_major_version(piscsi_major_version);
+	version_info.set_minor_version(piscsi_minor_version);
+	version_info.set_patch_version(piscsi_patch_version);
 }
 
-PbLogLevelInfo *PiscsiResponse::GetLogLevelInfo(PbResult& result) const
+void PiscsiResponse::GetLogLevelInfo(PbLogLevelInfo& log_level_info) const
 {
-	auto log_level_info = new PbLogLevelInfo();
-
 	for (const auto& log_level : spdlog::level::level_string_views) {
-		log_level_info->add_log_levels(log_level.data());
+		log_level_info.add_log_levels(log_level.data());
 	}
 
-	log_level_info->set_current_log_level(spdlog::level::level_string_views[spdlog::get_level()].data());
-
-	result.set_status(true);
-
-	return log_level_info;
+	log_level_info.set_current_log_level(spdlog::level::level_string_views[spdlog::get_level()].data());
 }
 
 PbNetworkInterfacesInfo *PiscsiResponse::GetNetworkInterfacesInfo(PbResult& result) const

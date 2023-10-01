@@ -193,24 +193,22 @@ TEST(PiscsiResponseTest, GetServerInfo)
 TEST(PiscsiResponseTest, GetVersionInfo)
 {
 	PiscsiResponse response;
-	PbResult result;
 
-	const auto& info = response.GetVersionInfo(result);
-	EXPECT_TRUE(result.status());
-	EXPECT_EQ(piscsi_major_version, info->major_version());
-	EXPECT_EQ(piscsi_minor_version, info->minor_version());
-	EXPECT_EQ(piscsi_patch_version, info->patch_version());
+	PbVersionInfo info;
+	response.GetVersionInfo(info);
+	EXPECT_EQ(piscsi_major_version, info.major_version());
+	EXPECT_EQ(piscsi_minor_version, info.minor_version());
+	EXPECT_EQ(piscsi_patch_version, info.patch_version());
 }
 
 TEST(PiscsiResponseTest, GetLogLevelInfo)
 {
 	PiscsiResponse response;
-	PbResult result;
 
-	const auto& info = response.GetLogLevelInfo(result);
-	EXPECT_TRUE(result.status());
-	EXPECT_EQ(level::level_string_views[get_level()], info->current_log_level());
-	EXPECT_EQ(7, info->log_levels().size());
+	PbLogLevelInfo info;
+	response.GetLogLevelInfo(info);
+	EXPECT_EQ(level::level_string_views[get_level()], info.current_log_level());
+	EXPECT_EQ(7, info.log_levels().size());
 }
 
 TEST(PiscsiResponseTest, GetNetworkInterfacesInfo)

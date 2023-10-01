@@ -33,12 +33,12 @@ public:
 	void GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbServerInfo&, const string&) const;
 	void GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&, const string&) const;
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&) const;
-	PbVersionInfo *GetVersionInfo(PbResult&) const;
+	void GetVersionInfo(PbVersionInfo&) const;
 	PbServerInfo *GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const unordered_set<int>&,
 			const string&, const string&, const string&, int) const;
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&) const;
 	PbMappingInfo *GetMappingInfo(PbResult&) const;
-	PbLogLevelInfo *GetLogLevelInfo(PbResult&) const;
+	void GetLogLevelInfo(PbLogLevelInfo&) const;
 	PbOperationInfo *GetOperationInfo(PbResult&, int) const;
 
 private:
