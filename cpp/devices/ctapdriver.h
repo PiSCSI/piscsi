@@ -38,6 +38,7 @@ public:
 	CTapDriver& operator=(const CTapDriver&) = default;
 
 	bool Init(const unordered_map<string, string>&);
+	void CleanUp() const;
 	void GetMacAddr(uint8_t *) const;
 	int Receive(uint8_t *) const;
 	int Send(const uint8_t *, int) const;
