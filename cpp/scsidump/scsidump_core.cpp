@@ -462,7 +462,7 @@ int ScsiDump::DumpRestore()
     const int duni = dsiz / inq_info.sector_size;
     auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
 
-    auto start_time = chrono::high_resolution_clock::now();
+    const auto start_time = chrono::high_resolution_clock::now();
 
     int i;
     for (i = 0; i < dnum; i++) {
@@ -504,9 +504,9 @@ int ScsiDump::DumpRestore()
         cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
     }
 
-    auto stop_time = chrono::high_resolution_clock::now();
+    const auto stop_time = chrono::high_resolution_clock::now();
 
-    auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
+    const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
     cout << divider_str << "\n";
     cout << "Transfered : " << to_string(inq_info.capacity * inq_info.sector_size) << " bytes ["
@@ -557,7 +557,7 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     cout << "Revision:     " << str.data() << "\n" << flush;
     inq_info.revision = string(str.data());
 
-    if (auto type = static_cast<device_type>(buffer[0]);
+    if (const auto type = static_cast<device_type>(buffer[0]);
         type != device_type::direct_access && type != device_type::cd_rom && type != device_type::optical_memory) {
         throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
     }
@@ -582,7 +582,7 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
 
 void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info_t& inq_info)
 {
-    string prop_filename = filename + ".properties";
+    const string prop_filename = filename + ".properties";
     stringstream prop_stream;
 
     prop_stream << "{" << endl;
