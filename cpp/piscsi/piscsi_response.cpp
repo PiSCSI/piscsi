@@ -80,12 +80,11 @@ void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 
     GetDeviceProperties(device, *pb_device.mutable_properties());
 
-    auto status = new PbDeviceStatus();
+    auto status = pb_device.mutable_status();
 	status->set_protected_(device.IsProtected());
 	status->set_stopped(device.IsStopped());
 	status->set_removed(device.IsRemoved());
 	status->set_locked(device.IsLocked());
-	pb_device.set_allocated_status(status);
 
 	if (device.SupportsParams()) {
 		for (const auto& [key, value] : device.GetParams()) {
