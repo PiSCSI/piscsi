@@ -175,17 +175,16 @@ TEST(PiscsiResponseTest, GetServerInfo)
 	PiscsiResponse response;
 	const unordered_set<shared_ptr<PrimaryDevice>> devices;
 	const unordered_set<int> ids = { 1, 3 };
-	PbResult result;
 
-	const auto& info = response.GetServerInfo(devices, result, ids, "default_folder", "", "", 1234);
-	EXPECT_TRUE(result.status());
-	EXPECT_EQ(piscsi_major_version, info->version_info().major_version());
-	EXPECT_EQ(piscsi_minor_version, info->version_info().minor_version());
-	EXPECT_EQ(piscsi_patch_version, info->version_info().patch_version());
-	EXPECT_EQ(level::level_string_views[get_level()], info->log_level_info().current_log_level());
-	EXPECT_EQ("default_folder", info->image_files_info().default_image_folder());
-	EXPECT_EQ(1234, info->image_files_info().depth());
-	EXPECT_EQ(2, info->reserved_ids_info().ids().size());
+	PbServerInfo info;
+	response.GetServerInfo(info, devices, ids, "default_folder", "", "", 1234);
+	EXPECT_EQ(piscsi_major_version, info.version_info().major_version());
+	EXPECT_EQ(piscsi_minor_version, info.version_info().minor_version());
+	EXPECT_EQ(piscsi_patch_version, info.version_info().patch_version());
+	EXPECT_EQ(level::level_string_views[get_level()], info.log_level_info().current_log_level());
+	EXPECT_EQ("default_folder", info.image_files_info().default_image_folder());
+	EXPECT_EQ(1234, info.image_files_info().depth());
+	EXPECT_EQ(2, info.reserved_ids_info().ids().size());
 }
 
 TEST(PiscsiResponseTest, GetVersionInfo)

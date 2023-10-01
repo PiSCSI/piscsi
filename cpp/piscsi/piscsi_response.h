@@ -34,7 +34,7 @@ public:
 	void GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&, const string&) const;
 	void GetDeviceTypesInfo(PbDeviceTypesInfo&) const;
 	void GetVersionInfo(PbVersionInfo&) const;
-	PbServerInfo *GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const unordered_set<int>&,
+	void GetServerInfo(PbServerInfo&, const unordered_set<shared_ptr<PrimaryDevice>>&, const unordered_set<int>&,
 			const string&, const string&, const string&, int) const;
 	void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo&) const;
 	void GetMappingInfo(PbMappingInfo&) const;

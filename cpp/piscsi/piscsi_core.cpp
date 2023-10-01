@@ -346,6 +346,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case DEVICES_INFO:
 			response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
@@ -356,10 +357,10 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case SERVER_INFO:
-			result.set_allocated_server_info(response.GetServerInfo(controller_manager.GetAllDevices(),
-					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
-					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
-					piscsi_image.GetDepth()));
+			response.GetServerInfo(*result.mutable_server_info(), controller_manager.GetAllDevices(),
+					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
+					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 

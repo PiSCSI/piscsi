@@ -234,25 +234,19 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 	result.set_status(true);
 }
 
-PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices,
-		PbResult& result, const unordered_set<int>& reserved_ids, const string& default_folder,
-		const string& folder_pattern, const string& file_pattern, int scan_depth) const
+void PiscsiResponse::GetServerInfo(PbServerInfo& server_info, const unordered_set<shared_ptr<PrimaryDevice>>& devices,
+		const unordered_set<int>& reserved_ids, const string& default_folder, const string& folder_pattern,
+		const string& file_pattern, int scan_depth) const
 {
-	auto server_info = new PbServerInfo();
-
-	GetVersionInfo(*server_info->mutable_version_info());
-	GetLogLevelInfo(*server_info->mutable_log_level_info());
-	GetDeviceTypesInfo(*server_info->mutable_device_types_info());
-	GetAvailableImages(*server_info, default_folder, folder_pattern, file_pattern, scan_depth);
-	GetNetworkInterfacesInfo(*server_info->mutable_network_interfaces_info());
-	GetMappingInfo(*server_info->mutable_mapping_info());
-	GetDevices(devices, *server_info, default_folder);
-	GetReservedIds(*server_info->mutable_reserved_ids_info(), reserved_ids);
-	GetOperationInfo(*server_info->mutable_operation_info(), scan_depth);
-
-	result.set_status(true);
-
-	return server_info;
+	GetVersionInfo(*server_info.mutable_version_info());
+	GetLogLevelInfo(*server_info.mutable_log_level_info());
+	GetDeviceTypesInfo(*server_info.mutable_device_types_info());
+	GetAvailableImages(server_info, default_folder, folder_pattern, file_pattern, scan_depth);
+	GetNetworkInterfacesInfo(*server_info.mutable_network_interfaces_info());
+	GetMappingInfo(*server_info.mutable_mapping_info());
+	GetDevices(devices, server_info, default_folder);
+	GetReservedIds(*server_info.mutable_reserved_ids_info(), reserved_ids);
+	GetOperationInfo(*server_info.mutable_operation_info(), scan_depth);
 }
 
 void PiscsiResponse::GetVersionInfo(PbVersionInfo& version_info) const
