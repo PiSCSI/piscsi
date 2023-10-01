@@ -217,7 +217,6 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 	}
 
 	auto devices_info = new PbDevicesInfo();
-
 	for (const auto& [id, lun] : id_sets) {
 		for (const auto& d : devices) {
 			if (d->GetId() == id && d->GetLun() == lun) {
@@ -226,8 +225,8 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 			}
 		}
 	}
-
 	result.set_allocated_devices_info(devices_info);
+
 	result.set_status(true);
 }
 
