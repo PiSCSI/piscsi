@@ -14,6 +14,7 @@
 #include <cassert>
 #include <sstream>
 #include <iomanip>
+#include <stdexcept>
 
 using namespace std;
 
@@ -22,17 +23,6 @@ Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 	ostringstream os;
 	os << setfill('0') << setw(2) << piscsi_major_version << setw(2) << piscsi_minor_version;
 	revision = os.str();
-}
-
-PbDeviceType Device::ParseDeviceType(const string& value)
-{
-	string t;
-	ranges::transform(value, back_inserter(t), ::toupper);
-	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
-		return type;
-	}
-
-	throw parser_exception("Illegal device type '" + value + "'");
 }
 
 void Device::Reset()

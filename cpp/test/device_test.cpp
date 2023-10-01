@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/piscsi_exceptions.h"
 #include "devices/device.h"
 
 TEST(DeviceTest, Properties)
@@ -113,21 +112,6 @@ TEST(DeviceTest, Properties)
 	EXPECT_FALSE(device.SupportsFile());
 
 	EXPECT_EQ(LUN, device.GetLun());
-}
-
-TEST(DeviceTest, ParseDeviceType)
-{
-	EXPECT_EQ(SCHD, Device::ParseDeviceType("schd"));
-	EXPECT_EQ(SCRM, Device::ParseDeviceType("scrm"));
-	EXPECT_EQ(SCMO, Device::ParseDeviceType("SCMO"));
-	EXPECT_EQ(SCCD, Device::ParseDeviceType("scCd"));
-	EXPECT_EQ(SCHS, Device::ParseDeviceType("SChS"));
-	EXPECT_EQ(SCBR, Device::ParseDeviceType("SCBR"));
-	EXPECT_EQ(SCDP, Device::ParseDeviceType("SCDP"));
-	EXPECT_EQ(SCLP, Device::ParseDeviceType("sclp"));
-
-	EXPECT_THROW(Device::ParseDeviceType("foo"), parser_exception);
-	EXPECT_THROW(Device::ParseDeviceType(""), parser_exception);
 }
 
 TEST(DeviceTest, GetTypeString)

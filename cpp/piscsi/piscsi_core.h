@@ -57,6 +57,8 @@ private:
 
 	const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("piscsi stdout logger");
 
+	static PbDeviceType ParseDeviceType(const string&);
+
 	// Processing flag
 	atomic_bool target_is_active;
 

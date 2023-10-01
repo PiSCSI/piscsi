@@ -209,7 +209,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 				continue;
 
 			case 't':
-				type = Device::ParseDeviceType(optarg);
+				type = ParseDeviceType(optarg);
 				continue;
 
 			case 1:
@@ -252,6 +252,17 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 	}
 
 	return locale;
+}
+
+PbDeviceType Piscsi::ParseDeviceType(const string& value)
+{
+	string t;
+	ranges::transform(value, back_inserter(t), ::toupper);
+	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
+		return type;
+	}
+
+	throw parser_exception("Illegal device type '" + value + "'");
 }
 
 bool Piscsi::SetLogLevel(const string& log_level) const
