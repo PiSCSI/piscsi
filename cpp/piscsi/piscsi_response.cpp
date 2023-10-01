@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021-2023 Uwe Seimet
 //
-// This class uses raw pointers because protobuf does not have support for smart pointers
+// This class uses raw pointers for protobuf structures because protobuf does not have support for smart pointers
 //
 //---------------------------------------------------------------------------
 
