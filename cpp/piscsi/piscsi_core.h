@@ -41,7 +41,7 @@ private:
 
 	void Banner(span<char *>) const;
 	bool InitBus();
-	void Cleanup();
+	void CleanUp();
 	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);

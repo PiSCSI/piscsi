@@ -76,7 +76,7 @@ bool Piscsi::InitBus()
 	return true;
 }
 
-void Piscsi::Cleanup()
+void Piscsi::CleanUp()
 {
 	if (service.IsRunning()) {
 		service.Stop();
@@ -130,7 +130,7 @@ void Piscsi::LogDevices(string_view devices) const
 
 void Piscsi::TerminationHandler(int)
 {
-	instance->Cleanup();
+	instance->CleanUp();
 
 	// Process will terminate automatically
 }
@@ -487,7 +487,7 @@ int Piscsi::run(span<char *> args)
 		!error.empty()) {
 		cerr << "Error: " << error << endl;
 
-		Cleanup();
+		CleanUp();
 
 		return EXIT_FAILURE;
 	}
@@ -495,7 +495,7 @@ int Piscsi::run(span<char *> args)
 	if (const string error = executor->SetReservedIds(reserved_ids); !error.empty()) {
 		cerr << "Error: " << error << endl;
 
-		Cleanup();
+		CleanUp();
 
 		return EXIT_FAILURE;
 	}
@@ -507,7 +507,7 @@ int Piscsi::run(span<char *> args)
 		if (const CommandContext context(command, piscsi_image.GetDefaultFolder(), locale); !executor->ProcessCmd(context)) {
 			cerr << "Error: Can't attach devices" << endl;
 
-			Cleanup();
+			CleanUp();
 
 			return EXIT_FAILURE;
 		}
@@ -594,7 +594,7 @@ void Piscsi::Process()
 
 void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
-	Cleanup();
+	CleanUp();
 
 	switch(shutdown_mode) { //NOSONAR using enum is not supported by the bullseye compiler
 	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
