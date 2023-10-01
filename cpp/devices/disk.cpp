@@ -56,11 +56,11 @@ bool Disk::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-void Disk::Cleanup()
+void Disk::CleanUp()
 {
 	FlushCache();
 
-	StorageDevice::Cleanup();
+	StorageDevice::CleanUp();
 }
 
 void Disk::Dispatch(scsi_command cmd)

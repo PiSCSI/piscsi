@@ -48,25 +48,6 @@ static string br_setif(int br_socket_fd, const string& bridgename, const string&
 #endif
 }
 
-CTapDriver::~CTapDriver()
-{
-	if (m_hTAP != -1) {
-		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
-			LogErrno("Can't open bridge socket");
-		} else {
-			spdlog::trace(">brctl delif " + BRIDGE_NAME + " piscsi0");
-			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", false); !error.empty()) {
-				spdlog::warn("Warning: Removing piscsi0 from the bridge failed: " + error);
-				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
-			}
-			close(br_socket_fd);
-		}
-
-		// Release TAP device
-		close(m_hTAP);
-	}
-}
-
 string ip_link(int fd, const char* ifname, bool up) {
 #ifndef __linux__
 	return "Can't ip_link: Linux is required";
@@ -211,6 +192,25 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	return true;
 #endif
+}
+
+void CTapDriver::CleanUp() const
+{
+	if (m_hTAP != -1) {
+		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
+			LogErrno("Can't open bridge socket");
+		} else {
+			spdlog::trace(">brctl delif " + BRIDGE_NAME + " piscsi0");
+			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", false); !error.empty()) {
+				spdlog::warn("Warning: Removing piscsi0 from the bridge failed: " + error);
+				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
+			}
+			close(br_socket_fd);
+		}
+
+		// Release TAP device
+		close(m_hTAP);
+	}
 }
 
 pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)

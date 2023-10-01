@@ -124,12 +124,12 @@ void SCSIPrinter::SynchronizeBuffer()
 	if (system(cmd.c_str())) {
 		LogError("Printing file '" + filename + "' failed, the printing system might not be configured");
 
-		Cleanup();
+		CleanUp();
 
 		throw scsi_exception(sense_key::aborted_command);
 	}
 
-	Cleanup();
+	CleanUp();
 
 	EnterStatusPhase();
 }
@@ -165,9 +165,9 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 	return !out.fail();
 }
 
-void SCSIPrinter::Cleanup()
+void SCSIPrinter::CleanUp()
 {
-	PrimaryDevice::Cleanup();
+	PrimaryDevice::CleanUp();
 
 	if (out.is_open()) {
 		out.close();

@@ -43,7 +43,7 @@ bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryD
 bool ControllerManager::DeleteController(const AbstractController& controller)
 {
 	for (const auto& device : controller.GetDevices()) {
-		device->Cleanup();
+		device->CleanUp();
 	}
 
 	return controllers.erase(controller.GetTargetId()) == 1;

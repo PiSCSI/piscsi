@@ -71,6 +71,11 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
+void SCSIDaynaPort::CleanUp()
+{
+	m_tap.CleanUp();
+}
+
 vector<uint8_t> SCSIDaynaPort::InquiryInternal() const
 {
 	vector<uint8_t> buf = HandleInquiry(device_type::processor, scsi_level::scsi_2, false);

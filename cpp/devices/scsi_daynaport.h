@@ -50,6 +50,7 @@ public:
 	~SCSIDaynaPort() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
+	void CleanUp() override;
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;

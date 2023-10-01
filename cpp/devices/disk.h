@@ -48,7 +48,7 @@ public:
 	~Disk() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
-	void Cleanup() override;
+	void CleanUp() override;
 
 	void Dispatch(scsi_command) override;
 

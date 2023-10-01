@@ -20,11 +20,11 @@ StorageDevice::StorageDevice(PbDeviceType type, int lun) : ModePageDevice(type, 
 	SetStoppable(true);
 }
 
-void StorageDevice::Cleanup()
+void StorageDevice::CleanUp()
 {
 	UnreserveFile();
 
-	ModePageDevice::Cleanup();
+	ModePageDevice::CleanUp();
 }
 
 void StorageDevice::SetFilename(string_view f)

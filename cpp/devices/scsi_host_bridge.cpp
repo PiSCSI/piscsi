@@ -67,6 +67,11 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
+void SCSIBR::CleanUp()
+{
+	tap.CleanUp();
+}
+
 vector<uint8_t> SCSIBR::InquiryInternal() const
 {
 	vector<uint8_t> buf = HandleInquiry(device_type::communications, scsi_level::scsi_2, false);

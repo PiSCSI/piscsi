@@ -27,7 +27,7 @@ public:
 	StorageDevice(PbDeviceType, int);
 	~StorageDevice() override = default;
 
-	void Cleanup() override;
+	void CleanUp() override;
 
 	virtual void Open() = 0;
 
