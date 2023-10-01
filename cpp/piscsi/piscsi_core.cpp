@@ -409,7 +409,6 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 		case OPERATION_INFO:
 			response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
 			context.WriteSuccessResult(result);
-			context.WriteResult(result);
 			break;
 
 		case RESERVED_IDS_INFO:
