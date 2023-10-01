@@ -384,11 +384,11 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
 		const string& description) const
 {
-	auto meta_data = new PbOperationMetaData();
-	meta_data->set_server_side_name(PbOperation_Name(operation));
-	meta_data->set_description(description);
+	PbOperationMetaData meta_data;
+	meta_data.set_server_side_name(PbOperation_Name(operation));
+	meta_data.set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
-	(*operation_info.mutable_operations())[ordinal] = *meta_data;
+	(*operation_info.mutable_operations())[ordinal] = meta_data;
 	return &(*operation_info.mutable_operations())[ordinal];
 }
 
