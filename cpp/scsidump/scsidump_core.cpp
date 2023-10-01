@@ -110,7 +110,7 @@ void ScsiDump::ParseArguments(span<char *> args)
 
         case 's':
             if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
-                throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
+                throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
             }
 
             break;
