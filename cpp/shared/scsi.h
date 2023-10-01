@@ -12,6 +12,7 @@
 
 #include <span>
 #include <unordered_map>
+#include <string>
 
 using namespace std;
 
@@ -140,7 +141,7 @@ enum class asc {
     load_or_eject_failed            = 0x53
 };
 
-static const unordered_map<scsi_command, pair<int, const char *>> command_mapping = {
+static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdTestUnitReady, make_pair(6, "TestUnitReady")},
     {scsi_command::eCmdRezero, make_pair(6, "Rezero")},
     {scsi_command::eCmdRequestSense, make_pair(6, "RequestSense")},

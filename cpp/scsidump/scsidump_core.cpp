@@ -183,7 +183,7 @@ void ScsiDump::Selection() const
 
 void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 {
-    spdlog::debug("Executing " + string(command_mapping.find(cmd)->second.second));
+    spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
 
     Selection();
 
