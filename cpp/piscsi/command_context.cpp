@@ -43,6 +43,12 @@ void CommandContext::WriteResult(const PbResult& result) const
 	}
 }
 
+void CommandContext::WriteSuccessResult(PbResult& result) const
+{
+	result.set_status(true);
+	WriteResult(result);
+}
+
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
 		const string& arg3) const
 {

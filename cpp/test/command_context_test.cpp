@@ -94,6 +94,7 @@ TEST(CommandContext, WriteResult)
 	CommandContext context(fd);
 	context.WriteResult(result);
 	close(fd);
+	EXPECT_FALSE(result.status());
 
 	fd = open(filename.c_str(), O_RDONLY);
 	result.set_status(true);
@@ -101,6 +102,18 @@ TEST(CommandContext, WriteResult)
 	close(fd);
 	EXPECT_FALSE(result.status());
 	EXPECT_EQ(PbErrorCode::UNAUTHORIZED, result.error_code());
+}
+
+TEST(CommandContext, WriteSuccessResult)
+{
+	const string filename = CreateTempFile(0);
+	int fd = open(filename.c_str(), O_RDWR | O_APPEND);
+	PbResult result;
+	result.set_status(false);
+	CommandContext context(fd);
+	context.WriteSuccessResult(result);
+	close(fd);
+	EXPECT_TRUE(result.status());
 }
 
 TEST(CommandContext, ReturnLocalizedError)
