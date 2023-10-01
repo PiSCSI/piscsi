@@ -51,8 +51,8 @@ private:
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType) const;
 	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, int) const;
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, const string&, int) const;
-	unique_ptr<PbOperationMetaData> CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
-	unique_ptr<PbOperationParameter> AddOperationParameter(PbOperationMetaData&, const string&, const string&,
+	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
+	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false) const;
 	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 

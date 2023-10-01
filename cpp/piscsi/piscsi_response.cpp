@@ -340,129 +340,113 @@ unique_ptr<PbOperationInfo> PiscsiResponse::GetOperationInfo(PbResult& result, i
 	auto operation_info = make_unique<PbOperationInfo>();
 
 	auto operation = CreateOperation(*operation_info, ATTACH, "Attach device, device-specific parameters are required");
-	AddOperationParameter(*operation, "name", "Image file name in case of a mass storage device").release();
-	AddOperationParameter(*operation, "interface", "Comma-separated prioritized network interface list").release();
-	AddOperationParameter(*operation, "inet", "IP address and netmask of the network bridge").release();
-	AddOperationParameter(*operation, "cmd", "Print command for the printer device").release();
-	operation.release();
+	AddOperationParameter(*operation, "name", "Image file name in case of a mass storage device");
+	AddOperationParameter(*operation, "interface", "Comma-separated prioritized network interface list");
+	AddOperationParameter(*operation, "inet", "IP address and netmask of the network bridge");
+	AddOperationParameter(*operation, "cmd", "Print command for the printer device");
 
-	CreateOperation(*operation_info, DETACH, "Detach device, device-specific parameters are required").release();
+	CreateOperation(*operation_info, DETACH, "Detach device, device-specific parameters are required");
 
-	CreateOperation(*operation_info, DETACH_ALL, "Detach all devices").release();
+	CreateOperation(*operation_info, DETACH_ALL, "Detach all devices");
 
-	CreateOperation(*operation_info, START, "Start device, device-specific parameters are required").release();
+	CreateOperation(*operation_info, START, "Start device, device-specific parameters are required");
 
-	CreateOperation(*operation_info, STOP, "Stop device, device-specific parameters are required").release();
+	CreateOperation(*operation_info, STOP, "Stop device, device-specific parameters are required");
 
 	operation = CreateOperation(*operation_info, INSERT, "Insert medium, device-specific parameters are required");
-	AddOperationParameter(*operation, "file", "Image file name", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
-	CreateOperation(*operation_info, EJECT, "Eject medium, device-specific parameters are required").release();
+	CreateOperation(*operation_info, EJECT, "Eject medium, device-specific parameters are required");
 
-	CreateOperation(*operation_info, PROTECT, "Protect medium, device-specific parameters are required").release();
+	CreateOperation(*operation_info, PROTECT, "Protect medium, device-specific parameters are required");
 
-	CreateOperation(*operation_info, UNPROTECT, "Unprotect medium, device-specific parameters are required").release();
+	CreateOperation(*operation_info, UNPROTECT, "Unprotect medium, device-specific parameters are required");
 
 	operation = CreateOperation(*operation_info, SERVER_INFO, "Get piscsi server information");
 	if (depth) {
-		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names").release();
+		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
-	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names").release();
-	operation.release();
+	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
-	CreateOperation(*operation_info, VERSION_INFO, "Get piscsi server version").release();
+	CreateOperation(*operation_info, VERSION_INFO, "Get piscsi server version");
 
-	CreateOperation(*operation_info, DEVICES_INFO, "Get information on attached devices").release();
+	CreateOperation(*operation_info, DEVICES_INFO, "Get information on attached devices");
 
-	CreateOperation(*operation_info, DEVICE_TYPES_INFO, "Get device properties by device type").release();
+	CreateOperation(*operation_info, DEVICE_TYPES_INFO, "Get device properties by device type");
 
 	operation = CreateOperation(*operation_info, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
 	if (depth) {
-		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names").release();
+		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
-	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names").release();
-	operation.release();
+	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
 	operation = CreateOperation(*operation_info, IMAGE_FILE_INFO, "Get information on image file");
-	AddOperationParameter(*operation, "file", "Image file name", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
-	CreateOperation(*operation_info, LOG_LEVEL_INFO, "Get log level information").release();
+	CreateOperation(*operation_info, LOG_LEVEL_INFO, "Get log level information");
 
-	CreateOperation(*operation_info, NETWORK_INTERFACES_INFO, "Get the available network interfaces").release();
+	CreateOperation(*operation_info, NETWORK_INTERFACES_INFO, "Get the available network interfaces");
 
-	CreateOperation(*operation_info, MAPPING_INFO, "Get mapping of extensions to device types").release();
+	CreateOperation(*operation_info, MAPPING_INFO, "Get mapping of extensions to device types");
 
-	CreateOperation(*operation_info, RESERVED_IDS_INFO, "Get list of reserved device IDs").release();
+	CreateOperation(*operation_info, RESERVED_IDS_INFO, "Get list of reserved device IDs");
 
 	operation = CreateOperation(*operation_info, DEFAULT_FOLDER, "Set default image file folder");
-	AddOperationParameter(*operation, "folder", "Default image file folder name", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "folder", "Default image file folder name", "", true);
 
 	operation = CreateOperation(*operation_info, LOG_LEVEL, "Set log level");
-	AddOperationParameter(*operation, "level", "New log level", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "level", "New log level", "", true);
 
 	operation = CreateOperation(*operation_info, RESERVE_IDS, "Reserve device IDs");
-	AddOperationParameter(*operation, "ids", "Comma-separated device ID list", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "ids", "Comma-separated device ID list", "", true);
 
 	operation = CreateOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
-	auto parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true).release();
+	auto parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true);
 	parameter->add_permitted_values("rascsi");
 	// System shutdown/reboot requires root permissions
 	if (!getuid()) {
 		parameter->add_permitted_values("system");
 		parameter->add_permitted_values("reboot");
 	}
-	operation.release();
 
 	operation = CreateOperation(*operation_info, CREATE_IMAGE, "Create an image file");
-	AddOperationParameter(*operation, "file", "Image file name", "", true).release();
-	AddOperationParameter(*operation, "size", "Image file size in bytes", "", true).release();
-	parameter = AddOperationParameter(*operation, "read_only",  "Read-only flag", "false").release();
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "size", "Image file size in bytes", "", true);
+	parameter = AddOperationParameter(*operation, "read_only",  "Read-only flag", "false");
 	parameter->add_permitted_values("true");
 	parameter->add_permitted_values("false");
-	operation.release();
 
 	operation = CreateOperation(*operation_info, DELETE_IMAGE, "Delete image file");
-	AddOperationParameter(*operation, "file", "Image file name", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	operation = CreateOperation(*operation_info, RENAME_IMAGE, "Rename image file");
-	AddOperationParameter(*operation, "from", "Source image file name", "", true).release();
-	AddOperationParameter(*operation, "to", "Destination image file name", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "from", "Source image file name", "", true);
+	AddOperationParameter(*operation, "to", "Destination image file name", "", true);
 
 	operation = CreateOperation(*operation_info, COPY_IMAGE, "Copy image file");
-	AddOperationParameter(*operation, "from", "Source image file name", "", true).release();
-	AddOperationParameter(*operation, "to", "Destination image file name", "", true).release();
-	parameter = AddOperationParameter(*operation, "read_only", "Read-only flag", "false").release();
+	AddOperationParameter(*operation, "from", "Source image file name", "", true);
+	AddOperationParameter(*operation, "to", "Destination image file name", "", true);
+	parameter = AddOperationParameter(*operation, "read_only", "Read-only flag", "false");
 	parameter->add_permitted_values("true");
 	parameter->add_permitted_values("false");
-	operation.release();
 
 	operation = CreateOperation(*operation_info, PROTECT_IMAGE, "Write-protect image file");
-	AddOperationParameter(*operation, "file", "Image file name", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	operation = CreateOperation(*operation_info, UNPROTECT_IMAGE, "Make image file writable");
-	AddOperationParameter(*operation, "file", "Image file name", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	operation = CreateOperation(*operation_info, CHECK_AUTHENTICATION, "Check whether an authentication token is valid");
-	AddOperationParameter(*operation, "token", "Authentication token to be checked", "", true).release();
-	operation.release();
+	AddOperationParameter(*operation, "token", "Authentication token to be checked", "", true);
 
-	CreateOperation(*operation_info, OPERATION_INFO, "Get operation meta data").release();
+	CreateOperation(*operation_info, OPERATION_INFO, "Get operation meta data");
 
 	result.set_status(true);
 
 	return operation_info;
 }
 
-unique_ptr<PbOperationMetaData> PiscsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
+PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
 		const string& description) const
 {
 	auto meta_data = make_unique<PbOperationMetaData>();
@@ -470,13 +454,13 @@ unique_ptr<PbOperationMetaData> PiscsiResponse::CreateOperation(PbOperationInfo&
 	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
 	(*operation_info.mutable_operations())[ordinal] = *meta_data.release();
-	return unique_ptr<PbOperationMetaData>(&(*operation_info.mutable_operations())[ordinal]);
+	return &(*operation_info.mutable_operations())[ordinal];
 }
 
-unique_ptr<PbOperationParameter> PiscsiResponse::AddOperationParameter(PbOperationMetaData& meta_data,
+PbOperationParameter *PiscsiResponse::AddOperationParameter(PbOperationMetaData& meta_data,
 		const string& name, const string& description, const string& default_value, bool is_mandatory) const
 {
-	auto parameter = unique_ptr<PbOperationParameter>(meta_data.add_parameters());
+	auto parameter = meta_data.add_parameters();
 	parameter->set_name(name);
 	parameter->set_description(description);
 	parameter->set_default_value(default_value);
