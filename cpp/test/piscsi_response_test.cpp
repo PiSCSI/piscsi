@@ -20,10 +20,10 @@ using namespace piscsi_interface;
 TEST(PiscsiResponseTest, Operation_Count)
 {
 	PiscsiResponse response;
-	PbResult result;
 
-	const auto info = response.GetOperationInfo(result, 0);
-	EXPECT_EQ(PbOperation_ARRAYSIZE - 1, info->operations_size());
+	PbOperationInfo info;
+	response.GetOperationInfo(info, 0);
+	EXPECT_EQ(PbOperation_ARRAYSIZE - 1, info.operations_size());
 }
 
 void TestNonDiskDevice(PbDeviceType type, int default_param_count)

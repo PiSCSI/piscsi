@@ -39,7 +39,7 @@ public:
 	void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo&) const;
 	void GetMappingInfo(PbMappingInfo&) const;
 	void GetLogLevelInfo(PbLogLevelInfo&) const;
-	PbOperationInfo *GetOperationInfo(PbResult&, int) const;
+	void GetOperationInfo(PbOperationInfo&, int) const;
 
 private:
 

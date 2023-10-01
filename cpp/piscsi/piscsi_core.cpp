@@ -414,7 +414,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case OPERATION_INFO:
-			result.set_allocated_operation_info(response.GetOperationInfo(result, piscsi_image.GetDepth()));
+			response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
