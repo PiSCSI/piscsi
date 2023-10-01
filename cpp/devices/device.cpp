@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_version.h"
-#include "shared/piscsi_exceptions.h"
 #include "device.h"
 #include <spdlog/spdlog.h>
 #include <cassert>
