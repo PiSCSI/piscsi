@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2021-2023 Uwe Seimet
 //
+// This class uses raw pointers because protobuf does not have support for smart pointers
+//
 //---------------------------------------------------------------------------
 
 #include "controllers/controller_manager.h"
