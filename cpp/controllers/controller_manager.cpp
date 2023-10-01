@@ -21,6 +21,10 @@ shared_ptr<ScsiController> ControllerManager::CreateScsiController(BUS& bus, int
 bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryDevice> device)
 {
 	if (auto controller = FindController(id); controller != nullptr) {
+		if (controller->HasDeviceForLun(device->GetLun())) {
+			return false;
+		}
+
 		return controller->AddDevice(device);
 	}
 
