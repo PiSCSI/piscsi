@@ -42,6 +42,8 @@ public:
 
 private:
 
+	inline static const vector<string> empty_vector;
+
 	const DeviceFactory device_factory;
 
 	void GetDeviceProperties(const Device&, PbDeviceProperties&) const;
@@ -51,7 +53,7 @@ private:
 	void GetAvailableImages(PbServerInfo&, const string&, const string&, const string&, int) const;
 	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	void AddOperationParameter(PbOperationMetaData&, const string&, const string&,
-			const string& = "", bool = false, vector<string> = {}) const;
+			const string& = "", bool = false, const vector<string>& = empty_vector) const;
 	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 
 	static bool ValidateImageFile(const path&);

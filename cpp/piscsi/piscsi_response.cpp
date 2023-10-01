@@ -387,7 +387,8 @@ PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_
 }
 
 void PiscsiResponse::AddOperationParameter(PbOperationMetaData& meta_data, const string& name,
-		const string& description, const string& default_value, bool is_mandatory, vector<string> permitted_values) const
+		const string& description, const string& default_value, bool is_mandatory,
+		const vector<string>& permitted_values) const
 {
 	auto parameter = meta_data.add_parameters();
 	parameter->set_name(name);
