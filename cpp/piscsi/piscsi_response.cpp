@@ -26,31 +26,27 @@ using namespace piscsi_util;
 using namespace network_util;
 using namespace protobuf_util;
 
-PbDeviceProperties *PiscsiResponse::GetDeviceProperties(const Device& device) const
+void PiscsiResponse::GetDeviceProperties(PbDeviceProperties& properties, const Device& device) const
 {
-	auto properties = new PbDeviceProperties();
-
-	properties->set_luns(ControllerManager::GetScsiLunMax());
-	properties->set_read_only(device.IsReadOnly());
-	properties->set_protectable(device.IsProtectable());
-	properties->set_stoppable(device.IsStoppable());
-	properties->set_removable(device.IsRemovable());
-	properties->set_lockable(device.IsLockable());
-	properties->set_supports_file(device.SupportsFile());
-	properties->set_supports_params(device.SupportsParams());
+	properties.set_luns(ControllerManager::GetScsiLunMax());
+	properties.set_read_only(device.IsReadOnly());
+	properties.set_protectable(device.IsProtectable());
+	properties.set_stoppable(device.IsStoppable());
+	properties.set_removable(device.IsRemovable());
+	properties.set_lockable(device.IsLockable());
+	properties.set_supports_file(device.SupportsFile());
+	properties.set_supports_params(device.SupportsParams());
 
 	if (device.SupportsParams()) {
 		for (const auto& [key, value] : device_factory.GetDefaultParams(device.GetType())) {
-			auto& map = *properties->mutable_default_params();
+			auto& map = *properties.mutable_default_params();
 			map[key] = value;
 		}
 	}
 
 	for (const auto& block_size : device_factory.GetSectorSizes(device.GetType())) {
-		properties->add_block_sizes(block_size);
+		properties.add_block_sizes(block_size);
 	}
-
-	return properties;
 }
 
 void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type) const
@@ -58,7 +54,7 @@ void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	auto type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
 	const auto device = device_factory.CreateDevice(type, 0, "");
-	type_properties->set_allocated_properties(GetDeviceProperties(*device));
+	GetDeviceProperties(*type_properties->mutable_properties(), *device);
 }
 
 void PiscsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info) const
@@ -82,7 +78,7 @@ void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 	pb_device.set_revision(device.GetRevision());
 	pb_device.set_type(device.GetType());
 
-    pb_device.set_allocated_properties(GetDeviceProperties(device));
+    GetDeviceProperties(*pb_device.mutable_properties(), device);
 
     auto status = new PbDeviceStatus();
 	status->set_protected_(device.IsProtected());
