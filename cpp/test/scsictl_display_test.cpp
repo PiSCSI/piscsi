@@ -54,7 +54,7 @@ TEST(ScsictlDisplayTest, DisplayDeviceInfo)
 	auto file = make_unique<PbImageFile>();
 	file->set_name("filename");
 	device.set_allocated_file(file.release());
-	s = display.DisplayDeviceInfo(device); //NOSONAR The allocated memory is managed by protobuf
+	s = display.DisplayDeviceInfo(device);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("filename"));
 
