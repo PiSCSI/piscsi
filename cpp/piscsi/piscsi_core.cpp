@@ -416,8 +416,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case RESERVED_IDS_INFO:
-			result.set_allocated_reserved_ids_info(piscsi_response.GetReservedIds(result,
-					executor->GetReservedIds()));
+			piscsi_response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
@@ -491,6 +491,14 @@ int Piscsi::run(span<char *> args)
 
 	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
 		!error.empty()) {
+		cerr << "Error: " << error << endl;
+
+		Cleanup();
+
+		return EXIT_FAILURE;
+	}
+
+	if (const string error = executor->SetReservedIds(reserved_ids); !error.empty()) {
 		cerr << "Error: " << error << endl;
 
 		Cleanup();

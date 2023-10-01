@@ -192,16 +192,11 @@ void PiscsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	result.set_status(true);
 }
 
-PbReservedIdsInfo *PiscsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids) const
+void PiscsiResponse::GetReservedIds(PbReservedIdsInfo& reserved_ids_info, const unordered_set<int>& ids) const
 {
-	auto reserved_ids_info = new PbReservedIdsInfo();
 	for (const int id : ids) {
-		reserved_ids_info->add_ids(id);
+		reserved_ids_info.add_ids(id);
 	}
-
-	result.set_status(true);
-
-	return reserved_ids_info;
 }
 
 void PiscsiResponse::GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbServerInfo& server_info,
@@ -271,7 +266,7 @@ PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<Prima
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(devices, *server_info, default_folder);
-	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
+	GetReservedIds(*server_info->mutable_reserved_ids_info(), reserved_ids);
 	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
 
 	result.set_status(true);

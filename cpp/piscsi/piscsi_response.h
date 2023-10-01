@@ -29,7 +29,7 @@ public:
 
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, const string&, int) const;
-	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&) const;
+	void GetReservedIds(PbReservedIdsInfo&, const unordered_set<int>&) const;
 	void GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbServerInfo&, const string&) const;
 	void GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&, const string&) const;
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&) const;
