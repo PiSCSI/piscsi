@@ -263,8 +263,8 @@ PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<Prima
 	GetLogLevelInfo(*server_info->mutable_log_level_info());
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
-	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
-	server_info->set_allocated_mapping_info(GetMappingInfo(result));
+	GetNetworkInterfacesInfo(*server_info->mutable_network_interfaces_info());
+	GetMappingInfo(*server_info->mutable_mapping_info());
 	GetDevices(devices, *server_info, default_folder);
 	GetReservedIds(*server_info->mutable_reserved_ids_info(), reserved_ids);
 	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
@@ -290,30 +290,18 @@ void PiscsiResponse::GetLogLevelInfo(PbLogLevelInfo& log_level_info) const
 	log_level_info.set_current_log_level(spdlog::level::level_string_views[spdlog::get_level()].data());
 }
 
-PbNetworkInterfacesInfo *PiscsiResponse::GetNetworkInterfacesInfo(PbResult& result) const
+void PiscsiResponse::GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info) const
 {
-	auto network_interfaces_info = new PbNetworkInterfacesInfo();
-
 	for (const auto& network_interface : GetNetworkInterfaces()) {
-		network_interfaces_info->add_name(network_interface);
+		network_interfaces_info.add_name(network_interface);
 	}
-
-	result.set_status(true);
-
-	return network_interfaces_info;
 }
 
-PbMappingInfo *PiscsiResponse::GetMappingInfo(PbResult& result) const
+void PiscsiResponse::GetMappingInfo(PbMappingInfo& mapping_info) const
 {
-	auto mapping_info = new PbMappingInfo();
-
 	for (const auto& [name, type] : device_factory.GetExtensionMapping()) {
-		(*mapping_info->mutable_mapping())[name] = type;
+		(*mapping_info.mutable_mapping())[name] = type;
 	}
-
-	result.set_status(true);
-
-	return mapping_info;
 }
 
 PbOperationInfo *PiscsiResponse::GetOperationInfo(PbResult& result, int depth) const

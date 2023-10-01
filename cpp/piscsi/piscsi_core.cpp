@@ -345,18 +345,17 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case DEVICES_INFO:
-			piscsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command,
-					piscsi_image.GetDefaultFolder());
+			response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
 			context.WriteResult(result);
 			break;
 
 		case DEVICE_TYPES_INFO:
-			result.set_allocated_device_types_info(piscsi_response.GetDeviceTypesInfo(result));
+			result.set_allocated_device_types_info(response.GetDeviceTypesInfo(result));
 			context.WriteResult(result);
 			break;
 
 		case SERVER_INFO:
-			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager.GetAllDevices(),
+			result.set_allocated_server_info(response.GetServerInfo(controller_manager.GetAllDevices(),
 					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					piscsi_image.GetDepth()));
@@ -364,19 +363,19 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case VERSION_INFO:
-			piscsi_response.GetVersionInfo(*result.mutable_version_info());
+			response.GetVersionInfo(*result.mutable_version_info());
 			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
 		case LOG_LEVEL_INFO:
-			piscsi_response.GetLogLevelInfo(*result.mutable_log_level_info());
+			response.GetLogLevelInfo(*result.mutable_log_level_info());
 			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
 		case DEFAULT_IMAGE_FILES_INFO:
-			result.set_allocated_image_files_info(piscsi_response.GetAvailableImages(result,
+			result.set_allocated_image_files_info(response.GetAvailableImages(result,
 					piscsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), piscsi_image.GetDepth()));
 			context.WriteResult(result);
@@ -388,7 +387,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				const bool status = piscsi_response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
+				const bool status = response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
 						filename);
 				if (status) {
 					result.set_allocated_image_file_info(image_file.get());
@@ -402,23 +401,24 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case NETWORK_INTERFACES_INFO:
-			result.set_allocated_network_interfaces_info(piscsi_response.GetNetworkInterfacesInfo(result));
+			response.GetNetworkInterfacesInfo(*result.mutable_network_interfaces_info());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
 		case MAPPING_INFO:
-			result.set_allocated_mapping_info(piscsi_response.GetMappingInfo(result));
+			response.GetMappingInfo(*result.mutable_mapping_info());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 
 		case OPERATION_INFO:
-			result.set_allocated_operation_info(piscsi_response.GetOperationInfo(result,
-					piscsi_image.GetDepth()));
+			result.set_allocated_operation_info(response.GetOperationInfo(result, piscsi_image.GetDepth()));
 			context.WriteResult(result);
 			break;
 
 		case RESERVED_IDS_INFO:
-			piscsi_response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
+			response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
 			result.set_status(true);
 			context.WriteResult(result);
 			break;
@@ -523,7 +523,7 @@ int Piscsi::run(span<char *> args)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	piscsi_response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
+	response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
 	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);

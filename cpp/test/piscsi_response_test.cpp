@@ -214,19 +214,17 @@ TEST(PiscsiResponseTest, GetLogLevelInfo)
 TEST(PiscsiResponseTest, GetNetworkInterfacesInfo)
 {
 	PiscsiResponse response;
-	PbResult result;
 
-	const auto& info = response.GetNetworkInterfacesInfo(result);
-	EXPECT_TRUE(result.status());
-	EXPECT_FALSE(info->name().empty());
+	PbNetworkInterfacesInfo info;
+	response.GetNetworkInterfacesInfo(info);
+	EXPECT_FALSE(info.name().empty());
 }
 
 TEST(PiscsiResponseTest, GetMappingInfo)
 {
 	PiscsiResponse response;
-	PbResult result;
 
-	const auto& info = response.GetMappingInfo(result);
-	EXPECT_TRUE(result.status());
-	EXPECT_EQ(10, info->mapping().size());
+	PbMappingInfo info;
+	response.GetMappingInfo(info);
+	EXPECT_EQ(10, info.mapping().size());
 }

@@ -66,7 +66,7 @@ private:
 
 	PiscsiImage piscsi_image;
 
-	PiscsiResponse piscsi_response;
+	PiscsiResponse response;
 
 	PiscsiService service;
 

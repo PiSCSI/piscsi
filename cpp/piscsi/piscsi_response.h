@@ -36,8 +36,8 @@ public:
 	void GetVersionInfo(PbVersionInfo&) const;
 	PbServerInfo *GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const unordered_set<int>&,
 			const string&, const string&, const string&, int) const;
-	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&) const;
-	PbMappingInfo *GetMappingInfo(PbResult&) const;
+	void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo&) const;
+	void GetMappingInfo(PbMappingInfo&) const;
 	void GetLogLevelInfo(PbLogLevelInfo&) const;
 	PbOperationInfo *GetOperationInfo(PbResult&, int) const;
 
