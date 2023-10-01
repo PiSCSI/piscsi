@@ -96,17 +96,16 @@ TEST(PiscsiResponseTest, GetReservedIds)
 {
 	PiscsiResponse response;
 	unordered_set<int> ids;
-	PbResult result;
 
-	const auto& info1 = response.GetReservedIds(result, ids);
-	EXPECT_TRUE(result.status());
-	EXPECT_TRUE(info1->ids().empty());
+	PbReservedIdsInfo info1;
+	response.GetReservedIds(info1, ids);
+	EXPECT_TRUE(info1.ids().empty());
 
 	ids.insert(3);
-	const auto& info2 = response.GetReservedIds(result, ids);
-	EXPECT_TRUE(result.status());
-	EXPECT_EQ(1, info2->ids().size());
-	EXPECT_EQ(3, info2->ids()[0]);
+	PbReservedIdsInfo info2;
+	response.GetReservedIds(info2, ids);
+	EXPECT_EQ(1, info2.ids().size());
+	EXPECT_EQ(3, info2.ids()[0]);
 }
 
 TEST(PiscsiResponseTest, GetDevicesInfo)
