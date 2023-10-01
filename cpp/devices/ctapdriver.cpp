@@ -50,11 +50,6 @@ static string br_setif(int br_socket_fd, const string& bridgename, const string&
 
 CTapDriver::~CTapDriver()
 {
-	CleanUp();
-}
-
-void CTapDriver::CleanUp() const
-{
 	if (m_hTAP != -1) {
 		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
 			LogErrno("Can't open bridge socket");
