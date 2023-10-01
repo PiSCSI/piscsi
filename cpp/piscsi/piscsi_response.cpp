@@ -167,29 +167,21 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	}
 }
 
-PbImageFilesInfo *PiscsiResponse::GetImageFilesInfo(PbResult& result, const string& default_folder,
+void PiscsiResponse::GetImageFilesInfo(PbImageFilesInfo& image_files_info, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	auto image_files_info = new PbImageFilesInfo();
+	image_files_info.set_default_image_folder(default_folder);
+	image_files_info.set_depth(scan_depth);
 
-	image_files_info->set_default_image_folder(default_folder);
-	image_files_info->set_depth(scan_depth);
-
-	GetAvailableImages(*image_files_info, default_folder, folder_pattern, file_pattern, scan_depth);
-
-	result.set_status(true);
-
-	return image_files_info;
+	GetAvailableImages(image_files_info, default_folder, folder_pattern, file_pattern, scan_depth);
 }
 
-void PiscsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& default_folder,
+void PiscsiResponse::GetAvailableImages(PbServerInfo& server_info, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	auto image_files_info = GetImageFilesInfo(result, default_folder, folder_pattern, file_pattern, scan_depth);
-	image_files_info->set_default_image_folder(default_folder);
-	server_info.set_allocated_image_files_info(image_files_info);
+	server_info.mutable_image_files_info()->set_default_image_folder(default_folder);
 
-	result.set_status(true);
+	GetImageFilesInfo(*server_info.mutable_image_files_info(), default_folder, folder_pattern, file_pattern, scan_depth);
 }
 
 void PiscsiResponse::GetReservedIds(PbReservedIdsInfo& reserved_ids_info, const unordered_set<int>& ids) const
@@ -251,7 +243,7 @@ PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<Prima
 	GetVersionInfo(*server_info->mutable_version_info());
 	GetLogLevelInfo(*server_info->mutable_log_level_info());
 	GetDeviceTypesInfo(*server_info->mutable_device_types_info());
-	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
+	GetAvailableImages(*server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	GetNetworkInterfacesInfo(*server_info->mutable_network_interfaces_info());
 	GetMappingInfo(*server_info->mutable_mapping_info());
 	GetDevices(devices, *server_info, default_folder);

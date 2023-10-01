@@ -376,9 +376,9 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case DEFAULT_IMAGE_FILES_INFO:
-			result.set_allocated_image_files_info(response.GetImageFilesInfo(result,
-					piscsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
-					GetParam(command, "file_pattern"), piscsi_image.GetDepth()));
+			response.GetImageFilesInfo(*result.mutable_image_files_info(), piscsi_image.GetDefaultFolder(),
+					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 

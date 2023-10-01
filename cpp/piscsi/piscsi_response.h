@@ -28,7 +28,7 @@ public:
 	~PiscsiResponse() = default;
 
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
-	PbImageFilesInfo *GetImageFilesInfo(PbResult&, const string&, const string&, const string&, int) const;
+	void GetImageFilesInfo(PbImageFilesInfo&, const string&, const string&, const string&, int) const;
 	void GetReservedIds(PbReservedIdsInfo&, const unordered_set<int>&) const;
 	void GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbServerInfo&, const string&) const;
 	void GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&, const string&) const;
@@ -49,7 +49,7 @@ private:
 	void GetDevice(const Device&, PbDevice&, const string&) const;
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType) const;
 	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, int) const;
-	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, const string&, int) const;
+	void GetAvailableImages(PbServerInfo&, const string&, const string&, const string&, int) const;
 	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false) const;

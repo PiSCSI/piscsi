@@ -85,11 +85,10 @@ TEST(PiscsiResponseTest, GetImageFile)
 TEST(PiscsiResponseTest, GetImageFilesInfo)
 {
 	PiscsiResponse response;
-	PbResult result;
 
-	const auto& image_files_info = response.GetImageFilesInfo(result, "default_folder", "", "", 1);
-	EXPECT_TRUE(result.status());
-	EXPECT_TRUE(image_files_info->image_files().empty());
+	PbImageFilesInfo info;
+	response.GetImageFilesInfo(info, "default_folder", "", "", 1);
+	EXPECT_TRUE(info.image_files().empty());
 }
 
 TEST(PiscsiResponseTest, GetReservedIds)
