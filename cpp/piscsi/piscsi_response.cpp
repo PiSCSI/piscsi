@@ -99,9 +99,7 @@ void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 
     const auto storage_device = dynamic_cast<const StorageDevice *>(&device);
 	if (storage_device != nullptr) {
-		auto image_file = new PbImageFile();
-		GetImageFile(*image_file, default_folder, device.IsReady() ? storage_device->GetFilename() : "");
-		pb_device.set_allocated_file(image_file);
+		GetImageFile(*pb_device.mutable_file(), default_folder, device.IsReady() ? storage_device->GetFilename() : "");
 	}
 }
 
