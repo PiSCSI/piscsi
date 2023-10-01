@@ -118,18 +118,18 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 	ControllerManager controller_manager;
 	PiscsiResponse response;
 	PbCommand command;
-	PbResult result;
 
-	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
-	EXPECT_TRUE(result.status());
-	EXPECT_TRUE(result.devices_info().devices().empty());
+	PbResult result1;
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result1, command, "");
+	EXPECT_TRUE(result1.status());
+	EXPECT_TRUE(result1.devices_info().devices().empty());
 
 	auto device1 = make_shared<MockHostServices>(LUN1);
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device1));
 
-	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
-	EXPECT_TRUE(result.status());
-	auto& devices1 = result.devices_info().devices();
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result1, command, "");
+	EXPECT_TRUE(result1.status());
+	auto& devices1 = result1.devices_info().devices();
 	EXPECT_EQ(1, devices1.size());
 	EXPECT_EQ(SCHS, devices1[0].type());
 	EXPECT_EQ(ID, devices1[0].id());
@@ -138,17 +138,19 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 	auto device2 = make_shared<MockSCSIHD_NEC>(LUN2);
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device2));
 
-	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
-	EXPECT_TRUE(result.status());
-	auto& devices2 = result.devices_info().devices();
-	EXPECT_EQ(2, devices2.size()) << "Data for all devices must be returned";
+	PbResult result2;
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result2, command, "");
+	EXPECT_TRUE(result2.status());
+	auto& devices2 = result2.devices_info().devices();
+	EXPECT_EQ(2, devices2.size()) << "Device count mismatch";
 
 	auto requested_device = command.add_devices();
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN1);
-	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
-	EXPECT_TRUE(result.status());
-	auto& devices3 = result.devices_info().devices();
+	PbResult result3;
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result3, command, "");
+	EXPECT_TRUE(result3.status());
+	auto& devices3 = result3.devices_info().devices();
 	EXPECT_EQ(1, devices3.size()) << "Only data for the specified ID and LUN must be returned";
 	EXPECT_EQ(SCHS, devices3[0].type());
 	EXPECT_EQ(ID, devices3[0].id());
@@ -156,8 +158,9 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN3);
-	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
-	EXPECT_FALSE(result.status()) << "Only data for the specified ID and LUN must be returned";
+	PbResult result4;
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result4, command, "");
+	EXPECT_FALSE(result4.status()) << "Only data for the specified ID and LUN must be returned";
 }
 
 TEST(PiscsiResponseTest, GetDeviceTypesInfo)
