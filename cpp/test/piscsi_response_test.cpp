@@ -82,12 +82,12 @@ TEST(PiscsiResponseTest, GetImageFile)
 	EXPECT_EQ(SCHD, image_file.type());
 }
 
-TEST(PiscsiResponseTest, GetAvailableImages)
+TEST(PiscsiResponseTest, GetImageFilesInfo)
 {
 	PiscsiResponse response;
 	PbResult result;
 
-	const auto& image_files_info = response.GetAvailableImages(result, "default_folder", "", "", 1);
+	const auto& image_files_info = response.GetImageFilesInfo(result, "default_folder", "", "", 1);
 	EXPECT_TRUE(result.status());
 	EXPECT_TRUE(image_files_info->image_files().empty());
 }

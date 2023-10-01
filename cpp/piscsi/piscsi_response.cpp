@@ -167,7 +167,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	}
 }
 
-PbImageFilesInfo *PiscsiResponse::GetAvailableImages(PbResult& result, const string& default_folder,
+PbImageFilesInfo *PiscsiResponse::GetImageFilesInfo(PbResult& result, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	auto image_files_info = new PbImageFilesInfo();
@@ -185,7 +185,7 @@ PbImageFilesInfo *PiscsiResponse::GetAvailableImages(PbResult& result, const str
 void PiscsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	auto image_files_info = GetAvailableImages(result, default_folder, folder_pattern, file_pattern, scan_depth);
+	auto image_files_info = GetImageFilesInfo(result, default_folder, folder_pattern, file_pattern, scan_depth);
 	image_files_info->set_default_image_folder(default_folder);
 	server_info.set_allocated_image_files_info(image_files_info);
 
