@@ -351,7 +351,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case DEVICE_TYPES_INFO:
-			result.set_allocated_device_types_info(piscsi_response.GetDeviceTypesInfo(result).release());
+			result.set_allocated_device_types_info(piscsi_response.GetDeviceTypesInfo(result));
 			context.WriteResult(result);
 			break;
 
@@ -359,24 +359,24 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager.GetAllDevices(),
 					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
-					piscsi_image.GetDepth()).release());
+					piscsi_image.GetDepth()));
 			context.WriteResult(result);
 			break;
 
 		case VERSION_INFO:
-			result.set_allocated_version_info(piscsi_response.GetVersionInfo(result).release());
+			result.set_allocated_version_info(piscsi_response.GetVersionInfo(result));
 			context.WriteResult(result);
 			break;
 
 		case LOG_LEVEL_INFO:
-			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result).release());
+			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result));
 			context.WriteResult(result);
 			break;
 
 		case DEFAULT_IMAGE_FILES_INFO:
 			result.set_allocated_image_files_info(piscsi_response.GetAvailableImages(result,
 					piscsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
-					GetParam(command, "file_pattern"), piscsi_image.GetDepth()).release());
+					GetParam(command, "file_pattern"), piscsi_image.GetDepth()));
 			context.WriteResult(result);
 			break;
 
@@ -400,24 +400,24 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case NETWORK_INTERFACES_INFO:
-			result.set_allocated_network_interfaces_info(piscsi_response.GetNetworkInterfacesInfo(result).release());
+			result.set_allocated_network_interfaces_info(piscsi_response.GetNetworkInterfacesInfo(result));
 			context.WriteResult(result);
 			break;
 
 		case MAPPING_INFO:
-			result.set_allocated_mapping_info(piscsi_response.GetMappingInfo(result).release());
+			result.set_allocated_mapping_info(piscsi_response.GetMappingInfo(result));
 			context.WriteResult(result);
 			break;
 
 		case OPERATION_INFO:
 			result.set_allocated_operation_info(piscsi_response.GetOperationInfo(result,
-					piscsi_image.GetDepth()).release());
+					piscsi_image.GetDepth()));
 			context.WriteResult(result);
 			break;
 
 		case RESERVED_IDS_INFO:
 			result.set_allocated_reserved_ids_info(piscsi_response.GetReservedIds(result,
-					executor->GetReservedIds()).release());
+					executor->GetReservedIds()));
 			context.WriteResult(result);
 			break;
 

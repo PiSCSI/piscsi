@@ -24,9 +24,9 @@ using namespace piscsi_util;
 using namespace network_util;
 using namespace protobuf_util;
 
-unique_ptr<PbDeviceProperties> PiscsiResponse::GetDeviceProperties(const Device& device) const
+PbDeviceProperties *PiscsiResponse::GetDeviceProperties(const Device& device) const
 {
-	auto properties = make_unique<PbDeviceProperties>();
+	auto properties = new PbDeviceProperties();
 
 	properties->set_luns(ControllerManager::GetScsiLunMax());
 	properties->set_read_only(device.IsReadOnly());
@@ -56,8 +56,8 @@ void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	auto type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
 	const auto device = device_factory.CreateDevice(type, 0, "");
-	type_properties->set_allocated_properties(GetDeviceProperties(*device).release());
-} //NOSONAR The allocated memory is managed by protobuf
+	type_properties->set_allocated_properties(GetDeviceProperties(*device));
+}
 
 void PiscsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info) const
 {
@@ -80,16 +80,16 @@ void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 	pb_device.set_revision(device.GetRevision());
 	pb_device.set_type(device.GetType());
 
-    pb_device.set_allocated_properties(GetDeviceProperties(device).release());
+    pb_device.set_allocated_properties(GetDeviceProperties(device));
 
-    auto status = make_unique<PbDeviceStatus>(); //NOSONAR The allocated memory is managed by protobuf
+    auto status = new PbDeviceStatus();
 	status->set_protected_(device.IsProtected());
 	status->set_stopped(device.IsStopped());
 	status->set_removed(device.IsRemoved());
 	status->set_locked(device.IsLocked());
-	pb_device.set_allocated_status(status.release());
+	pb_device.set_allocated_status(status);
 
-	if (device.SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
+	if (device.SupportsParams()) {
 		for (const auto& [key, value] : device.GetParams()) {
 			SetParam(pb_device, key, value);
 		}
@@ -102,11 +102,11 @@ void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 
     const auto storage_device = dynamic_cast<const StorageDevice *>(&device);
 	if (storage_device != nullptr) {
-		auto image_file = make_unique<PbImageFile>().release();
+		auto image_file = new PbImageFile();
 		GetImageFile(*image_file, default_folder, device.IsReady() ? storage_device->GetFilename() : "");
 		pb_device.set_allocated_file(image_file);
 	}
-} //NOSONAR The allocated memory is managed by protobuf
+}
 
 bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default_folder, const string& filename) const
 {
@@ -163,16 +163,16 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 
 		const string filename = folder.empty() ?
 				it->path().filename().string() : folder + "/" + it->path().filename().string();
-		if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
+		if (auto image_file = new PbImageFile(); GetImageFile(*image_file, default_folder, filename)) {
 			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
 	}
 }
 
-unique_ptr<PbImageFilesInfo> PiscsiResponse::GetAvailableImages(PbResult& result, const string& default_folder,
+PbImageFilesInfo *PiscsiResponse::GetAvailableImages(PbResult& result, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	auto image_files_info = make_unique<PbImageFilesInfo>();
+	auto image_files_info = new PbImageFilesInfo();
 
 	image_files_info->set_default_image_folder(default_folder);
 	image_files_info->set_depth(scan_depth);
@@ -189,14 +189,14 @@ void PiscsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 {
 	auto image_files_info = GetAvailableImages(result, default_folder, folder_pattern, file_pattern, scan_depth);
 	image_files_info->set_default_image_folder(default_folder);
-	server_info.set_allocated_image_files_info(image_files_info.release());
+	server_info.set_allocated_image_files_info(image_files_info);
 
-	result.set_status(true); //NOSONAR The allocated memory is managed by protobuf
+	result.set_status(true);
 }
 
-unique_ptr<PbReservedIdsInfo> PiscsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids) const
+PbReservedIdsInfo *PiscsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids) const
 {
-	auto reserved_ids_info = make_unique<PbReservedIdsInfo>();
+	auto reserved_ids_info = new PbReservedIdsInfo();
 	for (const int id : ids) {
 		reserved_ids_info->add_ids(id);
 	}
@@ -234,7 +234,7 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 		}
 	}
 
-	auto devices_info = make_unique<PbDevicesInfo>();
+	auto devices_info = new PbDevicesInfo();
 
 	for (const auto& [id, lun] : id_sets) {
 		for (const auto& d : devices) {
@@ -245,13 +245,13 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 		}
 	}
 
-	result.set_allocated_devices_info(devices_info.release());
+	result.set_allocated_devices_info(devices_info);
 	result.set_status(true);
 }
 
-unique_ptr<PbDeviceTypesInfo> PiscsiResponse::GetDeviceTypesInfo(PbResult& result) const
+PbDeviceTypesInfo *PiscsiResponse::GetDeviceTypesInfo(PbResult& result) const
 {
-	auto device_types_info = make_unique<PbDeviceTypesInfo>();
+	auto device_types_info = new PbDeviceTypesInfo();
 
 	GetAllDeviceTypeProperties(*device_types_info);
 
@@ -260,30 +260,30 @@ unique_ptr<PbDeviceTypesInfo> PiscsiResponse::GetDeviceTypesInfo(PbResult& resul
 	return device_types_info;
 }
 
-unique_ptr<PbServerInfo> PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices,
+PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices,
 		PbResult& result, const unordered_set<int>& reserved_ids, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	auto server_info = make_unique<PbServerInfo>();
+	auto server_info = new PbServerInfo();
 
-	server_info->set_allocated_version_info(GetVersionInfo(result).release());
-	server_info->set_allocated_log_level_info(GetLogLevelInfo(result).release()); //NOSONAR The allocated memory is managed by protobuf
-	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The allocated memory is managed by protobuf
+	server_info->set_allocated_version_info(GetVersionInfo(result));
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result));
+	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
-	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result).release());
-	server_info->set_allocated_mapping_info(GetMappingInfo(result).release()); //NOSONAR The allocated memory is managed by protobuf
-	GetDevices(devices, *server_info, default_folder); //NOSONAR The allocated memory is managed by protobuf
-	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids).release());
-	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth).release()); //NOSONAR The allocated memory is managed by protobuf
+	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
+	server_info->set_allocated_mapping_info(GetMappingInfo(result));
+	GetDevices(devices, *server_info, default_folder);
+	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
+	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
 
 	result.set_status(true);
 
 	return server_info;
 }
 
-unique_ptr<PbVersionInfo> PiscsiResponse::GetVersionInfo(PbResult& result) const
+PbVersionInfo *PiscsiResponse::GetVersionInfo(PbResult& result) const
 {
-	auto version_info = make_unique<PbVersionInfo>();
+	auto version_info = new PbVersionInfo();
 
 	version_info->set_major_version(piscsi_major_version);
 	version_info->set_minor_version(piscsi_minor_version);
@@ -294,9 +294,9 @@ unique_ptr<PbVersionInfo> PiscsiResponse::GetVersionInfo(PbResult& result) const
 	return version_info;
 }
 
-unique_ptr<PbLogLevelInfo> PiscsiResponse::GetLogLevelInfo(PbResult& result) const
+PbLogLevelInfo *PiscsiResponse::GetLogLevelInfo(PbResult& result) const
 {
-	auto log_level_info = make_unique<PbLogLevelInfo>();
+	auto log_level_info = new PbLogLevelInfo();
 
 	for (const auto& log_level : spdlog::level::level_string_views) {
 		log_level_info->add_log_levels(log_level.data());
@@ -309,9 +309,9 @@ unique_ptr<PbLogLevelInfo> PiscsiResponse::GetLogLevelInfo(PbResult& result) con
 	return log_level_info;
 }
 
-unique_ptr<PbNetworkInterfacesInfo> PiscsiResponse::GetNetworkInterfacesInfo(PbResult& result) const
+PbNetworkInterfacesInfo *PiscsiResponse::GetNetworkInterfacesInfo(PbResult& result) const
 {
-	auto network_interfaces_info = make_unique<PbNetworkInterfacesInfo>();
+	auto network_interfaces_info = new PbNetworkInterfacesInfo();
 
 	for (const auto& network_interface : GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
@@ -322,9 +322,9 @@ unique_ptr<PbNetworkInterfacesInfo> PiscsiResponse::GetNetworkInterfacesInfo(PbR
 	return network_interfaces_info;
 }
 
-unique_ptr<PbMappingInfo> PiscsiResponse::GetMappingInfo(PbResult& result) const
+PbMappingInfo *PiscsiResponse::GetMappingInfo(PbResult& result) const
 {
-	auto mapping_info = make_unique<PbMappingInfo>();
+	auto mapping_info = new PbMappingInfo();
 
 	for (const auto& [name, type] : device_factory.GetExtensionMapping()) {
 		(*mapping_info->mutable_mapping())[name] = type;
@@ -335,9 +335,9 @@ unique_ptr<PbMappingInfo> PiscsiResponse::GetMappingInfo(PbResult& result) const
 	return mapping_info;
 }
 
-unique_ptr<PbOperationInfo> PiscsiResponse::GetOperationInfo(PbResult& result, int depth) const
+PbOperationInfo *PiscsiResponse::GetOperationInfo(PbResult& result, int depth) const
 {
-	auto operation_info = make_unique<PbOperationInfo>();
+	auto operation_info = new PbOperationInfo();
 
 	auto operation = CreateOperation(*operation_info, ATTACH, "Attach device, device-specific parameters are required");
 	AddOperationParameter(*operation, "name", "Image file name in case of a mass storage device");
@@ -449,11 +449,11 @@ unique_ptr<PbOperationInfo> PiscsiResponse::GetOperationInfo(PbResult& result, i
 PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
 		const string& description) const
 {
-	auto meta_data = make_unique<PbOperationMetaData>();
+	auto meta_data = new PbOperationMetaData();
 	meta_data->set_server_side_name(PbOperation_Name(operation));
 	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
-	(*operation_info.mutable_operations())[ordinal] = *meta_data.release();
+	(*operation_info.mutable_operations())[ordinal] = *meta_data;
 	return &(*operation_info.mutable_operations())[ordinal];
 }
 
