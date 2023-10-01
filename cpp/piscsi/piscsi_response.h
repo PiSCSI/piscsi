@@ -13,6 +13,7 @@
 #include "devices/primary_device.h"
 #include "generated/piscsi_interface.pb.h"
 #include <string>
+#include <span>
 
 using namespace std;
 using namespace filesystem;
@@ -49,8 +50,8 @@ private:
 	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, int) const;
 	void GetAvailableImages(PbServerInfo&, const string&, const string&, const string&, int) const;
 	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
-	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
-			const string& = "", bool = false) const;
+	void AddOperationParameter(PbOperationMetaData&, const string&, const string&,
+			const string& = "", bool = false, vector<string> = {}) const;
 	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 
 	static bool ValidateImageFile(const path&);

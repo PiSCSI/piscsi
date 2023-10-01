@@ -337,20 +337,18 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 	AddOperationParameter(*operation, "ids", "Comma-separated device ID list", "", true);
 
 	operation = CreateOperation(operation_info, SHUT_DOWN, "Shut down or reboot");
-	auto parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true);
-	parameter->add_permitted_values("rascsi");
-	// System shutdown/reboot requires root permissions
-	if (!getuid()) {
-		parameter->add_permitted_values("system");
-		parameter->add_permitted_values("reboot");
+	if (getuid()) {
+		AddOperationParameter(*operation, "mode", "Shutdown mode", "", true, { "rascsi" } );
+	}
+	else {
+		// System shutdown/reboot requires root permissions
+		AddOperationParameter(*operation, "mode", "Shutdown mode", "", true, { "rascsi", "system", "reboot" } );
 	}
 
 	operation = CreateOperation(operation_info, CREATE_IMAGE, "Create an image file");
 	AddOperationParameter(*operation, "file", "Image file name", "", true);
 	AddOperationParameter(*operation, "size", "Image file size in bytes", "", true);
-	parameter = AddOperationParameter(*operation, "read_only",  "Read-only flag", "false");
-	parameter->add_permitted_values("true");
-	parameter->add_permitted_values("false");
+	AddOperationParameter(*operation, "read_only",  "Read-only flag", "false", false, { "true", "false" } );
 
 	operation = CreateOperation(operation_info, DELETE_IMAGE, "Delete image file");
 	AddOperationParameter(*operation, "file", "Image file name", "", true);
@@ -362,9 +360,7 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 	operation = CreateOperation(operation_info, COPY_IMAGE, "Copy image file");
 	AddOperationParameter(*operation, "from", "Source image file name", "", true);
 	AddOperationParameter(*operation, "to", "Destination image file name", "", true);
-	parameter = AddOperationParameter(*operation, "read_only", "Read-only flag", "false");
-	parameter->add_permitted_values("true");
-	parameter->add_permitted_values("false");
+	AddOperationParameter(*operation, "read_only", "Read-only flag", "false", false, { "true", "false" } );
 
 	operation = CreateOperation(operation_info, PROTECT_IMAGE, "Write-protect image file");
 	AddOperationParameter(*operation, "file", "Image file name", "", true);
@@ -390,17 +386,17 @@ PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_
 	return &(*operation_info.mutable_operations())[ordinal];
 }
 
-// This method returns a raw pointer because protobuf does not have support for smart pointers
-PbOperationParameter *PiscsiResponse::AddOperationParameter(PbOperationMetaData& meta_data,
-		const string& name, const string& description, const string& default_value, bool is_mandatory) const
+void PiscsiResponse::AddOperationParameter(PbOperationMetaData& meta_data, const string& name,
+		const string& description, const string& default_value, bool is_mandatory, vector<string> permitted_values) const
 {
 	auto parameter = meta_data.add_parameters();
 	parameter->set_name(name);
 	parameter->set_description(description);
 	parameter->set_default_value(default_value);
 	parameter->set_is_mandatory(is_mandatory);
-
-	return parameter;
+	for (const auto& permitted_value : permitted_values) {
+		parameter->add_permitted_values(permitted_value);
+	}
 }
 
 set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbResult& result,
