@@ -5,8 +5,6 @@
 //
 // Copyright (C) 2021-2023 Uwe Seimet
 //
-// This class uses raw pointers for protobuf structures because protobuf does not have support for smart pointers
-//
 //---------------------------------------------------------------------------
 
 #include "controllers/controller_manager.h"
@@ -380,6 +378,7 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 	CreateOperation(operation_info, OPERATION_INFO, "Get operation meta data");
 }
 
+// This method returns a raw pointer because protobuf does not have support for smart pointers
 PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
 		const string& description) const
 {
@@ -391,6 +390,7 @@ PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_
 	return &(*operation_info.mutable_operations())[ordinal];
 }
 
+// This method returns a raw pointer because protobuf does not have support for smart pointers
 PbOperationParameter *PiscsiResponse::AddOperationParameter(PbOperationMetaData& meta_data,
 		const string& name, const string& description, const string& default_value, bool is_mandatory) const
 {
