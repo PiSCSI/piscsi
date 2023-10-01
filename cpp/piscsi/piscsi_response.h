@@ -20,8 +20,6 @@ using namespace piscsi_interface;
 
 class PiscsiResponse
 {
-	using id_set = pair<int, int>;
-
 public:
 
 	PiscsiResponse() = default;

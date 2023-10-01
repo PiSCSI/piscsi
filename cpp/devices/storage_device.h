@@ -18,8 +18,6 @@
 
 using namespace std;
 
-using id_set = pair<int, int>;
-
 class StorageDevice : public ModePageDevice
 {
 public:
