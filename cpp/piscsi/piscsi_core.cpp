@@ -483,12 +483,6 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (const string error = executor->SetReservedIds(reserved_ids); !error.empty()) {
-		cerr << "Error: " << error << endl;
-
-		return EXIT_FAILURE;
-	}
-
 	if (!InitBus()) {
 		cerr << "Error: Can't initialize bus" << endl;
 
@@ -497,6 +491,14 @@ int Piscsi::run(span<char *> args)
 
 	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
 		!error.empty()) {
+		cerr << "Error: " << error << endl;
+
+		Cleanup();
+
+		return EXIT_FAILURE;
+	}
+
+	if (const string error = executor->SetReservedIds(reserved_ids); !error.empty()) {
 		cerr << "Error: " << error << endl;
 
 		Cleanup();
