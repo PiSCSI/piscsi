@@ -158,7 +158,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 
 		const string filename = folder.empty() ?
 				it->path().filename().string() : folder + "/" + it->path().filename().string();
-		if (auto image_file = new PbImageFile(); GetImageFile(*image_file, default_folder, filename)) {
+		if (PbImageFile image_file; GetImageFile(image_file, default_folder, filename)) {
 			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
 	}
