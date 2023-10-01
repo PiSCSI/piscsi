@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -22,14 +22,13 @@ void ScsiMo_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiMoTest, Inquiry)
 {
-	TestInquiry(SCMO, device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, "PiSCSI  SCSI MO         ", 0x1f, true);
+	TestInquiry::Inquiry(SCMO, device_type::optical_memory, scsi_level::scsi_2, "PiSCSI  SCSI MO         ", 0x1f, true);
 }
 
 TEST(ScsiMoTest, SupportsSaveParameters)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, {});
 
 	EXPECT_TRUE(mo.SupportsSaveParameters());
 }
@@ -37,8 +36,7 @@ TEST(ScsiMoTest, SupportsSaveParameters)
 TEST(ScsiMoTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, {});
 
 	// Non changeable
 	mo.SetUpModePages(pages, 0x3f, false);
@@ -53,8 +51,7 @@ TEST(ScsiMoTest, SetUpModePages)
 TEST(ScsiMoTest, TestAddVendorPage)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, {});
 
 	mo.SetReady(true);
 	mo.SetUpModePages(pages, 0x21, false);
@@ -125,8 +122,7 @@ TEST(ScsiMoTest, TestAddVendorPage)
 
 TEST(ScsiMoTest, ModeSelect)
 {
-	const unordered_set<uint32_t> sector_sizes = { 1024, 2048 };
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, { 1024, 2048 });
 	vector<int> cmd(10);
 	vector<uint8_t> buf(255);
 

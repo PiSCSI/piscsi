@@ -17,12 +17,15 @@
 #include "cd_track.h"
 #include "disk.h"
 #include "interfaces/scsi_mmc_commands.h"
+#include <span>
+#include <vector>
+#include <map>
 
 class SCSICD : public Disk, private ScsiMmcCommands
 {
 public:
 
-	SCSICD(int, const unordered_set<uint32_t>&, scsi_defs::scsi_level = scsi_level::SCSI_2);
+	SCSICD(int, const unordered_set<uint32_t>&, scsi_defs::scsi_level = scsi_level::scsi_2);
 	~SCSICD() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
@@ -30,7 +33,7 @@ public:
 	void Open() override;
 
 	vector<uint8_t> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<uint8_t>&, uint64_t) override;
+	int Read(span<uint8_t>, uint64_t) override;
 
 protected:
 
@@ -39,7 +42,7 @@ protected:
 
 private:
 
-	int ReadTocInternal(const vector<int>&, vector<uint8_t>&);
+	int ReadTocInternal(cdb_t, vector<uint8_t>&);
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;

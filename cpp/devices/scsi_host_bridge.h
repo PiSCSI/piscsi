@@ -17,16 +17,16 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "interfaces/byte_writer.h"
 #include "primary_device.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include <string>
+#include <span>
 #include <array>
 
 using namespace std;
 
-class SCSIBR : public PrimaryDevice, public ByteWriter
+class SCSIBR : public PrimaryDevice
 {
 	static constexpr const array<uint8_t, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
@@ -36,11 +36,12 @@ public:
 	~SCSIBR() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
+	void CleanUp() override;
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int GetMessage10(const vector<int>&, vector<uint8_t>&);
-	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
+	int GetMessage10(cdb_t, vector<uint8_t>&);
+	bool ReadWrite(cdb_t, vector<uint8_t>&);
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10() const;
@@ -48,16 +49,16 @@ public:
 private:
 
 	int GetMacAddr(vector<uint8_t>&) const;		// Get MAC address
-	void SetMacAddr(const vector<uint8_t>&);		// Set MAC address
+	void SetMacAddr(span<const uint8_t>);		// Set MAC address
 	void ReceivePacket();						// Receive a packet
-	void GetPacketBuf(vector<uint8_t>&, int);		// Get a packet
-	void SendPacket(const vector<uint8_t>&, int);	// Send a packet
+	void GetPacketBuf(vector<uint8_t>&, int);	// Get a packet
+	void SendPacket(span<const uint8_t>, int) const;	// Send a packet
 
 	CTapDriver tap;								// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag
-	array<uint8_t, 6> mac_addr = {};				// MAC Address
+	array<uint8_t, 6> mac_addr = {};			// MAC Address
 	int packet_len = 0;							// Receive packet size
-	array<uint8_t, 0x1000> packet_buf;				// Receive packet buffer
+	array<uint8_t, 0x1000> packet_buf;			// Receive packet buffer
 	bool packet_enable = false;					// Received packet valid
 
 	int ReadFsResult(vector<uint8_t>&) const;		// Read filesystem (result code)

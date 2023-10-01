@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 // Message localization support. Currently only for messages with up to 3 string parameters.
 //
@@ -14,6 +14,7 @@
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+#include <regex>
 
 using namespace std;
 
@@ -68,4 +69,8 @@ private:
 
 	// Supported locales, always lower case
 	unordered_set<string> supported_languages = { "en", "de", "sv", "fr", "es", "zh" };
+
+	const regex regex1 = regex("%1");
+	const regex regex2 = regex("%2");
+	const regex regex3 = regex("%3");
 };

@@ -3,26 +3,29 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
+#include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
-#include "generated/piscsi_interface.pb.h"
 #include "scsictl_display.h"
 #include <sstream>
-#include <list>
+#include <vector>
+#include <set>
+#include <map>
 #include <iomanip>
 
 using namespace std;
 using namespace piscsi_interface;
+using namespace piscsi_util;
 using namespace protobuf_util;
 
 string ScsictlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) const
 {
 	ostringstream s;
 
-	const list<PbDevice>& devices = { devices_info.devices().begin(), devices_info.devices().end() };
+	const vector<PbDevice> devices(devices_info.devices().begin(), devices_info.devices().end());
 
 	s << ListDevices(devices);
 
@@ -50,51 +53,33 @@ string ScsictlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 
 	s << "  ";
 
-	bool hasProperty = false;
+	vector<string> properties;
 
 	if (pb_device.properties().read_only()) {
-		s << "read-only";
-		hasProperty = true;
+		properties.emplace_back("read-only");
 	}
 
 	if (pb_device.properties().protectable() && pb_device.status().protected_()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "protected";
-		hasProperty = true;
+		properties.emplace_back("protected");
 	}
 
 	if (pb_device.properties().stoppable() && pb_device.status().stopped()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "stopped";
-		hasProperty = true;
+		properties.emplace_back("stopped");
 	}
 
 	if (pb_device.properties().removable() && pb_device.status().removed()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "removed";
-		hasProperty = true;
+		properties.emplace_back("removed");
 	}
 
 	if (pb_device.properties().lockable() && pb_device.status().locked()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "locked";
+		properties.emplace_back("locked");
 	}
 
-	if (hasProperty) {
-		s << "  ";
+	if (!properties.empty()) {
+		s << Join(properties) << "  ";
 	}
 
-	DisplayParams(s, pb_device);
-
-	s << '\n';
+	s << DisplayParams(pb_device) << '\n';
 
 	return s.str();
 }
@@ -103,8 +88,8 @@ string ScsictlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) con
 {
 	ostringstream s;
 
-	s << "piscsi server version: " << setw(2) << setfill('0') << version_info.major_version() << "."
-			<< setw(2) << setfill('0') << version_info.minor_version();
+	s << "piscsi server version: " << setfill('0') << setw(2) << version_info.major_version() << "."
+			<< setw(2) << version_info.minor_version();
 
 	if (version_info.patch_version() > 0) {
 		s << "." << version_info.patch_version();
@@ -149,7 +134,7 @@ string ScsictlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_ty
 
 		const PbDeviceProperties& properties = device_type_info.properties();
 
-		DisplayAttributes(s, properties);
+		s << DisplayAttributes(properties);
 
 		if (properties.supports_file()) {
 			s << "Image file support\n        ";
@@ -159,9 +144,9 @@ string ScsictlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_ty
 			s << "Parameter support\n        ";
 		}
 
-		DisplayDefaultParameters(s, properties);
+		s << DisplayDefaultParameters(properties);
 
-		DisplayBlockSizes(s, properties);
+		s << DisplayBlockSizes(properties);
 	}
 
 	s << '\n';
@@ -174,20 +159,8 @@ string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_
 	ostringstream s;
 
 	if (reserved_ids_info.ids_size()) {
-		s << "Reserved device IDs: ";
-
-		for (int i = 0; i < reserved_ids_info.ids_size(); i++) {
-			if(i) {
-				s << ", ";
-			}
-
-			s << reserved_ids_info.ids(i);
-		}
-
-		s << '\n';
-	}
-	else {
-		s << "No reserved device IDs\n";
+		const set<int32_t> sorted_ids(reserved_ids_info.ids().begin(), reserved_ids_info.ids().end());
+		s << "Reserved device IDs: " << Join(sorted_ids) << '\n';
 	}
 
 	return s.str();
@@ -219,12 +192,9 @@ string ScsictlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files
 	s << "Default image file folder: " << image_files_info.default_image_folder() << '\n';
 	s << "Supported folder depth: " << image_files_info.depth() << '\n';
 
-	if (image_files_info.image_files().empty()) {
-		s << "  No image files available\n";
-	}
-	else {
-		list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
-		image_files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+	if (!image_files_info.image_files().empty()) {
+		vector<PbImageFile> image_files(image_files_info.image_files().begin(), image_files_info.image_files().end());
+		ranges::sort(image_files, [](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 		s << "Available image files:\n";
 		for (const auto& image_file : image_files) {
@@ -241,24 +211,8 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 {
 	ostringstream s;
 
-	s << "Available (up) network interfaces:\n";
-
-	const list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
-
-	bool isFirst = true;
-	for (const auto& interface : sorted_interfaces) {
-		if (!isFirst) {
-			s << ", ";
-		}
-		else {
-			s << "  ";
-		}
-
-		isFirst = false;
-		s << interface;
-	}
-
-	s << '\n';
+	const set<string, less<>> sorted_interfaces(network_interfaces_info.name().begin(), network_interfaces_info.name().end());
+	s << "Available (up) network interfaces: " << Join(sorted_interfaces) << '\n';
 
 	return s.str();
 }
@@ -269,7 +223,7 @@ string ScsictlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) con
 
 	s << "Supported image file extension to device type mappings:\n";
 
-	const map<string, PbDeviceType, less<>> sorted_mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
+	const map<string, PbDeviceType, less<>> sorted_mappings(mapping_info.mapping().begin(), mapping_info.mapping().end());
 
 	for (const auto& [extension, type] : sorted_mappings) {
 		s << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
@@ -282,7 +236,7 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 {
 	ostringstream s;
 
-	const map<int, PbOperationMetaData, less<>> operations = { operation_info.operations().begin(), operation_info.operations().end() };
+	const map<int, PbOperationMetaData, less<>> operations(operation_info.operations().begin(), operation_info.operations().end());
 
 	// Copies result into a map sorted by operation name
 	auto unknown_operation = make_unique<PbOperationMetaData>();
@@ -308,7 +262,7 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 			}
 			s << '\n';
 
-			DisplayParameters(s, meta_data);
+			s << DisplayParameters(meta_data);
 		}
 		else {
 			s << "  " << name << " (Unknown server-side operation)\n";
@@ -318,96 +272,82 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 	return s.str();
 }
 
-void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
+string ScsictlDisplay::DisplayParams(const PbDevice& pb_device) const
 {
-	const map<string, string, less<>> sorted_params = { pb_device.params().begin(), pb_device.params().end() };
+	ostringstream s;
 
-	bool isFirst = true;
-	for (const auto& [key, value] : sorted_params) {
-		if (!isFirst) {
-			s << ":";
-		}
-
-		isFirst = false;
-		s << key << "=" << value;
-	}
-}
-
-void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& properties) const
-{
-	if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.lockable()) {
-		s << "Properties: ";
-
-		bool has_property = false;
-
-		if (properties.read_only()) {
-			s << "read-only";
-			has_property = true;
-		}
-
-		if (properties.protectable()) {
-			s << (has_property ? ", " : "") << "protectable";
-			has_property = true;
-		}
-		if (properties.stoppable()) {
-			s << (has_property ? ", " : "") << "stoppable";
-			has_property = true;
-		}
-		if (properties.removable()) {
-			s << (has_property ? ", " : "") << "removable";
-			has_property = true;
-		}
-		if (properties.lockable()) {
-			s << (has_property ? ", " : "") << "lockable";
-		}
-
-		s << "\n        ";
-	}
-}
-
-void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDeviceProperties& properties) const
-{
-	if (properties.supports_params() && properties.default_params_size()) {
-		s << "Default parameters: ";
-
-		const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
-
-		bool isFirst = true;
-		for (const auto& [key, value] : sorted_params) {
-			if (!isFirst) {
-				s << "\n                            ";
-			}
-			s << key << "=" << value;
-
-			isFirst = false;
-		}
+	set<string, less<>> params;
+	for (const auto& [key, value] : pb_device.params()) {
+		params.insert(key + "=" + value);
 	}
 
+	s << Join(params, ":");
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayBlockSizes(ostringstream& s, const PbDeviceProperties& properties) const
+string ScsictlDisplay::DisplayAttributes(const PbDeviceProperties& props) const
 {
+	ostringstream s;
+
+	vector<string> properties;
+	if (props.read_only()) {
+		properties.emplace_back("read-only");
+	}
+	if (props.protectable()) {
+		properties.emplace_back("protectable");
+	}
+	if (props.stoppable()) {
+		properties.emplace_back("stoppable");
+	}
+	if (props.removable()) {
+		properties.emplace_back("removable");
+	}
+	if (props.lockable()) {
+		properties.emplace_back("lockable");
+	}
+
+	if (!properties.empty()) {
+		s << "Properties: " << Join(properties) << "\n        ";
+	}
+
+	return s.str();
+}
+
+string ScsictlDisplay::DisplayDefaultParameters(const PbDeviceProperties& properties) const
+{
+	ostringstream s;
+
+	if (!properties.default_params().empty()) {
+		set<string, less<>> params;
+		for (const auto& [key, value] : properties.default_params()) {
+			params.insert(key + "=" + value);
+		}
+
+		s << "Default parameters: " << Join(params, "\n                            ");
+	}
+
+	return s.str();
+}
+
+string ScsictlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) const
+{
+	ostringstream s;
+
 	if (properties.block_sizes_size()) {
-		s << "Configurable block sizes in bytes: ";
-
-		const set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-
-		bool isFirst = true;
-		for (const auto& size : sorted_sizes) {
-			if (!isFirst) {
-				s << ", ";
-			}
-			s << size;
-
-			isFirst = false;
-		}
+		const set<uint32_t> sorted_sizes(properties.block_sizes().begin(), properties.block_sizes().end());
+		s << "Configurable block sizes in bytes: " << Join(sorted_sizes);
 	}
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaData& meta_data) const
+string ScsictlDisplay::DisplayParameters(const PbOperationMetaData& meta_data) const
 {
-	list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
-	sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+	vector<PbOperationParameter> sorted_parameters(meta_data.parameters().begin(), meta_data.parameters().end());
+	ranges::sort(sorted_parameters, [](const auto& a, const auto& b) { return a.name() < b.name(); });
+
+	ostringstream s;
 
 	for (const auto& parameter : sorted_parameters) {
 		s << "    " << parameter.name() << ": "
@@ -418,30 +358,23 @@ void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaDa
 		}
 		s << '\n';
 
-		DisplayPermittedValues(s, parameter);
+		s << DisplayPermittedValues(parameter);
 
 		if (!parameter.default_value().empty()) {
 			s << "      Default value: " << parameter.default_value() << '\n';
 		}
 	}
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationParameter& parameter) const
+string ScsictlDisplay::DisplayPermittedValues(const PbOperationParameter& parameter) const
 {
+	ostringstream s;
 	if (parameter.permitted_values_size()) {
-		s << "      Permitted values: ";
-
-		bool isFirst = true;
-
-		for (const auto& permitted_value : parameter.permitted_values()) {
-			if (!isFirst) {
-				s << ", ";
-			}
-
-			isFirst = false;
-			s << permitted_value;
-		}
-
-		s << '\n';
+		const set<string, less<>> sorted_values(parameter.permitted_values().begin(), parameter.permitted_values().end());
+		s << "      Permitted values: " << Join(parameter.permitted_values()) << '\n';
 	}
+
+	return s.str();
 }

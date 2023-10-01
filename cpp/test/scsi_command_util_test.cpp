@@ -10,7 +10,6 @@
 #include "mocks.h"
 #include "shared/scsi.h"
 #include "shared/piscsi_exceptions.h"
-#include "devices/device_logger.h"
 #include "devices/scsi_command_util.h"
 
 using namespace scsi_command_util;
@@ -18,14 +17,13 @@ using namespace scsi_command_util;
 TEST(ScsiCommandUtilTest, ModeSelect6)
 {
 	const int LENGTH = 26;
-	DeviceLogger logger;
 
 	vector<int> cdb(6);
 	vector<uint8_t> buf(LENGTH);
 
 	// PF (vendor-specific parameter format) must not fail but be ignored
 	cdb[1] = 0x00;
-	ModeSelect(logger, scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0);
+	ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0);
 
 	cdb[0] = 0x15;
 	// PF (standard parameter format)
@@ -34,50 +32,49 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	buf[9] = 0x00;
 	buf[10] = 0x02;
 	buf[11] = 0x00;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 256); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 256); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[12] = 0x00;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
 	buf[12] = 0x03;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
 	buf[24] = 0x02;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect6, cdb, buf, LENGTH - 1, 512); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH - 1, 512); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Not enough command parameters";
 
-	ModeSelect(logger, scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512);
+	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512).empty());
 }
 
 TEST(ScsiCommandUtilTest, ModeSelect10)
 {
 	const int LENGTH = 30;
-	DeviceLogger logger;
 
 	vector<int> cdb(10);
 	vector<uint8_t> buf(LENGTH);
 
 	// PF (vendor-specific parameter format) must not fail but be ignored
 	cdb[1] = 0x00;
-	ModeSelect(logger, scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0);
+	ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0);
 
 	// PF (standard parameter format)
 	cdb[1] = 0x10;
@@ -85,37 +82,37 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 	buf[13] = 0x00;
 	buf[14] = 0x02;
 	buf[15] = 0x00;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 256); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 256); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[16] = 0x00;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
 	buf[16] = 0x03;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
 	buf[28] = 0x02;
-	EXPECT_THAT([&] { ModeSelect(logger, scsi_command::eCmdModeSelect10, cdb, buf, LENGTH - 1, 512); },
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH - 1, 512); },
 			Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Not enough command parameters";
 
-	ModeSelect(logger, scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512);
+	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512).empty());
 }
 
 TEST(ScsiCommandUtilTest, EnrichFormatPage)

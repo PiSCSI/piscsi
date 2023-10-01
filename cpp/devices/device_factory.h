@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 // The DeviceFactory creates devices based on their type and the image file extension
 //
@@ -12,7 +12,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <unordered_set>
 #include <unordered_map>
 #include "generated/piscsi_interface.pb.h"
@@ -35,8 +34,7 @@ public:
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
-	vector<string> GetNetworkInterfaces() const;
-	const unordered_map<string, PbDeviceType>& GetExtensionMapping() const { return extension_mapping; }
+	const auto& GetExtensionMapping() const { return extension_mapping; }
 
 private:
 

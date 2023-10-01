@@ -21,13 +21,13 @@ services:
 
   web:
     container_name: piscsi_web
-    image: piscsi-web:${OS_VERSION:-buster}
+    image: piscsi-web:${OS_VERSION:-bullseye}
     pull_policy: never
     build:
       context: ..
       dockerfile: docker/web/Dockerfile
       args:
-        - OS_VERSION=${OS_VERSION:-buster}
+        - OS_VERSION=${OS_VERSION:-bullseye}
     volumes:
       - ./volumes/images:/home/pi/images:delegated
       - ./volumes/config:/home/pi/.config/piscsi:delegated

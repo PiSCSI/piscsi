@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // Implementation of a SCSI printer (see SCSI-2 specification for a command description)
 //
@@ -15,6 +15,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <span>
 
 using namespace std;
 
@@ -30,10 +31,11 @@ public:
 	~SCSIPrinter() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
+	void CleanUp() override;
 
 	vector<uint8_t> InquiryInternal() const override;
 
-	bool WriteByteSequence(vector<uint8_t>&, uint32_t) override;
+	bool WriteByteSequence(span<const uint8_t>) override;
 
 private:
 
@@ -43,8 +45,6 @@ private:
 	void SendDiagnostic() override { PrimaryDevice::SendDiagnostic(); }
 	void Print() override;
 	void SynchronizeBuffer();
-
-	void Cleanup();
 
 	string file_template;
 

@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "sbc_version.h"
-#include "shared/log.h"
+#include "log.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -106,7 +106,7 @@ void SBC_Version::Init()
     const std::ifstream input_stream(SBC_Version::m_device_tree_model_path);
 
     if (input_stream.fail()) {
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
         // We expect this to fail on x86
         LOGINFO("Detected device %s", GetString()->c_str())
         m_sbc_version = sbc_version_type::sbc_unknown;

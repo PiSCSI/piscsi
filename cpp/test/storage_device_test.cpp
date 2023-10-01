@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@
 
 using namespace filesystem;
 
-TEST(StorageDeviceTest, Filename)
+TEST(StorageDeviceTest, SetGetFilename)
 {
 	MockStorageDevice device;
 
@@ -62,6 +62,8 @@ TEST(StorageDeviceTest, MediumChanged)
 {
 	MockStorageDevice device;
 
+	EXPECT_FALSE(device.IsMediumChanged());
+
 	device.SetMediumChanged(true);
 	EXPECT_TRUE(device.IsMediumChanged());
 
@@ -72,22 +74,26 @@ TEST(StorageDeviceTest, MediumChanged)
 TEST(StorageDeviceTest, GetIdsForReservedFile)
 {
 	const int ID = 1;
-	const int LUN = 2;
+	const int LUN = 0;
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, ID);
+	auto device = make_shared<MockSCSIHD_NEC>(LUN);
+	device->SetFilename("filename");
 	StorageDevice::UnreserveAll();
 
-	MockStorageDevice device;
-	device.SetFilename("filename");
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
 
 	const auto [id1, lun1] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(-1, id1);
 	EXPECT_EQ(-1, lun1);
 
-	device.ReserveFile("filename", ID, LUN);
+	device->ReserveFile();
 	const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(ID, id2);
 	EXPECT_EQ(LUN, lun2);
 
-	device.UnreserveFile();
+	device->UnreserveFile();
 	const auto [id3, lun3] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(-1, id3);
 	EXPECT_EQ(-1, lun3);
@@ -95,9 +101,17 @@ TEST(StorageDeviceTest, GetIdsForReservedFile)
 
 TEST(StorageDeviceTest, UnreserveAll)
 {
-	MockStorageDevice device;
-	device.ReserveFile("filename", 2, 31);
+	const int ID = 1;
+	const int LUN = 0;
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, ID);
+	auto device = make_shared<MockSCSIHD_NEC>(LUN);
+	device->SetFilename("filename");
 
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
+
+	device->ReserveFile();
 	StorageDevice::UnreserveAll();
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(-1, id);
@@ -107,35 +121,30 @@ TEST(StorageDeviceTest, UnreserveAll)
 TEST(StorageDeviceTest, GetSetReservedFiles)
 {
 	const int ID = 1;
-	const int LUN = 16;
+	const int LUN = 0;
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, ID);
+	auto device = make_shared<MockSCSIHD_NEC>(LUN);
+	device->SetFilename("filename");
 
-	MockStorageDevice device;
-	device.ReserveFile("filename", ID, LUN);
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
+
+	device->ReserveFile();
 
 	const unordered_map<string, id_set> reserved_files = StorageDevice::GetReservedFiles();
 	EXPECT_EQ(1, reserved_files.size());
-	EXPECT_NE(reserved_files.end(), reserved_files.find("filename"));
+	EXPECT_TRUE(reserved_files.contains("filename"));
 
 	StorageDevice::SetReservedFiles(reserved_files);
 	EXPECT_EQ(1, reserved_files.size());
-	EXPECT_NE(reserved_files.end(), reserved_files.find("filename"));
+	EXPECT_TRUE(reserved_files.contains("filename"));
 }
 
 TEST(StorageDeviceTest, FileExists)
 {
 	EXPECT_FALSE(StorageDevice::FileExists("/non_existing_file"));
 	EXPECT_TRUE(StorageDevice::FileExists("/dev/null"));
-}
-
-TEST(StorageDeviceTest, IsReadOnlyFile)
-{
-	MockStorageDevice device;
-
-	device.SetFilename("/dev/null");
-	EXPECT_FALSE(device.IsReadOnlyFile());
-
-	device.SetFilename("/dev/mem");
-	EXPECT_TRUE(device.IsReadOnlyFile());
 }
 
 TEST(StorageDeviceTest, GetFileSize)

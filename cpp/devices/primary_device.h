@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // A device implementing mandatory SCSI primary commands, to be used for subclassing
 //
@@ -18,6 +18,7 @@
 #include "device_logger.h"
 #include <string>
 #include <unordered_map>
+#include <span>
 #include <functional>
 
 using namespace std;
@@ -25,6 +26,8 @@ using namespace scsi_defs;
 
 class PrimaryDevice: private ScsiPrimaryCommands, public Device
 {
+	friend class AbstractController;
+
 	using operation = function<void()>;
 
 public:
@@ -33,14 +36,15 @@ public:
 	~PrimaryDevice() override = default;
 
 	virtual bool Init(const unordered_map<string, string>&);
+	virtual void CleanUp() {
+		// Override if cleanup work is required for a derived device
+	};
 
 	virtual void Dispatch(scsi_command);
 
 	int GetId() const override;
 
-	void SetController(shared_ptr<AbstractController>);
-
-	virtual bool WriteByteSequence(vector<uint8_t>&, uint32_t);
+	virtual bool WriteByteSequence(span<const uint8_t>);
 
 	int GetSendDelay() const { return send_delay; }
 
@@ -57,8 +61,6 @@ protected:
 
 	void AddCommand(scsi_command, const operation&);
 
-	const DeviceLogger& GetLogger() const { return logger; }
-
 	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<uint8_t> InquiryInternal() const = 0;
 	void CheckReady();
@@ -69,15 +71,23 @@ protected:
 	void ReserveUnit() override;
 	void ReleaseUnit() override;
 
-	void EnterStatusPhase() const { controller.lock()->Status(); }
-	void EnterDataInPhase() const { controller.lock()->DataIn(); }
-	void EnterDataOutPhase() const { controller.lock()->DataOut(); }
+	void EnterStatusPhase() const { controller->Status(); }
+	void EnterDataInPhase() const { controller->DataIn(); }
+	void EnterDataOutPhase() const { controller->DataOut(); }
 
-	inline shared_ptr<AbstractController> GetController() const { return controller.lock(); }
+	auto GetController() const { return controller; }
+
+	void LogTrace(const string& s) const { device_logger.Trace(s); }
+	void LogDebug(const string& s) const { device_logger.Debug(s); }
+	void LogInfo(const string& s) const { device_logger.Info(s); }
+	void LogWarn(const string& s) const { device_logger.Warn(s); }
+	void LogError(const string& s) const { device_logger.Error(s); }
 
 private:
 
 	static const int NOT_RESERVED = -2;
+
+	void SetController(AbstractController *);
 
 	void TestUnitReady() override;
 	void RequestSense() override;
@@ -86,9 +96,11 @@ private:
 
 	vector<byte> HandleRequestSense() const;
 
-	DeviceLogger logger;
+	// TODO Try to remove this field and use controller->Log*() methods instead
+	DeviceLogger device_logger;
 
-	weak_ptr<AbstractController> controller;
+	// Owned by the controller manager
+	AbstractController *controller = nullptr;
 
 	unordered_map<scsi_command, operation> commands;
 

@@ -3,19 +3,20 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "shared/log.h"
 #include "generated/piscsi_interface.pb.h"
 #include <unordered_map>
 #include <string>
 
 using namespace std;
 using namespace piscsi_interface;
+
+using id_set = pair<int, int>;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
@@ -97,7 +98,8 @@ public:
 	virtual ~Device() = default;
 
 	PbDeviceType GetType() const { return type; }
-	const char *GetTypeString() const { return PbDeviceType_Name(type).c_str(); }
+	string GetTypeString() const { return PbDeviceType_Name(type); }
+	string GetIdentifier() const { return GetTypeString() + " " + to_string(GetId()) + ":" + to_string(lun); }
 
 	bool IsReady() const { return ready; }
 	virtual void Reset();
@@ -131,7 +133,7 @@ public:
 	bool SupportsFile() const { return supports_file; }
 	void SupportsParams(bool b) { supports_params = b; }
 	void SupportsFile(bool b) { supports_file = b; }
-	unordered_map<string, string> GetParams() const { return params; }
+	auto GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
 
 	void SetStatusCode(int s) { status_code = s; }

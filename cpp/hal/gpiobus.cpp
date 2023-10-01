@@ -13,7 +13,7 @@
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
+#include <spdlog/spdlog.h>
 #include <array>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -280,8 +280,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US,
-                         (int)delay_after_bytes)
+                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " after " +
+                		to_string(delay_after_bytes) + " bytes");
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
@@ -325,8 +325,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US,
-                         (int)delay_after_bytes)
+                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " after " +
+                		to_string(delay_after_bytes) + " bytes");
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
@@ -392,7 +392,7 @@ bool GPIOBUS::PollSelectEvent()
     return false;
 #else
     GPIO_FUNCTION_TRACE
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+    spdlog::trace(__PRETTY_FUNCTION__);
     errno         = 0;
     int prev_mode = -1;
     if (SBC_Version::IsBananaPi()) {
@@ -401,12 +401,12 @@ bool GPIOBUS::PollSelectEvent()
     }
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
-        LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__)
+        spdlog::warn("epoll_wait failed");
         return false;
     }
 
     if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
-        LOGWARN("%s read failed", __PRETTY_FUNCTION__)
+        spdlog::warn("read failed");
         return false;
     }
 

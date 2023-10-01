@@ -20,7 +20,6 @@
 #include "scsi_command_util.h"
 #include "scsi_host_bridge.h"
 #include <arpa/inet.h>
-#include <array>
 
 using namespace std;
 using namespace scsi_defs;
@@ -43,10 +42,8 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdSendMessage10, [this] { SendMessage10(); });
 
 #ifdef __linux__
-	// TAP Driver Generation
 	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){
-		GetLogger().Error("Unable to open the TAP interface");
 		return false;
 	}
 #endif
@@ -70,9 +67,14 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
+void SCSIBR::CleanUp()
+{
+	tap.CleanUp();
+}
+
 vector<uint8_t> SCSIBR::InquiryInternal() const
 {
-	vector<uint8_t> buf = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<uint8_t> buf = HandleInquiry(device_type::communications, scsi_level::scsi_2, false);
 
 	// The bridge returns more additional bytes than the other devices
 	buf.resize(0x1F + 8 + 5);
@@ -99,7 +101,7 @@ void SCSIBR::TestUnitReady()
 	EnterStatusPhase();
 }
 
-int SCSIBR::GetMessage10(const vector<int>& cdb, vector<uint8_t>& buf)
+int SCSIBR::GetMessage10(cdb_t cdb, vector<uint8_t>& buf)
 {
 	// Type
 	const int type = cdb[2];
@@ -187,7 +189,7 @@ int SCSIBR::GetMessage10(const vector<int>& cdb, vector<uint8_t>& buf)
 	return 0;
 }
 
-bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<uint8_t>& buf, uint32_t)
+bool SCSIBR::ReadWrite(cdb_t cdb, vector<uint8_t>& buf)
 {
 	// Type
 	const int type = cdb[2];
@@ -252,7 +254,7 @@ void SCSIBR::GetMessage10()
 
 	GetController()->SetLength(GetMessage10(GetController()->GetCmd(), GetController()->GetBuffer()));
 	if (GetController()->GetLength() <= 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Set next block
@@ -273,7 +275,7 @@ void SCSIBR::SendMessage10() const
 {
 	GetController()->SetLength(GetInt24(GetController()->GetCmd(), 6));
 	if (GetController()->GetLength() <= 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
@@ -292,7 +294,7 @@ int SCSIBR::GetMacAddr(vector<uint8_t>& mac) const
 	return static_cast<int>(mac_addr.size());
 }
 
-void SCSIBR::SetMacAddr(const vector<uint8_t>& mac)
+void SCSIBR::SetMacAddr(span<const uint8_t> mac)
 {
 	memcpy(mac_addr.data(), mac.data(), mac_addr.size());
 }
@@ -339,7 +341,7 @@ void SCSIBR::GetPacketBuf(vector<uint8_t>& buf, int index)
 	packet_enable = false;
 }
 
-void SCSIBR::SendPacket(const vector<uint8_t>& buf, int len)
+void SCSIBR::SendPacket(span<const uint8_t> buf, int len) const
 {
 	tap.Send(buf.data(), len);
 }
@@ -837,7 +839,7 @@ void SCSIBR::FS_GetCapacity(vector<uint8_t>& buf)
 	auto dp = (uint32_t*)buf.data();
 	const uint32_t nUnit = ntohl(*dp);
 
-	Human68k::capacity_t cap;
+	Human68k::capacity_t cap = {};
 	fsresult = fs.GetCapacity(nUnit, &cap);
 
 	cap.freearea = htons(cap.freearea);
@@ -878,7 +880,7 @@ void SCSIBR::FS_GetDPB(vector<uint8_t>& buf)
 	auto dp = (uint32_t*)buf.data();
 	const uint32_t nUnit = ntohl(*dp);
 
-	Human68k::dpb_t dpb;
+	Human68k::dpb_t dpb = {};
 	fsresult = fs.GetDPB(nUnit, &dpb);
 
 	dpb.sector_size = htons(dpb.sector_size);

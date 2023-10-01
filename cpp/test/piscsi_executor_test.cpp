@@ -3,11 +3,10 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "spdlog/spdlog.h"
 #include "mocks.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
@@ -24,224 +23,194 @@ using namespace filesystem;
 using namespace piscsi_interface;
 using namespace protobuf_util;
 
-const extern bool enable_logging;
-
-// This test fixture is required in order to reset the log level changed by the log level tests
-class PiscsiExecutorTest : public Test
-{
-	void TearDown() override {
-		spdlog::set_level(enable_logging ? spdlog::level::trace : spdlog::level::off);
-	}
-};
-
-TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
+TEST(PiscsiExecutorTest, ProcessDeviceCmd)
 {
 	const int ID = 3;
 	const int LUN = 0;
 
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	MockAbstractController controller(controller_manager, ID);
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, ID);
 	PiscsiImage piscsi_image;
-	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *controller_manager);
+	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *bus, controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
-	MockCommandContext context;
+	CommandContext context(command, "", "");
 
 	definition.set_id(8);
 	definition.set_unit(32);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID and LUN must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Invalid ID and LUN must fail";
 
 	definition.set_unit(LUN);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Invalid ID must fail";
 
 	definition.set_id(ID);
 	definition.set_unit(32);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid LUN must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Invalid LUN must fail";
 
 	definition.set_unit(LUN);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Unknown operation must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Unknown operation must fail";
 
 	command.set_operation(ATTACH);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Operation for unknown device type must fail";
+	CommandContext context_attach(command, "", "");
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_attach, definition, true)) << "Operation for unknown device type must fail";
 
 	auto device1 = make_shared<MockPrimaryDevice>(LUN);
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device1));
 
 	definition.set_type(SCHS);
 	command.set_operation(INSERT);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Operation unsupported by device must fail";
-	controller_manager->DeleteAllControllers();
+	CommandContext context_insert1(command, "", "");
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert1, definition, true)) << "Operation unsupported by device must fail";
+	controller_manager.DeleteAllControllers();
 	definition.set_type(SCRM);
 
 	auto device2 = make_shared<MockSCSIHD_NEC>(LUN);
 	device2->SetRemovable(true);
 	device2->SetProtectable(true);
 	device2->SetReady(true);
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device2));
 
-	command.set_operation(ATTACH);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "ID and LUN already exist";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_attach, definition, true)) << "ID and LUN already exist";
 
 	command.set_operation(START);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_start(command, "", "");
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_start, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_start, definition, false));
 
 	command.set_operation(PROTECT);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_protect(command, "", "");
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_protect, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_protect, definition, false));
 
 	command.set_operation(UNPROTECT);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_unprotect(command, "", "");
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_unprotect, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_unprotect, definition, false));
 
 	command.set_operation(STOP);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_stop(command, "", "");
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_stop, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_stop, definition, false));
 
 	command.set_operation(EJECT);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_eject(command, "", "");
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_eject, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_eject, definition, false));
 
 	command.set_operation(INSERT);
 	SetParam(definition, "file", "filename");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Non-existing file";
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, false)) << "Non-existing file";
+	CommandContext context_insert2(command, "", "");
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert2, definition, true)) << "Non-existing file";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert2, definition, false)) << "Non-existing file";
 
 	command.set_operation(DETACH);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
-
-	command.set_operation(CHECK_AUTHENTICATION);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
-
-	command.set_operation(NO_OPERATION);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
-
-	// The operations below are not related to a device
-
-	command.set_operation(DETACH_ALL);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
-
-	command.set_operation(RESERVE_IDS);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
-
-	command.set_operation(CREATE_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
-
-	command.set_operation(DELETE_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
-
-	command.set_operation(RENAME_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
-
-	command.set_operation(COPY_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
-
-	command.set_operation(PROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
-
-	command.set_operation(UNPROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_detach(command, "", "");
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_detach, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_detach, definition, false));
 }
 
-TEST_F(PiscsiExecutorTest, ProcessCmd)
+TEST(PiscsiExecutorTest, ProcessCmd)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	MockAbstractController controller(controller_manager, 0);
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, 0);
 	PiscsiImage piscsi_image;
-	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *controller_manager);
-	PbCommand command1;
-	PbCommand command2;
-	MockCommandContext context;
+	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *bus, controller_manager);
 
-	command1.set_operation(DETACH_ALL);
-	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+	PbCommand command_detach_all;
+	command_detach_all.set_operation(DETACH_ALL);
+	CommandContext context_detach_all(command_detach_all, "", "");
+	EXPECT_TRUE(executor->ProcessCmd(context_detach_all));
 
-	command1.set_operation(RESERVE_IDS);
-	SetParam(command1, "ids", "2,3");
-	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+	PbCommand command_reserve_ids1;
+	command_reserve_ids1.set_operation(RESERVE_IDS);
+	SetParam(command_reserve_ids1, "ids", "2,3");
+	CommandContext context_reserve_ids1(command_reserve_ids1, "", "");
+	EXPECT_TRUE(executor->ProcessCmd(context_reserve_ids1));
 	const unordered_set<int> ids = executor->GetReservedIds();
 	EXPECT_EQ(2, ids.size());
-	EXPECT_NE(ids.end(), ids.find(2));
-	EXPECT_NE(ids.end(), ids.find(3));
-	command2.set_operation(RESERVE_IDS);
-	EXPECT_TRUE(executor->ProcessCmd(context, command2));
+	EXPECT_TRUE(ids.contains(2));
+	EXPECT_TRUE(ids.contains(3));
+
+	PbCommand command_reserve_ids2;
+	command_reserve_ids2.set_operation(RESERVE_IDS);
+	CommandContext context_reserve_ids2(command_reserve_ids2, "", "");
+	EXPECT_TRUE(executor->ProcessCmd(context_reserve_ids2));
 	EXPECT_TRUE(executor->GetReservedIds().empty());
 
-	SetParam(command2, "ids", "-1");
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	PbCommand command_reserve_ids3;
+	command_reserve_ids3.set_operation(RESERVE_IDS);
+	SetParam(command_reserve_ids3, "ids", "-1");
+	CommandContext context_reserve_ids3(command_reserve_ids3, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_reserve_ids3));
 	EXPECT_TRUE(executor->GetReservedIds().empty());
 
-	command1.set_operation(NO_OPERATION);
-	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+	PbCommand command_no_operation;
+	command_no_operation.set_operation(NO_OPERATION);
+	CommandContext context_no_operation(command_no_operation, "", "");
+	EXPECT_TRUE(executor->ProcessCmd(context_no_operation));
 
-	command1.set_operation(ATTACH);
-	auto device = command1.add_devices();
-	device->set_type(SCHS);
-	device->set_id(-1);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1));
-	device->set_id(0);
-	device->set_unit(1);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1)) << "LUN 0 is missing";
-	device->set_unit(0);
-	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+	PbCommand command_attach1;
+	command_attach1.set_operation(ATTACH);
+	auto device1 = command_attach1.add_devices();
+	device1->set_type(SCHS);
+	device1->set_id(-1);
+	CommandContext context_attach1(command_attach1, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_attach1));
+
+	PbCommand command_attach2;
+	command_attach2.set_operation(ATTACH);
+	auto device2 = command_attach2.add_devices();
+	device2->set_type(SCHS);
+	device2->set_id(0);
+	device2->set_unit(1);
+	CommandContext context_attach2(command_attach2, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_attach2)) << "LUN 0 is missing";
 
 	// The operations below must fail because of missing parameters.
 	// The respective functionality is tested in piscsi_image_test.cpp.
 
-	command1.set_operation(CREATE_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	PbCommand command;
 
-	command1.set_operation(DELETE_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	command.set_operation(CREATE_IMAGE);
+	CommandContext context_create_image(command, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_create_image));
 
-	command1.set_operation(RENAME_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	command.set_operation(DELETE_IMAGE);
+	CommandContext context_delete_image(command, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_delete_image));
 
-	command1.set_operation(COPY_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	command.set_operation(RENAME_IMAGE);
+	CommandContext context_rename_image(command, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_rename_image));
 
-	command1.set_operation(PROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	command.set_operation(COPY_IMAGE);
+	CommandContext context_copy_image(command, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_copy_image));
 
-	command1.set_operation(UNPROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	command.set_operation(PROTECT_IMAGE);
+	CommandContext context_protect_image(command, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_protect_image));
+
+	command.set_operation(UNPROTECT_IMAGE);
+	CommandContext context_unprotect_image(command, "", "");
+	EXPECT_FALSE(executor->ProcessCmd(context_unprotect_image));
 }
 
-TEST_F(PiscsiExecutorTest, SetLogLevel)
-{
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	MockAbstractController controller(controller_manager, 0);
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-
-	EXPECT_TRUE(executor.SetLogLevel("trace"));
-	EXPECT_TRUE(executor.SetLogLevel("debug"));
-	EXPECT_TRUE(executor.SetLogLevel("info"));
-	EXPECT_TRUE(executor.SetLogLevel("warn"));
-	EXPECT_TRUE(executor.SetLogLevel("err"));
-	EXPECT_TRUE(executor.SetLogLevel("off"));
-	EXPECT_FALSE(executor.SetLogLevel("xyz"));
-}
-
-TEST_F(PiscsiExecutorTest, Attach)
+TEST(PiscsiExecutorTest, Attach)
 {
 	const int ID = 3;
 	const int LUN = 0;
 
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
 	PbDeviceDefinition definition;
-	MockCommandContext context;
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	definition.set_unit(32);
 	EXPECT_FALSE(executor.Attach(context, definition, false));
@@ -258,7 +227,7 @@ TEST_F(PiscsiExecutorTest, Attach)
 
 	definition.set_type(PbDeviceType::SCHS);
 	EXPECT_TRUE(executor.Attach(context, definition, false));
-	controller_manager->DeleteAllControllers();
+	controller_manager.DeleteAllControllers();
 
 	definition.set_type(PbDeviceType::SCHD);
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive without sectors not rejected";
@@ -277,19 +246,19 @@ TEST_F(PiscsiExecutorTest, Attach)
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with non-existing image file not rejected";
 
 	path filename = CreateTempFile(1);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Too small image file not rejected";
 	remove(filename);
 
 	filename = CreateTempFile(512);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	bool result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
-	controller_manager->DeleteAllControllers();
+	controller_manager.DeleteAllControllers();
 
 	filename = CreateTempFile(513);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
@@ -297,7 +266,7 @@ TEST_F(PiscsiExecutorTest, Attach)
 	definition.set_type(PbDeviceType::SCCD);
 	definition.set_unit(LUN + 1);
 	filename = CreateTempFile(2048);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
@@ -306,25 +275,26 @@ TEST_F(PiscsiExecutorTest, Attach)
 	definition.set_unit(LUN + 2);
 	SetParam(definition, "read_only", "true");
 	filename = CreateTempFile(4096);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
 
-	controller_manager->DeleteAllControllers();
+	controller_manager.DeleteAllControllers();
 }
 
-TEST_F(PiscsiExecutorTest, Insert)
+TEST(PiscsiExecutorTest, Insert)
 {
 	DeviceFactory device_factory;
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	PbDeviceDefinition definition;
-	MockCommandContext context;
 
-	auto device = device_factory.CreateDevice(SCRM, 0, "test");
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	auto [controller, device] = CreateDevice(SCHD);
+	PiscsiImage piscsi_image;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbDeviceDefinition definition;
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	device->SetRemoved(false);
 	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Medium is not removed";
@@ -358,18 +328,18 @@ TEST_F(PiscsiExecutorTest, Insert)
 	EXPECT_FALSE(executor.Insert(context, definition, device, false));
 
 	path filename = CreateTempFile(1);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Too small image file not rejected";
 	remove(filename);
 
 	filename = CreateTempFile(512);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	const bool result = executor.Insert(context, definition, device, false);
 	remove(filename);
 	EXPECT_TRUE(result);
 }
 
-TEST_F(PiscsiExecutorTest, Detach)
+TEST(PiscsiExecutorTest, Detach)
 {
 	const int ID = 3;
 	const int LUN1 = 0;
@@ -377,68 +347,72 @@ TEST_F(PiscsiExecutorTest, Detach)
 
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	auto device1 = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device1));
 	auto device2 = device_factory.CreateDevice(SCHS, LUN2, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device2));
 
-	auto d1 = controller_manager->GetDeviceByIdAndLun(ID, LUN1);
-	EXPECT_FALSE(executor.Detach(context, d1, false)) << "LUNs > 0 have to be detached first";
-	auto d2 = controller_manager->GetDeviceByIdAndLun(ID, LUN2);
-	EXPECT_TRUE(executor.Detach(context, d2, false));
-	EXPECT_TRUE(executor.Detach(context, d1, false));
-	EXPECT_TRUE(controller_manager->GetAllDevices().empty());
+	auto d1 = controller_manager.GetDeviceForIdAndLun(ID, LUN1);
+	EXPECT_FALSE(executor.Detach(context, *d1, false)) << "LUNs > 0 have to be detached first";
+	auto d2 = controller_manager.GetDeviceForIdAndLun(ID, LUN2);
+	EXPECT_TRUE(executor.Detach(context, *d2, false));
+	EXPECT_TRUE(executor.Detach(context, *d1, false));
+	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
 
-	EXPECT_FALSE(executor.Detach(context, d1, false));
+	EXPECT_FALSE(executor.Detach(context, *d1, false));
 }
 
-TEST_F(PiscsiExecutorTest, DetachAll)
+TEST(PiscsiExecutorTest, DetachAll)
 {
 	const int ID = 4;
 
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
 
 	auto device = device_factory.CreateDevice(SCHS, 0, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
-	EXPECT_NE(nullptr, controller_manager->FindController(ID));
-	EXPECT_FALSE(controller_manager->GetAllDevices().empty());
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
+	EXPECT_TRUE(controller_manager.HasController(ID));
+	EXPECT_FALSE(controller_manager.GetAllDevices().empty());
 
 	executor.DetachAll();
-	EXPECT_EQ(nullptr, controller_manager->FindController(ID));
-	EXPECT_TRUE(controller_manager->GetAllDevices().empty());
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
+	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
 }
 
-TEST_F(PiscsiExecutorTest, ShutDown)
+TEST(PiscsiExecutorTest, ShutDown)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
 
+	PbCommand command;
+	command.set_operation(SHUT_DOWN);
+	CommandContext context(command, "", "");
 	EXPECT_FALSE(executor.ShutDown(context, ""));
 	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
+
+	EXPECT_FALSE(executor.ShutDown(context, "system")) << "Only available for the root user";
+	EXPECT_FALSE(executor.ShutDown(context, "reboot")) << "Only available for the root user";
 	EXPECT_TRUE(executor.ShutDown(context, "rascsi"));
-	EXPECT_FALSE(executor.ShutDown(context, "system"));
-	EXPECT_FALSE(executor.ShutDown(context, "reboot"));
 }
 
-TEST_F(PiscsiExecutorTest, SetReservedIds)
+TEST(PiscsiExecutorTest, SetReservedIds)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
 
 	string error = executor.SetReservedIds("xyz");
 	EXPECT_FALSE(error.empty());
@@ -460,61 +434,85 @@ TEST_F(PiscsiExecutorTest, SetReservedIds)
 	EXPECT_TRUE(error.empty());
 	unordered_set<int> reserved_ids = executor.GetReservedIds();
 	EXPECT_EQ(5, reserved_ids.size());
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(1));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(2));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(3));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(5));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
+	EXPECT_TRUE(reserved_ids.contains(1));
+	EXPECT_TRUE(reserved_ids.contains(2));
+	EXPECT_TRUE(reserved_ids.contains(3));
+	EXPECT_TRUE(reserved_ids.contains(5));
+	EXPECT_TRUE(reserved_ids.contains(7));
 
 	auto device = device_factory.CreateDevice(SCHS, 0, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(5, device));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, 5, device));
 	error = executor.SetReservedIds("5");
 	EXPECT_FALSE(error.empty());
 }
 
-TEST_F(PiscsiExecutorTest, ValidateImageFile)
+TEST(PiscsiExecutorTest, ValidateImageFile)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 
-	string full_path;
 	auto device = dynamic_pointer_cast<StorageDevice>(device_factory.CreateDevice(SCHD, 0, "test"));
-	EXPECT_TRUE(executor.ValidateImageFile(context, *device, "", full_path));
-	EXPECT_TRUE(full_path.empty());
+	EXPECT_TRUE(executor.ValidateImageFile(context, *device, ""));
 
-	EXPECT_FALSE(executor.ValidateImageFile(context, *device, "/non_existing_file", full_path));
-	EXPECT_TRUE(full_path.empty());
+	EXPECT_FALSE(executor.ValidateImageFile(context, *device, "/non_existing_file"));
 }
 
-TEST_F(PiscsiExecutorTest, ValidateLunSetup)
+TEST(PiscsiExecutorTest, PrintCommand)
+{
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	PiscsiImage piscsi_image;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbDeviceDefinition definition;
+
+	PbCommand command;
+	string s = executor.PrintCommand(command, definition);
+	EXPECT_NE(s.find("operation="), string::npos);
+	EXPECT_EQ(s.find("key1=value1"), string::npos);
+	EXPECT_EQ(s.find("key2=value2"), string::npos);
+
+	SetParam(command, "key1", "value1");
+	s = executor.PrintCommand(command, definition);
+	EXPECT_NE(s.find("operation="), string::npos);
+	EXPECT_NE(s.find("key1=value1"), string::npos);
+
+	SetParam(command, "key2", "value2");
+	s = executor.PrintCommand(command, definition);
+	EXPECT_NE(s.find("operation="), string::npos);
+	EXPECT_NE(s.find("key1=value1"), string::npos);
+	EXPECT_NE(s.find("key2=value2"), string::npos);
+}
+
+TEST(PiscsiExecutorTest, EnsureLun0)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
 	PbCommand command;
 
 	auto device1 = command.add_devices();
 	device1->set_unit(0);
-	string error = executor.ValidateLunSetup(command);
+	string error = executor.EnsureLun0(command);
 	EXPECT_TRUE(error.empty());
 
 	device1->set_unit(1);
-	error = executor.ValidateLunSetup(command);
+	error = executor.EnsureLun0(command);
 	EXPECT_FALSE(error.empty());
 
 	auto device2 = device_factory.CreateDevice(SCHS, 0, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(0, device2));
-	error = executor.ValidateLunSetup(command);
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, device2));
+	error = executor.EnsureLun0(command);
 	EXPECT_TRUE(error.empty());
 }
 
-TEST_F(PiscsiExecutorTest, VerifyExistingIdAndLun)
+TEST(PiscsiExecutorTest, VerifyExistingIdAndLun)
 {
 	const int ID = 1;
 	const int LUN1 = 0;
@@ -522,25 +520,27 @@ TEST_F(PiscsiExecutorTest, VerifyExistingIdAndLun)
 
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
 	auto device = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
 	EXPECT_TRUE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN2));
 }
 
-TEST_F(PiscsiExecutorTest, CreateDevice)
+TEST(PiscsiExecutorTest, CreateDevice)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	EXPECT_EQ(nullptr, executor.CreateDevice(context, UNDEFINED, 0, ""));
 #pragma GCC diagnostic push
@@ -551,13 +551,14 @@ TEST_F(PiscsiExecutorTest, CreateDevice)
 	EXPECT_NE(nullptr, executor.CreateDevice(context, SCHS, 0, ""));
 }
 
-TEST_F(PiscsiExecutorTest, SetSectorSize)
+TEST(PiscsiExecutorTest, SetSectorSize)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	unordered_set<uint32_t> sizes;
 	auto hd = make_shared<MockSCSIHD>(0, sizes, false);
@@ -570,13 +571,14 @@ TEST_F(PiscsiExecutorTest, SetSectorSize)
 	EXPECT_TRUE(executor.SetSectorSize(context, hd, 512));
 }
 
-TEST_F(PiscsiExecutorTest, ValidateOperationAgainstDevice)
+TEST(PiscsiExecutorTest, ValidateOperationAgainstDevice)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	auto device = make_shared<MockPrimaryDevice>(0);
 
@@ -623,13 +625,14 @@ TEST_F(PiscsiExecutorTest, ValidateOperationAgainstDevice)
 	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, UNPROTECT));
 }
 
-TEST_F(PiscsiExecutorTest, ValidateIdAndLun)
+TEST(PiscsiExecutorTest, ValidateIdAndLun)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 
 	EXPECT_FALSE(executor.ValidateIdAndLun(context, -1, 0));
 	EXPECT_FALSE(executor.ValidateIdAndLun(context, 8, 0));
@@ -639,13 +642,14 @@ TEST_F(PiscsiExecutorTest, ValidateIdAndLun)
 	EXPECT_TRUE(executor.ValidateIdAndLun(context, 7, 31));
 }
 
-TEST_F(PiscsiExecutorTest, SetProductData)
+TEST(PiscsiExecutorTest, SetProductData)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	ControllerManager controller_manager;
 	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PbCommand command;
+	CommandContext context(command, "", "");
 	PbDeviceDefinition definition;
 
 	auto device = make_shared<MockPrimaryDevice>(0);

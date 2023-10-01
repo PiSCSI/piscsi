@@ -13,11 +13,13 @@
 
 #include <filesystem>
 #include <map>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <string>
+#ifdef __linux__
 #include <sys/epoll.h>
+#endif
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>

@@ -3,31 +3,31 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "devices/device_logger.h"
+#include "controllers/controller_manager.h"
+#include "controllers/abstract_controller.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
+#include "piscsi/piscsi_executor.h"
 #include "generated/piscsi_interface.pb.h"
-#include <vector>
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include <span>
 #include <string>
+#include <atomic>
 
 using namespace std;
 
 class BUS;
-class ControllerManager;
-class PiscsiExecutor;
 
 class Piscsi
 {
-	using optargs_type = vector<pair<int, string>>;
-
 	static const int DEFAULT_PORT = 6868;
 
 public:
@@ -35,46 +35,47 @@ public:
 	Piscsi() = default;
 	~Piscsi() = default;
 
-	int run(const vector<char *>&);
+	int run(span<char *>);
 
 private:
 
-	void Banner(const vector<char *>&) const;
-	bool InitBus() const;
-	static void Cleanup();
-	void ReadAccessToken(const string&) const;
+	void Banner(span<char *>) const;
+	bool InitBus();
+	void CleanUp();
+	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
-	PbDeviceType ParseDeviceType(const string&) const;
 	static void TerminationHandler(int);
-	optargs_type ParseArguments(const vector<char *>&, int&) const;
-	void CreateInitialDevices(const optargs_type&) const;
-	void WaitForNotBusy() const;
+	string ParseArguments(span<char *>, PbCommand&, int&, string&);
+	void Process();
+	bool IsNotBusy() const;
 
-	// TODO Should not be static and should be moved to PiscsiService
-	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
+	void ShutDown(AbstractController::piscsi_shutdown_mode);
 
-	DeviceLogger device_logger;
+	bool ExecuteCommand(const CommandContext&);
 
-	// A static instance is needed because of the signal handler
-	static inline shared_ptr<BUS> bus;
+	bool SetLogLevel(const string&) const;
 
-	// TODO These fields should not be static
+	const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("piscsi stdout logger");
 
-	static inline PiscsiService service;
-
-	static inline PiscsiImage piscsi_image;
-
-	const static inline PiscsiResponse piscsi_response;
-
-	static inline shared_ptr<ControllerManager> controller_manager;
-
-	static inline shared_ptr<PiscsiExecutor> executor;
+	static PbDeviceType ParseDeviceType(const string&);
 
 	// Processing flag
-	static inline volatile bool active;
+	atomic_bool target_is_active;
 
-	// Some versions of spdlog do not support get_log_level(), so we have to remember the level
-	static inline string current_log_level = "info";
+	string access_token;
 
-	static inline string access_token;
+	PiscsiImage piscsi_image;
+
+	PiscsiResponse response;
+
+	PiscsiService service;
+
+	unique_ptr<PiscsiExecutor> executor;
+
+	ControllerManager controller_manager;
+
+	unique_ptr<BUS> bus;
+
+	// Required for the termination handler
+	static inline Piscsi *instance;
 };

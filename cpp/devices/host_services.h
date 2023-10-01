@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // Host Services with realtime clock and shutdown support
 //
@@ -12,6 +12,7 @@
 #pragma once
 
 #include "mode_page_device.h"
+#include <span>
 #include <vector>
 #include <map>
 
@@ -48,8 +49,8 @@ private:
 	};
 
 	void StartStopUnit() const;
-	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
-	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
+	int ModeSense6(cdb_t, vector<uint8_t>&) const override;
+	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
 };

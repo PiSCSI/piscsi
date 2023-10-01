@@ -16,6 +16,8 @@
 #pragma once
 
 #include <cstdlib>
+#include <cstdint>
+#include <span>
 #include <vector>
 #include <string>
 
@@ -52,8 +54,8 @@ private:
 	bool Save(const string& path);
 
 	// Read / Write
-	bool ReadSector(vector<uint8_t>&, int) const;				// Sector Read
-	bool WriteSector(const vector<uint8_t>& buf, int);			// Sector Write
+	bool ReadSector(span<uint8_t>, int) const;				// Sector Read
+	bool WriteSector(span<const uint8_t> buf, int);			// Sector Write
 
 	int GetTrack() const		{ return dt.track; }		// Get track
 };

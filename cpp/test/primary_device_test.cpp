@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -17,33 +17,28 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
+pair<shared_ptr<MockAbstractController>, shared_ptr<MockPrimaryDevice>> CreatePrimaryDevice(int id = 0)
+{
+	auto controller = make_shared<NiceMock<MockAbstractController>>(id);
+	auto device = make_shared<MockPrimaryDevice>(0);
+	EXPECT_TRUE(device->Init({}));
+	EXPECT_TRUE(controller->AddDevice(device));
+
+	return { controller, device };
+}
+
 TEST(PrimaryDeviceTest, GetId)
 {
 	const int ID = 5;
 
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, ID);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	auto [controller, device] = CreatePrimaryDevice(ID);
 
-	EXPECT_EQ(-1, device->GetId()) << "Device ID cannot be known without assignment to a controller";
-
-	controller->AddDevice(device);
 	EXPECT_EQ(ID, device->GetId());
 }
 
 TEST(PrimaryDeviceTest, PhaseChange)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_CALL(*controller, Status);
 	device->EnterStatusPhase();
@@ -57,14 +52,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 
 TEST(PrimaryDeviceTest, Reset)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -76,14 +64,7 @@ TEST(PrimaryDeviceTest, Reset)
 
 TEST(PrimaryDeviceTest, CheckReservation)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_TRUE(device->CheckReservation(0, scsi_command::eCmdTestUnitReady, false))
 		<< "Device must not be reserved for initiator ID 0";
@@ -109,15 +90,8 @@ TEST(PrimaryDeviceTest, CheckReservation)
 }
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
-{
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
+{ //NOSONAR using enum is not supported by the bullseye clang++ compiler
+	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -139,14 +113,7 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 
 TEST(PrimaryDeviceTest, DiscardReservation)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -158,73 +125,61 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
+	// Required by the bullseye clang++ compiler
+	auto d = device;
 
 	device->SetReset(true);
 	device->SetAttn(true);
 	device->SetReady(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
-			Property(&scsi_exception::get_asc, asc::POWER_ON_OR_RESET))));
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+			Property(&scsi_exception::get_asc, asc::power_on_or_reset))));
 
 	device->SetReset(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
-			Property(&scsi_exception::get_asc, asc::NOT_READY_TO_READY_CHANGE))));
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+			Property(&scsi_exception::get_asc, asc::not_ready_to_ready_change))));
 
 	device->SetReset(true);
 	device->SetAttn(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
-			Property(&scsi_exception::get_asc, asc::POWER_ON_OR_RESET))));
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+			Property(&scsi_exception::get_asc, asc::power_on_or_reset))));
 
 	device->SetReset(false);
 	device->SetAttn(true);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
-			Property(&scsi_exception::get_asc, asc::NOT_READY_TO_READY_CHANGE))));
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+			Property(&scsi_exception::get_asc, asc::not_ready_to_ready_change))));
 
 	device->SetAttn(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
-			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	device->SetReady(true);
 	EXPECT_CALL(*controller, Status);
 	device->Dispatch(scsi_command::eCmdTestUnitReady);
-	EXPECT_EQ(status::GOOD, controller->GetStatus());
+	EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
-
-	auto& cmd = controller->GetCmd();
+	auto [controller, device] = CreatePrimaryDevice();
+	// Required by the bullseye clang++ compiler
+	auto d = device;
 
 	// ALLOCATION LENGTH
-	cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
 
-	ON_CALL(*device, InquiryInternal()).WillByDefault([&device]() {
-		return device->HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	ON_CALL(*d, InquiryInternal()).WillByDefault([&d]() {
+		return d->HandleInquiry(device_type::processor, scsi_level::spc_3, false);
 	});
 	EXPECT_CALL(*device, InquiryInternal);
 	EXPECT_CALL(*controller, DataIn);
@@ -237,42 +192,42 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_CALL(*device, InquiryInternal);
 	EXPECT_CALL(*controller, DataIn);
 	device->Dispatch(scsi_command::eCmdInquiry);
-	EXPECT_EQ(device_type::PROCESSOR, (device_type)controller->GetBuffer()[0]);
+	EXPECT_EQ(device_type::processor, (device_type)controller->GetBuffer()[0]);
 	EXPECT_EQ(0x00, controller->GetBuffer()[1]) << "Device was not reported as non-removable";
-	EXPECT_EQ(scsi_level::SPC_3, (scsi_level)controller->GetBuffer()[2]) << "Wrong SCSI level";
-	EXPECT_EQ(scsi_level::SCSI_2, (scsi_level)controller->GetBuffer()[3]) << "Wrong response level";
+	EXPECT_EQ(scsi_level::spc_3, (scsi_level)controller->GetBuffer()[2]) << "Wrong SCSI level";
+	EXPECT_EQ(scsi_level::scsi_2, (scsi_level)controller->GetBuffer()[3]) << "Wrong response level";
 	EXPECT_EQ(0x1f, controller->GetBuffer()[4]) << "Wrong additional data size";
 
-	ON_CALL(*device, InquiryInternal()).WillByDefault([&device]() {
-		return device->HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, true);
+	ON_CALL(*device, InquiryInternal()).WillByDefault([&d]() {
+		return d->HandleInquiry(device_type::direct_access, scsi_level::scsi_1_ccs, true);
 	});
 	EXPECT_CALL(*device, InquiryInternal);
 	EXPECT_CALL(*controller, DataIn);
 	device->Dispatch(scsi_command::eCmdInquiry);
-	EXPECT_EQ(device_type::DIRECT_ACCESS, (device_type)controller->GetBuffer()[0]);
+	EXPECT_EQ(device_type::direct_access, (device_type)controller->GetBuffer()[0]);
 	EXPECT_EQ(0x80, controller->GetBuffer()[1]) << "Device was not reported as removable";
-	EXPECT_EQ(scsi_level::SCSI_1_CCS, (scsi_level)controller->GetBuffer()[2]) << "Wrong SCSI level";
-	EXPECT_EQ(scsi_level::SCSI_1_CCS, (scsi_level)controller->GetBuffer()[3]) << "Wrong response level";
+	EXPECT_EQ(scsi_level::scsi_1_ccs, (scsi_level)controller->GetBuffer()[2]) << "Wrong SCSI level";
+	EXPECT_EQ(scsi_level::scsi_1_ccs, (scsi_level)controller->GetBuffer()[3]) << "Wrong response level";
 	EXPECT_EQ(0x1f, controller->GetBuffer()[4]) << "Wrong additional data size";
 
-	cmd[1] = 0x01;
+	controller->SetCmdByte(1, 0x01);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "EVPD bit is not supported";
 
-	cmd[2] = 0x01;
+	controller->SetCmdByte(2, 0x01);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	EXPECT_THAT([&d] { d->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "PAGE CODE field is not supported";
 
-	cmd[1] = 0x00;
-	cmd[2] = 0x00;
+	controller->SetCmdByte(1, 0);
+	controller->SetCmdByte(2, 0);
 	// ALLOCATION LENGTH
-	cmd[4] = 1;
+	controller->SetCmdByte(4, 1);
 	EXPECT_CALL(*device, InquiryInternal);
 	EXPECT_CALL(*controller, DataIn);
 	device->Dispatch(scsi_command::eCmdInquiry);
@@ -282,64 +237,51 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 TEST(PrimaryDeviceTest, RequestSense)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	auto [controller, device] = CreatePrimaryDevice();
+	// Required by the bullseye clang++ compiler
+	auto d = device;
 
-	controller->AddDevice(device);
-
-	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
-	cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
 
 	device->SetReady(false);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdRequestSense); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
-			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRequestSense); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	device->SetReady(true);
 	EXPECT_CALL(*controller, DataIn);
 	device->Dispatch(scsi_command::eCmdRequestSense);
-	EXPECT_EQ(status::GOOD, controller->GetStatus());
+	EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(PrimaryDeviceTest, SendDiagnostic)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
-
-	auto& cmd = controller->GetCmd();
+	auto [controller, device] = CreatePrimaryDevice();
+	// Required by the bullseye clang++ compiler
+	auto d = device;
 
 	EXPECT_CALL(*controller, Status);
 	device->Dispatch(scsi_command::eCmdSendDiagnostic);
-	EXPECT_EQ(status::GOOD, controller->GetStatus());
+	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[1] = 0x10;
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	controller->SetCmdByte(1, 0x10);
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "SEND DIAGNOSTIC must fail because PF bit is not supported";
-	cmd[1] = 0;
+	controller->SetCmdByte(1, 0);
 
-	cmd[3] = 1;
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	controller->SetCmdByte(3, 1);
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
-	cmd[3] = 0;
-	cmd[4] = 1;
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 1);
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
 }
 
@@ -348,23 +290,19 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	const int LUN1 = 1;
 	const int LUN2 = 4;
 
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto device1 = make_shared<MockPrimaryDevice>(LUN1);
 	auto device2 = make_shared<MockPrimaryDevice>(LUN2);
-	const unordered_map<string, string> params;
-	device1->Init(params);
-	device2->Init(params);
+	EXPECT_TRUE(device1->Init({}));
+	EXPECT_TRUE(device2->Init({}));
 
 	controller->AddDevice(device1);
 	EXPECT_TRUE(controller->HasDeviceForLun(LUN1));
 	controller->AddDevice(device2);
 	EXPECT_TRUE(controller->HasDeviceForLun(LUN2));
 
-	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
-	cmd[9] = 255;
+	controller->SetCmdByte(9, 255);
 
 	EXPECT_CALL(*controller, DataIn);
 	device1->Dispatch(scsi_command::eCmdReportLuns);
@@ -380,33 +318,25 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	EXPECT_EQ(0, GetInt16(buffer, 20)) << "Wrong LUN2 number";
 	EXPECT_EQ(LUN2, GetInt16(buffer, 22)) << "Wrong LUN2 number";
 
-	cmd[2] = 0x01;
+	controller->SetCmdByte(2, 0x01);
 	EXPECT_THAT([&] { device1->Dispatch(scsi_command::eCmdReportLuns); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Only SELECT REPORT mode 0 is supported";
 }
 
 TEST(PrimaryDeviceTest, Dispatch)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_THROW(device->Dispatch(static_cast<scsi_command>(0x1f)), scsi_exception) << "Unknown command";
 }
 
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
-	vector<uint8_t> data;
-	MockPrimaryDevice device(0);
+	auto [controller, device] = CreatePrimaryDevice();
 
-	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device does not support writing byte sequences";
+	EXPECT_FALSE(device->WriteByteSequence({})) << "Primary device does not support writing byte sequences";
 }
 
 TEST(PrimaryDeviceTest, GetSetSendDelay)
@@ -424,12 +354,4 @@ TEST(PrimaryDeviceTest, Init)
 	MockPrimaryDevice device(0);
 
 	EXPECT_TRUE(device.Init(params)) << "Initialization of primary device must not fail";
-}
-
-TEST(PrimaryDeviceTest, FlushCache)
-{
-	MockPrimaryDevice device(0);
-
-	// Method must be present
-	device.FlushCache();
 }

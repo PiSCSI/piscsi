@@ -3,15 +3,13 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
 #include "storage_device.h"
-#include <sys/stat.h>
 #include <unistd.h>
-#include <filesystem>
 
 using namespace std;
 using namespace filesystem;
@@ -22,22 +20,43 @@ StorageDevice::StorageDevice(PbDeviceType type, int lun) : ModePageDevice(type, 
 	SetStoppable(true);
 }
 
+void StorageDevice::CleanUp()
+{
+	UnreserveFile();
+
+	ModePageDevice::CleanUp();
+}
+
+void StorageDevice::SetFilename(string_view f)
+{
+	filename = filesystem::path(f);
+
+	// Permanently write-protected
+	SetReadOnly(IsReadOnlyFile());
+
+	SetProtectable(!IsReadOnlyFile());
+
+	if (IsReadOnlyFile()) {
+		SetProtected(false);
+	}
+}
+
 void StorageDevice::ValidateFile()
 {
 	if (blocks == 0) {
 		throw io_exception(string(GetTypeString()) + " device has 0 blocks");
 	}
 
-	if (!exists(path(filename))) {
-		throw file_not_found_exception("Image file '" + filename + "' for " + GetTypeString() + " device does not exist");
+	if (!exists(filename)) {
+		throw file_not_found_exception("Image file '" + filename.string() + "' for " + GetTypeString() + " device does not exist");
 	}
 
 	if (GetFileSize() > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("Drive capacity cannot exceed 2 TiB");
+		throw io_exception("Image files > 2 TiB are not supported");
 	}
 
 	// TODO Check for duplicate handling of these properties (-> piscsi_executor.cpp)
-	if (access(filename.c_str(), W_OK)) {
+	if (IsReadOnlyFile()) {
 		// Permanently write-protected
 		SetReadOnly(true);
 		SetProtectable(false);
@@ -50,28 +69,28 @@ void StorageDevice::ValidateFile()
 	SetReady(true);
 }
 
-void StorageDevice::ReserveFile(const string& file, int id, int lun) const
+void StorageDevice::ReserveFile() const
 {
-	assert(!file.empty());
-	assert(reserved_files.find(file) == reserved_files.end());
+	assert(!filename.empty());
+	assert(!reserved_files.contains(filename));
 
-	reserved_files[file] = make_pair(id, lun);
+	reserved_files[filename] = { GetId(), GetLun() };
 }
 
 void StorageDevice::UnreserveFile()
 {
 	reserved_files.erase(filename);
 
-	filename = "";
+	filename.clear();
 }
 
 id_set StorageDevice::GetIdsForReservedFile(const string& file)
 {
 	if (const auto& it = reserved_files.find(file); it != reserved_files.end()) {
-		return make_pair(it->second.first, it->second.second);
+		return { it->second.first, it->second.second };
 	}
 
-	return make_pair(-1, -1);
+	return { -1, -1 };
 }
 
 void StorageDevice::UnreserveAll()
@@ -79,9 +98,9 @@ void StorageDevice::UnreserveAll()
 	reserved_files.clear();
 }
 
-bool StorageDevice::FileExists(const string& file)
+bool StorageDevice::FileExists(string_view file)
 {
-	return exists(file);
+	return exists(path(file));
 }
 
 bool StorageDevice::IsReadOnlyFile() const
@@ -91,10 +110,10 @@ bool StorageDevice::IsReadOnlyFile() const
 
 off_t StorageDevice::GetFileSize() const
 {
-	// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
-	if (struct stat st; !stat(filename.c_str(), &st)) {
-		return st.st_size;
+	try {
+		return file_size(filename);
 	}
-
-	throw io_exception("Can't get size of '" + filename + "'");
+	catch (const filesystem_error& e) {
+		throw io_exception("Can't get size of '" + filename.string() + "': " + e.what());
+	}
 }
