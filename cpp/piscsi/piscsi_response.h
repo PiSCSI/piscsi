@@ -32,7 +32,7 @@ public:
 	void GetReservedIds(PbReservedIdsInfo&, const unordered_set<int>&) const;
 	void GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbServerInfo&, const string&) const;
 	void GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&, const string&) const;
-	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&) const;
+	void GetDeviceTypesInfo(PbDeviceTypesInfo&) const;
 	void GetVersionInfo(PbVersionInfo&) const;
 	PbServerInfo *GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const unordered_set<int>&,
 			const string&, const string&, const string&, int) const;
@@ -47,7 +47,6 @@ private:
 
 	void GetDeviceProperties(const Device&, PbDeviceProperties&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;
-	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&) const;
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType) const;
 	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, int) const;
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, const string&, int) const;

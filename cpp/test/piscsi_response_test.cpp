@@ -164,11 +164,10 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 TEST(PiscsiResponseTest, GetDeviceTypesInfo)
 {
 	PiscsiResponse response;
-	PbResult result;
 
-	const auto& info = response.GetDeviceTypesInfo(result);
-	EXPECT_TRUE(result.status());
-	EXPECT_EQ(8, info->properties().size());
+	PbDeviceTypesInfo info;
+	response.GetDeviceTypesInfo(info);
+	EXPECT_EQ(8, info.properties().size());
 }
 
 TEST(PiscsiResponseTest, GetServerInfo)

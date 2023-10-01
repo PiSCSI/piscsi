@@ -350,7 +350,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case DEVICE_TYPES_INFO:
-			result.set_allocated_device_types_info(response.GetDeviceTypesInfo(result));
+			response.GetDeviceTypesInfo(*result.mutable_device_types_info());
+			result.set_status(true);
 			context.WriteResult(result);
 			break;
 

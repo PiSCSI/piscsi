@@ -57,7 +57,7 @@ void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	GetDeviceProperties(*device, *type_properties->mutable_properties());
 }
 
-void PiscsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info) const
+void PiscsiResponse::GetDeviceTypesInfo(PbDeviceTypesInfo& device_types_info) const
 {
 	// Start with 2 instead of 1. 1 was the removed SASI drive type.
 	int ordinal = 2;
@@ -242,17 +242,6 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 	result.set_status(true);
 }
 
-PbDeviceTypesInfo *PiscsiResponse::GetDeviceTypesInfo(PbResult& result) const
-{
-	auto device_types_info = new PbDeviceTypesInfo();
-
-	GetAllDeviceTypeProperties(*device_types_info);
-
-	result.set_status(true);
-
-	return device_types_info;
-}
-
 PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices,
 		PbResult& result, const unordered_set<int>& reserved_ids, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
@@ -261,7 +250,7 @@ PbServerInfo *PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<Prima
 
 	GetVersionInfo(*server_info->mutable_version_info());
 	GetLogLevelInfo(*server_info->mutable_log_level_info());
-	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
+	GetDeviceTypesInfo(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	GetNetworkInterfacesInfo(*server_info->mutable_network_interfaces_info());
 	GetMappingInfo(*server_info->mutable_mapping_info());
