@@ -45,7 +45,7 @@ private:
 
 	const DeviceFactory device_factory;
 
-	void GetDeviceProperties(PbDeviceProperties&, const Device&) const;
+	void GetDeviceProperties(const Device&, PbDeviceProperties&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&) const;
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType) const;

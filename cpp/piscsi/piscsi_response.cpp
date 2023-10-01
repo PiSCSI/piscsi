@@ -26,7 +26,7 @@ using namespace piscsi_util;
 using namespace network_util;
 using namespace protobuf_util;
 
-void PiscsiResponse::GetDeviceProperties(PbDeviceProperties& properties, const Device& device) const
+void PiscsiResponse::GetDeviceProperties(const Device& device, PbDeviceProperties& properties) const
 {
 	properties.set_luns(ControllerManager::GetScsiLunMax());
 	properties.set_read_only(device.IsReadOnly());
@@ -54,7 +54,7 @@ void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	auto type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
 	const auto device = device_factory.CreateDevice(type, 0, "");
-	GetDeviceProperties(*type_properties->mutable_properties(), *device);
+	GetDeviceProperties(*device, *type_properties->mutable_properties());
 }
 
 void PiscsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info) const
@@ -78,7 +78,7 @@ void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 	pb_device.set_revision(device.GetRevision());
 	pb_device.set_type(device.GetType());
 
-    GetDeviceProperties(*pb_device.mutable_properties(), device);
+    GetDeviceProperties(device, *pb_device.mutable_properties());
 
     auto status = new PbDeviceStatus();
 	status->set_protected_(device.IsProtected());
