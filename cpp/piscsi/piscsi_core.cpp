@@ -346,7 +346,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case DEVICES_INFO:
 			response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
-			context.WriteSuccessResult(result);
+			context.WriteResult(result);
 			break;
 
 		case DEVICE_TYPES_INFO:
