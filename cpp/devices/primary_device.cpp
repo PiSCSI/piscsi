@@ -35,9 +35,9 @@ bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-void PrimaryDevice::AddCommand(scsi_command opcode, const operation& execute)
+void PrimaryDevice::AddCommand(scsi_command cmd, const operation& execute)
 {
-	commands[opcode] = execute;
+	commands[cmd] = execute;
 }
 
 void PrimaryDevice::Dispatch(scsi_command cmd)
