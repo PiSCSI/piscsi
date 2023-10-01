@@ -20,7 +20,6 @@
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
-#include "shared/piscsi_version.h"
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
