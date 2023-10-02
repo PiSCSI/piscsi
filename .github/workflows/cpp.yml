@@ -55,7 +55,7 @@ jobs:
       SONAR_SCANNER_VERSION: 5.0.1.3006
       SONAR_SERVER_URL: "https://sonarcloud.io"
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_PROJECT_KEY: "akuker_PISCSI"
+      SONAR_PROJECT_KEY: "akuker-PISCSI"
       SONAR_ORGANIZATION: "piscsi"
     steps:
       - uses: actions/checkout@v3
