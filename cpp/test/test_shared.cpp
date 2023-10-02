@@ -128,7 +128,7 @@ void DeleteTempFile(const string& filename)
     remove(temp_file);
 }
 
-void CleanupAllTempFiles()
+void CleanUpAllTempFiles()
 {
     remove_all(test_data_temp_path);
 }

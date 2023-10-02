@@ -65,7 +65,7 @@ TEST(GpiobusRaspberry, GetDtRanges)
     EXPECT_EQ(0x20000000, GPIOBUS_Raspberry::bcm_host_get_peripheral_address());
     DeleteTempFile("/proc/device-tree/soc/ranges");
 
-    CleanupAllTempFiles();
+    CleanUpAllTempFiles();
 }
 
 TEST(GpiobusRaspberry, GetDat)
