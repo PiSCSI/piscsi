@@ -64,7 +64,7 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
 
         int gpio_bank = SunXI::GPIO_BANK(gpio_num);
 
-        if (std::find(gpio_banks.begin(), gpio_banks.end(), gpio_bank) != gpio_banks.end()) {
+        if (std::ranges::find(gpio_banks, gpio_bank) != gpio_banks.end()) {
             LOGTRACE("Duplicate bank: %d", gpio_bank)
 
         } else {
