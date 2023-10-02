@@ -223,9 +223,8 @@ string ScsictlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) con
 
 	s << "Supported image file extension to device type mappings:\n";
 
-	const map<string, PbDeviceType, less<>> sorted_mappings(mapping_info.mapping().begin(), mapping_info.mapping().end());
-
-	for (const auto& [extension, type] : sorted_mappings) {
+	for (const map<string, PbDeviceType, less<>> sorted_mappings(mapping_info.mapping().begin(), mapping_info.mapping().end());
+			const auto& [extension, type] : sorted_mappings) {
 		s << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
 	}
 
