@@ -29,7 +29,7 @@ PiscsiImage::PiscsiImage()
 
 bool PiscsiImage::CheckDepth(string_view filename) const
 {
-	return count(filename.begin(), filename.end(), '/') <= depth;
+	return ranges::count(filename, '/') <= depth;
 }
 
 bool PiscsiImage::CreateImageFolder(const CommandContext& context, string_view filename) const
