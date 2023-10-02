@@ -10,15 +10,18 @@
 #pragma once
 
 #include "generated/piscsi_interface.pb.h"
+#include "shared/piscsi_util.h"
 #include <unordered_map>
 #include <string>
 
 using namespace std;
 using namespace piscsi_interface;
 
+// A combination of device ID and LUN
 using id_set = pair<int, int>;
 
-using param_map = unordered_map<string, string>;
+// The map used for storing/passing device parameters
+using param_map = unordered_map<string, string, piscsi_util::StringHash>;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {

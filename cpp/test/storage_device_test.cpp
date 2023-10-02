@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include "shared/piscsi_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "devices/storage_device.h"
 #include <filesystem>
@@ -132,7 +133,7 @@ TEST(StorageDeviceTest, GetSetReservedFiles)
 
 	device->ReserveFile();
 
-	const unordered_map<string, id_set> reserved_files = StorageDevice::GetReservedFiles();
+	const auto& reserved_files = StorageDevice::GetReservedFiles();
 	EXPECT_EQ(1, reserved_files.size());
 	EXPECT_TRUE(reserved_files.contains("filename"));
 

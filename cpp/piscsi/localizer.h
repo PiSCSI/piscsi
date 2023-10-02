@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "shared/piscsi_util.h"
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
@@ -68,7 +69,7 @@ private:
 	unordered_map<string, unordered_map<LocalizationKey, string>> localized_messages;
 
 	// Supported locales, always lower case
-	unordered_set<string> supported_languages = { "en", "de", "sv", "fr", "es", "zh" };
+	unordered_set<string, piscsi_util::StringHash, equal_to<>> supported_languages = { "en", "de", "sv", "fr", "es", "zh" };
 
 	const regex regex1 = regex("%1");
 	const regex regex2 = regex("%2");

@@ -203,7 +203,7 @@ TEST(DeviceTest, Params)
 	device.SetParams(params);
 	EXPECT_EQ("", device.GetParam("key"));
 
-	unordered_map<string, string> default_params;
+	param_map default_params;
 	default_params["key"] = "value";
 	device.SetDefaultParams(default_params);
 	EXPECT_EQ("", device.GetParam("key"));

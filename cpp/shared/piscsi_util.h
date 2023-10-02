@@ -21,6 +21,15 @@ namespace piscsi_util
 	// Separator for compound options like ID:LUN
 	static const char COMPONENT_SEPARATOR = ':';
 
+	struct StringHash {
+	  using is_transparent = void;
+
+	  size_t operator()(string_view sv) const {
+	    hash<string_view> hasher;
+	    return hasher(sv);
+	  }
+	};
+
 	string Join(const auto& collection, const string_view separator = ", ") {
 		ostringstream s;
 
