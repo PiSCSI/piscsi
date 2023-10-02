@@ -97,7 +97,7 @@ bool DiskTrack::Load(const string& path)
 
 	// Resize and clear changemap
 	dt.changemap.resize(dt.sectors);
-	fill(dt.changemap.begin(), dt.changemap.end(), false);
+	fill(dt.changemap.begin(), dt.changemap.end(), false); //NOSONAR ranges::fill() cannot be applied to vector<bool>
 
 	ifstream in(path, ios::binary);
 	if (in.fail()) {
@@ -211,7 +211,7 @@ bool DiskTrack::Save(const string& path)
 	}
 
 	// Drop the change flag and exit
-	fill(dt.changemap.begin(), dt.changemap.end(), false);
+	fill(dt.changemap.begin(), dt.changemap.end(), false); //NOSONAR ranges::fill() cannot be applied to vector<bool>
 	dt.changed = false;
 
 	return true;
