@@ -350,7 +350,7 @@ TEST(PrimaryDeviceTest, GetSetSendDelay)
 
 TEST(PrimaryDeviceTest, Init)
 {
-	unordered_map<string, string> params;
+	param_map params;
 	MockPrimaryDevice device(0);
 
 	EXPECT_TRUE(device.Init(params)) << "Initialization of primary device must not fail";

@@ -195,7 +195,7 @@ TEST(DeviceTest, GetPaddedName)
 TEST(DeviceTest, Params)
 {
 	MockDevice device(0);
-	unordered_map<string, string> params;
+	param_map params;
 	params["key"] = "value";
 
 	EXPECT_EQ("", device.GetParam("key"));

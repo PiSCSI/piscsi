@@ -34,7 +34,7 @@ void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 	PiscsiResponse response;
 
 	auto d = device_factory.CreateDevice(type, 0, "");
-	const unordered_map<string, string> params;
+	const param_map params;
 	d->Init(params);
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, d));
 

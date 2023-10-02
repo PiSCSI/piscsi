@@ -96,7 +96,7 @@ TEST(DeviceFactoryTest, GetDefaultParams)
 {
 	DeviceFactory device_factory;
 
-	unordered_map<string, string> params = device_factory.GetDefaultParams(SCHD);
+	param_map params = device_factory.GetDefaultParams(SCHD);
 	EXPECT_TRUE(params.empty());
 
 	params = device_factory.GetDefaultParams(SCRM);

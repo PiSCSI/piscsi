@@ -18,7 +18,7 @@ TEST(ScsiPrinterTest, Init)
 	auto [controller, printer] = CreateDevice(SCLP);
 	EXPECT_TRUE(printer->Init({}));
 
-	unordered_map<string, string> params;
+	param_map params;
 	params["cmd"] = "missing_filename_specifier";
 	EXPECT_FALSE(printer->Init(params));
 
