@@ -16,6 +16,7 @@
 
 using namespace std;
 
+// Command Descriptor Block
 using cdb_t = span<const int>;
 
 namespace scsi_defs
