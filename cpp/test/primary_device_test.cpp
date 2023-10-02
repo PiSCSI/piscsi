@@ -90,7 +90,7 @@ TEST(PrimaryDeviceTest, CheckReservation)
 }
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
-{ //NOSONAR using enum is not supported by the bullseye clang++ compiler
+{
 	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);

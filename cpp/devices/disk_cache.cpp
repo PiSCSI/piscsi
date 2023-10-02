@@ -30,7 +30,7 @@ DiskCache::DiskCache(const string& path, int size, uint32_t blocks, off_t imgoff
 bool DiskCache::Save() const
 {
 	// Save valid tracks
-	return none_of(cache.begin(), cache.end(), [this](const cache_t& c)
+	return ranges::none_of(cache.begin(), cache.end(), [this](const cache_t& c)
 			{ return c.disktrk != nullptr && !c.disktrk->Save(sec_path); });
 }
 
