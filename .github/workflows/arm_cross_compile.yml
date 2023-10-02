@@ -11,13 +11,13 @@ on:
 
 jobs:
   build_arm:
-    runs-on: ubuntu-23.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: cpp
     env:
-      APT_ARM_TOOLCHAIN: "gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf"
-      APT_LIBRARIES: "libspdlog-dev:armhf libpcap-dev:armhf protobuf-compiler libprotobuf-dev:armhf"
+      APT_ARM_TOOLCHAIN: "gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev"
+      APT_LIBRARIES: "libspdlog-dev:armhf libpcap-dev:armhf libevdev2:armhf libev-dev:armhf protobuf-compiler libprotobuf-dev:armhf"
     steps:
       - uses: actions/checkout@v3
 

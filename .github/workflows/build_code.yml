@@ -32,6 +32,16 @@ jobs:
     with:
       connect-type: "STANDARD"
 
+  aibom:
+    uses: PiSCSI/piscsi/.github/workflows/arm_cross_compile.yml@develop
+    with:
+      connect-type: "AIBOM"
+
+  gamernium:
+    uses: PiSCSI/piscsi/.github/workflows/arm_cross_compile.yml@develop
+    with:
+      connect-type: "GAMERNIUM"
+
   # The fullspec connection board is the most common
   debug-fullspec:
     uses: PiSCSI/piscsi/.github/workflows/arm_cross_compile.yml@develop
