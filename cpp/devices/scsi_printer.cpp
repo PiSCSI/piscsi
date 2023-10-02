@@ -44,7 +44,7 @@ SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 	SupportsParams(true);
 }
 
-bool SCSIPrinter::Init(const unordered_map<string, string>& params)
+bool SCSIPrinter::Init(const param_map& params)
 {
 	PrimaryDevice::Init(params);
 

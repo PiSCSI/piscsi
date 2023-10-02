@@ -277,7 +277,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return true;
 	}
 
-	unordered_map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
+	param_map params = { pb_device.params().begin(), pb_device.params().end() };
 	if (!device->SupportsFile()) {
 		// Clients like scsictl might have sent both "file" and "interfaces"
 		params.erase("file");

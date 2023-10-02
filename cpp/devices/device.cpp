@@ -87,7 +87,7 @@ string Device::GetParam(const string& key) const
 	return it == params.end() ? "" : it->second;
 }
 
-void Device::SetParams(const unordered_map<string, string>& set_params)
+void Device::SetParams(const param_map& set_params)
 {
 	params = default_params;
 

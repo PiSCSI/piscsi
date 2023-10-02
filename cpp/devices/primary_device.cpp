@@ -17,7 +17,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-bool PrimaryDevice::Init(const unordered_map<string, string>& params)
+bool PrimaryDevice::Init(const param_map& params)
 {
 	// Mandatory SCSI primary commands
 	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });

@@ -28,7 +28,7 @@ public:
 	SCSICD(int, const unordered_set<uint32_t>&, scsi_defs::scsi_level = scsi_level::scsi_2);
 	~SCSICD() override = default;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
 
 	void Open() override;
 

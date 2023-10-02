@@ -151,11 +151,11 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const
 {
 	const auto& it = sector_sizes.find(type);
-	return it != sector_sizes.end() ? it->second : empty_set;
+	return it != sector_sizes.end() ? it->second : EMPTY_SET;
 }
 
-const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceType type) const
+const param_map& DeviceFactory::GetDefaultParams(PbDeviceType type) const
 {
 	const auto& it = default_params.find(type);
-	return it != default_params.end() ? it->second : empty_map;
+	return it != default_params.end() ? it->second : EMPTY_PARAM_MAP;
 }

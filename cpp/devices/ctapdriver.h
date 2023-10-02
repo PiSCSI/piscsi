@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "devices/device.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -37,7 +38,7 @@ public:
 	CTapDriver(CTapDriver&) = default;
 	CTapDriver& operator=(const CTapDriver&) = default;
 
-	bool Init(const unordered_map<string, string>&);
+	bool Init(const param_map&);
 	void CleanUp() const;
 
 	void GetMacAddr(uint8_t *) const;

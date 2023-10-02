@@ -30,7 +30,7 @@ public:
 	explicit SCSIPrinter(int);
 	~SCSIPrinter() override = default;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
 	void CleanUp() override;
 
 	vector<uint8_t> InquiryInternal() const override;

@@ -46,7 +46,7 @@ public:
 
 	using StorageDevice::StorageDevice;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
 	void CleanUp() override;
 
 	void Dispatch(scsi_command) override;

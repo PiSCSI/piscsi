@@ -31,7 +31,7 @@ SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes, scsi_defs::
 	SetLockable(true);
 }
 
-bool SCSICD::Init(const unordered_map<string, string>& params)
+bool SCSICD::Init(const param_map& params)
 {
 	Disk::Init(params);
 

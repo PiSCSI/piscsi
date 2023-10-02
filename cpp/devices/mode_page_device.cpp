@@ -20,7 +20,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-bool ModePageDevice::Init(const unordered_map<string, string>& params)
+bool ModePageDevice::Init(const param_map& params)
 {
 	PrimaryDevice::Init(params);
 

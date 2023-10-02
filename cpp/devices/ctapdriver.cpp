@@ -68,12 +68,12 @@ string ip_link(int fd, const char* ifname, bool up) {
 #endif
 }
 
-bool CTapDriver::Init(const unordered_map<string, string>& const_params)
+bool CTapDriver::Init(const param_map& const_params)
 {
 #ifndef __linux__
 	return false;
 #else
-	unordered_map<string, string> params = const_params;
+	param_map params = const_params;
 	stringstream s(params["interface"]);
 	string interface;
 	while (getline(s, interface, ',')) {

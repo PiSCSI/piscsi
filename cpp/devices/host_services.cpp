@@ -31,7 +31,7 @@ using namespace std::chrono;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-bool HostServices::Init(const unordered_map<string, string>& params)
+bool HostServices::Init(const param_map& params)
 {
 	ModePageDevice::Init(params);
 

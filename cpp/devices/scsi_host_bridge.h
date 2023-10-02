@@ -35,7 +35,7 @@ public:
 	explicit SCSIBR(int);
 	~SCSIBR() override = default;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
 	void CleanUp() override;
 
 	// Commands

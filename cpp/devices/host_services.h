@@ -24,7 +24,7 @@ public:
 	explicit HostServices(int lun) : ModePageDevice(SCHS, lun) {}
 	~HostServices() override = default;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
 
 	vector<uint8_t> InquiryInternal() const override;
 	void TestUnitReady() override;

@@ -35,7 +35,7 @@ public:
 	PrimaryDevice(PbDeviceType type, int lun) : Device(type, lun) {}
 	~PrimaryDevice() override = default;
 
-	virtual bool Init(const unordered_map<string, string>&);
+	virtual bool Init(const param_map&);
 	virtual void CleanUp() {
 		// Override if cleanup work is required for a derived device
 	};

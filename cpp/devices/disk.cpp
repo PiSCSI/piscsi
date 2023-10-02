@@ -23,7 +23,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-bool Disk::Init(const unordered_map<string, string>& params)
+bool Disk::Init(const param_map& params)
 {
 	StorageDevice::Init(params);
 

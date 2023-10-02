@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "devices/device.h"
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
@@ -33,19 +34,19 @@ public:
 	shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, int, const string&) const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
-	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
+	const param_map& GetDefaultParams(PbDeviceType type) const;
 	const auto& GetExtensionMapping() const { return extension_mapping; }
 
 private:
 
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
 
-	unordered_map<PbDeviceType, unordered_map<string, string>> default_params;
+	unordered_map<PbDeviceType, param_map> default_params;
 
 	unordered_map<string, PbDeviceType> extension_mapping;
 
 	unordered_map<string, PbDeviceType> device_mapping;
 
-	unordered_set<uint32_t> empty_set;
-	unordered_map<string, string> empty_map;
+	inline static const unordered_set<uint32_t> EMPTY_SET;
+	inline static const param_map EMPTY_PARAM_MAP;
 };

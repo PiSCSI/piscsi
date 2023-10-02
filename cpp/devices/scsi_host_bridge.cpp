@@ -30,7 +30,7 @@ SCSIBR::SCSIBR(int lun) : PrimaryDevice(SCBR, lun)
 	SupportsParams(true);
 }
 
-bool SCSIBR::Init(const unordered_map<string, string>& params)
+bool SCSIBR::Init(const param_map& params)
 {
 	PrimaryDevice::Init(params);
 

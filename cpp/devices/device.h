@@ -18,6 +18,8 @@ using namespace piscsi_interface;
 
 using id_set = pair<int, int>;
 
+using param_map = unordered_map<string, string>;
+
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
 	const string DEFAULT_VENDOR = "PiSCSI";
@@ -61,10 +63,10 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	string revision;
 
 	// The parameters the device was created with
-	unordered_map<string, string> params;
+	param_map params;
 
 	// The default parameters
-	unordered_map<string, string> default_params;
+	param_map default_params;
 
 	// Sense Key and ASC
 	//	MSB		Reserved (0x00)
@@ -91,7 +93,7 @@ protected:
 	int GetStatusCode() const { return status_code; }
 
 	string GetParam(const string&) const;
-	void SetParams(const unordered_map<string, string>&);
+	void SetParams(const param_map&);
 
 public:
 
@@ -134,7 +136,7 @@ public:
 	void SupportsParams(bool b) { supports_params = b; }
 	void SupportsFile(bool b) { supports_file = b; }
 	auto GetParams() const { return params; }
-	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
+	void SetDefaultParams(const param_map& p) { default_params = p; }
 
 	void SetStatusCode(int s) { status_code = s; }
 

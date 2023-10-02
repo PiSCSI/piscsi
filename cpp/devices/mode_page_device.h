@@ -21,7 +21,7 @@ public:
 
 	using PrimaryDevice::PrimaryDevice;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
 
 	virtual void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) const;
 

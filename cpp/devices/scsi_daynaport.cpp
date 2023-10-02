@@ -38,7 +38,7 @@ SCSIDaynaPort::SCSIDaynaPort(int lun) : PrimaryDevice(SCDP, lun)
 	SupportsParams(true);
 }
 
-bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
+bool SCSIDaynaPort::Init(const param_map& params)
 {
 	PrimaryDevice::Init(params);
 
