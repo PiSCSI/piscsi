@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/piscsi_util.h"
 #include "shared/network_util.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
