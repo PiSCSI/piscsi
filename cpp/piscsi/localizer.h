@@ -66,7 +66,7 @@ public:
 private:
 
 	void Add(LocalizationKey, const string&, string_view);
-	unordered_map<string, unordered_map<LocalizationKey, string>> localized_messages;
+	unordered_map<string, unordered_map<LocalizationKey, string>, piscsi_util::StringHash, equal_to<>> localized_messages;
 
 	// Supported locales, always lower case
 	unordered_set<string, piscsi_util::StringHash, equal_to<>> supported_languages = { "en", "de", "sv", "fr", "es", "zh" };
