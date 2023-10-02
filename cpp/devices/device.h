@@ -9,11 +9,10 @@
 
 #pragma once
 
-#include "shared/piscsi_util.h"
 #include "generated/piscsi_interface.pb.h"
+#include "shared/piscsi_util.h"
 #include <unordered_map>
 #include <string>
-#include <span>
 
 using namespace std;
 using namespace piscsi_interface;
@@ -23,9 +22,6 @@ using id_set = pair<int, int>;
 
 // The map used for storing/passing device parameters
 using param_map = unordered_map<string, string, piscsi_util::StringHash, equal_to<>>;
-
-// Command Descriptor Block
-using cdb_t = span<const int>;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
