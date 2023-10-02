@@ -43,9 +43,9 @@ private:
 
 	unordered_map<PbDeviceType, param_map> default_params;
 
-	unordered_map<string, PbDeviceType> extension_mapping;
+	unordered_map<string, PbDeviceType, hash<string>> extension_mapping;
 
-	unordered_map<string, PbDeviceType> device_mapping;
+	unordered_map<string, PbDeviceType, hash<string>> device_mapping;
 
 	inline static const unordered_set<uint32_t> EMPTY_SET;
 	inline static const param_map EMPTY_PARAM_MAP;
