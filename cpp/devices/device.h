@@ -21,7 +21,7 @@ using namespace piscsi_interface;
 using id_set = pair<int, int>;
 
 // The map used for storing/passing device parameters
-using param_map = unordered_map<string, string, piscsi_util::StringHash>;
+using param_map = unordered_map<string, string, piscsi_util::StringHash, equal_to<>>;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
