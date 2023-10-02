@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "shared/piscsi_util.h"
 #include "mode_page_device.h"
 #include <unordered_map>
 #include <string>
@@ -44,7 +45,8 @@ public:
 	void SetMediumChanged(bool b) { medium_changed = b; }
 
 	static auto GetReservedFiles() { return reserved_files; }
-	static void SetReservedFiles(const unordered_map<string, id_set>& r) { reserved_files = r; }
+	static void SetReservedFiles(const unordered_map<string, id_set, piscsi_util::StringHash, equal_to<>>& r)
+		{ reserved_files = r; }
 	static id_set GetIdsForReservedFile(const string&);
 
 protected:
@@ -68,5 +70,5 @@ private:
 	bool medium_changed = false;
 
 	// The list of image files in use and the IDs and LUNs using these files
-	static inline unordered_map<string, id_set> reserved_files;
+	static inline unordered_map<string, id_set, piscsi_util::StringHash, equal_to<>> reserved_files;
 };
