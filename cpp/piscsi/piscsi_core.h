@@ -51,7 +51,7 @@ private:
 
 	void ShutDown(AbstractController::piscsi_shutdown_mode);
 
-	bool ExecuteCommand(const CommandContext&);
+	bool ExecuteCommand(CommandContext&);
 
 	bool SetLogLevel(const string&) const;
 

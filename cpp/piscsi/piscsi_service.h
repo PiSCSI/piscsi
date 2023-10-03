@@ -19,7 +19,7 @@ using namespace std;
 
 class PiscsiService
 {
-	using callback = function<bool(const CommandContext&)>;
+	using callback = function<bool(CommandContext&)>;
 
 public:
 
