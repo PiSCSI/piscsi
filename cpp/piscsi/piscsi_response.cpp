@@ -216,7 +216,6 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 
 	auto devices_info = result.mutable_devices_info();
 	for (const auto& [id, lun] : id_sets) {
-		cerr << id << "   "  << lun << endl;
 		for (const auto& d : devices) {
 			if (d->GetId() == id && d->GetLun() == lun) {
 				GetDevice(*d, *devices_info->add_devices(), default_folder);
