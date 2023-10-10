@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  PiSCSI\n"
+"Project-Id-Version: PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
 "POT-Creation-Date: 2023-10-09 20:08-0500\n"
-"PO-Revision-Date: 2023-10-09 20:08-0500\n"
+"PO-Revision-Date: 2023-10-09 20:15-0500\n"
 "Last-Translator: Tony Kuker <akuker@gmail.com>\n"
-"Language: zh\n"
 "Language-Team: N/A\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.12.1\n"
+"X-Generator: Poedit 3.4\n"
 
 #: src/return_code_mapper.py:14
 #, python-format
@@ -95,9 +96,9 @@ msgstr "无法从文件读取属性：%(file_path)s"
 #: src/return_code_mapper.py:44
 #, python-format
 msgid ""
-"Cannot insert an image for %(device_type)s into a %(current_device_type)s"
-" device"
-msgstr "无法将%(device_type)s类型的映像文件载入到 %(current_device_type)s 类型的设备"
+"Cannot insert an image for %(device_type)s into a %(current_device_type)s device"
+msgstr ""
+"无法将%(device_type)s类型的映像文件载入到 %(current_device_type)s 类型的设备"
 
 #: src/return_code_mapper.py:46
 #, python-format
@@ -119,73 +120,78 @@ msgstr "无法提取档案：%(error)s"
 
 #: src/return_code_mapper.py:54
 msgid ""
-"Potential instability - Under voltage detected - Make sure to use a "
-"sufficient power source (2.5+ amps)."
+"Potential instability - Under voltage detected - Make sure to use a sufficient "
+"power source (2.5+ amps)."
 msgstr "潜在的不稳定 - 检测到欠压 - 确保使用足够的电源（2.5+ 安培）。"
 
 #: src/return_code_mapper.py:57
 msgid ""
-"Potential instability - ARM frequency capped - Ensure sufficient "
-"airflow/cooling."
+"Potential instability - ARM frequency capped - Ensure sufficient airflow/"
+"cooling."
 msgstr "潜在的不稳定性 - ARM 频率上限 - 确保足够的气流/冷却。"
 
 #: src/return_code_mapper.py:59
 msgid ""
-"Potential instability - Currently throttled - Make sure to use a "
-"sufficient power source (2.5+ amps)."
+"Potential instability - Currently throttled - Make sure to use a sufficient "
+"power source (2.5+ amps)."
 msgstr "潜在不稳定 - 当前受到限制 - 确保使用足够的电源（2.5+ 安培）。"
 
 #: src/return_code_mapper.py:62
 msgid ""
-"Potential instability - Soft-temperature limit active - Ensure sufficient"
-" airflow/cooling."
+"Potential instability - Soft-temperature limit active - Ensure sufficient "
+"airflow/cooling."
 msgstr "潜在的不稳定性 - 软温度限制激活 - 确保足够的气流/冷却。"
 
 #: src/return_code_mapper.py:65
 msgid ""
-"Potential instability - Under voltage has occurred since last reboot.  "
-"Make sure to use a sufficient power source (2.5+ amps)."
-msgstr "潜在的不稳定 - 自上次重新启动以来出现欠压。 确保使用足够的电源（2.5+ 安培）。"
+"Potential instability - Under voltage has occurred since last reboot.  Make "
+"sure to use a sufficient power source (2.5+ amps)."
+msgstr ""
+"潜在的不稳定 - 自上次重新启动以来出现欠压。 确保使用足够的电源（2.5+ 安培）。"
 
 #: src/return_code_mapper.py:68
 msgid ""
-"Potential instability - ARM frequency capping has occurred since last "
-"reboot.  Ensure sufficient airflow/cooling."
-msgstr "潜在的不稳定 - 自上次重新启动以来发生了 ARM 频率上限。 确保足够的气流/冷却。"
+"Potential instability - ARM frequency capping has occurred since last reboot.  "
+"Ensure sufficient airflow/cooling."
+msgstr ""
+"潜在的不稳定 - 自上次重新启动以来发生了 ARM 频率上限。 确保足够的气流/冷却。"
 
 #: src/return_code_mapper.py:71
 msgid ""
-"Potential instability - Throttling has occurred since the last reboot.  "
-"Make sure to use a sufficient power source (2.5+ amps)."
-msgstr "潜在的不稳定 - 自上次重新启动以来发生了限制。 确保使用足够的电源（2.5+ 安培）。"
+"Potential instability - Throttling has occurred since the last reboot.  Make "
+"sure to use a sufficient power source (2.5+ amps)."
+msgstr ""
+"潜在的不稳定 - 自上次重新启动以来发生了限制。 确保使用足够的电源（2.5+ 安培）。"
 
 #: src/return_code_mapper.py:74
 msgid ""
-"Potential instability - Soft temperature limit has occurred since last "
-"reboot.  Ensure sufficient airflow/cooling."
+"Potential instability - Soft temperature limit has occurred since last reboot.  "
+"Ensure sufficient airflow/cooling."
 msgstr "潜在的不稳定 - 自上次重新启动以来出现软温度限制。 确保足够的气流/冷却。"
 
 #: src/socket_cmds_flask.py:42
 #, python-format
 msgid ""
-"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s"
-" with error: %(error_msg)s. The PiSCSI process is not running or may have"
-" crashed."
+"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s with "
+"error: %(error_msg)s. The PiSCSI process is not running or may have crashed."
 msgstr ""
-"PiSCSI Web 界面无法连接到 %(host)s:%(port)s 处的 PiSCSI。 错误信息：%(error_msg)s。 "
-"PiSCSI 进程未运行或可能已崩溃。"
+"PiSCSI Web 界面无法连接到 %(host)s:%(port)s 处的 PiSCSI。 错误信息："
+"%(error_msg)s。 PiSCSI 进程未运行或可能已崩溃。"
 
 #: src/socket_cmds_flask.py:54
 msgid ""
-"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and "
-"try again. If the issue persists, please report a bug."
-msgstr "PiSCSI Web 界面与 PiSCSI 失去连接，请返回重试。 如果问题仍然存在，请报告错误。"
+"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and try "
+"again. If the issue persists, please report a bug."
+msgstr ""
+"PiSCSI Web 界面与 PiSCSI 失去连接，请返回重试。 如果问题仍然存在，请报告错误。"
 
 #: src/socket_cmds_flask.py:64
 msgid ""
-"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please"
-" go back and try again. If the issue persists, please report a bug."
-msgstr "PiSCSI Web 界面未从 PiSCSI 获得有效响应，请返回重试。 如果问题仍然存在，请报告错误。"
+"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please go "
+"back and try again. If the issue persists, please report a bug."
+msgstr ""
+"PiSCSI Web 界面未从 PiSCSI 获得有效响应，请返回重试。 如果问题仍然存在，请报告错"
+"误。"
 
 #: src/web.py:265
 msgid "PiSCSI Control Page"
@@ -469,8 +475,8 @@ msgstr "请首先为界面 %(interface)s 配置网桥"
 #: src/web_utils.py:292
 #, python-format
 msgid ""
-"Unable to detect if %(interface)s is Ethernet or WiFi. Make sure that the"
-" correct network bridge is configured."
+"Unable to detect if %(interface)s is Ethernet or WiFi. Make sure that the "
+"correct network bridge is configured."
 msgstr "无法检测%(interface)s是以太网还是WiFi。确保配置了正确的网桥。"
 
 #: src/web_utils.py:299
@@ -665,15 +671,16 @@ msgstr "声明"
 #: src/templates/drives.html:5
 #, python-format
 msgid ""
-"These device profiles are provided as-is with no guarantee to work "
-"equally to the actual physical device they are named after. You may need "
-"to provide appropirate device drivers and/or configuration parameters for"
-" them to function properly. If you would like to see data modified, or "
-"have additional devices to add to the list, please raise an issue ticket "
-"at <a href=\"%(url)s\">GitHub</a>."
+"These device profiles are provided as-is with no guarantee to work equally to "
+"the actual physical device they are named after. You may need to provide "
+"appropirate device drivers and/or configuration parameters for them to function "
+"properly. If you would like to see data modified, or have additional devices to "
+"add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>."
 msgstr ""
-"这些设备的配置文件按原样提供，不保证与它们命名的实际物理设备完全一致地工作。 您可能需要提供适当的设备驱动程序和/或配置参数才能使它们正常运行。 "
-"如果您想看到已修改的数据，或有其他设备要添加到列表中，请在 <a href=\"%(url)s\">GitHub</a> 上提问。"
+"这些设备的配置文件按原样提供，不保证与它们命名的实际物理设备完全一致地工作。 您"
+"可能需要提供适当的设备驱动程序和/或配置参数才能使它们正常运行。 如果您想看到已修"
+"改的数据，或有其他设备要添加到列表中，请在 <a href=\"%(url)s\">GitHub</a> 上提"
+"问。"
 
 #: src/templates/drives.html:6
 msgid "Hard Disk Drives"
@@ -714,8 +721,8 @@ msgstr "CD/DVD 驱动器"
 
 #: src/templates/drives.html:43
 msgid ""
-"This will create a properties file for the given CD-ROM or DVD image. No "
-"new image file will be created."
+"This will create a properties file for the given CD-ROM or DVD image. No new "
+"image file will be created."
 msgstr "这将为给定的CD-ROM或DVD映像创建一个属性文件，不会创建新的映像文件。"
 
 #: src/templates/drives.html:64
@@ -733,14 +740,14 @@ msgstr "在 Pi 上剩余%(disk_space)s MB 磁盘空间"
 
 #: src/templates/index.html:6
 msgid ""
-" This process may take a while, and will continue in the background if "
-"you navigate away from this page."
-msgstr " 该操作需时稍久，将在后台自动进行。您现在可以转向其他页面。"
+" This process may take a while, and will continue in the background if you "
+"navigate away from this page."
+msgstr "该操作需时稍久，将在后台自动进行。您现在可以转向其他页面。"
 
 #: src/templates/index.html:11
 msgid ""
-" The Web Interface will become unresponsive momentarily. Reload this page"
-" after the Pi has started up again."
+" The Web Interface will become unresponsive momentarily. Reload this page after "
+"the Pi has started up again."
 msgstr " Web界面将暂时停止响应。 请在树莓派启动后重新加载此页面。"
 
 #: src/templates/index.html:19
@@ -756,8 +763,8 @@ msgstr "保存和加载设备配置，在 <tt>%(config_dir)s</tt> 目录下存�
 
 #: src/templates/index.html:23
 msgid ""
-"To have a particular device configuration load when PiSCSI starts, save "
-"it as <em>default</em>."
+"To have a particular device configuration load when PiSCSI starts, save it as "
+"<em>default</em>."
 msgstr "若需在 PiSCSI 启动时加载特定的设备配置，请将其保存为<em>default</em>."
 
 #: src/templates/index.html:29 src/templates/index.html:51
@@ -866,16 +873,20 @@ msgstr "映像文件管理"
 #: src/templates/index.html:196
 #, python-format
 msgid ""
-"Manage image files in the active PiSCSI image directory: "
-"<tt>%(directory)s</tt> with a scan depth of %(scan_depth)s."
-msgstr "管理PiSCSI映像目录中的活动映像文件：<tt>%(directory)s</tt>，扫描深度为 %(scan_depth)s。"
+"Manage image files in the active PiSCSI image directory: <tt>%(directory)s</tt> "
+"with a scan depth of %(scan_depth)s."
+msgstr ""
+"管理PiSCSI映像目录中的活动映像文件：<tt>%(directory)s</tt>，扫描深度为 "
+"%(scan_depth)s。"
 
 #: src/templates/index.html:197
 #, python-format
 msgid ""
-"Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> "
-"to attach to. Unless you know what you're doing, always use LUN 0."
-msgstr "选择一个有效的 SCSI ID 和要加载的 <a href=\"%(url)s\">LUN</a>。如果不确定，请使用 LUN 0。"
+"Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to "
+"attach to. Unless you know what you're doing, always use LUN 0."
+msgstr ""
+"选择一个有效的 SCSI ID 和要加载的 <a href=\"%(url)s\">LUN</a>。如果不确定，请使"
+"用 LUN 0。"
 
 #: src/templates/index.html:200
 msgid "Recognized image file types:"
@@ -973,8 +984,8 @@ msgstr "文件共享"
 
 #: src/templates/index.html:389
 msgid ""
-"Install a file server and create the shared files directory in order to "
-"share files between the Pi and your vintage computers."
+"Install a file server and create the shared files directory in order to share "
+"files between the Pi and your vintage computers."
 msgstr "安装文件服务器并创建共享文件目录，以便在Pi和老式计算机之间共享文件。"
 
 #: src/templates/index.html:395 src/templates/index.html:446
@@ -1003,8 +1014,8 @@ msgstr "HFS 适用于 Mac OS，Joliet 适用于 Windows，Rock Ridge 适用于 P
 
 #: src/templates/index.html:440
 msgid ""
-"If the downloaded file is a zip archive, we will attempt to unzip it and "
-"store the resulting files."
+"If the downloaded file is a zip archive, we will attempt to unzip it and store "
+"the resulting files."
 msgstr "如果下载的文件是 zip 存档，我们将尝试解压缩它并存储生成的文件。"
 
 #: src/templates/index.html:448 src/templates/index.html:480
@@ -1031,14 +1042,15 @@ msgstr "创建空磁盘映像文件"
 #: src/templates/index.html:514
 #, python-format
 msgid ""
-"Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
-"documentation</a> to learn more about the supported image file types."
-msgstr "请查看<a href=\"%(url)s\" target=\"_blank\">wiki文档</a>了解关于支持的映像文件类型。"
+"Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to "
+"learn more about the supported image file types."
+msgstr ""
+"请查看<a href=\"%(url)s\" target=\"_blank\">wiki文档</a>了解关于支持的映像文件类"
+"型。"
 
 #: src/templates/index.html:515
 msgid ""
-"It is not recommended to use the Lido hard disk driver with the Macintosh"
-" Plus."
+"It is not recommended to use the Lido hard disk driver with the Macintosh Plus."
 msgstr "不建议在Macintosh Plus上使用Lido硬盘驱动。"
 
 #: src/templates/index.html:530
@@ -1068,14 +1080,14 @@ msgstr "连接外围设备"
 
 #: src/templates/index.html:580
 msgid ""
-"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
-"by an emulated network adapter!"
+"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an "
+"emulated network adapter!"
 msgstr "<tt>piscsi_bridge</tt> 网桥处于活动状态，可供虚拟网络适配器使用！"
 
 #: src/templates/index.html:582
 msgid ""
-"Please configure the <tt>piscsi_bridge</tt> network bridge before "
-"attaching an emulated network adapter!"
+"Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an "
+"emulated network adapter!"
 msgstr "在连接虚拟网络适配器前，请配置 <tt>piscsi_bridge</tt> 网桥!"
 
 #: src/templates/index.html:584
@@ -1083,14 +1095,18 @@ msgstr "在连接虚拟网络适配器前，请配置 <tt>piscsi_bridge</tt> 网
 msgid ""
 "To browse the modern web, install a vintage web proxy such as <a "
 "href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
-msgstr "要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>。"
+msgstr ""
+"要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" "
+"target=\"_blank\">Macproxy</a>。"
 
 #: src/templates/index.html:586
 #, python-format
 msgid ""
-"Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
-"types</a> on the wiki."
-msgstr "请查看wiki页面<a href=\"%(url)s\" target=\"_blank\">支持的设备类型</a>了解更多信息。"
+"Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</"
+"a> on the wiki."
+msgstr ""
+"请查看wiki页面<a href=\"%(url)s\" target=\"_blank\">支持的设备类型</a>了解更多信"
+"息。"
 
 #: src/templates/index.html:593
 msgid "Key"
@@ -1138,14 +1154,14 @@ msgstr "系统操作"
 
 #: src/templates/index.html:730
 msgid ""
-"The System Name is the \"pretty\" hostname if set, with a fallback to the"
-" regular hostname."
+"The System Name is the \"pretty\" hostname if set, with a fallback to the "
+"regular hostname."
 msgstr "如果您没有设置一个“好听”的主机名，则系统会自动返回到其“常规”的主机名。"
 
 #: src/templates/index.html:731
 msgid ""
-"IMPORTANT: Always shut down the system before turning off the power. "
-"Failing to do so may lead to data loss."
+"IMPORTANT: Always shut down the system before turning off the power. Failing to "
+"do so may lead to data loss."
 msgstr "重要提示：务必在切断电源之前先关闭系统，否则可能会导致数据丢失。"
 
 #: src/templates/index.html:737
@@ -1205,9 +1221,11 @@ msgstr "从本地计算机上传文件"
 #: src/templates/upload.html:6
 #, python-format
 msgid ""
-"The largest file size accepted in this form is %(max_file_size)s MiB. Use"
-" other file transfer means for larger files."
-msgstr "此表单接受的最大文件大小为 %(max_file_size)s MiB。对更大的文件请使用其他文件传输方式."
+"The largest file size accepted in this form is %(max_file_size)s MiB. Use other "
+"file transfer means for larger files."
+msgstr ""
+"此表单接受的最大文件大小为 %(max_file_size)s MiB。对更大的文件请使用其他文件传输"
+"方式."
 
 #: src/templates/upload.html:7
 msgid ""
@@ -1233,8 +1251,7 @@ msgstr "您的浏览器不支持拖放文件上传。"
 
 #: src/templates/upload.html:56
 msgid ""
-"Please use the fallback form below to upload your files like in the olden"
-" days."
+"Please use the fallback form below to upload your files like in the olden days."
 msgstr "请和老时候一样使用下面的后备表格上传您的文件。"
 
 #: src/templates/upload.html:57
@@ -1284,25 +1301,3 @@ msgstr "KiB"
 #: src/templates/upload.html:70
 msgid "B"
 msgstr "B"
-
-#~ msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
-#~ msgstr "已将 %(device_type)s 加载到 SCSI ID %(id_number)s 的LUN %(unit_number)s"
-
-#~ msgid "No permission to use path '%(file_name)s'"
-#~ msgstr "无权使用路径“%(file_name)s”"
-
-#~ msgid "The AppleShare server is running. No active connections."
-#~ msgstr "AppleShare 服务器正在运行。没有活动连接。"
-
-#~ msgid "%(value)d active AFP connection"
-#~ msgstr "%(value)d 个活动的 AFP 连接"
-
-#~ msgid "%(value)d active AFP connections"
-#~ msgstr "%(value)d 个活动的 AFP 连接"
-
-#~ msgid "Save copy of %(file_name)s as:"
-#~ msgstr "将文件 %(file_name)s 的副本保存为："
-
-#~ msgid "%(disk_space)s MiB disk space remaining on the system"
-#~ msgstr "系统剩余磁盘空间为%(disk_space)s MB"
-
