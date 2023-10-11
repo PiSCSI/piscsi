@@ -624,7 +624,7 @@ bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<Pri
 }
 
 bool PiscsiExecutor::ValidateOperationAgainstDevice(const CommandContext& context, const PrimaryDevice& device,
-		const PbOperation& operation)
+		PbOperation operation)
 {
 	if ((operation == START || operation == STOP) && !device.IsStoppable()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, PbOperation_Name(operation),

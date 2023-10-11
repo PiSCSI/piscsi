@@ -52,7 +52,7 @@ public:
 	shared_ptr<PrimaryDevice> CreateDevice(const CommandContext&, const PbDeviceType, int, const string&) const;
 	bool SetSectorSize(const CommandContext&, shared_ptr<PrimaryDevice>, int) const;
 
-	static bool ValidateOperationAgainstDevice(const CommandContext&, const PrimaryDevice&, const PbOperation&);
+	static bool ValidateOperationAgainstDevice(const CommandContext&, const PrimaryDevice&, PbOperation);
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
 	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, PrimaryDevice&);
 
