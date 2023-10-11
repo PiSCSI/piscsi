@@ -66,7 +66,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
 
-#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
+#if defined(__x86_64__) || defined(__X86__)
     (void)baseaddr;
     level = new uint32_t();
     return true;
