@@ -48,7 +48,13 @@ echo -e $logo
 
 CONNECT_TYPE="FULLSPEC"
 COMPILER="clang++"
-CORES=1
+MEM=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+CORES=`expr $MEM / 450000`
+if [ $CORES -gt $(nproc) ]; then
+        CORES=$(nproc)
+elif [ $CORES -lt 1 ]; then
+        CORES=1
+fi
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 CPP_PATH="$BASE/cpp"
