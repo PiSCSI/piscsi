@@ -1,3 +1,4 @@
+werkzeug==2.3.7
 bjoern==3.2.2
 Flask==2.2.2
 Jinja2==3.1.2
