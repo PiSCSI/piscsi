@@ -33,6 +33,7 @@
 
 using namespace std;
 using namespace filesystem;
+using namespace spdlog;
 using namespace piscsi_interface;
 using namespace piscsi_util;
 using namespace protobuf_util;
@@ -71,7 +72,7 @@ bool Piscsi::InitBus()
 		return false;
 	}
 
-	executor = make_unique<PiscsiExecutor>(piscsi_image, *bus, controller_manager);
+	executor = make_unique<PiscsiExecutor>(*bus, controller_manager);
 
 	return true;
 }
@@ -84,7 +85,12 @@ void Piscsi::CleanUp()
 
 	executor->DetachAll();
 
-	bus->Cleanup();
+	// TODO Check why there are rare cases where bus is NULL on a remote interface shutdown
+	// even though it is never set to NULL anywhere
+	assert(bus);
+	if (bus) {
+		bus->Cleanup();
+	}
 }
 
 void Piscsi::ReadAccessToken(const path& filename)
@@ -307,27 +313,26 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 	return true;
 }
 
-bool Piscsi::ExecuteCommand(CommandContext& context)
+bool Piscsi::ExecuteCommand(const CommandContext& context)
 {
-	context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
-
 	const PbCommand& command = context.GetCommand();
+	const PbOperation operation = command.operation();
 
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}
 
-	if (!PbOperation_IsValid(command.operation())) {
-		spdlog::error("Received unknown command with operation opcode " + to_string(command.operation()));
+	if (!PbOperation_IsValid(operation)) {
+		spdlog::error("Received unknown command with operation opcode " + to_string(operation));
 
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
 	}
 
-	spdlog::trace("Received " + PbOperation_Name(command.operation()) + " command");
+	spdlog::trace("Received " + PbOperation_Name(operation) + " command");
 
 	PbResult result;
 
-	switch(command.operation()) {
+	switch(operation) {
 		case LOG_LEVEL:
 			if (const string log_level = GetParam(command, "level"); !SetLogLevel(log_level)) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
@@ -353,31 +358,26 @@ bool Piscsi::ExecuteCommand(CommandContext& context)
 
 		case DEVICE_TYPES_INFO:
 			response.GetDeviceTypesInfo(*result.mutable_device_types_info());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case SERVER_INFO:
 			response.GetServerInfo(*result.mutable_server_info(), controller_manager.GetAllDevices(),
 					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case VERSION_INFO:
 			response.GetVersionInfo(*result.mutable_version_info());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case LOG_LEVEL_INFO:
 			response.GetLogLevelInfo(*result.mutable_log_level_info());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case DEFAULT_IMAGE_FILES_INFO:
 			response.GetImageFilesInfo(*result.mutable_image_files_info(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case IMAGE_FILE_INFO:
 			if (string filename = GetParam(command, "file"); filename.empty()) {
@@ -400,55 +400,73 @@ bool Piscsi::ExecuteCommand(CommandContext& context)
 
 		case NETWORK_INTERFACES_INFO:
 			response.GetNetworkInterfacesInfo(*result.mutable_network_interfaces_info());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case MAPPING_INFO:
 			response.GetMappingInfo(*result.mutable_mapping_info());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case OPERATION_INFO:
 			response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case RESERVED_IDS_INFO:
 			response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case SHUT_DOWN:
-			if (executor->ShutDown(context, GetParam(command, "mode"))) {
-				TerminationHandler(0);
-			}
-			break;
+			return ShutDown(context, GetParam(command, "mode"));
 
 		case NO_OPERATION:
-			context.ReturnSuccessStatus();
-			break;
+			return context.ReturnSuccessStatus();
 
-		// TODO The image operations below can most likely directly be executed without calling the executor,
-		// because they do not require the target to be idle
 		case CREATE_IMAGE:
+			return piscsi_image.CreateImage(context);
+
 		case DELETE_IMAGE:
+			return piscsi_image.DeleteImage(context);
+
 		case RENAME_IMAGE:
+			return piscsi_image.RenameImage(context);
+
 		case COPY_IMAGE:
+			return piscsi_image.CopyImage(context);
+
 		case PROTECT_IMAGE:
 		case UNPROTECT_IMAGE:
+			return piscsi_image.SetImagePermissions(context);
+
 		case RESERVE_IDS:
 			return executor->ProcessCmd(context);
 
-		// The remaining commands can only be executed when the target is idle
-		// TODO What happens when the target becomes active while the command is still being executed?
-		// A field 'mutex locker' can probably avoid SCSI commands and ProcessCmd() being executed at the same time
 		default:
-			// TODO Find a better way to wait
-			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
-			while (target_is_active) {
-				nanosleep(&ts, nullptr);
+			// The remaining commands may only be executed when the target is idle
+			if (!ExecuteWithLock(context)) {
+				return false;
 			}
-			return executor->ProcessCmd(context);
+
+			return HandleDeviceListChange(context, operation);
+	}
+
+	return true;
+}
+
+bool Piscsi::ExecuteWithLock(const CommandContext& context)
+{
+	scoped_lock<mutex> lock(execution_locker);
+	return executor->ProcessCmd(context);
+}
+
+bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation operation) const
+{
+	// ATTACH and DETACH return the resulting device list
+	if (operation == ATTACH || operation == DETACH) {
+		// A command with an empty device list is required here in order to return data for all devices
+		PbCommand command;
+		PbResult result;
+		response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+		context.WriteResult(result);
+		return result.status();
 	}
 
 	return true;
@@ -485,8 +503,10 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (const string error = service.Init([this] (CommandContext& context) { return ExecuteCommand(context); }, port);
-		!error.empty()) {
+	if (const string error = service.Init([this] (CommandContext& context) {
+			context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
+			return ExecuteCommand(context);
+		}, port); !error.empty()) {
 		cerr << "Error: " << error << endl;
 
 		CleanUp();
@@ -580,7 +600,7 @@ void Piscsi::Process()
 
 		// Only process the SCSI command if the bus is not busy and no other device responded
 		if (IsNotBusy() && bus->GetSEL()) {
-			target_is_active = true;
+			scoped_lock<mutex> lock(execution_locker);
 
 			// Process command on the responsible controller based on the current initiator and target ID
 			if (const auto shutdown_mode = controller_manager.ProcessOnController(bus->GetDAT());
@@ -588,23 +608,54 @@ void Piscsi::Process()
 				// When the bus is free PiSCSI or the Pi may be shut down.
 				ShutDown(shutdown_mode);
 			}
-
-			target_is_active = false;
 		}
 	}
 }
 
-void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
-{
-	CleanUp();
+// Shutdown on a remote interface command
+bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
+	if (m.empty()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
+	}
 
+	AbstractController::piscsi_shutdown_mode mode = AbstractController::piscsi_shutdown_mode::NONE;
+	if (m == "rascsi") {
+		mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
+	}
+	else if (m == "system") {
+		mode = AbstractController::piscsi_shutdown_mode::STOP_PI;
+	}
+	else if (m == "reboot") {
+		mode = AbstractController::piscsi_shutdown_mode::RESTART_PI;
+	}
+	else {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, m);
+	}
+
+	// Shutdown modes other than rascsi require root permissions
+	if (mode != AbstractController::piscsi_shutdown_mode::STOP_PISCSI && getuid()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
+	}
+
+	// Report success now because after a shutdown nothing can be reported anymore
+	PbResult result;
+	context.WriteSuccessResult(result);
+
+	return ShutDown(mode);
+}
+
+// Shutdown on a SCSI command
+bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
+{
 	switch(shutdown_mode) {
 	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
 		spdlog::info("PiSCSI shutdown requested");
-		break;
+		CleanUp();
+		return true;
 
 	case AbstractController::piscsi_shutdown_mode::STOP_PI:
 		spdlog::info("Raspberry Pi shutdown requested");
+		CleanUp();
 		if (system("init 0") == -1) {
 			spdlog::error("Raspberry Pi shutdown failed");
 		}
@@ -612,6 +663,7 @@ void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 
 	case AbstractController::piscsi_shutdown_mode::RESTART_PI:
 		spdlog::info("Raspberry Pi restart requested");
+		CleanUp();
 		if (system("init 6") == -1) {
 			spdlog::error("Raspberry Pi restart failed");
 		}
@@ -621,6 +673,8 @@ void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 		assert(false);
 		break;
 	}
+
+	return false;
 }
 
 bool Piscsi::IsNotBusy() const

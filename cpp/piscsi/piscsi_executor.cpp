@@ -10,11 +10,8 @@
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
-#include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
-#include "devices/primary_device.h"
 #include "devices/disk.h"
-#include "piscsi_image.h"
 #include "localizer.h"
 #include "command_context.h"
 #include "piscsi_executor.h"
@@ -92,35 +89,19 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 {
 	const PbCommand& command = context.GetCommand();
 
+	// Handle commands that are not device-specific
 	switch (command.operation()) {
 		case DETACH_ALL:
 			DetachAll();
 			return context.ReturnSuccessStatus();
 
 		case RESERVE_IDS: {
-			const string ids = GetParam(command, "ids");
-			if (const string error = SetReservedIds(ids); !error.empty()) {
+			if (const string error = SetReservedIds(GetParam(command, "ids")); !error.empty()) {
 				return context.ReturnErrorStatus(error);
 			}
 
 			return context.ReturnSuccessStatus();
 		}
-
-		case CREATE_IMAGE:
-			return piscsi_image.CreateImage(context);
-
-		case DELETE_IMAGE:
-			return piscsi_image.DeleteImage(context);
-
-		case RENAME_IMAGE:
-			return piscsi_image.RenameImage(context);
-
-		case COPY_IMAGE:
-			return piscsi_image.CopyImage(context);
-
-		case PROTECT_IMAGE:
-		case UNPROTECT_IMAGE:
-			return piscsi_image.SetImagePermissions(context);
 
 		default:
 			// This is a device-specific command handled below
@@ -129,10 +110,11 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 
 	// Remember the list of reserved files during the dry run
 	const auto& reserved_files = StorageDevice::GetReservedFiles();
-	const bool reserved = ranges::find_if_not(context.GetCommand().devices(), [&] (const auto& device)
+	const bool isDryRunError = ranges::find_if_not(command.devices(), [&] (const auto& device)
 			{ return ProcessDeviceCmd(context, device, true); }) != command.devices().end();
 	StorageDevice::SetReservedFiles(reserved_files);
-	if (reserved) {
+
+	if (isDryRunError) {
 		return false;
 	}
 
@@ -143,16 +125,6 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 	if (ranges::find_if_not(command.devices(), [&] (const auto& device)
 			{ return ProcessDeviceCmd(context, device, false); } ) != command.devices().end()) {
 		return false;
-	}
-
-	// ATTACH and DETACH return the device list
-	if (command.operation() == ATTACH || command.operation() == DETACH) {
-		// A new command with an empty device list is required here in order to return data for all devices
-		PbCommand cmd;
-		PbResult result;
-		piscsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, cmd, context.GetDefaultFolder());
-		context.WriteResult(result);
-		return true;
 	}
 
 	return context.ReturnSuccessStatus();
@@ -336,12 +308,11 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	spdlog::info("Insert " + string(pb_device.protected_() ? "protected " : "") + "file '" + filename +
 			"' requested into " + device->GetIdentifier());
 
-	// TODO It may be better to add PrimaryDevice::Insert for all device-specific insert operations
-	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
-	if (!SetSectorSize(context, storage_device, pb_device.block_size())) {
+	if (!SetSectorSize(context, device, pb_device.block_size())) {
 		return false;
 	}
 
+	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	if (!ValidateImageFile(context, *storage_device, filename)) {
 		return false;
 	}
@@ -391,57 +362,6 @@ void PiscsiExecutor::DetachAll()
 	spdlog::info("Detached all devices");
 }
 
-bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode) {
-	if (mode.empty()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
-	}
-
-	PbResult result;
-	result.set_status(true);
-
-	// The PiSCSI shutdown mode is "rascsi" instead of "piscsi" for backwards compatibility
-	if (mode == "rascsi") {
-		spdlog::info("PiSCSI shutdown requested");
-
-		context.WriteResult(result);
-
-		return true;
-	}
-
-	if (mode != "system" && mode != "reboot") {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, mode);
-	}
-
-	// The root user has UID 0
-	if (getuid()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
-	}
-
-	if (mode == "system") {
-		spdlog::info("System shutdown requested");
-
-		DetachAll();
-
-		context.WriteResult(result);
-
-		if (system("init 0") == -1) {
-			spdlog::error("System shutdown failed");
-		}
-	}
-	else if (mode == "reboot") {
-		spdlog::info("System reboot requested");
-
-		DetachAll();
-
-		context.WriteResult(result);
-
-		if (system("init 6") == -1) {
-			spdlog::error("System reboot failed");
-		}
-	}
-
-	return false;
-}
 
 string PiscsiExecutor::SetReservedIds(string_view ids)
 {

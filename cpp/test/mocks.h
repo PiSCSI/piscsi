@@ -14,15 +14,10 @@
 #include "test_shared.h"
 #include "hal/bus.h"
 #include "controllers/scsi_controller.h"
-#include "devices/primary_device.h"
-#include "devices/storage_device.h"
-#include "devices/disk.h"
-#include "devices/scsihd.h"
 #include "devices/scsihd_nec.h"
 #include "devices/scsicd.h"
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
-#include "piscsi/command_context.h"
 #include "piscsi/piscsi_executor.h"
 #include <fcntl.h>
 

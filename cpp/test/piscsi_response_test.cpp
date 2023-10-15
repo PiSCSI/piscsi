@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 
 using namespace piscsi_interface;
+using namespace spdlog;
 
 TEST(PiscsiResponseTest, Operation_Count)
 {
