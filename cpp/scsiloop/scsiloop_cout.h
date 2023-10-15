@@ -18,7 +18,7 @@ class ScsiLoop_Cout
     static void StartTest(const string &test_name);
     static void PrintUpdate();
     static void FinishTest(const string &test_name, int failures);
-    static void PrintErrors(vector<string> &test_errors);
+    static void PrintErrors(const vector<string> &test_errors);
 
   private:
     const static inline string RESET   = "\033[0m";

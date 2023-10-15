@@ -9,7 +9,6 @@
 
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
-#include "controllers/controller_manager.h"
 #include "devices/scsihd_nec.h"
 #include <filesystem>
 #include <fstream>
@@ -29,7 +28,7 @@ void ScsiHdNecTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiHdNecTest, Inquiry)
 {
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "PiSCSI                  ", 0x1f, false, ".hdn");
+	TestInquiry::Inquiry(SCHD, device_type::direct_access, scsi_level::scsi_1_ccs, "PiSCSI                  ", 0x1f, false, "file.hdn");
 }
 
 TEST(ScsiHdNecTest, SetUpModePages)
@@ -134,19 +133,19 @@ TEST(ScsiHdNecTest, SetParameters)
 
 	ofstream out;
 	out.open(hdi);
-	const array<char, 4> cylinders1 = { 1, 0, 0, 0 };
+	const array<const char, 4> cylinders1 = { 1, 0, 0, 0 };
 	out.seekp(28);
 	out.write(cylinders1.data(), cylinders1.size());
-	const array<char, 4> heads1 = { 1, 0, 0, 0 };
+	const array<const char, 4> heads1 = { 1, 0, 0, 0 };
 	out.seekp(24);
 	out.write(heads1.data(), heads1.size());
-	const array<char, 4> sectors1 = { 1, 0, 0, 0 };
+	const array<const char, 4> sectors1 = { 1, 0, 0, 0 };
 	out.seekp(20);
 	out.write(sectors1.data(), sectors1.size());
-	const array<char, 4>  sector_size1 = { 0, 2, 0, 0 };
+	const array<const char, 4>  sector_size1 = { 0, 2, 0, 0 };
 	out.seekp(16);
 	out.write(sector_size1.data(), sector_size1.size());
-	const array<char, 4> image_size = { 0, 2, 0, 0 };
+	const array<const char, 4> image_size = { 0, 2, 0, 0 };
 	out.seekp(12);
 	out.write(image_size.data(), image_size.size());
 	out.close();
@@ -179,18 +178,18 @@ TEST(ScsiHdNecTest, SetParameters)
 
 	out.open(nhd);
 	out << "T98HDDIMAGE.R0";
-	const array<char, 2> cylinders2 = { 1, 0 };
+	const array<const char, 2> cylinders2 = { 1, 0 };
 	out.seekp(0x114);
 	out.write(cylinders2.data(), cylinders2.size());
-	const array<char, 2> heads2 = { 1, 0 };
+	const array<const char, 2> heads2 = { 1, 0 };
 	out.seekp(0x118);
 	out.write(heads2.data(), heads2.size());
-	const array<char, 2> sectors2 = { 1, 0 };
+	const array<const char, 2> sectors2 = { 1, 0 };
 	out.seekp(0x11a);
 	out.write(sectors2.data(), sectors2.size());
 	out.seekp(0x11c);
 	out.write(sector_size2.data(), sector_size2.size());
-	const array<char, 4> image_offset = { 1, 0, 0, 0 };
+	const array<const char, 4> image_offset = { 1, 0, 0, 0 };
 	out.seekp(0x110);
 	out.write(image_offset.data(), image_offset.size());
 	out.close();

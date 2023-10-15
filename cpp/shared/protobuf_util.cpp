@@ -3,15 +3,18 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/piscsi_exceptions.h"
 #include "piscsi_util.h"
-#include "protobuf_serializer.h"
 #include "protobuf_util.h"
+#include <unistd.h>
 #include <sstream>
+#include <array>
+#include <vector>
+
 
 using namespace std;
 using namespace piscsi_util;
@@ -32,61 +35,21 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 		return;
 	}
 
-	stringstream ss(params);
-	string p;
-	while (getline(ss, p, COMPONENT_SEPARATOR)) {
-		if (!p.empty()) {
-			const size_t separator_pos = p.find(KEY_VALUE_SEPARATOR);
-			if (separator_pos != string::npos) {
-				SetParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
-			}
+	for (const auto& p : Split(params, COMPONENT_SEPARATOR)) {
+		if (const auto& param = Split(p, KEY_VALUE_SEPARATOR, 2); param.size() == 2) {
+			SetParam(device, param[0], param[1]);
 		}
 	}
 }
 
-string protobuf_util::GetParam(const PbCommand& command, const string& key)
-{
-	const auto& it = command.params().find(key);
-	return it != command.params().end() ? it->second : "";
-}
-
-string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
-{
-	const auto& it = device.params().find(key);
-	return it != device.params().end() ? it->second : "";
-}
-
-void protobuf_util::SetParam(PbCommand& command, const string& key, string_view value)
-{
-	if (!key.empty() && !value.empty()) {
-		auto& map = *command.mutable_params();
-		map[key] = value;
-	}
-}
-
-void protobuf_util::SetParam(PbDevice& device, const string& key, string_view value)
-{
-	if (!key.empty() && !value.empty()) {
-		auto& map = *device.mutable_params();
-		map[key] = value;
-	}
-}
-
-void protobuf_util::SetParam(PbDeviceDefinition& device, const string& key, string_view value)
-{
-	if (!key.empty() && !value.empty()) {
-		auto& map = *device.mutable_params();
-		map[key] = value;
-	}
-}
-
-void protobuf_util::SetPatternParams(PbCommand& command, string_view patterns)
+void protobuf_util::SetPatternParams(PbCommand& command, const string& patterns)
 {
 	string folder_pattern;
 	string file_pattern;
-	if (const size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		folder_pattern = patterns.substr(0, separator_pos);
-		file_pattern = patterns.substr(separator_pos + 1);
+
+	if (const auto& components = Split(patterns, ':', 2); components.size() == 2) {
+		folder_pattern = components[0];
+		file_pattern = components[1];
 	}
 	else {
 		file_pattern = patterns;
@@ -98,40 +61,40 @@ void protobuf_util::SetPatternParams(PbCommand& command, string_view patterns)
 
 void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& data)
 {
-	string name = data;
+	const auto& components = Split(data, COMPONENT_SEPARATOR, 3);
+	switch (components.size()) {
+		case 3:
+			device.set_revision(components[2]);
+			[[fallthrough]];
 
-	if (size_t separator_pos = name.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		device.set_vendor(name.substr(0, separator_pos));
-		name = name.substr(separator_pos + 1);
-		separator_pos = name.find(COMPONENT_SEPARATOR);
-		if (separator_pos != string::npos) {
-			device.set_product(name.substr(0, separator_pos));
-			device.set_revision(name.substr(separator_pos + 1));
-		}
-		else {
-			device.set_product(name);
-		}
-	}
-	else {
-		device.set_vendor(name);
+		case 2:
+			device.set_product(components[1]);
+			[[fallthrough]];
+
+		case 1:
+			device.set_vendor(components[0]);
+			break;
+
+		default:
+			break;
 	}
 }
 
-string protobuf_util::SetIdAndLun(PbDeviceDefinition& device, const string& value, int max_luns)
+string protobuf_util::SetIdAndLun(PbDeviceDefinition& device, const string& value)
 {
 	int id;
 	int lun;
-	if (const string error = ProcessId(value, max_luns, id, lun); !error.empty()) {
+	if (const string error = ProcessId(value, id, lun); !error.empty()) {
 		return error;
 	}
 
 	device.set_id(id);
-	device.set_unit(lun);
+	device.set_unit(lun != -1 ? lun : 0);
 
 	return "";
 }
 
-string protobuf_util::ListDevices(const list<PbDevice>& pb_devices)
+string protobuf_util::ListDevices(const vector<PbDevice>& pb_devices)
 {
 	if (pb_devices.empty()) {
 		return "No devices currently attached.\n";
@@ -142,8 +105,8 @@ string protobuf_util::ListDevices(const list<PbDevice>& pb_devices)
 			<< "| ID | LUN | TYPE | IMAGE FILE\n"
 			<< "+----+-----+------+-------------------------------------\n";
 
-	list<PbDevice> devices = pb_devices;
-	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
+	vector<PbDevice> devices = pb_devices;
+	ranges::sort(devices, [](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 	for (const auto& device : devices) {
 		string filename;
@@ -178,4 +141,69 @@ string protobuf_util::ListDevices(const list<PbDevice>& pb_devices)
 	s << "+----+-----+------+-------------------------------------\n";
 
 	return s.str();
+}
+
+//---------------------------------------------------------------------------
+//
+// Serialize/Deserialize protobuf message: Length followed by the actual data.
+// A little endian platform is assumed.
+//
+//---------------------------------------------------------------------------
+
+void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& message)
+{
+	const string data = message.SerializeAsString();
+
+	// Write the size of the protobuf data as a header
+	const auto size = static_cast<int32_t>(data.length());
+    if (write(fd, &size, sizeof(size)) != sizeof(size)) {
+    	throw io_exception("Can't write protobuf message size");
+    }
+
+    // Write the actual protobuf data
+    if (write(fd, data.data(), size) != size) {
+    	throw io_exception("Can't write protobuf message data");
+    }
+}
+
+void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& message)
+{
+	// Read the header with the size of the protobuf data
+	array<byte, sizeof(int32_t)> header_buf;
+	if (ReadBytes(fd, header_buf) < header_buf.size()) {
+		throw io_exception("Can't read protobuf message size");
+	}
+
+	const int size = (static_cast<int>(header_buf[3]) << 24) + (static_cast<int>(header_buf[2]) << 16)
+			+ (static_cast<int>(header_buf[1]) << 8) + static_cast<int>(header_buf[0]);
+	if (size < 0) {
+		throw io_exception("Invalid protobuf message size");
+	}
+
+	// Read the binary protobuf data
+	vector<byte> data_buf(size);
+	if (ReadBytes(fd, data_buf) != data_buf.size()) {
+		throw io_exception("Invalid protobuf message data");
+	}
+
+	message.ParseFromArray(data_buf.data(), size);
+}
+
+size_t protobuf_util::ReadBytes(int fd, span<byte> buf)
+{
+	size_t offset = 0;
+	while (offset < buf.size()) {
+		const auto len = read(fd, &buf.data()[offset], buf.size() - offset);
+		if (len == -1) {
+			throw io_exception("Read error: " + string(strerror(errno)));
+		}
+
+		if (!len) {
+			break;
+		}
+
+		offset += len;
+	}
+
+	return offset;
 }

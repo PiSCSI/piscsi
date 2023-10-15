@@ -5,8 +5,8 @@
 //
 // Powered by XM6 TypeG Technology.
 // Copyright (C) 2016-2020 GIMONS
-// Copyright (C) 2022 Uwe Seimet
 // Copyright (C) 2022 akuker
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -17,10 +17,11 @@
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
+#include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
-#include "shared/piscsi_version.h"
+#include <spdlog/spdlog.h>
+#include <filesystem>
 #include <chrono>
 #include <csignal>
 #include <cstddef>
@@ -28,10 +29,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <sys/stat.h>
 #include <unistd.h>
 
 using namespace std;
+using namespace filesystem;
 using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
@@ -50,17 +51,18 @@ void ScsiDump::KillHandler(int)
     exit(EXIT_SUCCESS);
 }
 
-bool ScsiDump::Banner(const vector<char*>& args) const
+bool ScsiDump::Banner(span<char *> args) const
 {
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
         cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p]\n"
-             << " ID is the target device ID (0-7).\n"
-             << " LUN is the optional target device LUN (0-7). Default is 0.\n"
+             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
+             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
+			 << " Default is 0.\n"
              << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
              << " FILE is the dump file path.\n"
-             << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << to_string(MINIMUM_BUFFER_SIZE)
+             << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
              << " bytes. Default is 1 MiB.\n"
              << " -v Enable verbose logging.\n"
              << " -r Restore instead of dump.\n"
@@ -86,7 +88,7 @@ bool ScsiDump::Init() const
     return bus != nullptr;
 }
 
-void ScsiDump::ParseArguments(const vector<char*>& args)
+void ScsiDump::ParseArguments(span<char *> args)
 {
     int opt;
 
@@ -107,13 +109,13 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
 
         case 's':
             if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
-                throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
+                throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
             }
 
             break;
 
         case 't': {
-            const string error = ProcessId(optarg, 8, target_id, target_lun);
+            const string error = ProcessId(optarg, target_id, target_lun);
             if (!error.empty()) {
                 throw parser_exception(error);
             }
@@ -149,7 +151,7 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
 
 void ScsiDump::WaitPhase(phase_t phase) const
 {
-    LOGDEBUG("Waiting for %s phase", BUS::GetPhaseStrRaw(phase))
+    spdlog::debug(string("Waiting for ") + BUS::GetPhaseStrRaw(phase) + " phase");
 
     // Timeout (3000ms)
     const uint32_t now = SysTimer::GetTimerLow();
@@ -180,7 +182,7 @@ void ScsiDump::Selection() const
 
 void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 {
-    LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
+    spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
 
     Selection();
 
@@ -324,7 +326,7 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
                                  (static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
                                  static_cast<uint32_t>(buffer[sector_size_offset + 3]);
 
-    return make_pair(capacity, sector_size);
+    return { capacity, sector_size };
 }
 
 void ScsiDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
@@ -387,7 +389,7 @@ void ScsiDump::WaitForBusy() const
     }
 }
 
-int ScsiDump::run(const vector<char*>& args)
+int ScsiDump::run(span<char *> args)
 {
     if (!Banner(args)) {
         return EXIT_SUCCESS;
@@ -436,12 +438,12 @@ int ScsiDump::DumpRestore()
     if (restore) {
         cout << "Starting restore\n" << flush;
 
-        // filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
         off_t size;
-        if (struct stat st; !stat(filename.c_str(), &st)) {
-            size = st.st_size;
-        } else {
-            throw parser_exception("Can't determine file size");
+        try {
+        	size = file_size(path(filename));
+        }
+        catch (const filesystem_error& e) {
+        	throw parser_exception(string("Can't determine file size: ") + e.what());
         }
 
         cout << "Restore file size: " << size << " bytes\n";
@@ -455,11 +457,11 @@ int ScsiDump::DumpRestore()
     }
 
     // Dump by buffer size
-    auto dsiz      = static_cast<int>(buffer.size());
+    auto dsiz = static_cast<int>(buffer.size());
     const int duni = dsiz / inq_info.sector_size;
-    auto dnum      = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
+    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
 
-    auto start_time = chrono::high_resolution_clock::now();
+    const auto start_time = chrono::high_resolution_clock::now();
 
     int i;
     for (i = 0; i < dnum; i++) {
@@ -501,16 +503,16 @@ int ScsiDump::DumpRestore()
         cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
     }
 
-    auto stop_time = chrono::high_resolution_clock::now();
+    const auto stop_time = chrono::high_resolution_clock::now();
 
-    auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
+    const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
     cout << divider_str << "\n";
-    cout << "Transfered : " << to_string(inq_info.capacity * inq_info.sector_size) << " bytes ["
-         << to_string(inq_info.capacity * inq_info.sector_size / 1024 / 1024) << "MiB]\n";
-    cout << "Total time: " << to_string(duration) << " seconds (" << to_string(duration / 60) << " minutes\n";
-    cout << "Averate transfer rate: " << to_string((inq_info.capacity * inq_info.sector_size / 8) / duration)
-         << " bytes per second (" << to_string((inq_info.capacity * inq_info.sector_size / 8) / duration / 1024)
+    cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
+         << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
+    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
+    cout << "Averate transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
+         << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
          << " KiB per second)\n";
     cout << divider_str << "\n";
 
@@ -554,8 +556,8 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     cout << "Revision:     " << str.data() << "\n" << flush;
     inq_info.revision = string(str.data());
 
-    if (auto type = static_cast<device_type>(buffer[0]);
-        type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
+    if (const auto type = static_cast<device_type>(buffer[0]);
+        type != device_type::direct_access && type != device_type::cd_rom && type != device_type::optical_memory) {
         throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
     }
 
@@ -564,8 +566,8 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     RequestSense();
 
     const auto [capacity, sector_size] = ReadCapacity();
-    inq_info.capacity                  = capacity;
-    inq_info.sector_size               = sector_size;
+    inq_info.capacity = capacity;
+    inq_info.sector_size = sector_size;
 
     cout << "Sectors:      " << capacity << "\n"
          << "Sector size:  " << sector_size << " bytes\n"
@@ -579,22 +581,21 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
 
 void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info_t& inq_info)
 {
-    string prop_filename = filename + ".properties";
-    string prop_str;
-    stringstream prop_stream(prop_str);
+    const string prop_filename = filename + ".properties";
+    stringstream prop_stream;
 
     prop_stream << "{" << endl;
     prop_stream << "   \"vendor\": \"" << inq_info.vendor << "\"," << endl;
     prop_stream << "   \"product\": \"" << inq_info.product << "\"," << endl;
     prop_stream << "   \"revision\": \"" << inq_info.revision << "\"," << endl;
-    prop_stream << "   \"block_size\": \"" << to_string(inq_info.sector_size) << "\"," << endl;
+    prop_stream << "   \"block_size\": \"" << inq_info.sector_size << "\"," << endl;
     prop_stream << "}" << endl;
 
     FILE* fp = fopen(prop_filename.c_str(), "w");
     if (fp) {
         fputs(prop_stream.str().c_str(), fp);
     } else {
-        LOGWARN("Unable to open output file %s", prop_filename.c_str())
+        spdlog::warn("Unable to open output file '" + prop_filename + "'");
         return;
     }
 

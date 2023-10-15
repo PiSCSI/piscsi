@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@
 #include "shared/scsi.h"
 #include <memory>
 #include <string>
+#include <span>
 #include <vector>
 
 using namespace std;
@@ -26,7 +27,7 @@ class ScsiDump
     ScsiDump()  = default;
     ~ScsiDump() = default;
 
-    int run(const vector<char*>&);
+    int run(const span<char *>);
 
     struct inquiry_info_struct {
         string vendor;
@@ -42,9 +43,9 @@ class ScsiDump
     static void GeneratePropertiesFile(const string& filename, const inquiry_info_t& inq_info);
 
   private:
-    bool Banner(const vector<char*>&) const;
+    bool Banner(span<char *>) const;
     bool Init() const;
-    void ParseArguments(const vector<char*>&);
+    void ParseArguments(span<char *>);
     int DumpRestore();
     inquiry_info_t GetDeviceInfo();
     void WaitPhase(phase_t) const;

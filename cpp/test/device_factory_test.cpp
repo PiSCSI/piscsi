@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -42,44 +42,43 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 TEST(DeviceFactoryTest, GetSectorSizes)
 {
 	DeviceFactory device_factory;
-	unordered_set<uint32_t> sector_sizes;
 
-	sector_sizes = device_factory.GetSectorSizes(SCHD);
+	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(SCHD);
 	EXPECT_EQ(4, sector_sizes.size());
 
-	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(1024) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.contains(512));
+	EXPECT_TRUE(sector_sizes.contains(1024));
+	EXPECT_TRUE(sector_sizes.contains(2048));
+	EXPECT_TRUE(sector_sizes.contains(4096));
 
 	sector_sizes = device_factory.GetSectorSizes(SCRM);
 	EXPECT_EQ(4, sector_sizes.size());
 
-	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(1024) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.contains(512));
+	EXPECT_TRUE(sector_sizes.contains(1024));
+	EXPECT_TRUE(sector_sizes.contains(2048));
+	EXPECT_TRUE(sector_sizes.contains(4096));
 
 	sector_sizes = device_factory.GetSectorSizes(SCMO);
 	EXPECT_EQ(4, sector_sizes.size());
 
-	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(1024) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.contains(512));
+	EXPECT_TRUE(sector_sizes.contains(1024));
+	EXPECT_TRUE(sector_sizes.contains(2048));
+	EXPECT_TRUE(sector_sizes.contains(4096));
 
 	sector_sizes = device_factory.GetSectorSizes(SCCD);
 	EXPECT_EQ(2, sector_sizes.size());
 
-	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.contains(512));
+	EXPECT_TRUE(sector_sizes.contains(2048));
 }
 
 TEST(DeviceFactoryTest, GetExtensionMapping)
 {
 	DeviceFactory device_factory;
 
-	unordered_map<string, PbDeviceType> mapping = device_factory.GetExtensionMapping();
+	auto mapping = device_factory.GetExtensionMapping();
 	EXPECT_EQ(10, mapping.size());
 	EXPECT_EQ(SCHD, mapping["hd1"]);
 	EXPECT_EQ(SCHD, mapping["hds"]);
@@ -97,7 +96,7 @@ TEST(DeviceFactoryTest, GetDefaultParams)
 {
 	DeviceFactory device_factory;
 
-	unordered_map<string, string> params = device_factory.GetDefaultParams(SCHD);
+	param_map params = device_factory.GetDefaultParams(SCHD);
 	EXPECT_TRUE(params.empty());
 
 	params = device_factory.GetDefaultParams(SCRM);

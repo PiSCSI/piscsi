@@ -1,5 +1,5 @@
 ARG DEBIAN_FRONTEND=noninteractive
-ARG OS_VERSION=buster
+ARG OS_VERSION=bullseye
 
 FROM "debian:${OS_VERSION}-slim"
 

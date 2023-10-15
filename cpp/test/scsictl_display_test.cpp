@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // These tests only test key aspects of the expected output, because the output may change over time.
 //
@@ -51,10 +51,9 @@ TEST(ScsictlDisplayTest, DisplayDeviceInfo)
 	EXPECT_NE(string::npos, s.find(to_string(1234 *4321)));
 
 	device.mutable_properties()->set_supports_file(true);
-	auto file = make_unique<PbImageFile>();
+	auto file = device.mutable_file();
 	file->set_name("filename");
-	device.set_allocated_file(file.release());
-	s = display.DisplayDeviceInfo(device); //NOSONAR The allocated memory is managed by protobuf
+	s = display.DisplayDeviceInfo(device);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("filename"));
 
@@ -154,7 +153,7 @@ TEST(ScsictlDisplayTest, DisplayReservedIdsInfo)
 	PbReservedIdsInfo info;
 
 	string s = display.DisplayReservedIdsInfo(info);
-	EXPECT_FALSE(s.empty());
+	EXPECT_TRUE(s.empty());
 
 	info.mutable_ids()->Add(5);
 	s = display.DisplayReservedIdsInfo(info);

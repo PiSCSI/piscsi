@@ -34,7 +34,9 @@
 #include <memory>
 #include <sstream>
 #include <string.h>
+#ifdef __linux__
 #include <sys/epoll.h>
+#endif
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
@@ -43,7 +45,7 @@
 #include "hal/pi_defs/bpi-gpio.h"
 #include "hal/sunxi_utils.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
+#include "hal/log.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / (sizeof(x[0])))
 
@@ -62,7 +64,7 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
 
         int gpio_bank = SunXI::GPIO_BANK(gpio_num);
 
-        if (std::find(gpio_banks.begin(), gpio_banks.end(), gpio_bank) != gpio_banks.end()) {
+        if (std::ranges::find(gpio_banks, gpio_bank) != gpio_banks.end()) {
             LOGTRACE("Duplicate bank: %d", gpio_bank)
 
         } else {
@@ -723,9 +725,9 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
     }
 
     if (sunxi_gpio_state == SunXI::HIGH)
-        pio->DAT &= ~(1 << num);
+    	pio->DAT = pio->DAT & ~(1 << num);
     else
-        pio->DAT |= (1 << num);
+    	pio->DAT = pio->DAT | (1 << num);
 }
 
 void GPIOBUS_BananaM2p::DisableIRQ()
@@ -978,9 +980,9 @@ void GPIOBUS_BananaM2p::sunxi_output_gpio(int pin, int value)
     }
 
     if (value == 0)
-        pio->DAT &= ~(1 << num);
+    	pio->DAT = pio->DAT & ~(1 << num);
     else
-        pio->DAT |= (1 << num);
+    	pio->DAT = pio->DAT | (1 << num);
 }
 
 void GPIOBUS_BananaM2p::sunxi_set_all_gpios(array<uint32_t, 12> &mask, array<uint32_t, 12> &value)
@@ -1043,11 +1045,11 @@ void GPIOBUS_BananaM2p::set_pullupdn(int pin, int pud)
     else if (pud == SunXI::PUD_UP)
         *(gpio_map + SunXI::PULLUPDN_OFFSET) = (*(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3) | SunXI::PUD_UP;
     else // pud == PUD_OFF
-        *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
+    	*(gpio_map + SunXI::PULLUPDN_OFFSET) = *(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3;
 
     SunXI::short_wait();
     *(gpio_map + clk_offset) = 1 << shift;
     SunXI::short_wait();
-    *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
+    *(gpio_map + SunXI::PULLUPDN_OFFSET) = *(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3;
     *(gpio_map + clk_offset) = 0;
 }

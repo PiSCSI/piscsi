@@ -3,11 +3,11 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "shared/piscsi_util.h"
+#include "shared/network_util.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
 #include "scsimo.h"
@@ -17,15 +17,10 @@
 #include "scsi_daynaport.h"
 #include "host_services.h"
 #include "device_factory.h"
-#include <ifaddrs.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <unistd.h>
 
 using namespace std;
-using namespace piscsi_interface;
 using namespace piscsi_util;
+using namespace network_util;
 
 DeviceFactory::DeviceFactory()
 {
@@ -34,19 +29,11 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCCD] = { 512, 2048};
 
-	string network_interfaces;
-	for (const auto& network_interface : GetNetworkInterfaces()) {
-		if (network_interface.rfind("dummy", 0) == string::npos) {
-			if (!network_interfaces.empty()) {
-				network_interfaces += ",";
-			}
-			network_interfaces += network_interface;
-		}
-	}
+	const string interfaces = Join(GetNetworkInterfaces(), ",");
 
-	default_params[SCBR]["interface"] = network_interfaces;
+	default_params[SCBR]["interface"] = interfaces;
 	default_params[SCBR]["inet"] = DEFAULT_IP;
-	default_params[SCDP]["interface"] = network_interfaces;
+	default_params[SCDP]["interface"] = interfaces;
 	default_params[SCDP]["inet"] = DEFAULT_IP;
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
 
@@ -96,8 +83,8 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
-			device = make_shared<SCSIHD>(lun, sector_sizes.find(SCHD)->second, false,
-					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
+			device = make_shared<SCSIHD>(lun, sector_sizes.find(type)->second, false,
+					ext == "hd1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {
@@ -109,18 +96,18 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	}
 
 	case SCRM:
-		device = make_shared<SCSIHD>(lun, sector_sizes.find(SCRM)->second, true);
+		device = make_shared<SCSIHD>(lun, sector_sizes.find(type)->second, true);
 		device->SetProduct("SCSI HD (REM.)");
 		break;
 
 	case SCMO:
-		device = make_shared<SCSIMO>(lun, sector_sizes.find(SCMO)->second);
+		device = make_shared<SCSIMO>(lun, sector_sizes.find(type)->second);
 		device->SetProduct("SCSI MO");
 		break;
 
 	case SCCD:
-		device = make_shared<SCSICD>(lun, sector_sizes.find(SCCD)->second,
-            GetExtensionLowerCase(filename) == "is1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
+		device = make_shared<SCSICD>(lun, sector_sizes.find(type)->second,
+            GetExtensionLowerCase(filename) == "is1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
 		device->SetProduct("SCSI CD-ROM");
 		break;
 
@@ -128,7 +115,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
-		device->SetDefaultParams(default_params.find(SCBR)->second);
+		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	case SCDP:
@@ -137,7 +124,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
 		device->SetRevision("1.4a");
-		device->SetDefaultParams(default_params.find(SCDP)->second);
+		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	case SCHS:
@@ -150,7 +137,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	case SCLP:
 		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
-		device->SetDefaultParams(default_params.find(SCLP)->second);
+		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	default:
@@ -163,44 +150,11 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const
 {
 	const auto& it = sector_sizes.find(type);
-	return it != sector_sizes.end() ? it->second : empty_set;
+	return it != sector_sizes.end() ? it->second : EMPTY_SET;
 }
 
-const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceType type) const
+const param_map& DeviceFactory::GetDefaultParams(PbDeviceType type) const
 {
 	const auto& it = default_params.find(type);
-	return it != default_params.end() ? it->second : empty_map;
-}
-
-vector<string> DeviceFactory::GetNetworkInterfaces() const
-{
-	vector<string> network_interfaces;
-
-#ifdef __linux__
-	ifaddrs *addrs;
-	getifaddrs(&addrs);
-	ifaddrs *tmp = addrs;
-
-	while (tmp) {
-	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
-	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "piscsi_bridge")) {
-	        const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-
-	        ifreq ifr = {};
-	        strcpy(ifr.ifr_name, tmp->ifa_name); //NOSONAR Using strcpy is safe here
-	        // Only list interfaces that are up
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
-	        	network_interfaces.emplace_back(tmp->ifa_name);
-	        }
-
-	        close(fd);
-	    }
-
-	    tmp = tmp->ifa_next;
-	}
-
-	freeifaddrs(addrs);
-#endif
-
-	return network_interfaces;
+	return it != default_params.end() ? it->second : EMPTY_PARAM_MAP;
 }

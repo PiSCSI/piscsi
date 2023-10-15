@@ -14,12 +14,11 @@
 #include "hal/systimer.h"
 #include "hal/systimer_allwinner.h"
 #include "hal/systimer_raspberry.h"
+#include <spdlog/spdlog.h>
 #include <sys/mman.h>
 
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
-
-#include "shared/log.h"
 
 bool SysTimer::initialized   = false;
 bool SysTimer::is_allwinnner = false;
@@ -29,7 +28,7 @@ std::unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
 
 void SysTimer::Init()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+    spdlog::trace(__PRETTY_FUNCTION__);
 
     if (!initialized) {
         if (SBC_Version::IsRaspberryPi()) {

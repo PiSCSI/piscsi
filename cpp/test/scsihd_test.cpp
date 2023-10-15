@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -23,23 +23,21 @@ void ScsiHdTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiHdTest, Inquiry)
 {
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, "PiSCSI                  ", 0x1f, false);
+	TestInquiry::Inquiry(SCHD, device_type::direct_access, scsi_level::scsi_2, "PiSCSI                  ", 0x1f, false);
 
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "PiSCSI                  ", 0x1f, false, ".hd1");
+	TestInquiry::Inquiry(SCHD, device_type::direct_access, scsi_level::scsi_1_ccs, "PiSCSI                  ", 0x1f, false, "file.hd1");
 }
 
 TEST(ScsiHdTest, SupportsSaveParameters)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, {}, false);
 
 	EXPECT_TRUE(hd.SupportsSaveParameters());
 }
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, {}, false);
 
 	hd.SetSectorSizeInBytes(1024);
 	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
@@ -47,10 +45,9 @@ TEST(ScsiHdTest, FinalizeSetup)
 
 TEST(ScsiHdTest, GetProductData)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd_kb(0, sector_sizes, false);
-	MockSCSIHD hd_mb(0, sector_sizes, false);
-	MockSCSIHD hd_gb(0, sector_sizes, false);
+	MockSCSIHD hd_kb(0, {}, false);
+	MockSCSIHD hd_mb(0, {}, false);
+	MockSCSIHD hd_gb(0, {}, false);
 
 	const path filename = CreateTempFile(1);
 	hd_kb.SetFilename(string(filename));
@@ -79,8 +76,7 @@ TEST(ScsiHdTest, GetProductData)
 TEST(ScsiHdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, {}, false);
 
 	// Non changeable
 	hd.SetUpModePages(pages, 0x3f, false);
@@ -94,8 +90,7 @@ TEST(ScsiHdTest, SetUpModePages)
 
 TEST(ScsiHdTest, ModeSelect)
 {
-	const unordered_set<uint32_t> sector_sizes = { 512 };
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, { 512 }, false);
 	vector<int> cmd(10);
 	vector<uint8_t> buf(255);
 

@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <span>
 #include <array>
 #include <memory>
 #include <string>
@@ -41,8 +42,8 @@ public:
 
 	// Access
 	bool Save() const;							// Save and release all
-	bool ReadSector(vector<uint8_t>&, uint32_t);				// Sector Read
-	bool WriteSector(const vector<uint8_t>&, uint32_t);		// Sector Write
+	bool ReadSector(span<uint8_t>, uint32_t);			// Sector Read
+	bool WriteSector(span<const uint8_t>, uint32_t);	// Sector Write
 
 private:
 

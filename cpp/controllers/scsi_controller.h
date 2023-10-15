@@ -15,8 +15,6 @@
 #pragma once
 
 #include "shared/scsi.h"
-#include "controller_manager.h"
-#include "devices/device_logger.h"
 #include "abstract_controller.h"
 #include <array>
 
@@ -52,20 +50,17 @@ class ScsiController : public AbstractController
 
 public:
 
-	// Maximum number of logical units
-	static inline const int LUN_MAX = 32;
-
-	explicit ScsiController(shared_ptr<ControllerManager>, int);
+	ScsiController(BUS&, int);
 	~ScsiController() override = default;
 
 	void Reset() override;
 
-	phase_t Process(int) override;
+	bool Process(int) override;
 
 	int GetEffectiveLun() const override;
 
-	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
+	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::no_additional_sense_information,
+			scsi_defs::status status = scsi_defs::status::check_condition) override;
 
 	int GetInitiatorId() const override { return initiator_id; }
 
@@ -79,15 +74,7 @@ public:
 	void DataIn() override;
 	void DataOut() override;
 
-	// TODO Make non-virtual private as soon as SysTimer calls do not segfault anymore on a regular PC,
-	// e.g. by using ifdef __arm__. Currently the unit tests require this method to be public.
-	virtual void Execute();
-
-	void ScheduleShutdown(piscsi_shutdown_mode mode) override { shutdown_mode = mode; }
-
 private:
-
-	DeviceLogger logger;
 
 	// Execution start time
 	uint32_t execstart = 0;
@@ -109,6 +96,9 @@ private:
 	void DataOutNonBlockOriented();
 	void Receive();
 
+	// TODO Make non-virtual as soon as SysTimer calls do not segfault anymore on a regular PC, e.g. by using ifdef __arm__.
+	virtual void Execute();
+
 	void ProcessCommand();
 	void ParseMessage();
 	void ProcessMessage();
@@ -116,7 +106,5 @@ private:
 	void Sleep();
 
 	scsi_t scsi = {};
-
-	AbstractController::piscsi_shutdown_mode shutdown_mode = AbstractController::piscsi_shutdown_mode::NONE;
 };
 

@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "sbc_version.h"
-#include "shared/log.h"
+#include "log.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>

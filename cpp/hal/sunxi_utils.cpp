@@ -40,12 +40,6 @@
 
 using namespace std;
 
-static const string BLACK   = "\033[30m"; /* Black */
-static const string RED     = "\033[31m"; /* Red */
-static const string GREEN   = "\033[32m"; /* Green */
-static const string YELLOW  = "\033[33m"; /* Yellow */
-static const string BLUE    = "\033[34m"; /* Blue */
-static const string MAGENTA = "\033[35m"; /* Magenta */
 static const string CYAN    = "\033[36m"; /* Cyan */
 static const string WHITE   = "\033[37m"; /* White */
 

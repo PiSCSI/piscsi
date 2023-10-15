@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-bool PrimaryDevice::Init(const unordered_map<string, string>& params)
+bool PrimaryDevice::Init(const param_map& params)
 {
 	// Mandatory SCSI primary commands
 	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
@@ -35,9 +35,9 @@ bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-void PrimaryDevice::AddCommand(scsi_command opcode, const operation& execute)
+void PrimaryDevice::AddCommand(scsi_command cmd, const operation& execute)
 {
-	commands[opcode] = execute;
+	commands[cmd] = execute;
 }
 
 void PrimaryDevice::Dispatch(scsi_command cmd)
@@ -46,15 +46,14 @@ void PrimaryDevice::Dispatch(scsi_command cmd)
 	s << "$" << setfill('0') << setw(2) << hex << static_cast<int>(cmd);
 
 	if (const auto& it = commands.find(cmd); it != commands.end()) {
-		GetLogger().Debug("Device is executing " + string(command_mapping.find(cmd)->second.second) +
-				" (" + s.str() + ")");
+		LogDebug("Device is executing " + command_mapping.find(cmd)->second.second + " (" + s.str() + ")");
 
 		it->second();
 	}
 	else {
-		GetLogger().Trace("Received unsupported command: " + s.str());
+		LogTrace("Received unsupported command: " + s.str());
 
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 	}
 }
 
@@ -67,18 +66,14 @@ void PrimaryDevice::Reset()
 
 int PrimaryDevice::GetId() const
 {
-	if (GetController() == nullptr) {
-		GetLogger().Error("Device is missing its controller");
-	}
-
 	return GetController() != nullptr ? GetController()->GetTargetId() : -1;
 }
 
-void PrimaryDevice::SetController(shared_ptr<AbstractController> c)
+void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
 
-	logger.SetIdAndLun(c != nullptr ? c->GetTargetId() : -1, GetLun());
+	device_logger.SetIdAndLun(GetId(), GetLun());
 }
 
 void PrimaryDevice::TestUnitReady()
@@ -91,11 +86,11 @@ void PrimaryDevice::TestUnitReady()
 void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
-	if ((GetController()->GetCmd(1) & 0x01) || GetController()->GetCmd(2)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	if ((GetController()->GetCmdByte(1) & 0x01) || GetController()->GetCmdByte(2)) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
-	vector<uint8_t> buf = InquiryInternal();
+	const vector<uint8_t> buf = InquiryInternal();
 
 	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(GetController()->GetCmd(), 3)));
 
@@ -103,8 +98,8 @@ void PrimaryDevice::Inquiry()
 	GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
 	// Report if the device does not support the requested LUN
-	if (int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
-		GetLogger().Trace("LUN is not available");
+	if (const int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
+		LogTrace("LUN is not available");
 
 		// Signal that the requested LUN does not exist
 		GetController()->GetBuffer().data()[0] = 0x7f;
@@ -116,8 +111,8 @@ void PrimaryDevice::Inquiry()
 void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
-	if (GetController()->GetCmd(2)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	if (GetController()->GetCmdByte(2)) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const uint32_t allocation_length = GetInt32(GetController()->GetCmd(), 6);
@@ -155,14 +150,14 @@ void PrimaryDevice::RequestSense()
 		lun = 0;
 
 		// Do not raise an exception here because the rest of the code must be executed
-		GetController()->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+		GetController()->Error(sense_key::illegal_request, asc::invalid_lun);
 
-		GetController()->SetStatus(status::GOOD);
+		GetController()->SetStatus(status::good);
 	}
 
     vector<byte> buf = GetController()->GetDeviceForLun(lun)->HandleRequestSense();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetController()->GetCmd(4)));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetController()->GetCmdByte(4)));
 
     memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
     GetController()->SetLength(static_cast<uint32_t>(allocation_length));
@@ -173,13 +168,13 @@ void PrimaryDevice::RequestSense()
 void PrimaryDevice::SendDiagnostic()
 {
 	// Do not support PF bit
-	if (GetController()->GetCmd(1) & 0x10) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	if (GetController()->GetCmdByte(1) & 0x10) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Do not support parameter list
-	if ((GetController()->GetCmd(3) != 0) || (GetController()->GetCmd(4) != 0)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	if ((GetController()->GetCmdByte(3) != 0) || (GetController()->GetCmdByte(4) != 0)) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	EnterStatusPhase();
@@ -190,24 +185,24 @@ void PrimaryDevice::CheckReady()
 	// Not ready if reset
 	if (IsReset()) {
 		SetReset(false);
-		GetLogger().Trace("Device in reset");
-		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
+		LogTrace("Device in reset");
+		throw scsi_exception(sense_key::unit_attention, asc::power_on_or_reset);
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
 		SetAttn(false);
-		GetLogger().Trace("Device in needs attention");
-		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		LogTrace("Device in needs attention");
+		throw scsi_exception(sense_key::unit_attention, asc::not_ready_to_ready_change);
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
-		GetLogger().Trace("Device not ready");
-		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		LogTrace("Device not ready");
+		throw scsi_exception(sense_key::not_ready, asc::medium_not_present);
 	}
 
-	GetLogger().Trace("Device is ready");
+	LogTrace("Device is ready");
 }
 
 vector<uint8_t> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
@@ -223,8 +218,8 @@ vector<uint8_t> PrimaryDevice::HandleInquiry(device_type type, scsi_level level,
 	buf[0] = static_cast<uint8_t>(type);
 	buf[1] = is_removable ? 0x80 : 0x00;
 	buf[2] = static_cast<uint8_t>(level);
-	buf[3] = level >= scsi_level::SCSI_2 ?
-			static_cast<uint8_t>(scsi_level::SCSI_2) : static_cast<uint8_t>(scsi_level::SCSI_1_CCS);
+	buf[3] = level >= scsi_level::scsi_2 ?
+			static_cast<uint8_t>(scsi_level::scsi_2) : static_cast<uint8_t>(scsi_level::scsi_1_ccs);
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
@@ -237,7 +232,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {
-		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::not_ready, asc::medium_not_present);
 	}
 
 	// Set 18 bytes including extended sense data
@@ -257,14 +252,14 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 			<< "Status $" << static_cast<int>(GetController()->GetStatus())
 			<< ", Sense Key $" << static_cast<int>(buf[2])
 			<< ", ASC $" << static_cast<int>(buf[12]);
-	GetLogger().Trace(s.str());
+	LogTrace(s.str());
 
 	return buf;
 }
 
-bool PrimaryDevice::WriteByteSequence(vector<uint8_t>&, uint32_t)
+bool PrimaryDevice::WriteByteSequence(span<const uint8_t>)
 {
-	GetLogger().Error("Writing bytes is not supported by this device");
+	LogError("Writing bytes is not supported by this device");
 
 	return false;
 }
@@ -274,10 +269,10 @@ void PrimaryDevice::ReserveUnit()
 	reserving_initiator = GetController()->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
-		GetLogger().Trace("Reserved device for initiator ID " + to_string(reserving_initiator));
+		LogTrace("Reserved device for initiator ID " + to_string(reserving_initiator));
 	}
 	else {
-		GetLogger().Trace("Reserved device for unknown initiator");
+		LogTrace("Reserved device for unknown initiator");
 	}
 
 	EnterStatusPhase();
@@ -286,10 +281,10 @@ void PrimaryDevice::ReserveUnit()
 void PrimaryDevice::ReleaseUnit()
 {
 	if (reserving_initiator != -1) {
-		GetLogger().Trace("Released device reserved by initiator ID " + to_string(reserving_initiator));
+		LogTrace("Released device reserved by initiator ID " + to_string(reserving_initiator));
 	}
 	else {
-		GetLogger().Trace("Released device reserved by unknown initiator");
+		LogTrace("Released device reserved by unknown initiator");
 	}
 
 	DiscardReservation();
@@ -313,10 +308,10 @@ bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool pr
 	}
 
 	if (initiator_id != -1) {
-		GetLogger().Trace("Initiator ID " + to_string(initiator_id) + " tries to access reserved device");
+		LogTrace("Initiator ID " + to_string(initiator_id) + " tries to access reserved device");
 	}
 	else {
-		GetLogger().Trace("Unknown initiator tries to access reserved device");
+		LogTrace("Unknown initiator tries to access reserved device");
 	}
 
 	return false;

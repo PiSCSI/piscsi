@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // Implementation of a SCSI printer (see SCSI-2 specification for a command description)
 //
@@ -32,7 +32,6 @@
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_printer.h"
-#include <sys/stat.h>
 #include <filesystem>
 
 using namespace std;
@@ -45,7 +44,7 @@ SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 	SupportsParams(true);
 }
 
-bool SCSIPrinter::Init(const unordered_map<string, string>& params)
+bool SCSIPrinter::Init(const param_map& params)
 {
 	PrimaryDevice::Init(params);
 
@@ -61,7 +60,7 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
 
 	if (GetParam("cmd").find("%f") == string::npos) {
-		GetLogger().Trace("Missing filename specifier %f");
+		LogTrace("Missing filename specifier %f");
 		return false;
 	}
 
@@ -82,20 +81,20 @@ void SCSIPrinter::TestUnitReady()
 
 vector<uint8_t> SCSIPrinter::InquiryInternal() const
 {
-	return HandleInquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
+	return HandleInquiry(device_type::printer, scsi_level::scsi_2, false);
 }
 
 void SCSIPrinter::Print()
 {
 	const uint32_t length = GetInt24(GetController()->GetCmd(), 2);
 
-	GetLogger().Trace("Receiving " + to_string(length) + " byte(s) to be printed");
+	LogTrace("Expecting to receive " + to_string(length) + " byte(s) to be printed");
 
 	if (length > GetController()->GetBuffer().size()) {
-		GetLogger().Error("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
+		LogError("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected");
 
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	GetController()->SetLength(length);
@@ -107,9 +106,9 @@ void SCSIPrinter::Print()
 void SCSIPrinter::SynchronizeBuffer()
 {
 	if (!out.is_open()) {
-		GetLogger().Warn("Nothing to print");
+		LogWarn("Nothing to print");
 
-		throw scsi_exception(sense_key::ABORTED_COMMAND);
+		throw scsi_exception(sense_key::aborted_command);
 	}
 
 	string cmd = GetParam("cmd");
@@ -118,25 +117,24 @@ void SCSIPrinter::SynchronizeBuffer()
 	cmd.replace(file_position, 2, filename);
 
 	error_code error;
+	LogTrace("Printing file '" + filename + "' with " + to_string(file_size(path(filename), error)) + " byte(s)");
 
-	GetLogger().Trace("Printing file '" + filename + "' with " + to_string(file_size(path(filename), error)) + " byte(s)");
-
-	GetLogger().Debug("Executing '" + cmd + "'");
+	LogDebug("Executing print command '" + cmd + "'");
 
 	if (system(cmd.c_str())) {
-		GetLogger().Error("Printing file '" + filename + "' failed, the printing system might not be configured");
+		LogError("Printing file '" + filename + "' failed, the printing system might not be configured");
 
-		Cleanup();
+		CleanUp();
 
-		throw scsi_exception(sense_key::ABORTED_COMMAND);
+		throw scsi_exception(sense_key::aborted_command);
 	}
 
-	Cleanup();
+	CleanUp();
 
 	EnterStatusPhase();
 }
 
-bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
+bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 {
 	if (!out.is_open()) {
 		vector<char> f(file_template.begin(), file_template.end());
@@ -145,7 +143,7 @@ bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
 		// There is no C++ API that generates a file with a unique name
 		const int fd = mkstemp(f.data());
 		if (fd == -1) {
-			GetLogger().Error("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
+			LogError("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
 			return false;
 		}
 		close(fd);
@@ -154,21 +152,23 @@ bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
 
 		out.open(filename, ios::binary);
 		if (out.fail()) {
-			throw scsi_exception(sense_key::ABORTED_COMMAND);
+			throw scsi_exception(sense_key::aborted_command);
 		}
 
-		GetLogger().Trace("Created printer output file '" + filename + "'");
+		LogTrace("Created printer output file '" + filename + "'");
 	}
 
-	GetLogger().Trace("Appending " + to_string(length) + " byte(s) to printer output file ''" + filename + "'");
+	LogTrace("Appending " + to_string(buf.size()) + " byte(s) to printer output file ''" + filename + "'");
 
-	out.write((const char*)buf.data(), length);
+	out.write((const char *)buf.data(), buf.size());
 
 	return !out.fail();
 }
 
-void SCSIPrinter::Cleanup()
+void SCSIPrinter::CleanUp()
 {
+	PrimaryDevice::CleanUp();
+
 	if (out.is_open()) {
 		out.close();
 

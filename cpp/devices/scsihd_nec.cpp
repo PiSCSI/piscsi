@@ -1,14 +1,15 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2014-2020 GIMONS
-//	Copyright (C) akuker
+// Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
+// Copyright (C) 2014-2020 GIMONS
+// Copyright (C) 2021-2023 Uwe Seimet
+// Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License.
-//	See LICENSE file in the project root folder.
+// Licensed under the BSD 3-Clause License.
+// See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
 
@@ -47,7 +48,7 @@ void SCSIHD_NEC::Open()
 	FinalizeSetup(image_offset);
 }
 
-pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
+pair<int, int> SCSIHD_NEC::SetParameters(span<const char> data, int size)
 {
 	array<uint8_t, 512> root_sector = {};
 	memcpy(root_sector.data(), data.data(), root_sector.size());
@@ -107,12 +108,12 @@ pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 		throw io_exception("Invalid NEC sector size of " + to_string(sector_size) + " byte(s)");
 	}
 
-	return make_pair(image_size, sector_size);
+	return { image_size, sector_size };
 }
 
 vector<uint8_t> SCSIHD_NEC::InquiryInternal() const
 {
-	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
+	return HandleInquiry(device_type::direct_access, scsi_level::scsi_1_ccs, false);
 }
 
 void SCSIHD_NEC::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const

@@ -3,12 +3,13 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
+#include "spdlog/spdlog.h"
 #include <string>
 
 using namespace std;
@@ -27,13 +28,12 @@ public:
 	void Warn(const string&) const;
 	void Error(const string&) const;
 
-	string GetLogMessage(const string&) const;
-
 	void SetIdAndLun(int, int);
-
 	static void SetLogIdAndLun(int, int);
 
 private:
+
+	void Log(spdlog::level::level_enum, const string&) const;
 
 	int id = -1;
 	int lun = -1;

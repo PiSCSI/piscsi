@@ -16,7 +16,6 @@
 #include "hal/pi_defs/bpi-gpio.h"
 #include "hal/sbc_version.h"
 #include "hal/sunxi_utils.h"
-#include "shared/log.h"
 #include "shared/scsi.h"
 #include <map>
 

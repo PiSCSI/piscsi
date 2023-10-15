@@ -22,6 +22,7 @@
 #include "interfaces/scsi_block_commands.h"
 #include "storage_device.h"
 #include <string>
+#include <span>
 #include <unordered_set>
 #include <unordered_map>
 #include <tuple>
@@ -43,18 +44,18 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 
 public:
 
-	Disk(PbDeviceType type, int lun) : StorageDevice(type, lun) {}
-	~Disk() override;
+	using StorageDevice::StorageDevice;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
+	void CleanUp() override;
 
 	void Dispatch(scsi_command) override;
 
 	bool Eject(bool) override;
 
-	virtual void Write(const vector<int>&, const vector<uint8_t>&, uint64_t);
+	virtual void Write(span<const uint8_t>, uint64_t);
 
-	virtual int Read(const vector<int>&, vector<uint8_t>& , uint64_t);
+	virtual int Read(span<uint8_t> , uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }
@@ -92,8 +93,8 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	tuple<bool, uint64_t, uint32_t> CheckAndGetStartAndCount(access_mode) const;
 
-	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
-	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
+	int ModeSense6(cdb_t, vector<uint8_t>&) const override;
+	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
 
 	static inline const unordered_map<uint32_t, uint32_t> shift_counts =
 		{ { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
