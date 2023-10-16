@@ -89,8 +89,8 @@ SRC_PISCSI_CORE += $(shell find ./hal -name '*.cpp')
 
 SRC_PISCSI = piscsi/piscsi.cpp
 
-SRC_SCSIMON = monitor/scsimon.cpp
-SRC_SCSIMON += $(shell find ./monitor -name '*.cpp' | grep -v scsimon.cpp)
+SRC_SCSIMON = scsimon/scsimon.cpp
+SRC_SCSIMON += $(shell find ./scsimon -name '*.cpp' | grep -v scsimon.cpp)
 SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
 
 SRC_SCSICTL_CORE = $(shell find ./scsictl -name '*.cpp' | grep -v scsictl.cpp)
@@ -108,9 +108,9 @@ SRC_SCSILOOP = scsiloop/scsiloop.cpp
 SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp' | grep -v scsiloop.cpp)
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./shared ./controllers ./devices ./monitor ./hal \
+vpath %.h ./shared ./controllers ./devices ./scsimon ./hal \
 	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop
-vpath %.cpp ./shared ./controllers ./devices ./monitor ./hal \
+vpath %.cpp ./shared ./controllers ./devices ./scsimon ./hal \
 	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
