@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "monitor/sm_core.h"
+#include "scsimon/sm_core.h"
 
 using namespace std;
 

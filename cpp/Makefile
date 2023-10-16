@@ -82,39 +82,36 @@ SRC_SHARED = \
 	shared/piscsi_util.cpp \
 	shared/network_util.cpp
 
-SRC_PISCSI_CORE = $(shell find ./piscsi -name '*.cpp')
+SRC_PISCSI_CORE = $(shell find ./piscsi -name '*.cpp' | grep -v piscsi.cpp)
 SRC_PISCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_PISCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_PISCSI_CORE += $(shell find ./hal -name '*.cpp')
 
-SRC_PISCSI = piscsi.cpp
+SRC_PISCSI = piscsi/piscsi.cpp
 
-SRC_SCSIMON = scsimon.cpp
-SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
+SRC_SCSIMON = scsimon/scsimon.cpp
+SRC_SCSIMON += $(shell find ./scsimon -name '*.cpp' | grep -v scsimon.cpp)
 SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
 
-SRC_SCSICTL_CORE = $(shell find ./scsictl -name '*.cpp')
+SRC_SCSICTL_CORE = $(shell find ./scsictl -name '*.cpp' | grep -v scsictl.cpp)
 
-SRC_SCSICTL = scsictl.cpp
+SRC_SCSICTL = scsictl/scsictl.cpp
 
-SRC_SCSIDUMP = scsidump.cpp
-SRC_SCSIDUMP += $(shell find ./scsidump -name '*.cpp')
+SRC_SCSIDUMP = scsidump/scsidump.cpp
+SRC_SCSIDUMP += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
 SRC_SCSIDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_PISCSI_TEST = $(shell find ./test -name '*.cpp')
-SRC_PISCSI_TEST += $(shell find ./scsidump -name '*.cpp')
-SRC_PISCSI_TEST += $(shell find ./monitor -name '*.cpp')
+SRC_PISCSI_TEST += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
 
-SRC_SCSILOOP = scsiloop.cpp
-SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp')
+SRC_SCSILOOP = scsiloop/scsiloop.cpp
+SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp' | grep -v scsiloop.cpp)
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal \
-	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
-	./scsiloop
-vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal \
-	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
-	./scsiloop ./test
+vpath %.h ./shared ./controllers ./devices ./scsimon ./hal \
+	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop
+vpath %.cpp ./shared ./controllers ./devices ./scsimon ./hal \
+	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
