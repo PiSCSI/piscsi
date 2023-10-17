@@ -59,7 +59,6 @@ string SBC_Version::GetAsString()
     case sbc_version_type::sbc_raspberry_pi_4:
         return str_raspberry_pi_4;
     default:
-        spdlog::error("Unknown type of SBC detected: " + to_string(static_cast<int>(sbc_version)));
         return str_unknown_sbc;
     }
 }
@@ -82,7 +81,7 @@ void SBC_Version::Init()
     if (input_stream.fail()) {
 #if defined(__x86_64__) || defined(__X86__)
         // We expect this to fail on x86
-    	spdlog::info("Detected " + GetAsString());
+    	spdlog::warn("Detected " + GetAsString());
         sbc_version = sbc_version_type::sbc_unknown;
         return;
 #else
@@ -98,7 +97,7 @@ void SBC_Version::Init()
     const auto& device = proc_device_tree_mapping.find(device_tree_model);
     if (device != proc_device_tree_mapping.end()) {
     	sbc_version = (*device).second;
-    	spdlog::info("Detected device " + GetAsString());
+    	spdlog::info("Detected " + (*device).first);
     }
     else {
     	sbc_version = sbc_version_type::sbc_raspberry_pi_4;
