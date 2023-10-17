@@ -31,10 +31,8 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         		return nullptr;
         	}
 
-        	spdlog::trace("Creating GPIO bus for Raspberry Pi");
             bus = make_unique<GPIOBUS_Raspberry>();
         } else {
-        	spdlog::trace("Creating virtual GPIO bus");
             bus = make_unique<GPIOBUS_Virtual>();
         }
 
