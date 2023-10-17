@@ -12,7 +12,6 @@
 //---------------------------------------------------------------------------
 
 #include "hal/systimer.h"
-#include "hal/systimer_allwinner.h"
 #include "hal/systimer_raspberry.h"
 #include <spdlog/spdlog.h>
 #include <sys/mman.h>
@@ -21,22 +20,16 @@
 #include "hal/sbc_version.h"
 
 bool SysTimer::initialized   = false;
-bool SysTimer::is_allwinnner = false;
 bool SysTimer::is_raspberry  = false;
 
 std::unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
 
 void SysTimer::Init()
 {
-    spdlog::trace(__PRETTY_FUNCTION__);
-
     if (!initialized) {
         if (SBC_Version::IsRaspberryPi()) {
             systimer_ptr = make_unique<SysTimer_Raspberry>();
             is_raspberry = true;
-        } else if (SBC_Version::IsBananaPi()) {
-            systimer_ptr  = make_unique<SysTimer_AllWinner>();
-            is_allwinnner = true;
         }
         systimer_ptr->Init();
         initialized = true;

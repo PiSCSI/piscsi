@@ -395,10 +395,6 @@ bool GPIOBUS::PollSelectEvent()
     spdlog::trace(__PRETTY_FUNCTION__);
     errno         = 0;
     int prev_mode = -1;
-    if (SBC_Version::IsBananaPi()) {
-        prev_mode = GetMode(BPI_PIN_SEL);
-        SetMode(BPI_PIN_SEL, GPIO_IRQ_IN);
-    }
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
         spdlog::warn("epoll_wait failed");
@@ -410,9 +406,6 @@ bool GPIOBUS::PollSelectEvent()
         return false;
     }
 
-    if (SBC_Version::IsBananaPi()) {
-        SetMode(BPI_PIN_SEL, prev_mode);
-    }
     return true;
 #endif
 }
