@@ -200,13 +200,13 @@ class GPIOBUS : public BUS
     virtual void DrvConfig(uint32_t drive) = 0;
 
     // Operation mode
-    mode_e actmode = mode_e::TARGET; // NOSONAR: This protected so derived classes can access it
+    mode_e actmode = mode_e::TARGET;
 
 #ifdef __linux__
     // SEL signal event request
-    struct gpioevent_request selevreq = {}; // NOSONAR: This protected so derived classes can access it
+    struct gpioevent_request selevreq = {};
     // epoll file descriptor
-    int epfd = 0; // NOSONAR: This is protected so derived classes can access it
+    int epfd = 0;
 
 #endif
 };
