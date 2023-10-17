@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "sbc_version.h"
-#include "log.h"
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <iostream>
@@ -141,8 +140,6 @@ uint32_t SBC_Version::GetPeripheralAddress(void)
     }
     address = (address == (uint32_t)~0) ? 0x20000000 : address;
 
-    LOGDEBUG("Peripheral address : 0x%8x\n", address)
-
     return address;
 }
 #elif defined __NetBSD__
@@ -160,7 +157,6 @@ uint32_t SBC_Version::GetPeripheralAddress(void)
         // Use BCM2835 address
         address = 0x20000000;
     }
-    LOGDEBUG("Peripheral address : 0x%lx\n", address);
     return address;
 }
 #else
