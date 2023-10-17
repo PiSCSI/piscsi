@@ -84,7 +84,7 @@ void SBC_Version::Init()
     if (input_stream.fail()) {
 #if defined(__x86_64__) || defined(__X86__)
         // We expect this to fail on x86
-    	spdlog::info("Detected device " + GetAsString());
+    	spdlog::info("Detected " + GetAsString());
         m_sbc_version = sbc_version_type::sbc_unknown;
         return;
 #else
