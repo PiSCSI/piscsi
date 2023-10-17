@@ -41,16 +41,19 @@ uint32_t SysTimer::GetTimerLow()
 {
     return systimer_ptr->GetTimerLow();
 }
+
 // Get system timer high byte
 uint32_t SysTimer::GetTimerHigh()
 {
     return systimer_ptr->GetTimerHigh();
 }
+
 // Sleep for N nanoseconds
 void SysTimer::SleepNsec(uint32_t nsec)
 {
     systimer_ptr->SleepNsec(nsec);
 }
+
 // Sleep for N microseconds
 void SysTimer::SleepUsec(uint32_t usec)
 {

@@ -6,8 +6,6 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //
-//	[ GPIO-SCSI bus ]
-//
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus_virtual.h"

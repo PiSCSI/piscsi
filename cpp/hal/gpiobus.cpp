@@ -6,15 +6,12 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //
-//	[ GPIO-SCSI bus ]
-//
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include <spdlog/spdlog.h>
-#include <array>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
@@ -393,8 +390,7 @@ bool GPIOBUS::PollSelectEvent()
 #else
     GPIO_FUNCTION_TRACE
     spdlog::trace(__PRETTY_FUNCTION__);
-    errno         = 0;
-    int prev_mode = -1;
+    errno = 0;
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
         spdlog::warn("epoll_wait failed");
@@ -428,10 +424,10 @@ void GPIOBUS::ClearSelectEvent()
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
     // Get current time
-    uint32_t now = SysTimer::GetTimerLow();
+    const uint32_t now = SysTimer::GetTimerLow();
 
     // Calculate timeout (3000ms)
-    uint32_t timeout = 3000 * 1000;
+    const uint32_t timeout = 3000 * 1000;
 
     do {
         // Immediately upon receiving a reset

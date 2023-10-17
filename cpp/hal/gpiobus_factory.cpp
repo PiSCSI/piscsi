@@ -23,26 +23,22 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
     unique_ptr<BUS> bus;
 
     try {
-        // TODO Make the factory a friend of GPIOBUS and make the GPIOBUS constructor private
-        // so that clients cannot use it anymore but have to use the factory.
-        // Also make Init() private.
         SBC_Version::Init();
         if (SBC_Version::IsRaspberryPi()) {
-            spdlog::trace("Creating GPIOBUS_Raspberry");
-            return make_unique<GPIOBUS_Raspberry>();
+            spdlog::trace("Creating GPIO bus for Raspberry Pi");
+            bus = make_unique<GPIOBUS_Raspberry>();
         } else {
-        	spdlog::trace("Creating Virtual GPIOBUS");
-            return make_unique<GPIOBUS_Virtual>();
+        	spdlog::trace("Creating virtual GPIO bus");
+            bus = make_unique<GPIOBUS_Virtual>();
         }
 
-        if (!bus->Init(mode)) {
-            return nullptr;
+        if (bus->Init(mode)) {
+        	bus->Reset();
         }
-
-        bus->Reset();
     } catch (const invalid_argument&) {
         spdlog::error("Exception while trying to initialize GPIO bus. Are you running as root?");
+        return nullptr;
     }
 
-    return nullptr;
+    return bus;
 }
