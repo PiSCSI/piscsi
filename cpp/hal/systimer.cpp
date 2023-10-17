@@ -14,15 +14,16 @@
 #include "hal/systimer.h"
 #include "hal/systimer_raspberry.h"
 #include <spdlog/spdlog.h>
-#include <sys/mman.h>
 
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
 
-bool SysTimer::initialized   = false;
-bool SysTimer::is_raspberry  = false;
+bool SysTimer::initialized = false;
+bool SysTimer::is_raspberry = false;
 
-std::unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
+using namespace std;
+
+unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
 
 void SysTimer::Init()
 {
