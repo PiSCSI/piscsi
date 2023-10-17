@@ -5,7 +5,6 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ GPIO-SCSI bus ]
 //
 //---------------------------------------------------------------------------
 
@@ -13,7 +12,6 @@
 
 #include "hal/bus.h"
 #include "shared/scsi.h"
-#include <array>
 #include <memory>
 #include <vector>
 
@@ -28,17 +26,11 @@
 //---------------------------------------------------------------------------
 //#define CONNECT_TYPE_STANDARD		// Standard (SCSI logic, standard pin assignment)
 //#define CONNECT_TYPE_FULLSPEC		// Full spec (SCSI logic, standard pin assignment)
-//#define CONNECT_TYPE_AIBOM		// AIBOM version (positive logic, unique pin assignment)
-//#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/connection_type/connection_standard.h"
 #elif defined CONNECT_TYPE_FULLSPEC
 #include "hal/connection_type/connection_fullspec.h"
-#elif defined CONNECT_TYPE_AIBOM
-#include "hal/connection_type/connection_aibom.h"
-#elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/connection_type/connection_gamernium.h"
 #else
 #error Invalid connection type or none specified
 #endif
@@ -176,11 +168,11 @@ class GPIOBUS : public BUS
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     // Command receive handshake
-    int CommandHandShake(vector<uint8_t> &) override;
+    int CommandHandShake(vector<uint8_t>&) override;
     // Data receive handshake
-    int ReceiveHandShake(uint8_t *buf, int count) override;
+    int ReceiveHandShake(uint8_t *, int) override;
     // Data transmission handshake
-    int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
+    int SendHandShake(uint8_t *, int, int) override;
 
     // SEL signal event polling
     bool PollSelectEvent() override;
