@@ -14,18 +14,24 @@
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus_virtual.h"
 #include "hal/sbc_version.h"
+#include <unistd.h>
 #include <spdlog/spdlog.h>
 
 using namespace std;
 
 unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
-    unique_ptr<BUS> bus;
+	unique_ptr<BUS> bus;
 
     try {
         SBC_Version::Init();
         if (SBC_Version::IsRaspberryPi()) {
-            spdlog::trace("Creating GPIO bus for Raspberry Pi");
+        	if (getuid()) {
+        		spdlog::error("GPIO bus access requires root permissions. Are you running as root?");
+        		return nullptr;
+        	}
+
+        	spdlog::trace("Creating GPIO bus for Raspberry Pi");
             bus = make_unique<GPIOBUS_Raspberry>();
         } else {
         	spdlog::trace("Creating virtual GPIO bus");
@@ -35,8 +41,8 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         if (bus->Init(mode)) {
         	bus->Reset();
         }
-    } catch (const invalid_argument&) {
-        spdlog::error("Exception while trying to initialize GPIO bus. Are you running as root?");
+    } catch (const invalid_argument& e) {
+        spdlog::error(string("Exception while trying to initialize GPIO bus: ") + e.what());
         return nullptr;
     }
 
