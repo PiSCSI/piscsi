@@ -47,14 +47,14 @@ class SBC_Version
     static uint32_t GetPeripheralAddress();
 
   private:
-    static sbc_version_type m_sbc_version;
+    static sbc_version_type sbc_version;
 
     static const string str_raspberry_pi_1;
     static const string str_raspberry_pi_2_3;
     static const string str_raspberry_pi_4;
     static const string str_unknown_sbc;
 
-    static const map<std::string, sbc_version_type, less<>> m_proc_device_tree_mapping;
+    static const map<std::string, sbc_version_type, less<>> proc_device_tree_mapping;
 
     static const string m_device_tree_model_path;
 

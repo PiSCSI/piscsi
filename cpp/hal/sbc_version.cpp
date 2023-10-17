@@ -16,7 +16,7 @@
 #include <iostream>
 #include <sstream>
 
-SBC_Version::sbc_version_type SBC_Version::m_sbc_version = sbc_version_type::sbc_unknown;
+SBC_Version::sbc_version_type SBC_Version::sbc_version = sbc_version_type::sbc_unknown;
 
 // TODO: THESE NEED TO BE VALIDATED!!!!
 const string SBC_Version::str_raspberry_pi_1    = "Raspberry Pi 1";
@@ -32,7 +32,7 @@ const string SBC_Version::str_unknown_sbc       = "Unknown SBC";
 //     "Raspberry Pi 4 Model B" will match with both of the following:
 //         - Raspberry Pi 4 Model B Rev 1.4
 //         - Raspberry Pi 4 Model B Rev 1.3
-const map<string, SBC_Version::sbc_version_type, less<>> SBC_Version::m_proc_device_tree_mapping = {
+const map<string, SBC_Version::sbc_version_type, less<>> SBC_Version::proc_device_tree_mapping = {
     {"Raspberry Pi 1 Model ", sbc_version_type::sbc_raspberry_pi_1},
     {"Raspberry Pi 2 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
     {"Raspberry Pi 3 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
@@ -51,7 +51,7 @@ const string SBC_Version::m_device_tree_model_path = "/proc/device-tree/model";
 //---------------------------------------------------------------------------
 string SBC_Version::GetAsString()
 {
-    switch (m_sbc_version) {
+    switch (sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
         return str_raspberry_pi_1;
     case sbc_version_type::sbc_raspberry_pi_2_3:
@@ -59,14 +59,14 @@ string SBC_Version::GetAsString()
     case sbc_version_type::sbc_raspberry_pi_4:
         return str_raspberry_pi_4;
     default:
-        spdlog::error("Unknown type of SBC detected: " + to_string(static_cast<int>(m_sbc_version)));
+        spdlog::error("Unknown type of SBC detected: " + to_string(static_cast<int>(sbc_version)));
         return str_unknown_sbc;
     }
 }
 
 SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 {
-    return m_sbc_version;
+    return sbc_version;
 }
 
 //---------------------------------------------------------------------------
@@ -77,15 +77,13 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 //---------------------------------------------------------------------------
 void SBC_Version::Init()
 {
-    string device_tree_model;
-
-    const ifstream input_stream(SBC_Version::m_device_tree_model_path);
+    ifstream input_stream(SBC_Version::m_device_tree_model_path);
 
     if (input_stream.fail()) {
 #if defined(__x86_64__) || defined(__X86__)
         // We expect this to fail on x86
     	spdlog::info("Detected " + GetAsString());
-        m_sbc_version = sbc_version_type::sbc_unknown;
+        sbc_version = sbc_version_type::sbc_unknown;
         return;
 #else
         spdlog::error("Failed to open " + SBC_Version::m_device_tree_model_path + ". Are you running as root?");
@@ -95,22 +93,22 @@ void SBC_Version::Init()
 
     stringstream str_buffer;
     str_buffer << input_stream.rdbuf();
-    device_tree_model = str_buffer.str();
+    const string device_tree_model = str_buffer.str();
 
-    for (const auto &[key, value] : m_proc_device_tree_mapping) {
-        if (device_tree_model.rfind(key, 0) == 0) {
-            m_sbc_version = value;
-            spdlog::info("Detected device " + GetAsString());
-            return;
-        }
+    const auto& device = proc_device_tree_mapping.find(device_tree_model);
+    if (device != proc_device_tree_mapping.end()) {
+    	sbc_version = (*device).second;
+    	spdlog::info("Detected device " + GetAsString());
     }
-    spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
-    m_sbc_version = sbc_version_type::sbc_raspberry_pi_4;
+    else {
+    	sbc_version = sbc_version_type::sbc_raspberry_pi_4;
+    	spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
+    }
 }
 
 bool SBC_Version::IsRaspberryPi()
 {
-    switch (m_sbc_version) {
+    switch (sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
     case sbc_version_type::sbc_raspberry_pi_2_3:
     case sbc_version_type::sbc_raspberry_pi_4:
