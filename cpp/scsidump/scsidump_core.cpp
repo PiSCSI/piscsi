@@ -119,6 +119,9 @@ void ScsiDump::ParseArguments(span<char *> args)
             if (!error.empty()) {
                 throw parser_exception(error);
             }
+            if (target_lun == -1) {
+            	target_lun = 0;
+            }
         } break;
 
         case 'v':
@@ -534,7 +537,7 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     cout << divider_str << "\n";
     cout << "PiSCSI board ID: " << initiator_id << "\n";
     cout << divider_str << "\n" << flush;
-    cout << "Target device ID: " << target_id << ", LUN: " << target_lun << "\n";
+    cout << "Target device is " << target_id << ":" << target_lun << "\n";
 
     Inquiry();
 
