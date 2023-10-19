@@ -14,7 +14,7 @@
 #include <sstream>
 #include <array>
 #include <vector>
-
+#include <iomanip>
 
 using namespace std;
 using namespace piscsi_util;
@@ -132,7 +132,7 @@ string protobuf_util::ListDevices(const vector<PbDevice>& pb_devices)
 				break;
 		}
 
-		s << "|  " << device.id() << " |   " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
+		s << "|  " << device.id() << " | " << setw(3) << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
 				<< (filename.empty() ? "NO MEDIUM" : filename)
 				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
 				<< '\n';
