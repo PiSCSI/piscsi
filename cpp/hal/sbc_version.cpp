@@ -31,6 +31,7 @@ const string SBC_Version::str_unknown_sbc       = "Unknown SBC";
 //     "Raspberry Pi 4 Model B" will match with both of the following:
 //         - Raspberry Pi 4 Model B Rev 1.4
 //         - Raspberry Pi 4 Model B Rev 1.3
+// TODO Is there a better way to detect the Pi type than relying on strings?
 const map<string, SBC_Version::sbc_version_type, less<>> SBC_Version::proc_device_tree_mapping = {
     {"Raspberry Pi 1 Model ", sbc_version_type::sbc_raspberry_pi_1},
     {"Raspberry Pi 2 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
@@ -93,15 +94,16 @@ void SBC_Version::Init()
     str_buffer << input_stream.rdbuf();
     const string device_tree_model = str_buffer.str();
 
-    const auto& device = proc_device_tree_mapping.find(device_tree_model);
-    if (device != proc_device_tree_mapping.end()) {
-    	sbc_version = (*device).second;
-    	spdlog::info("Detected " + (*device).first);
+    for (const auto& [key, value] : proc_device_tree_mapping) {
+    	if (device_tree_model.rfind(key, 0) == 0) {
+    		sbc_version = value;
+    		spdlog::info("Detected " + GetAsString());
+    		return;
+    	}
     }
-    else {
-    	sbc_version = sbc_version_type::sbc_raspberry_pi_4;
-    	spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
-    }
+
+    sbc_version = sbc_version_type::sbc_raspberry_pi_4;
+    spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
 }
 
 bool SBC_Version::IsRaspberryPi()
