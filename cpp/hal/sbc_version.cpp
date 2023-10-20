@@ -95,7 +95,7 @@ void SBC_Version::Init()
     const string device_tree_model = str_buffer.str();
 
     for (const auto& [key, value] : proc_device_tree_mapping) {
-    	if (device_tree_model.rfind(key, 0) == 0) {
+    	if (device_tree_model.starts_with(key)) {
     		sbc_version = value;
     		spdlog::info("Detected " + GetAsString());
     		return;
