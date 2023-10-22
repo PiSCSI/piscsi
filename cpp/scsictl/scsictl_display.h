@@ -32,6 +32,7 @@ public:
 	string DisplayImageFilesInfo(const PbImageFilesInfo&) const;
 	string DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&) const;
 	string DisplayMappingInfo(const PbMappingInfo&) const;
+	string DisplayStatisticsInfo(const PbStatisticsInfo&) const;
 	string DisplayOperationInfo(const PbOperationInfo&) const;
 
 private:

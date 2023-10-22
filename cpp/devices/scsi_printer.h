@@ -21,9 +21,13 @@ using namespace std;
 
 class SCSIPrinter : public PrimaryDevice, private ScsiPrinterCommands
 {
+	uint64_t file_print_count = 0;
+
 	static const int NOT_RESERVED = -2;
 
 	static constexpr const char *PRINTER_FILE_PATTERN = "/piscsi_sclp-XXXXXX";
+
+	inline static const string FILE_PRINT_COUNT = "file_print_count";
 
 public:
 
@@ -36,6 +40,8 @@ public:
 	vector<uint8_t> InquiryInternal() const override;
 
 	bool WriteByteSequence(span<const uint8_t>) override;
+
+	vector<PbStatistics> GetStatistics() const override;
 
 private:
 

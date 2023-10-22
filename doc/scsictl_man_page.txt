@@ -6,19 +6,21 @@ NAME
        scsictl - Sends management commands to the piscsi process
 
 SYNOPSIS
-       scsictl  -e | -l | -m | -o | -s | -v | -D | -I | -L | -O | -P | -T | -V
-       | -X | [-C FILENAME:FILESIZE] [-E FILENAME] [-F IMAGE_FOLDER] [-R  CUR‐
-       RENT_NAME:NEW_NAME]  [-c  CMD] [-f FILE|PARAM] [-g LOG_LEVEL] [-h HOST]
-       [-i ID[:LUN] [-n NAME] [-p PORT] [-r RESERVED_IDS] [-t TYPE]  [-x  CUR‐
-       RENT_NAME:NEW_NAME] [-z LOCALE]
+       scsictl  -e | -l | -m | -o | -v | -D | -I | -L | -O | -P | -S | -T | -V
+       | -X | [-C FILENAME:FILESIZE] | [-E FILENAME] | [-F IMAGE_FOLDER] | [-R
+       CURRENT_NAME:NEW_NAME]  | [-c CMD] | [-f FILE|PARAM] | [-g LOG_LEVEL] |
+       [-h HOST] | [-i ID[:LUN]] | [-n NAME] | [-p PORT] | [-r RESERVED_IDS] |
+       [-s  [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]]  |  [-t TYPE] | [-x CUR‐
+       RENT_NAME:NEW_NAME] | [-z LOCALE]
 
 DESCRIPTION
-       scsictl  sends commands to the piscsi process to make configuration ad‐
+       scsictl sends commands to the piscsi process to make configuration  ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
-       You do NOT need root privileges to use scsictl.
+       You  do  NOT  need root privileges to use scsictl. scsictl also runs on
+       non-Pi Linux platforms.
 
        Note: The command and type arguments are  case  insensitive.  Only  the
        first letter of the command/type is evaluated by the tool.
@@ -74,8 +76,11 @@ OPTIONS
               Comma-separated list of IDs to reserve. Pass an  empty  list  in
               order to not reserve anything.
 
-       -s     Display  server-side settings like available images or supported
+       -s [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]
+              Display  server-side settings like available images or supported
               device types.
+
+       -S     Display statistics.
 
        -T     Display all device types and their properties.
 

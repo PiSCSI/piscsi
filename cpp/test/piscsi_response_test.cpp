@@ -9,6 +9,7 @@
 
 #include "mocks.h"
 #include "shared/piscsi_version.h"
+#include "shared/protobuf_util.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "generated/piscsi_interface.pb.h"
@@ -16,6 +17,7 @@
 #include <sys/stat.h>
 
 using namespace piscsi_interface;
+using namespace protobuf_util;
 
 TEST(PiscsiResponseTest, Operation_Count)
 {
@@ -179,15 +181,41 @@ TEST(PiscsiResponseTest, GetServerInfo)
 	const unordered_set<shared_ptr<PrimaryDevice>> devices;
 	const unordered_set<int> ids = { 1, 3 };
 
-	PbServerInfo info;
-	response.GetServerInfo(info, devices, ids, "default_folder", "", "", 1234);
-	EXPECT_EQ(piscsi_major_version, info.version_info().major_version());
-	EXPECT_EQ(piscsi_minor_version, info.version_info().minor_version());
-	EXPECT_EQ(piscsi_patch_version, info.version_info().patch_version());
-	EXPECT_EQ(level::level_string_views[get_level()], info.log_level_info().current_log_level());
-	EXPECT_EQ("default_folder", info.image_files_info().default_image_folder());
-	EXPECT_EQ(1234, info.image_files_info().depth());
-	EXPECT_EQ(2, info.reserved_ids_info().ids().size());
+	PbCommand command;
+	PbServerInfo info1;
+	response.GetServerInfo(info1, command, devices, ids, "default_folder", 1234);
+	EXPECT_TRUE(info1.has_version_info());
+	EXPECT_TRUE(info1.has_log_level_info());
+	EXPECT_TRUE(info1.has_device_types_info());
+	EXPECT_TRUE(info1.has_image_files_info());
+	EXPECT_TRUE(info1.has_network_interfaces_info());
+	EXPECT_TRUE(info1.has_mapping_info());
+	EXPECT_TRUE(info1.has_statistics_info());
+	EXPECT_FALSE(info1.has_devices_info());
+	EXPECT_TRUE(info1.has_reserved_ids_info());
+	EXPECT_TRUE(info1.has_operation_info());
+
+	EXPECT_EQ(piscsi_major_version, info1.version_info().major_version());
+	EXPECT_EQ(piscsi_minor_version, info1.version_info().minor_version());
+	EXPECT_EQ(piscsi_patch_version, info1.version_info().patch_version());
+	EXPECT_EQ(level::level_string_views[get_level()], info1.log_level_info().current_log_level());
+	EXPECT_EQ("default_folder", info1.image_files_info().default_image_folder());
+	EXPECT_EQ(1234, info1.image_files_info().depth());
+	EXPECT_EQ(2, info1.reserved_ids_info().ids().size());
+
+	SetParam(command, "operations", "log_level_info,mapping_info");
+	PbServerInfo info2;
+	response.GetServerInfo(info2, command, devices, ids, "default_folder", 1234);
+	EXPECT_FALSE(info2.has_version_info());
+	EXPECT_TRUE(info2.has_log_level_info());
+	EXPECT_FALSE(info2.has_device_types_info());
+	EXPECT_FALSE(info2.has_image_files_info());
+	EXPECT_FALSE(info2.has_network_interfaces_info());
+	EXPECT_TRUE(info2.has_mapping_info());
+	EXPECT_FALSE(info2.has_statistics_info());
+	EXPECT_FALSE(info2.has_devices_info());
+	EXPECT_FALSE(info2.has_reserved_ids_info());
+	EXPECT_FALSE(info2.has_operation_info());
 }
 
 TEST(PiscsiResponseTest, GetVersionInfo)

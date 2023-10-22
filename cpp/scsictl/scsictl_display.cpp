@@ -231,6 +231,37 @@ string ScsictlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) con
 	return s.str();
 }
 
+string ScsictlDisplay::DisplayStatisticsInfo(const PbStatisticsInfo& statistics_info) const
+{
+	ostringstream s;
+
+	s << "Statistics:\n";
+
+	// Sort by ascending ID, LUN and key and by descending category
+	vector<PbStatistics> sorted_statistics = { statistics_info.statistics().begin(), statistics_info.statistics().end() };
+	ranges::sort(sorted_statistics, [] (const PbStatistics& a, const PbStatistics& b) {
+		if (a.category() > b.category()) return true;
+		if (a.category() < b.category()) return false;
+		if (a.id() < b.id()) return true;
+		if (a.id() > b.id()) return false;
+		if (a.unit() < b.unit()) return true;
+		if (a.unit() > b.unit()) return false;
+		return a.key() < b.key();
+	});
+
+	PbStatisticsCategory prev_category = PbStatisticsCategory::NO_CATEGORY;
+	for (const auto& statistics : sorted_statistics) {
+		if (statistics.category() != prev_category) {
+			s << "  " << PbStatisticsCategory_Name(statistics.category()) << '\n';
+			prev_category = statistics.category();
+		}
+
+		s << "    " << statistics.id() << ":" << statistics.unit() << "  " << statistics.key() << ": " << statistics.value() << '\n';
+	}
+
+	return s.str();
+}
+
 string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) const
 {
 	ostringstream s;

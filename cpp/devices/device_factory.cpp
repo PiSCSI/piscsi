@@ -31,6 +31,7 @@ DeviceFactory::DeviceFactory()
 
 	const string interfaces = Join(GetNetworkInterfaces(), ",");
 
+	// TODO Move to the respective device
 	default_params[SCBR]["interface"] = interfaces;
 	default_params[SCBR]["inet"] = DEFAULT_IP;
 	default_params[SCDP]["interface"] = interfaces;

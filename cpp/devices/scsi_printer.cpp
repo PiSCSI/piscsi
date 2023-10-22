@@ -178,3 +178,20 @@ void SCSIPrinter::CleanUp()
 		filename = "";
 	}
 }
+
+vector<PbStatistics> SCSIPrinter::GetStatistics() const
+{
+	vector<PbStatistics> statistics = PrimaryDevice::GetStatistics();
+
+	PbStatistics s;
+	s.set_id(GetId());
+	s.set_unit(GetLun());
+
+	s.set_category(PbStatisticsCategory::INFO);
+
+	s.set_key(FILE_PRINT_COUNT);
+	s.set_value(file_print_count);
+	statistics.push_back(s);
+
+	return statistics;
+}
