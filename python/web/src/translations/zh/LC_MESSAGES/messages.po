@@ -966,7 +966,7 @@ msgstr "信息"
 #: src/templates/index.html:374
 #, python-format
 msgid "%(disk_space)s MiB disk space remaining for images"
-msgstr "在 Pi 上剩余%(disk_space)s MB 磁盘空间"
+msgstr "%(disk_space)s MiB 剩余磁盘空间用于图片"
 
 #: src/templates/index.html:382
 msgid "Transfer Files to the PiSCSI"

@@ -141,7 +141,7 @@ msgid ""
 "Potential instability - Currently throttled - Make sure to use a sufficient "
 "power source (2.5+ amps)."
 msgstr ""
-"Inestabilidad potencial - Actualmente estrangulado - Asegúrese de utilizar una "
+"Inestabilidad potencial - Actualmente limitado - Asegúrese de utilizar una "
 "fuente de alimentación suficiente (2.5+ amperios)."
 
 #: src/return_code_mapper.py:62
@@ -149,7 +149,7 @@ msgid ""
 "Potential instability - Soft-temperature limit active - Ensure sufficient "
 "airflow/cooling."
 msgstr ""
-"Inestabilidad potencial - Límite de temperatura suave activo - Asegure "
+"Inestabilidad potencial - Límite flexible de temperatura activo - Asegure "
 "suficiente flujo de aire/refrigeración."
 
 #: src/return_code_mapper.py:65
@@ -184,7 +184,7 @@ msgid ""
 "Potential instability - Soft temperature limit has occurred since last reboot.  "
 "Ensure sufficient airflow/cooling."
 msgstr ""
-"Inestabilidad potencial: se ha producido un límite de temperatura suave desde "
+"Inestabilidad potencial: se ha producido un límite flexible de temperatura desde "
 "el último reinicio.  Asegúrese de que haya suficiente flujo de aire/"
 "refrigeración."
 

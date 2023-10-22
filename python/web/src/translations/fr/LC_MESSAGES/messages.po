@@ -1011,7 +1011,7 @@ msgstr "Info"
 #: src/templates/index.html:374
 #, python-format
 msgid "%(disk_space)s MiB disk space remaining for images"
-msgstr "%(disk_space)s Mio d'espace disque restant sur le Pi"
+msgstr "%(disk_space)s Mio d'espace disque restant pour les images
 
 #: src/templates/index.html:382
 msgid "Transfer Files to the PiSCSI"
