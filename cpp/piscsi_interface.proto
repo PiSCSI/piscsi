@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ package piscsi_interface;
 // The available device types
 enum PbDeviceType {
     UNDEFINED = 0;
-    // Non-removable SASI drive, not supported anymore
+    // Non-removable SASI drive, not supported anymore but must not be removed because of backwards compatibility
     SAHD = 1 [deprecated = true];
     // Non-removable SCSI drive
     SCHD = 2;

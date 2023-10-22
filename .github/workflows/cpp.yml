@@ -6,6 +6,18 @@ on:
     paths:
       - 'cpp/**'
       - '.github/workflows/cpp.yml'
+  pull_request:
+    paths:
+      - 'cpp/**'
+      - '.github/workflows/cpp.yml'
+    types:
+      - assigned
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - 'develop'
+      - 'main'
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
@@ -40,10 +52,10 @@ jobs:
     env:
       SOURCES: cpp
       BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed
-      SONAR_SCANNER_VERSION: 4.7.0.2747
+      SONAR_SCANNER_VERSION: 5.0.1.3006
       SONAR_SERVER_URL: "https://sonarcloud.io"
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_PROJECT_KEY: "akuker_PISCSI"
+      SONAR_PROJECT_KEY: "akuker-PISCSI"
       SONAR_ORGANIZATION: "piscsi"
     steps:
       - uses: actions/checkout@v3

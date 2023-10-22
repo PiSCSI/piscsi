@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 // The DeviceFactory creates devices based on their type and the image file extension
 //
@@ -11,8 +11,9 @@
 
 #pragma once
 
+#include "shared/piscsi_util.h"
+#include "devices/device.h"
 #include <string>
-#include <vector>
 #include <unordered_set>
 #include <unordered_map>
 #include "generated/piscsi_interface.pb.h"
@@ -34,20 +35,19 @@ public:
 	shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, int, const string&) const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
-	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
-	vector<string> GetNetworkInterfaces() const;
-	const unordered_map<string, PbDeviceType>& GetExtensionMapping() const { return extension_mapping; }
+	const param_map& GetDefaultParams(PbDeviceType type) const;
+	const auto& GetExtensionMapping() const { return extension_mapping; }
 
 private:
 
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
 
-	unordered_map<PbDeviceType, unordered_map<string, string>> default_params;
+	unordered_map<PbDeviceType, param_map> default_params;
 
-	unordered_map<string, PbDeviceType> extension_mapping;
+	unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> extension_mapping;
 
-	unordered_map<string, PbDeviceType> device_mapping;
+	unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> device_mapping;
 
-	unordered_set<uint32_t> empty_set;
-	unordered_map<string, string> empty_map;
+	inline static const unordered_set<uint32_t> EMPTY_SET;
+	inline static const param_map EMPTY_PARAM_MAP;
 };

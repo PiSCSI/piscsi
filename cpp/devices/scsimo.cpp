@@ -1,14 +1,15 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2014-2020 GIMONS
-//	Copyright (C) akuker
+// Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
+// Copyright (C) 2014-2020 GIMONS
+// Copyright (C) 2022-2023 Uwe Seimet
+// Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License.
-//	See LICENSE file in the project root folder.
+// Licensed under the BSD 3-Clause License.
+// See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
 
@@ -23,13 +24,13 @@ SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCMO
 	SetSectorSizes(sector_sizes);
 
 	// 128 MB, 512 bytes per sector, 248826 sectors
-	geometries[512 * 248826] = make_pair(512, 248826);
+	geometries[512 * 248826] = { 512, 248826 };
 	// 230 MB, 512 bytes per block, 446325 sectors
-	geometries[512 * 446325] = make_pair(512, 446325);
+	geometries[512 * 446325] = { 512, 446325 };
 	// 540 MB, 512 bytes per sector, 1041500 sectors
-	geometries[512 * 1041500] = make_pair(512, 1041500);
+	geometries[512 * 1041500] = { 512, 1041500 };
 	// 640 MB, 20248 bytes per sector, 310352 sectors
-	geometries[2048 * 310352] = make_pair(2048, 310352);
+	geometries[2048 * 310352] = { 2048, 310352 };
 
 	SetProtectable(true);
 	SetRemovable(true);
@@ -61,7 +62,7 @@ void SCSIMO::Open()
 
 vector<uint8_t> SCSIMO::InquiryInternal() const
 {
-	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
+	return HandleInquiry(device_type::optical_memory, scsi_level::scsi_2, true);
 }
 
 void SCSIMO::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
@@ -89,9 +90,12 @@ void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 	// Do not report update blocks
 }
 
-void SCSIMO::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length) const
+void SCSIMO::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length) const
 {
-	scsi_command_util::ModeSelect(GetLogger(), cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
+	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
+		!result.empty()) {
+		LogWarn(result);
+	}
 }
 
 //

@@ -18,8 +18,10 @@ To quit scsimon, press Control + C.
 None
 
 .SH EXAMPLES
-Launch scsimon to capture all SCSI traffic available to the PiSCSI hardware:
+Make sure you've stopped the piscsi service. Then launch scsimon to capture all SCSI traffic available to the PiSCSI hardware:
    scsimon
+
+If you're trying to capture a specific scenario, you'll want to wait to start scsimon until immediately before the scenario.
 
 .SH SEE ALSO
 scsictl(1), piscsi(1), scsidump(1)

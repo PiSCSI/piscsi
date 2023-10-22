@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // A basic device with mode page support, to be used for subclassing
 //
@@ -20,7 +20,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-bool ModePageDevice::Init(const unordered_map<string, string>& params)
+bool ModePageDevice::Init(const param_map& params)
 {
 	PrimaryDevice::Init(params);
 
@@ -32,7 +32,7 @@ bool ModePageDevice::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
+int ModePageDevice::AddModePages(cdb_t cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
 {
 	const int max_length = length - offset;
 	if (max_length < 0) {
@@ -46,7 +46,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 
 	stringstream s;
 	s << "Requesting mode page $" << setfill('0') << setw(2) << hex << page;
-	GetLogger().Trace(s.str());
+	LogTrace(s.str());
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<byte>> pages;
@@ -54,8 +54,8 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 
 	if (pages.empty()) {
 		s << "Unsupported mode page $" << page;
-		GetLogger().Trace(s.str());
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		LogTrace(s.str());
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Holds all mode page data
@@ -90,7 +90,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 	}
 
 	if (static_cast<int>(result.size()) > max_size) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const auto size = static_cast<int>(min(static_cast<size_t>(max_length), result.size()));
@@ -114,15 +114,15 @@ void ModePageDevice::ModeSense10() const
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<uint8_t>&, int) const
+void ModePageDevice::ModeSelect(scsi_command, cdb_t, span<const uint8_t>, int) const
 {
-	// There is no default implementation of MDOE SELECT
-	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+	// There is no default implementation of MODE SELECT
+	throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 }
 
 void ModePageDevice::ModeSelect6() const
 {
-	SaveParametersCheck(GetController()->GetCmd(4));
+	SaveParametersCheck(GetController()->GetCmdByte(4));
 }
 
 void ModePageDevice::ModeSelect10() const
@@ -134,8 +134,8 @@ void ModePageDevice::ModeSelect10() const
 
 void ModePageDevice::SaveParametersCheck(int length) const
 {
-	if (!SupportsSaveParameters() && (GetController()->GetCmd(1) & 0x01)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	if (!SupportsSaveParameters() && (GetController()->GetCmdByte(1) & 0x01)) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	GetController()->SetLength(length);

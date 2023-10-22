@@ -13,12 +13,14 @@
 #include "hal/gpiobus_virtual.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
+#include "hal/log.h"
 #include <cstddef>
 #include <map>
 #include <memory>
 #include <string.h>
+#ifdef __linux__
 #include <sys/epoll.h>
+#endif
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>

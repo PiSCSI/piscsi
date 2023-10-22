@@ -14,8 +14,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "disk_track.h"
+#include <spdlog/spdlog.h>
+#include <cassert>
+#include <cstdlib>
 #include <fstream>
 
 DiskTrack::~DiskTrack()
@@ -75,7 +77,7 @@ bool DiskTrack::Load(const string& path)
 
 	if (dt.buffer == nullptr) {
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-			LOGWARN("posix_memalign failed")
+			spdlog::warn("posix_memalign failed");
 		}
 		dt.length = length;
 	}
@@ -88,14 +90,14 @@ bool DiskTrack::Load(const string& path)
 	if (dt.length != static_cast<uint32_t>(length)) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-			LOGWARN("posix_memalign failed")
+			spdlog::warn("posix_memalign failed");
         }
 		dt.length = length;
 	}
 
 	// Resize and clear changemap
 	dt.changemap.resize(dt.sectors);
-	fill(dt.changemap.begin(), dt.changemap.end(), false);
+	fill(dt.changemap.begin(), dt.changemap.end(), false); //NOSONAR ranges::fill() cannot be applied to vector<bool>
 
 	ifstream in(path, ios::binary);
 	if (in.fail()) {
@@ -209,13 +211,13 @@ bool DiskTrack::Save(const string& path)
 	}
 
 	// Drop the change flag and exit
-	fill(dt.changemap.begin(), dt.changemap.end(), false);
+	fill(dt.changemap.begin(), dt.changemap.end(), false); //NOSONAR ranges::fill() cannot be applied to vector<bool>
 	dt.changed = false;
 
 	return true;
 }
 
-bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
+bool DiskTrack::ReadSector(span<uint8_t> buf, int sec) const
 {
 	assert(sec >= 0 && sec < 0x100);
 
@@ -238,7 +240,7 @@ bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 	return true;
 }
 
-bool DiskTrack::WriteSector(const vector<uint8_t>& buf, int sec)
+bool DiskTrack::WriteSector(span<const uint8_t> buf, int sec)
 {
 	assert((sec >= 0) && (sec < 0x100));
 	assert(!dt.raw);

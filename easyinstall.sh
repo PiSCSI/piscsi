@@ -47,9 +47,14 @@ echo -e $logo
 }
 
 CONNECT_TYPE="FULLSPEC"
-# clang v11 is the latest distributed by Buster
-COMPILER="clang++-11"
-CORES=1
+COMPILER="clang++"
+MEM=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+CORES=`expr $MEM / 450000`
+if [ $CORES -gt $(nproc) ]; then
+        CORES=$(nproc)
+elif [ $CORES -lt 1 ]; then
+        CORES=1
+fi
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 CPP_PATH="$BASE/cpp"
@@ -72,7 +77,7 @@ FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
 
 APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils"
-APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang-11"
+APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang"
 APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
 APT_PACKAGES_WEB="nginx-light genisoimage man2html hfsutils dosfstools kpartx unzip unar disktype gettext"
 
@@ -189,8 +194,10 @@ function installPiscsi() {
 
     # install
     sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
+}
 
-    # update launch parameters
+# Update the systemd configuration for piscsi
+function configurePiscsiService() {
     if [[ -f $SECRET_FILE ]]; then
         sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
         echo "Secret token file $SECRET_FILE detected. Using it to enable back-end authentication."
@@ -568,9 +575,18 @@ function fetchHardDiskDrivers() {
 function setupWiredNetworking() {
     echo "Setting up wired network..."
 
-    LAN_INTERFACE=eth0
+    if [[ -z $HEADLESS ]]; then
+	LAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx' | head -n 1`
+    else
+	LAN_INTERFACE="eth0"
+    fi
 
-    echo "$LAN_INTERFACE will be configured for network forwarding with DHCP."
+    if [[ -z "$LAN_INTERFACE" ]]; then
+	echo "No usable wired network interfaces detected. Have you already enabled the bridge? Aborting..."
+	return 1
+    fi
+
+    echo "Network interface '$LAN_INTERFACE' will be configured for network forwarding with DHCP."
     echo ""
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
@@ -582,7 +598,7 @@ function setupWiredNetworking() {
 
         if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
             echo "Available wired interfaces on this system:"
-            echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
+            echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx'`
             echo "Please type the wired interface you want to use and press Enter:"
             read SELECTED
             LAN_INTERFACE=$SELECTED
@@ -635,9 +651,19 @@ function setupWirelessNetworking() {
     CIDR="24"
     ROUTER_IP=$NETWORK.1
     ROUTING_ADDRESS=$NETWORK.0/$CIDR
-    WLAN_INTERFACE="wlan0"
 
-    echo "$WLAN_INTERFACE will be configured for network forwarding with static IP assignment."
+    if [[ -z $HEADLESS ]]; then
+	WLAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx' | head -n 1`
+    else
+	WLAN_INTERFACE="wlan0"
+    fi
+
+    if [[ -z "$WLAN_INTERFACE" ]]; then
+	echo "No usable wireless network interfaces detected. Have you already enabled the bridge? Aborting..."
+	return 1
+    fi
+
+    echo "Network interface '$WLAN_INTERFACE' will be configured for network forwarding with static IP assignment."
     echo "Configure your Macintosh or other device with the following:"
     echo "IP Address (static): $IP"
     echo "Router Address: $ROUTER_IP"
@@ -649,7 +675,7 @@ function setupWirelessNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wireless interfaces on this system:"
-        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
+        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx'`
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
@@ -735,7 +761,7 @@ function createFileSharingDir() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="230302"
+    NETATALK_VERSION="230701"
     NETATALK_CONFIG_PATH="/etc/netatalk"
     NETATALK_OPTIONS="--cores=$CORES --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
 
@@ -855,6 +881,8 @@ function installMacproxy {
 
 # Installs vsftpd (FTP server)
 function installFtp() {
+    echo
+    echo "Installing packages..."
     sudo apt-get update && sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
 
     echo
@@ -884,11 +912,11 @@ function installSamba() {
         fi
     fi
 
-    echo ""
-    echo "Installing dependencies..."
+    echo
+    echo "Installing packages..."
     sudo apt-get update || true
     sudo apt-get install samba --no-install-recommends --assume-yes </dev/null
-    echo ""
+    echo
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
     if [[ `sudo grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
         # Allow Windows XP clients and earlier to connect to the server
@@ -904,6 +932,38 @@ function installSamba() {
 
     echo "Please create a Samba password for user $USER"
     sudo smbpasswd -a "$USER"
+}
+
+# Installs and configures Webmin
+function installWebmin() {
+    WEBMIN_PATH="/usr/share/webmin"
+    WEBMIN_MODULE_VERSION="1.0"
+
+    if [ -d "$WEBMIN_PATH" ]; then
+        echo
+        echo "Webmin dir $WEBMIN_PATH already exists."
+        echo "This installation process may overwrite existing software."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
+    fi
+
+    echo
+    echo "Installing packages..."
+    sudo apt-get install curl --no-install-recommends --assume-yes </dev/null
+    curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
+    sudo sh setup-repos.sh
+    rm setup-repos.sh
+    sudo apt-get install webmin --install-recommends
+    echo
+    echo "Downloading and installing Webmin module..."
+    rm netatalk2-wbm.tgz || true
+    wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_MODULE_VERSION/netatalk2-wbm-$WEBMIN_MODULE_VERSION.tgz" </dev/null
+    sudo /usr/share/webmin/install-module.pl netatalk2-wbm.tgz
+    rm netatalk2-wbm.tgz
 }
 
 # updates configuration files and installs packages needed for the OLED screen script
@@ -1163,6 +1223,7 @@ function runChoice() {
               compilePiscsi
               backupPiscsiService
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
@@ -1205,6 +1266,7 @@ function runChoice() {
               backupPiscsiService
               preparePythonCommon
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
@@ -1370,6 +1432,16 @@ function runChoice() {
               installPackagesStandalone
               compilePiscsi
           ;;
+          17)
+              echo "Install Webmin"
+              echo "This script will make the following changes to your system:"
+              echo "- Add a 3rd party apt repository"
+              echo "- Install and start the Webmin webapp"
+	      echo "- Install the netatalk2 Webmin module"
+              installWebmin
+              echo "Install Webmin - Complete!"
+	      echo "The Webmin webapp should now be listening to port 10000 on this system"
+          ;;
           99)
               echo "Hidden setup mode for running the pi-gen utility"
               echo "This shouldn't be used by normal users"
@@ -1382,6 +1454,7 @@ function runChoice() {
               fetchHardDiskDrivers
               compilePiscsi
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               cachePipPackages
@@ -1402,8 +1475,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "16" ]) ; do
-       echo -n "Enter your choice (0-16) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "17" ]) ; do
+       echo -n "Enter your choice (0-17) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1436,6 +1509,7 @@ function showMenu() {
     echo "EXPERIMENTAL FEATURES"
     echo " 15) Share the images dir over AppleShare (requires Netatalk)"
     echo " 16) Compile PiSCSI binaries"
+    echo " 17) Install Webmin to manage Netatalk and Samba"
 }
 
 # parse arguments passed to the script

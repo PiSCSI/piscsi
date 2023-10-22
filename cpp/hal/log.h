@@ -9,9 +9,11 @@
 //
 //---------------------------------------------------------------------------
 
+// The legacy code in this file is deprecated and can cause a buffer overflow. Use spdlog directly instead.
+
 #pragma once
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 static const int LOGBUF_SIZE = 512;
 

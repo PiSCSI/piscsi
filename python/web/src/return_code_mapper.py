@@ -50,6 +50,29 @@ class ReturnCodeMapper:
             _("No files were extracted (existing files are skipped)"),
         ReturnCodes.EXTRACTIMAGE_COMMAND_ERROR:
             _("Unable to extract archive: %(error)s"),
+        ReturnCodes.UNDER_VOLTAGE_DETECTED:
+            _("Potential instability - Under voltage detected - Make sure to use a sufficient "
+              "power source (2.5+ amps)."),
+        ReturnCodes.ARM_FREQUENCY_CAPPED:
+            _("Potential instability - ARM frequency capped - Ensure sufficient airflow/cooling."),
+        ReturnCodes.CURRENTLY_THROTTLED:
+            _("Potential instability - Currently throttled - Make sure to use a sufficient power "
+              "source (2.5+ amps)."),
+        ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE:
+            _("Potential instability - Soft-temperature limit active - Ensure sufficient "
+              "airflow/cooling."),
+        ReturnCodes.UNDER_VOLTAGE_HAS_OCCURRED:
+            _("Potential instability - Under voltage has occurred since last reboot.  Make sure "
+              "to use a sufficient power source (2.5+ amps)."),
+        ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED:
+            _("Potential instability - ARM frequency capping has occurred since last reboot.  "
+              "Ensure sufficient airflow/cooling."),
+        ReturnCodes.THROTTLING_HAS_OCCURRED:
+            _("Potential instability - Throttling has occurred since the last reboot.  Make sure "
+              "to use a sufficient power source (2.5+ amps)."),
+        ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED:
+            _("Potential instability - Soft temperature limit has occurred since last reboot.  "
+              "Ensure sufficient airflow/cooling."),
         }
     # fmt: on
 

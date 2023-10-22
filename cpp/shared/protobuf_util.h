@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 // Helper methods for setting up/evaluating protobuf messages
 //
@@ -11,10 +11,10 @@
 
 #pragma once
 
-#include "google/protobuf/message.h"
-#include "generated/piscsi_interface.pb.h"
 #include <string>
-#include <list>
+#include <span>
+#include <vector>
+#include "generated/piscsi_interface.pb.h"
 
 using namespace std;
 using namespace piscsi_interface;
@@ -23,14 +23,27 @@ namespace protobuf_util
 {
 	static const char KEY_VALUE_SEPARATOR = '=';
 
+	string GetParam(const auto& item, const string& key)
+	{
+		const auto& it = item.params().find(key);
+		return it != item.params().end() ? it->second : "";
+	}
+
+	void SetParam(auto& item, const string& key, string_view value)
+	{
+		if (!key.empty() && !value.empty()) {
+			auto& map = *item.mutable_params();
+			map[key] = value;
+		}
+	}
+
 	void ParseParameters(PbDeviceDefinition&, const string&);
-	string GetParam(const PbCommand&, const string&);
-	string GetParam(const PbDeviceDefinition&, const string&);
-	void SetParam(PbCommand&, const string&, string_view);
-	void SetParam(PbDevice&, const string&, string_view);
-	void SetParam(PbDeviceDefinition&, const string&, string_view);
-	void SetPatternParams(PbCommand&, string_view);
+	void SetPatternParams(PbCommand&, const string&);
 	void SetProductData(PbDeviceDefinition&, const string&);
-	string SetIdAndLun(PbDeviceDefinition&, const string&, int);
-	string ListDevices(const list<PbDevice>&);
+	string SetIdAndLun(PbDeviceDefinition&, const string&);
+	string ListDevices(const vector<PbDevice>&);
+
+	void SerializeMessage(int, const google::protobuf::Message&);
+	void DeserializeMessage(int, google::protobuf::Message&);
+	size_t ReadBytes(int, span<byte>);
 }

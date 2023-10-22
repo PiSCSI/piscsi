@@ -214,7 +214,7 @@ class GPIOBUS : public BUS
     // SEL signal event request
     struct gpioevent_request selevreq = {}; // NOSONAR: This protected so derived classes can access it
     // epoll file descriptor
-    int epfd; // NOSONAR: This protected so derived classes can access it
+    int epfd = 0; // NOSONAR: This is protected so derived classes can access it
 
 #endif
 };

@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -35,104 +35,129 @@ TEST(PiscsiImageTest, SetGetDefaultFolder)
 
 TEST(PiscsiImageTest, CreateImage)
 {
-	MockCommandContext context;
-	PbCommand command;
 	PiscsiImage image;
 
 	StorageDevice::UnreserveAll();
 
-	EXPECT_FALSE(image.CreateImage(context, command)) << "Filename must be reported as missing";
+	PbCommand command1;
+	CommandContext context1(command1, "", "");
+	EXPECT_FALSE(image.CreateImage(context1)) << "Filename must be reported as missing";
 
-	SetParam(command, "file", "/a/b/c/filename");
-	EXPECT_FALSE(image.CreateImage(context, command)) << "Depth must be reported as invalid";
+	PbCommand command2;
+	SetParam(command2, "file", "/a/b/c/filename");
+	CommandContext context2(command2, "", "");
+	EXPECT_FALSE(image.CreateImage(context2)) << "Depth must be reported as invalid";
 
-	SetParam(command, "file", "filename");
-	SetParam(command, "size", "-1");
-	EXPECT_FALSE(image.CreateImage(context, command)) << "Size must be reported as invalid";
+	PbCommand command3;
+	SetParam(command3, "file", "filename");
+	SetParam(command3, "size", "-1");
+	CommandContext context3(command3, "", "");
+	EXPECT_FALSE(image.CreateImage(context3)) << "Size must be reported as invalid";
 
-	SetParam(command, "size", "1");
-	EXPECT_FALSE(image.CreateImage(context, command)) << "Size must be reported as invalid";
+	PbCommand command4;
+	SetParam(command4, "size", "1");
+	CommandContext context4(command4, "", "");
+	EXPECT_FALSE(image.CreateImage(context4)) << "Size must be reported as invalid";
 
-	SetParam(command, "size", "513");
-	EXPECT_FALSE(image.CreateImage(context, command)) << "Size must be reported as not a multiple of 512";
+	PbCommand command5;
+	SetParam(command5, "size", "513");
+	CommandContext context5(command5, "", "");
+	EXPECT_FALSE(image.CreateImage(context4)) << "Size must be reported as not a multiple of 512";
 
 	// Further tests would modify the filesystem
 }
 
 TEST(PiscsiImageTest, DeleteImage)
 {
-	MockCommandContext context;
-	PbCommand command;
 	PiscsiImage image;
 
 	StorageDevice::UnreserveAll();
 
-	EXPECT_FALSE(image.DeleteImage(context, command)) << "Filename must be reported as missing";
+	PbCommand command1;
+	CommandContext context1(command1, "", "");
+	EXPECT_FALSE(image.DeleteImage(context1)) << "Filename must be reported as missing";
 
-	SetParam(command, "file", "/a/b/c/filename");
-	EXPECT_FALSE(image.DeleteImage(context, command)) << "Depth must be reported as invalid";
+	PbCommand command2;
+	SetParam(command2, "file", "/a/b/c/filename");
+	CommandContext context2(command2, "", "");
+	EXPECT_FALSE(image.DeleteImage(context2)) << "Depth must be reported as invalid";
 
 	MockStorageDevice device;
-	device.ReserveFile("filename", 0, 0);
-	SetParam(command, "file", "filename");
-	EXPECT_FALSE(image.DeleteImage(context, command)) << "File must be reported as in use";
+	device.SetFilename("filename");
+	device.ReserveFile();
+	PbCommand command3;
+	SetParam(command3, "file", "filename");
+	CommandContext context3(command3, "", "");
+	EXPECT_FALSE(image.DeleteImage(context3)) << "File must be reported as in use";
 
 	// Further testing would modify the filesystem
 }
 
 TEST(PiscsiImageTest, RenameImage)
 {
-	MockCommandContext context;
-	PbCommand command;
 	PiscsiImage image;
 
 	StorageDevice::UnreserveAll();
 
-	EXPECT_FALSE(image.RenameImage(context, command)) << "Source filename must be reported as missing";
+	PbCommand command1;
+	CommandContext context1(command1, "", "");
+	EXPECT_FALSE(image.RenameImage(context1)) << "Source filename must be reported as missing";
 
-	SetParam(command, "from", "/a/b/c/filename_from");
-	EXPECT_FALSE(image.RenameImage(context, command)) << "Depth must be reported as invalid";
+	PbCommand command2;
+	SetParam(command2, "from", "/a/b/c/filename_from");
+	CommandContext context2(command2, "", "");
+	EXPECT_FALSE(image.RenameImage(context2)) << "Depth must be reported as invalid";
 
-	SetParam(command, "from", "filename_from");
-	EXPECT_FALSE(image.RenameImage(context, command)) << "Source file must be reported as missing";
+	PbCommand command3;
+	SetParam(command3, "from", "filename_from");
+	CommandContext context3(command3, "", "");
+	EXPECT_FALSE(image.RenameImage(context3)) << "Source file must be reported as missing";
 
 	// Further testing would modify the filesystem
 }
 
 TEST(PiscsiImageTest, CopyImage)
 {
-	MockCommandContext context;
-	PbCommand command;
 	PiscsiImage image;
 
 	StorageDevice::UnreserveAll();
 
-	EXPECT_FALSE(image.CopyImage(context, command)) << "Source filename must be reported as missing";
+	PbCommand command1;
+	CommandContext context1(command1, "", "");
+	EXPECT_FALSE(image.CopyImage(context1)) << "Source filename must be reported as missing";
 
-	SetParam(command, "from", "/a/b/c/filename_from");
-	EXPECT_FALSE(image.CopyImage(context, command)) << "Depth must be reported as invalid";
+	PbCommand command2;
+	SetParam(command2, "from", "/a/b/c/filename_from");
+	CommandContext context2(command2, "", "");
+	EXPECT_FALSE(image.CopyImage(context2)) << "Depth must be reported as invalid";
 
-	SetParam(command, "from", "filename_from");
-	EXPECT_FALSE(image.CopyImage(context, command)) << "Source file must be reported as missing";
+	PbCommand command3;
+	SetParam(command3, "from", "filename_from");
+	CommandContext context3(command3, "", "");
+	EXPECT_FALSE(image.CopyImage(context3)) << "Source file must be reported as missing";
 
 	// Further testing would modify the filesystem
 }
 
 TEST(PiscsiImageTest, SetImagePermissions)
 {
-	MockCommandContext context;
-	PbCommand command;
 	PiscsiImage image;
 
 	StorageDevice::UnreserveAll();
 
-	EXPECT_FALSE(image.SetImagePermissions(context, command)) << "Filename must be reported as missing";
+	PbCommand command1;
+	CommandContext context1(command1, "", "");
+	EXPECT_FALSE(image.SetImagePermissions(context1)) << "Filename must be reported as missing";
 
-	SetParam(command, "file", "/a/b/c/filename");
-	EXPECT_FALSE(image.SetImagePermissions(context, command)) << "Depth must be reported as invalid";
+	PbCommand command2;
+	SetParam(command2, "file", "/a/b/c/filename");
+	CommandContext context2(command2, "", "");
+	EXPECT_FALSE(image.SetImagePermissions(context2)) << "Depth must be reported as invalid";
 
-	SetParam(command, "file", "filename");
-	EXPECT_FALSE(image.CopyImage(context, command)) << "Source file must be reported as missing";
+	PbCommand command3;
+	SetParam(command3, "file", "filename");
+	CommandContext context3(command3, "", "");
+	EXPECT_FALSE(image.CopyImage(context3)) << "Source file must be reported as missing";
 
 	// Further testing would modify the filesystem
 }

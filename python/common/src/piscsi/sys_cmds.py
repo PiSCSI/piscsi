@@ -3,6 +3,7 @@ Module with methods that interact with the Pi system
 """
 import subprocess
 import logging
+import sys
 from subprocess import run, CalledProcessError
 from shutil import disk_usage
 from re import findall, match
@@ -10,6 +11,12 @@ from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 from pathlib import Path
 from platform import uname
 
+try:
+    from vcgencmd import Vcgencmd
+except ImportError:
+    pass
+
+from piscsi.return_codes import ReturnCodes
 from piscsi.common_settings import SHELL_ERROR
 
 
@@ -102,12 +109,12 @@ class SysCmds:
         return False
 
     @staticmethod
-    def disk_space():
+    def disk_space(path):
         """
-        Returns a (dict) with (int) total (int) used (int) free
-        This is the disk space information of the volume where this app is running
+        Takes (str) path with the path to the dir / mount point to inspect
+        Returns a (dict) with (int) total (int) used (int) free disk space
         """
-        total, used, free = disk_usage(__file__)
+        total, used, free = disk_usage(path)
         return {"total": total, "used": used, "free": free}
 
     @staticmethod
@@ -263,3 +270,40 @@ class SysCmds:
             return process.returncode, process.stdout.decode("utf-8")
 
         return process.returncode, process.stderr.decode("utf-8")
+
+    @staticmethod
+    def get_throttled(enabled_modes, test_modes):
+        """
+        Takes (list) enabled_modes & (list) test_modes parameters & returns a
+        tuple of (str) category & (str) message.
+
+        enabled_modes is a list of modes that will be enabled for display if
+        they're triggered.  test_modes works similarly to enabled_mode but will
+        ALWAYS display the modes listed for troubleshooting styling.
+        """
+        if "vcgencmd" in sys.modules:
+            vcgcmd = Vcgencmd()
+            t_states = vcgcmd.get_throttled()["breakdown"]
+            matched_states = []
+
+            state_msgs = {
+                "0": ("error", ReturnCodes.UNDER_VOLTAGE_DETECTED),
+                "1": ("warning", ReturnCodes.ARM_FREQUENCY_CAPPED),
+                "2": ("error", ReturnCodes.CURRENTLY_THROTTLED),
+                "3": ("warning", ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE),
+                "16": ("warning", ReturnCodes.UNDER_VOLTAGE_HAS_OCCURRED),
+                "17": ("warning", ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED),
+                "18": ("warning", ReturnCodes.THROTTLING_HAS_OCCURRED),
+                "19": ("warning", ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED),
+            }
+
+            for k in t_states:
+                if t_states[k] and k in enabled_modes:
+                    matched_states.append(state_msgs[k])
+
+            for t in test_modes:
+                matched_states.append(state_msgs[t])
+
+            return matched_states
+        else:
+            return []

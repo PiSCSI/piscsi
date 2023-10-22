@@ -47,7 +47,7 @@ protected:
 
 private:
 
-	pair<int, int> SetParameters(const array<char, 512>&, int);
+	pair<int, int> SetParameters(span<const char>, int);
 
 	static int GetInt16LittleEndian(const uint8_t *);
 	static int GetInt32LittleEndian(const uint8_t *);

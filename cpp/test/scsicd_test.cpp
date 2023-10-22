@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -29,16 +29,15 @@ void ScsiCdTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiCdTest, Inquiry)
 {
-	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
+	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
 
-	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_1_CCS, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, ".is1");
+	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_1_ccs, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
 }
 
 TEST(ScsiCdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSICD cd(0, sector_sizes);
+	MockSCSICD cd(0, {});
 
 	// Non changeable
 	cd.SetUpModePages(pages, 0x3f, false);
@@ -52,11 +51,10 @@ TEST(ScsiCdTest, SetUpModePages)
 
 TEST(ScsiCdTest, Open)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSICD cd_iso(0, sector_sizes);
-	MockSCSICD cd_cue(0, sector_sizes);
-	MockSCSICD cd_raw(0, sector_sizes);
-	MockSCSICD cd_physical(0, sector_sizes);
+	MockSCSICD cd_iso(0, {});
+	MockSCSICD cd_cue(0, {});
+	MockSCSICD cd_raw(0, {});
+	MockSCSICD cd_physical(0, {});
 
 	EXPECT_THROW(cd_iso.Open(), io_exception) << "Missing filename";
 
@@ -112,19 +110,16 @@ TEST(ScsiCdTest, Open)
 
 TEST(ScsiCdTest, ReadToc)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	const unordered_set<uint32_t> sector_sizes;
 	auto cd = make_shared<MockSCSICD>(0, sector_sizes);
-	const unordered_map<string, string> params;
-	cd->Init(params);
+	EXPECT_TRUE(cd->Init({}));
 
 	controller->AddDevice(cd);
 
 	EXPECT_THAT([&] { cd->Dispatch(scsi_command::eCmdReadToc); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
-			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
+			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	// Further testing requires filesystem access
 }

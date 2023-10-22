@@ -3,52 +3,149 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include <gtest/gtest.h>
 
+#include "test/test_shared.h"
+#include "shared/piscsi_exceptions.h"
+#include "shared/protobuf_util.h"
 #include "piscsi/command_context.h"
+#include <fcntl.h>
+#include <unistd.h>
 
-TEST(CommandContext, GetSerializer)
+using namespace protobuf_util;
+
+TEST(CommandContext, SetGetDefaultFolder)
 {
-	CommandContext context("", -1);
+	PbCommand command;
+	CommandContext context(command, "folder1", "");
 
-	// There is nothing more that can be tested
-	context.GetSerializer();
+	EXPECT_EQ("folder1", context.GetDefaultFolder());
+	context.SetDefaultFolder("folder2");
+	EXPECT_EQ("folder2", context.GetDefaultFolder());
 }
 
-TEST(CommandContext, IsValid)
+TEST(CommandContext, ReadCommand)
 {
-	CommandContext context("", -1);
+	int fd = open(CreateTempFile(0).string().c_str(), O_RDONLY);
+	CommandContext context1(fd);
+	EXPECT_FALSE(context1.ReadCommand());
+	close(fd);
 
-	EXPECT_FALSE(context.IsValid());
+	// Invalid magic with wrong length
+	vector data = { byte{'1'}, byte{'2'}, byte{'3'} };
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context2(fd);
+	EXPECT_THROW(context2.ReadCommand(), io_exception);
+	close(fd);
 
-	context.SetFd(1);
-	EXPECT_TRUE(context.IsValid());
+	// Invalid magic with right length
+	data = { byte{'1'}, byte{'2'}, byte{'3'}, byte{'4'}, byte{'5'}, byte{'6'} };
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context3(fd);
+	EXPECT_THROW(context3.ReadCommand(), io_exception);
+	close(fd);
+
+	data = { byte{'R'}, byte{'A'}, byte{'S'}, byte{'C'}, byte{'S'}, byte{'I'}, byte{'1'} };
+	// Valid magic but invalid command
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context4(fd);
+	EXPECT_THROW(context4.ReadCommand(), io_exception);
+	close(fd);
+
+	data = { byte{'R'}, byte{'A'}, byte{'S'}, byte{'C'}, byte{'S'}, byte{'I'} };
+	// Valid magic but missing command
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context5(fd);
+	EXPECT_THROW(context5.ReadCommand(), io_exception);
+	close(fd);
+
+	const string filename = CreateTempFileWithData(data).string();
+	fd = open(filename.c_str(), O_RDWR | O_APPEND);
+	PbCommand command;
+	command.set_operation(PbOperation::SERVER_INFO);
+	SerializeMessage(fd, command);
+	close(fd);
+	fd = open(filename.c_str(), O_RDONLY);
+	CommandContext context6(fd);
+	EXPECT_TRUE(context6.ReadCommand());
+	close(fd);
+	EXPECT_EQ(PbOperation::SERVER_INFO, context6.GetCommand().operation());
 }
 
-TEST(CommandContext, Cleanup)
+TEST(CommandContext, GetCommand)
 {
-	CommandContext context("", 0);
+	PbCommand command;
+	command.set_operation(PbOperation::SERVER_INFO);
+	CommandContext context(command, "", "");
+	EXPECT_EQ(PbOperation::SERVER_INFO, context.GetCommand().operation());
+}
 
-	EXPECT_EQ(0, context.GetFd());
-	context.Cleanup();
-	EXPECT_EQ(-1, context.GetFd());
+TEST(CommandContext, WriteResult)
+{
+	const string filename = CreateTempFile(0);
+	int fd = open(filename.c_str(), O_RDWR | O_APPEND);
+	PbResult result;
+	result.set_status(false);
+	result.set_error_code(PbErrorCode::UNAUTHORIZED);
+	CommandContext context(fd);
+	context.WriteResult(result);
+	close(fd);
+	EXPECT_FALSE(result.status());
+
+	fd = open(filename.c_str(), O_RDONLY);
+	result.set_status(true);
+	DeserializeMessage(fd, result);
+	close(fd);
+	EXPECT_FALSE(result.status());
+	EXPECT_EQ(PbErrorCode::UNAUTHORIZED, result.error_code());
+}
+
+TEST(CommandContext, WriteSuccessResult)
+{
+	const string filename = CreateTempFile(0);
+	int fd = open(filename.c_str(), O_RDWR | O_APPEND);
+	PbResult result;
+	result.set_status(false);
+	CommandContext context(fd);
+	context.WriteSuccessResult(result);
+	close(fd);
+	EXPECT_TRUE(result.status());
 }
 
 TEST(CommandContext, ReturnLocalizedError)
 {
-	CommandContext context("en_US", -1);
+	PbCommand command;
+	CommandContext context(command, "", "en_US");
 
 	EXPECT_FALSE(context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL));
 }
 
-TEST(CommandContext, ReturnStatus)
+TEST(CommandContext, ReturnSuccessStatus)
 {
-	CommandContext context("", -1);
+	PbCommand command;
 
-	EXPECT_TRUE(context.ReturnStatus(true, "status"));
-	EXPECT_FALSE(context.ReturnStatus(false, "status"));
+	CommandContext context1(command, "", "");
+	EXPECT_TRUE(context1.ReturnSuccessStatus());
+
+	const int fd = open("/dev/null", O_RDWR);
+	CommandContext context2(fd);
+	EXPECT_TRUE(context2.ReturnSuccessStatus());
+	close(fd);
+}
+
+TEST(CommandContext, ReturnErrorStatus)
+{
+	PbCommand command;
+
+	CommandContext context1(command, "", "");
+	EXPECT_FALSE(context1.ReturnErrorStatus("error"));
+
+	const int fd = open("/dev/null", O_RDWR);
+	CommandContext context2(fd);
+	EXPECT_FALSE(context2.ReturnErrorStatus("error"));
+	close(fd);
 }

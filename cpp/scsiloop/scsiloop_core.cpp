@@ -12,7 +12,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
+#include "hal/log.h"
 #include "shared/piscsi_version.h"
 #include "shared/piscsi_util.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -159,8 +159,8 @@ int ScsiLoop::run(const vector<char *> &args)
     // This must be executed before the timer test, since this initializes the timer
     ScsiLoop_GPIO gpio_test;
 
-    int result = ScsiLoop_Timer::RunTimerTest(error_list);
-    result += gpio_test.RunLoopbackTest(error_list);
+    // int result = ScsiLoop_Timer::RunTimerTest(error_list);
+    int result = gpio_test.RunLoopbackTest(error_list);
 
     if (result == 0) {
         // Only test the dat inputs/outputs if the loopback test passed.

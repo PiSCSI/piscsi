@@ -29,10 +29,11 @@
 
 #pragma once
 
-#include "interfaces/byte_writer.h"
 #include "primary_device.h"
 #include "ctapdriver.h"
+#include <net/ethernet.h>
 #include <string>
+#include <span>
 #include <unordered_map>
 #include <array>
 
@@ -41,29 +42,30 @@
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort : public PrimaryDevice, public ByteWriter
+class SCSIDaynaPort : public PrimaryDevice
 {
 public:
 
 	explicit SCSIDaynaPort(int);
 	~SCSIDaynaPort() override = default;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
+	void CleanUp() override;
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<uint8_t>&, uint64_t);
-	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
+	int Read(cdb_t, vector<uint8_t>&, uint64_t) const;
+	bool Write(cdb_t, span<const uint8_t>) const;
 
-	int RetrieveStats(const vector<int>&, vector<uint8_t>&) const;
+	int RetrieveStats(cdb_t, vector<uint8_t>&) const;
 
 	void TestUnitReady() override;
-	void Read6();
+	void Read6() const;
 	void Write6() const;
 	void RetrieveStatistics() const;
 	void SetInterfaceMode() const;
 	void SetMcastAddr() const;
-	void EnableInterface();
+	void EnableInterface() const;
 
 	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 

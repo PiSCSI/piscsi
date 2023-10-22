@@ -36,7 +36,7 @@ The following environment variables are available when using Docker Compose:
 
 | Environment Variable | Default  |
 | -------------------- |----------|
-| `OS_VERSION`         | buster   |
+| `OS_VERSION`         | bullseye |
 | `WEB_HTTP_PORT`      | 8080     |
 | `WEB_HTTPS_PORT`     | 8443     |
 | `WEB_LOG_LEVEL`      | info     |
