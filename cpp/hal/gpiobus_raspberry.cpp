@@ -15,10 +15,10 @@
 //
 //---------------------------------------------------------------------------
 
+#include <spdlog/spdlog.h>
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "hal/log.h"
 #include <map>
 #include <cstring>
 #ifdef __linux__
@@ -185,7 +185,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // GPIO chip open
     fd = open("/dev/gpiochip0", 0);
     if (fd == -1) {
-        LOGERROR("Unable to open /dev/gpiochip0. If PiSCSI is running, please shut it down first.")
+        spdlog::error("Unable to open /dev/gpiochip0. If PiSCSI is running, please shut it down first.");
         return false;
     }
 
@@ -201,7 +201,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
     // Get event request
     if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
-        LOGERROR("Unable to register event request. If PiSCSI is running, please shut it down first.")
+        spdlog::error("Unable to register event request. If PiSCSI is running, please shut it down first.");
         close(fd);
         return false;
     }
