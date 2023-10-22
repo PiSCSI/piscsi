@@ -11,6 +11,13 @@
 #include "shared/piscsi_exceptions.h"
 #include "devices/scsi_daynaport.h"
 
+TEST(ScsiDaynaportTest, GetDefaultParams)
+{
+	const auto [controller, daynaport] = CreateDevice(SCDP);
+	const auto params = daynaport->GetDefaultParams();
+	EXPECT_EQ(2, params.size());
+}
+
 TEST(ScsiDaynaportTest, Inquiry)
 {
 	TestInquiry::Inquiry(SCDP, device_type::processor, scsi_level::scsi_2, "Dayna   SCSI/Link       1.4a", 0x20, false);

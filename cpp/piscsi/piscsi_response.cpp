@@ -36,7 +36,7 @@ void PiscsiResponse::GetDeviceProperties(const Device& device, PbDevicePropertie
 	properties.set_supports_params(device.SupportsParams());
 
 	if (device.SupportsParams()) {
-		for (const auto& [key, value] : device_factory.GetDefaultParams(device.GetType())) {
+		for (const auto& [key, value] : device.GetDefaultParams()) {
 			auto& map = *properties.mutable_default_params();
 			map[key] = value;
 		}
