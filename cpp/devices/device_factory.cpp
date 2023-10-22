@@ -136,6 +136,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	return device;
 }
 
+// TODO Move to respective device, which may require changes in the SCSI_HD/SCSIHD_NEC inheritance hierarchy
 unordered_set<uint32_t> DeviceFactory::GetSectorSizes(PbDeviceType type) const
 {
 	const auto& it = sector_sizes.find(type);
