@@ -93,7 +93,7 @@ private:
 	bool XferOutBlockOriented(bool);
 	void ReceiveBytes();
 
-	void DataOutNonBlockOriented();
+	void DataOutNonBlockOriented() const;
 	void Receive();
 
 	// TODO Make non-virtual as soon as SysTimer calls do not segfault anymore on a regular PC, e.g. by using ifdef __arm__.

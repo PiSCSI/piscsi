@@ -691,7 +691,7 @@ bool ScsiController::XferOut(bool cont)
 	return device != nullptr ? device->WriteByteSequence(span(GetBuffer().data(), count)) : false;
 }
 
-void ScsiController::DataOutNonBlockOriented()
+void ScsiController::DataOutNonBlockOriented() const
 {
 	assert(IsDataOut());
 
