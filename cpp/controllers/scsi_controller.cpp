@@ -703,18 +703,8 @@ void ScsiController::DataOutNonBlockOriented()
 		case scsi_command::eCmdWriteLong16:
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
-			break;
-
 		case scsi_command::eCmdModeSelect6:
-		case scsi_command::eCmdModeSelect10: {
-				if (auto device = dynamic_pointer_cast<ModePageDevice>(GetDeviceForLun(GetEffectiveLun()));
-					device != nullptr) {
-					device->ModeSelect(GetOpcode(), GetCmd(), GetBuffer(), GetOffset());
-				}
-				else {
-					throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
-				}
-			}
+		case scsi_command::eCmdModeSelect10:
 			break;
 
 		case scsi_command::eCmdSetMcastAddr:
