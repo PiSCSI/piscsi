@@ -249,7 +249,7 @@ void PiscsiResponse::GetServerInfo(PbServerInfo& server_info, const PbCommand& c
 		GetDeviceTypesInfo(*server_info.mutable_device_types_info());
 	}
 
-	if (HasOperation(operations, PbOperation::IMAGE_FILE_INFO)) {
+	if (HasOperation(operations, PbOperation::DEFAULT_IMAGE_FILES_INFO)) {
 		GetAvailableImages(server_info, default_folder, GetParam(command, "folder_pattern"),
 				GetParam(command, "file_pattern"), scan_depth);
 	}
