@@ -22,12 +22,12 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_AUTHENTICATION, "es", "Fallo de autentificación");
 	Add(LocalizationKey::ERROR_AUTHENTICATION, "zh", "认证失败");
 
-	Add(LocalizationKey::ERROR_OPERATION, "en", "Unknown operation");
-	Add(LocalizationKey::ERROR_OPERATION, "de", "Unbekannte Operation");
-	Add(LocalizationKey::ERROR_OPERATION, "sv", "Okänd operation");
-	Add(LocalizationKey::ERROR_OPERATION, "fr", "Opération inconnue");
-	Add(LocalizationKey::ERROR_OPERATION, "es", "Operación desconocida");
-	Add(LocalizationKey::ERROR_OPERATION, "zh", "未知操作");
+	Add(LocalizationKey::ERROR_OPERATION, "en", "Unknown operation: %1");
+	Add(LocalizationKey::ERROR_OPERATION, "de", "Unbekannte Operation: %1");
+	Add(LocalizationKey::ERROR_OPERATION, "sv", "Okänd operation: %1");
+	Add(LocalizationKey::ERROR_OPERATION, "fr", "Opération inconnue: %1");
+	Add(LocalizationKey::ERROR_OPERATION, "es", "Operación desconocida: %1");
+	Add(LocalizationKey::ERROR_OPERATION, "zh", "未知操作: %1");
 
 	Add(LocalizationKey::ERROR_LOG_LEVEL, "en", "Invalid log level '%1'");
 	Add(LocalizationKey::ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level '%1'");

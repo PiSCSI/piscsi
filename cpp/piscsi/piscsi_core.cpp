@@ -323,9 +323,9 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 	}
 
 	if (!PbOperation_IsValid(operation)) {
-		spdlog::error("Received unknown command with operation opcode " + to_string(operation));
+		spdlog::trace("Ignored unknown command with operation opcode " + to_string(operation));
 
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION, to_string(operation));
 	}
 
 	spdlog::trace("Received " + PbOperation_Name(operation) + " command");

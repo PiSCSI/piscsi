@@ -79,7 +79,7 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 			break;
 
 		default:
-			return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION);
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, to_string(operation));
 	}
 
 	return true;

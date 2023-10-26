@@ -60,7 +60,13 @@ bool CommandContext::ReturnLocalizedError(LocalizationKey key, PbErrorCode error
 		const string& arg2, const string& arg3) const
 {
 	// For the logfile always use English
-	spdlog::error(localizer.Localize(key, "en", arg1, arg2, arg3));
+	// Do not log unknown operations as an error for backward/foward compatibility with old/new clients
+	if (error_code == PbErrorCode::UNKNOWN_OPERATION) {
+		spdlog::trace(localizer.Localize(key, "en", arg1, arg2, arg3));
+	}
+	else {
+		spdlog::error(localizer.Localize(key, "en", arg1, arg2, arg3));
+	}
 
 	return ReturnStatus(false, localizer.Localize(key, locale, arg1, arg2, arg3), error_code, false);
 }
