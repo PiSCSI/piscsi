@@ -82,11 +82,12 @@ enum PbOperation {
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 
-    // Gets the server information (PbServerInfo). Calling this operation should be avoided because it
-    // may return a lot of data. More specific other operations should be used instead.
+    // Gets the server information (PbServerInfo). Calling this operation without a list of operations should
+    // be avoided because this may return a lot of data. More specific other operations should be used instead.
     // Parameters:
     //   "operations": Optional case insensitive comma-separated list of operation names to return data for,
-    //   e.g. "version_info,log_level_info". Unknown operation names are ignored.
+    //   e.g. "version_info,log_level_info". Unknown operation names are ignored. If this parameter is missing
+    //   the full set of data supported by PbServerInfo is returned.
     //   "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
     //   "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     SERVER_INFO = 10;
