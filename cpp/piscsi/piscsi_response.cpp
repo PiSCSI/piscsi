@@ -230,11 +230,15 @@ void PiscsiResponse::GetServerInfo(PbServerInfo& server_info, const PbCommand& c
 		const string& default_folder, int scan_depth) const
 {
 	const vector<string> command_operations = Split(GetParam(command, "operations"), ',');
-	unordered_set<string, piscsi_util::StringHash, equal_to<>> operations;
+	set<string, less<>> operations;
 	for (const string& operation : command_operations) {
 		string op;
 		ranges::transform(operation, back_inserter(op), ::toupper);
 		operations.insert(op);
+	}
+
+	if (!operations.empty()) {
+		spdlog::trace("Requested operations are " + Join(operations, ","));
 	}
 
 	if (HasOperation(operations, PbOperation::VERSION_INFO)) {
@@ -524,8 +528,7 @@ bool PiscsiResponse::FilterMatches(const string& input, string_view pattern_lowe
 	return true;
 }
 
-bool PiscsiResponse::HasOperation(const unordered_set<string, piscsi_util::StringHash, equal_to<>>& operations,
-		PbOperation operation)
+bool PiscsiResponse::HasOperation(const set<string, less<>>& operations, PbOperation operation)
 {
 	return operations.empty() || operations.contains(PbOperation_Name(operation));
 }
