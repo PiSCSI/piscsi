@@ -273,6 +273,9 @@ bool Disk::Eject(bool force)
 
 		// The image file for this drive is not in use anymore
 		UnreserveFile();
+
+		sector_read_count = 0;
+		sector_write_count = 0;
 	}
 
 	return status;
