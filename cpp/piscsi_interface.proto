@@ -319,10 +319,10 @@ message PbNetworkInterfacesInfo {
 
 // Statistics categories ordered by increasing severity
 enum PbStatisticsCategory {
-    NO_CATEGORY = 0;
-    INFO = 1;
-    WARNING = 2;
-    ERROR = 3;
+    CATEGORY_NONE = 0;
+    CATEGORY_INFO = 1;
+    CATEGORY_WARNING = 2;
+    CATEGORY_ERROR = 3;
  }
 
 message PbStatistics {
@@ -331,15 +331,18 @@ message PbStatistics {
     int32 id = 2;
     int32 unit = 3;
     // A symbolic unique item name, may be used for I18N. Supported values and their categories:
-    //  "read_error_count" (ERROR)
-    //  "write_error_count" (ERROR)
-    //  "cache_miss_read_count" (INFO)
-    //  "cache_miss_write_count" (INFO)
-    //  "sector_read_count" (INFO)
-    //  "sector_write_count" (INFO)
+    //  "read_error_count" (ERROR, SCHD/SCRM/SCMO/SCCD)
+    //  "write_error_count" (ERROR, SCHD/SCRM/SCMO)
+    //  "cache_miss_read_count" (INFO, SCHD/SCRM/SCMO/SCCD)
+    //  "cache_miss_write_count" (INFO, SCHD/SCRM/SCMO)
+    //  "sector_read_count" (INFO, SCHD/SCRM/SCMO/SCCD)
+    //  "sector_write_count" (INFO, SCHD/SCRM/SCMO)
     //  "byte_read_count" (INFO, SCDP)
     //  "byte_write_count" (INFO, SCDP)
+    //  "print_error_count" (ERROR, SCLP)
+    //  "print_warning_count" (WARNING, SCLP)
     //  "file_print_count" (INFO, SCLP)
+    //  "byte_receive_count" (INFO, SCLP)
     string key = 4;
     uint64 value = 5;
 }

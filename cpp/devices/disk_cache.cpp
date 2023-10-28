@@ -195,7 +195,7 @@ vector<PbStatistics> DiskCache::GetStatistics(bool is_read_only) const
 
 	PbStatistics s;
 
-	s.set_category(PbStatisticsCategory::INFO);
+	s.set_category(PbStatisticsCategory::CATEGORY_INFO);
 
 	s.set_key(CACHE_MISS_READ_COUNT);
 	s.set_value(cache_miss_read_count);
@@ -207,7 +207,7 @@ vector<PbStatistics> DiskCache::GetStatistics(bool is_read_only) const
 		statistics.push_back(s);
 	}
 
-	s.set_category(PbStatisticsCategory::ERROR);
+	s.set_category(PbStatisticsCategory::CATEGORY_ERROR);
 
 	s.set_key(READ_ERROR_COUNT);
 	s.set_value(read_error_count);

@@ -22,12 +22,18 @@ using namespace std;
 class SCSIPrinter : public PrimaryDevice, private ScsiPrinterCommands
 {
 	uint64_t file_print_count = 0;
+	uint64_t byte_receive_count = 0;
+	uint64_t print_error_count = 0;
+	uint64_t print_warning_count = 0;
 
 	static const int NOT_RESERVED = -2;
 
 	static constexpr const char *PRINTER_FILE_PATTERN = "/piscsi_sclp-XXXXXX";
 
 	inline static const string FILE_PRINT_COUNT = "file_print_count";
+	inline static const string BYTE_RECEIVE_COUNT = "byte_receive_count";
+	inline static const string PRINT_ERROR_COUNT = "print_error_count";
+	inline static const string PRINT_WARNING_COUNT = "print_warning_count";
 
 public:
 

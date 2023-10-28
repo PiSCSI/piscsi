@@ -731,7 +731,7 @@ vector<PbStatistics> Disk::GetStatistics() const
 	s.set_id(GetId());
 	s.set_unit(GetLun());
 
-	s.set_category(PbStatisticsCategory::INFO);
+	s.set_category(PbStatisticsCategory::CATEGORY_INFO);
 
 	s.set_key(SECTOR_READ_COUNT);
 	s.set_value(sector_read_count);

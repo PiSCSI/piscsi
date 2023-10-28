@@ -490,7 +490,7 @@ vector<PbStatistics> SCSIDaynaPort::GetStatistics() const
 	s.set_id(GetId());
 	s.set_unit(GetLun());
 
-	s.set_category(PbStatisticsCategory::INFO);
+	s.set_category(PbStatisticsCategory::CATEGORY_INFO);
 
 	s.set_key(BYTE_READ_COUNT);
 	s.set_value(byte_read_count);
