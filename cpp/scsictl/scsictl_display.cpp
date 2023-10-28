@@ -252,7 +252,8 @@ string ScsictlDisplay::DisplayStatisticsInfo(const PbStatisticsInfo& statistics_
 	PbStatisticsCategory prev_category = PbStatisticsCategory::CATEGORY_NONE;
 	for (const auto& statistics : sorted_statistics) {
 		if (statistics.category() != prev_category) {
-			s << "  " << PbStatisticsCategory_Name(statistics.category()) << '\n';
+			// Strip leading "CATEGORY_"
+			s << "  " << PbStatisticsCategory_Name(statistics.category()).substr(9) << '\n';
 			prev_category = statistics.category();
 		}
 
