@@ -32,7 +32,9 @@
                 <div align="center" class="login-status logged-in">
                     <span class="logged-in-as-text">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }}</span>
                     <span class="separator">-</span>
-                    <a href="/logout">{{ _("Log Out") }}</a>
+                    <span class="log-out-button"><a href="/logout">{{ _("Log Out") }}</a></span>
+                    <span class="separator">-</span>
+                    <span class="admin-button"><a href="/sys/admin">{{ _("Settings") }}</a></span>
                 </div>
             {% else %}
                 <div align="center" class="login-status logged-out">
@@ -104,53 +106,6 @@
         {% block content %}{% endblock content %}
     </div>
     <div align="center" class="footer">
-        <div class="theme-change-hint">
-            {% if current_theme == "classic" %}
-                {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="modern") }}
-            {% else %}
-                {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="classic") }}
-            {% endif %}
-        </div>
-
-        <div>
-        {% if env["netatalk_configured"] %}
-        {{ _("Mac AFP file sharing is enabled.") }}
-        {% if env["webmin_configured"] %}
-            <a href="https://{{ env["ip_addr"] }}:10000/netatalk2/" target=\"_blank\">
-            {{ ("Server administration") }}
-            </a>
-        {% endif %}
-        {% else %}
-            {{ _("Mac AFP file sharing is disabled.") }}
-        {% endif %}
-        </div>
-        <div>
-        {% if env["samba_configured"] %}
-            {{ _("Windows SMB file sharing is enabled.") }}
-        {% if env["webmin_configured"] %}
-            <a href="https://{{ env["ip_addr"] }}:10000/samba/" target=\"_blank\">
-            {{ ("Server administration") }}
-            </a>
-        {% endif %}
-        {% else %}
-            {{ _("Windows SMB file sharing is disabled.") }}
-        {% endif %}
-        </div>
-        <div>
-        {% if env["ftp_configured"] %}
-            {{ _("FTP file sharing is enabled.") }}
-        {% else %}
-            {{ _("FTP file sharing is disabled.") }}
-        {% endif %}
-        </div>
-        <div>
-        {% if env["macproxy_configured"] %}
-            {{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
-        {% else %}
-            {{ _("Macproxy is disabled.") }}
-        {% endif %}
-        </div>
-
         <div>
             {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
         </div>

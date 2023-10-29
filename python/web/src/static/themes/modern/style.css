@@ -423,9 +423,20 @@ div.header div.authentication-disabled a {
     color: #fff;
   }
 
-  div.header div.login-status.logged-in a {
-    background: var(--danger) no-repeat right 0.5rem center;
+  div.header div.login-status.logged-in span.log-out-button a {
+    background: var(--primary) no-repeat right 0.5rem center;
     background-image: url("icons/log-out.svg");
+    background-size: var(--icon-size);
+    border-radius: var(--border-radius);
+    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-in span.admin-button a {
+    background: var(--secondary) no-repeat right 0.5rem center;
+    background-image: url("icons/command.svg");
     background-size: var(--icon-size);
     border-radius: var(--border-radius);
     padding: 0.25rem 2.25rem 0.25rem 0.75rem;
@@ -956,6 +967,29 @@ section#manual a {
 
 section#manual a p {
   margin: 0;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Admin > Section: Services
+ ------------------------------------------------------------------------------
+ */
+section#services ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+section#services li {
+  margin-bottom: 0.5em;
+  padding: 0.25rem 0 0.25rem 2rem;
+}
+
+section#services li.enabled {
+  background: url("icons/cloud.svg") no-repeat left center;
+}
+
+section#services li.disabled {
+  background: url("icons/cloud-off.svg") no-repeat left center;
 }
 
 /*
