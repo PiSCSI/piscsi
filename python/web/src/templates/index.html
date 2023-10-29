@@ -570,7 +570,6 @@
 
 <hr/>
 
-<section id="logging">
 <section id="attach-devices">
 <details>
     <summary class="heading">
@@ -667,109 +666,6 @@
     </tr>
     {% endfor %}
 </table>
-</section>
-
-<hr/>
-
-<details>
-    <summary class="heading">
-        {{ _("Logging") }}
-    </summary>
-    <ul>
-        <li>{{ _("The current dropdown selection indicates the active log level.") }}</li>
-    </ul>
-</details>
-
-<div>
-<form action="/logs/show" method="post">
-    <label for="log_lines">{{ _("Log Lines:") }}</label>
-    <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
-    <label for="log_scope">{{ _("Scope:") }}</label>
-    <select name="scope" id="log_scope">
-        <option value="">
-            {{ _("All logs") }}
-        </option>
-        <option value="piscsi">
-            piscsi
-        </option>
-        <option value="piscsi-web">
-            piscsi-web
-        </option>
-        <option value="piscsi-oled">
-            piscsi-oled
-        </option>
-        <option value="piscsi-ctrlboard">
-            piscsi-ctrlboard
-        </option>
-    </select>
-    <input type="submit" value="{{ _("Show Logs") }}">
-</form>
-</div>
-
-<div>
-<form action="/logs/level" method="post">
-    <label for="log_level">{{ _("Log Level:") }}</label>
-    <select name="level" id="log_level">
-    {% for level in log_levels %}
-        <option value="{{ level }}"{% if level == current_log_level %} selected{% endif %}>
-            {{ level }}
-        </option>
-    {% endfor %}
-    </select>
-    <input type="submit" value="{{ _("Set Log Level") }}">
-</form>
-</div>
-</section>
-
-<hr/>
-
-<section id="system">
-<details>
-    <summary class="heading">
-        {{ _("System Operations") }}
-    </summary>
-    <ul>
-        <li>{{ _("The System Name is the \"pretty\" hostname if set, with a fallback to the regular hostname.") }}</li>
-        <li>{{ _("IMPORTANT: Always shut down the system before turning off the power. Failing to do so may lead to data loss.") }}</li>
-    </ul>
-</details>
-
-<div>
-<form action="/language" method="post">
-    <label for="locale">{{ _("Language:") }}</label>
-    <select name="locale" id="locale">
-    {% for locale in locales %}
-        {% if locale.language == env['locale'] %}
-            <option value="{{ locale.language }}" selected="selected">
-        {% else %}
-            <option value="{{ locale.language }}">
-        {% endif %}
-        {{ locale.language }} - {{ locale.display_name }}
-        </option>
-    {% endfor %}
-    </select>
-    <input type="submit" value="{{ _("Change Language") }}">
-</form>
-</div>
-<div>
-<form action="/sys/rename" method="post">
-    <label for="system_name">{{ _("System Name:") }}</label>
-    <input name="system_name" id="system_name" type="text" maxlength=120 required>
-    <input type="submit" value="{{ _("Rename") }}">
-</form>
-<form action="/sys/rename" method="post">
-    <input name="system_name" type="hidden" value="">
-    <input type="submit" value="{{ _("Reset") }}">
-</form>
-</div>
-<div class="power-control">
-<form action="/sys/reboot" method="post" onclick="if (confirm('{{ _("Reboot the System?") }}')) shutdownNotify('{{ _("Rebooting the system...") }}'); else event.preventDefault();">
-    <input type="submit" value="{{ _("Reboot System") }}">
-</form>
-<form action="/sys/shutdown" method="post" onclick="if (confirm('{{ _("Shut Down the System?") }}')) shutdownNotify('{{ _("Shutting down the system...") }}'); else event.preventDefault();">
-    <input type="submit" value="{{ _("Shut Down System") }}">
-</form>
-</div>
 </section>
 
 <hr/>

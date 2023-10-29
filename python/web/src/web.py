@@ -124,11 +124,6 @@ def get_env_info():
         "version": server_info["version"],
         "image_dir": server_info["image_dir"],
         "image_root_dir": Path(server_info["image_dir"]).name,
-        "netatalk_configured": sys_cmd.running_proc("afpd"),
-        "samba_configured": sys_cmd.running_proc("smbd"),
-        "ftp_configured": sys_cmd.running_proc("vsftpd"),
-        "macproxy_configured": sys_cmd.running_proc("macproxy"),
-        "webmin_configured": sys_cmd.running_proc("miniserv.pl"),
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
@@ -264,7 +259,6 @@ def index():
     return response(
         template="index.html",
         page_title=_("PiSCSI Control Page"),
-        locales=get_supported_locales(),
         netinfo=piscsi_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
         devices=formatted_devices,
@@ -274,8 +268,6 @@ def index():
         config_files=config_files,
         device_types=device_types,
         scan_depth=server_info["scan_depth"],
-        log_levels=server_info["log_levels"],
-        current_log_level=server_info["current_log_level"],
         scsi_ids=scsi_ids,
         units=units,
         reserved_scsi_ids=reserved_scsi_ids,
@@ -318,6 +310,27 @@ def drive_list():
         page_title=_("PiSCSI Create Drive"),
         files=piscsi_cmd.list_images()["files"],
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
+    )
+
+
+@APP.route("/sys/admin", methods=["GET"])
+def admin():
+    """
+    Sets up the data structures and kicks off the rendering of the system admin page
+    """
+    server_info = piscsi_cmd.get_server_info()
+
+    return response(
+        template="admin.html",
+        page_title=_("PiSCSI System Administration"),
+        log_levels=server_info["log_levels"],
+        current_log_level=server_info["current_log_level"],
+        locales=get_supported_locales(),
+        netatalk_configured=sys_cmd.running_proc("afpd"),
+        samba_configured=sys_cmd.running_proc("smbd"),
+        ftp_configured=sys_cmd.running_proc("vsftpd"),
+        macproxy_configured=sys_cmd.running_proc("macproxy"),
+        webmin_configured=sys_cmd.running_proc("miniserv.pl"),
     )
 
 
