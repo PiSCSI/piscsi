@@ -99,7 +99,7 @@ void ScsiDump::ParseArguments(span<char *> args)
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvpILS")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvpIS")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
