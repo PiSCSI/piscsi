@@ -85,25 +85,20 @@ TEST(ProtobufUtil, SetCommandParams)
 	EXPECT_EQ("folder", GetParam(command6, "folder_pattern"));
 	EXPECT_EQ("file", GetParam(command6, "file_pattern"));
 	EXPECT_EQ("operations", GetParam(command6, "operations"));
-
-	PbCommand command7;
-	SetCommandParams(command7, "operations=mapping_info:folder_pattern=pattern");
-	EXPECT_EQ("mapping_info", GetParam(command7, "operations"));
-	EXPECT_EQ("pattern", GetParam(command7, "folder_pattern"));
 }
 
 TEST(ProtobufUtil, SetFromGenericParams)
 {
 	PbCommand command1;
-	SetFromGenericParams(command1, "operations=mapping_info:folder_pattern=pattern");
+	EXPECT_TRUE(SetFromGenericParams(command1, "operations=mapping_info:folder_pattern=pattern").empty());
 	EXPECT_EQ("mapping_info", GetParam(command1, "operations"));
 	EXPECT_EQ("pattern", GetParam(command1, "folder_pattern"));
 
 	PbCommand command2;
-	EXPECT_THROW(SetFromGenericParams(command2, "=mapping_info"), parser_exception);
+	EXPECT_FALSE(SetFromGenericParams(command2, "=mapping_info").empty());
 
 	PbCommand command3;
-	EXPECT_THROW(SetFromGenericParams(command3, "="), parser_exception);
+	EXPECT_FALSE(SetFromGenericParams(command3, "=").empty());
 }
 
 TEST(ProtobufUtil, ListDevices)
