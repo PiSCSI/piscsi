@@ -273,6 +273,9 @@ bool Disk::Eject(bool force)
 
 		// The image file for this drive is not in use anymore
 		UnreserveFile();
+
+		sector_read_count = 0;
+		sector_write_count = 0;
 	}
 
 	return status;
@@ -506,6 +509,8 @@ int Disk::Read(span<uint8_t> buf, uint64_t block)
 		throw scsi_exception(sense_key::medium_error, asc::read_fault);
 	}
 
+	++sector_read_count;
+
 	return GetSectorSizeInBytes();
 }
 
@@ -518,6 +523,8 @@ void Disk::Write(span<const uint8_t> buf, uint64_t block)
 	if (!cache->WriteSector(buf, static_cast<uint32_t>(block))) {
 		throw scsi_exception(sense_key::medium_error, asc::write_fault);
 	}
+
+	++sector_write_count;
 }
 
 void Disk::Seek()
@@ -710,4 +717,36 @@ bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t
     configured_sector_size = configured_size;
 
 	return true;
+}
+
+vector<PbStatistics> Disk::GetStatistics() const
+{
+	vector<PbStatistics> statistics = PrimaryDevice::GetStatistics();
+
+	// Enrich cache statistics with device information before adding them to device statistics
+	if (cache) {
+		for (auto& s : cache->GetStatistics(IsReadOnly())) {
+			s.set_id(GetId());
+			s.set_unit(GetLun());
+			statistics.push_back(s);
+		}
+	}
+
+	PbStatistics s;
+	s.set_id(GetId());
+	s.set_unit(GetLun());
+
+	s.set_category(PbStatisticsCategory::CATEGORY_INFO);
+
+	s.set_key(SECTOR_READ_COUNT);
+	s.set_value(sector_read_count);
+	statistics.push_back(s);
+
+	if (!IsReadOnly()) {
+		s.set_key(SECTOR_WRITE_COUNT);
+		s.set_value(sector_write_count);
+		statistics.push_back(s);
+	}
+
+	return statistics;
 }

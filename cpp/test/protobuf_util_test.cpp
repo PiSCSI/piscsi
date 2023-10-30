@@ -53,27 +53,38 @@ TEST(ProtobufUtil, ParseParameters)
 	TestSpecialDevice("services");
 }
 
-TEST(ProtobufUtil, SetPatternParams)
+TEST(ProtobufUtil, SetCommandParams)
 {
 	PbCommand command1;
-	SetPatternParams(command1, "file");
+	SetCommandParams(command1, "file");
 	EXPECT_EQ("", GetParam(command1, "folder_pattern"));
 	EXPECT_EQ("file", GetParam(command1, "file_pattern"));
 
 	PbCommand command2;
-	SetPatternParams(command2, ":file");
+	SetCommandParams(command2, ":file");
 	EXPECT_EQ("", GetParam(command2, "folder_pattern"));
 	EXPECT_EQ("file", GetParam(command2, "file_pattern"));
 
 	PbCommand command3;
-	SetPatternParams(command3, "folder:");
-	EXPECT_EQ("folder", GetParam(command3, "folder_pattern"));
-	EXPECT_EQ("", GetParam(command3, "file_pattern"));
+	SetCommandParams(command3, "file:");
+	EXPECT_EQ("file", GetParam(command3, "file_pattern"));
+	EXPECT_EQ("", GetParam(command3, "folder_pattern"));
 
 	PbCommand command4;
-	SetPatternParams(command4, "folder:file");
+	SetCommandParams(command4, "folder:file");
 	EXPECT_EQ("folder", GetParam(command4, "folder_pattern"));
 	EXPECT_EQ("file", GetParam(command4, "file_pattern"));
+
+	PbCommand command5;
+	SetCommandParams(command5, "folder:file:");
+	EXPECT_EQ("folder", GetParam(command5, "folder_pattern"));
+	EXPECT_EQ("file", GetParam(command5, "file_pattern"));
+
+	PbCommand command6;
+	SetCommandParams(command6, "folder:file:operations");
+	EXPECT_EQ("folder", GetParam(command6, "folder_pattern"));
+	EXPECT_EQ("file", GetParam(command6, "file_pattern"));
+	EXPECT_EQ("operations", GetParam(command6, "operations"));
 }
 
 TEST(ProtobufUtil, ListDevices)

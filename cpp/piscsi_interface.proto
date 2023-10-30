@@ -82,9 +82,12 @@ enum PbOperation {
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 
-    // Gets the server information (PbServerInfo). Calling this operation should be avoided because it
-    // may return a lot of data. More specific other operations should be used instead.
+    // Gets the server information (PbServerInfo). Calling this operation without a list of operations should
+    // be avoided because this may return a lot of data. More specific other operations should be used instead.
     // Parameters:
+    //   "operations": Optional case insensitive comma-separated list of operation names to return data for,
+    //   e.g. "version_info,log_level_info". Unknown operation names are ignored. If this parameter is missing
+    //   the full set of data supported by PbServerInfo is returned.
     //   "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
     //   "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     SERVER_INFO = 10;
@@ -190,6 +193,9 @@ enum PbOperation {
 
     // Get operation meta data (PbOperationInfo)
     OPERATION_INFO = 31;
+
+    // Get statistics (PbStatisticsInfo)
+    STATISTICS_INFO = 32;
 }
 
 // The operation parameter meta data. The parameter data type is provided by the protobuf API.
@@ -286,7 +292,7 @@ message PbImageFile {
     string name = 1;
     // The assumed device type, based on the filename extension
     PbDeviceType type = 2;
-    // The file size in bytes, 0 for block devices
+    // The file size in bytes, 0 for block devices in /dev
     uint64 size = 3;
     bool read_only = 4;
 }
@@ -309,6 +315,41 @@ message PbLogLevelInfo {
 // The network interfaces information
 message PbNetworkInterfacesInfo {
     repeated string name = 1;
+}
+
+// Statistics categories ordered by increasing severity
+enum PbStatisticsCategory {
+    CATEGORY_NONE = 0;
+    CATEGORY_INFO = 1;
+    CATEGORY_WARNING = 2;
+    CATEGORY_ERROR = 3;
+ }
+
+message PbStatistics {
+    PbStatisticsCategory category = 1;
+    // The device ID and LUN for this statistics item. Both are -1 if the item is not device specific.
+    int32 id = 2;
+    int32 unit = 3;
+    // A symbolic unique item name, may be used for I18N. Supported values and their categories:
+    //  "read_error_count" (ERROR, SCHD/SCRM/SCMO/SCCD)
+    //  "write_error_count" (ERROR, SCHD/SCRM/SCMO)
+    //  "cache_miss_read_count" (INFO, SCHD/SCRM/SCMO/SCCD)
+    //  "cache_miss_write_count" (INFO, SCHD/SCRM/SCMO)
+    //  "sector_read_count" (INFO, SCHD/SCRM/SCMO/SCCD)
+    //  "sector_write_count" (INFO, SCHD/SCRM/SCMO)
+    //  "byte_read_count" (INFO, SCDP)
+    //  "byte_write_count" (INFO, SCDP)
+    //  "print_error_count" (ERROR, SCLP)
+    //  "print_warning_count" (WARNING, SCLP)
+    //  "file_print_count" (INFO, SCLP)
+    //  "byte_receive_count" (INFO, SCLP)
+    string key = 4;
+    uint64 value = 5;
+}
+
+// The information on collected statistics
+message PbStatisticsInfo {
+    repeated PbStatistics statistics = 1;
 }
 
 // The device definition, sent from the client to the server
@@ -407,6 +448,8 @@ message PbResult {
         PbReservedIdsInfo reserved_ids_info = 12;
         // The result of an OPERATION_INFO command
         PbOperationInfo operation_info = 13;
+        // The result of a STATISTICS_INFO command
+        PbStatisticsInfo statistics_info = 15;
     }
 }
 
@@ -430,4 +473,6 @@ message PbServerInfo {
     PbDevicesInfo devices_info = 8;
     // The operation meta data
     PbOperationInfo operation_info = 9;
+    // The statistics
+    PbStatisticsInfo statistics_info = 10;
 }

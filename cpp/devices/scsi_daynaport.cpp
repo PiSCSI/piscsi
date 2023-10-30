@@ -119,7 +119,7 @@ vector<uint8_t> SCSIDaynaPort::InquiryInternal() const
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t) const
+int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 {
 	int rx_packet_size = 0;
 	const auto response = (scsi_resp_read_t*)buf.data();
@@ -154,6 +154,8 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t) const
 			response->flags = read_data_flags_t::e_no_more_data;
 			return DAYNAPORT_READ_HEADER_SZ;
 		}
+
+		byte_read_count += rx_packet_size * read_count;
 
 		LogTrace("Packet Size " + to_string(rx_packet_size) + ", read count: " + to_string(read_count));
 
@@ -252,17 +254,19 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t) const
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::Write(cdb_t cdb, span<const uint8_t> buf) const
+bool SCSIDaynaPort::Write(cdb_t cdb, span<const uint8_t> buf)
 {
 	if (const int data_format = cdb[5]; data_format == 0x00) {
 		const int data_length = GetInt16(cdb, 3);
 		tap.Send(buf.data(), data_length);
+		byte_write_count += data_length;
 		LogTrace("Transmitted " + to_string(data_length) + " byte(s) (00 format)");
 	}
 	else if (data_format == 0x80) {
 		// The data length is specified in the first 2 bytes of the payload
 		const int data_length = buf[1] + ((static_cast<int>(buf[0]) & 0xff) << 8);
 		tap.Send(&(buf.data()[4]), data_length);
+		byte_write_count += data_length;
 		LogTrace("Transmitted " + to_string(data_length) + "byte(s) (80 format)");
 	}
 	else {
@@ -305,7 +309,7 @@ void SCSIDaynaPort::TestUnitReady()
 	EnterStatusPhase();
 }
 
-void SCSIDaynaPort::Read6() const
+void SCSIDaynaPort::Read6()
 {
 	// Get record number and block number
     const uint32_t record = GetInt24(GetController()->GetCmd(), 1) & 0x1fffff;
@@ -478,3 +482,23 @@ void SCSIDaynaPort::EnableInterface() const
 	EnterStatusPhase();
 }
 
+vector<PbStatistics> SCSIDaynaPort::GetStatistics() const
+{
+	vector<PbStatistics> statistics = PrimaryDevice::GetStatistics();
+
+	PbStatistics s;
+	s.set_id(GetId());
+	s.set_unit(GetLun());
+
+	s.set_category(PbStatisticsCategory::CATEGORY_INFO);
+
+	s.set_key(BYTE_READ_COUNT);
+	s.set_value(byte_read_count);
+	statistics.push_back(s);
+
+	s.set_key(BYTE_WRITE_COUNT);
+	s.set_value(byte_write_count);
+	statistics.push_back(s);
+
+	return statistics;
+}

@@ -50,10 +50,9 @@ private:
 	friend class DiskCache;
 
 	void Init(int track, int size, int sectors, bool raw = false, off_t imgoff = 0);
-	bool Load(const string& path);
-	bool Save(const string& path);
+	bool Load(const string& path, uint64_t&);
+	bool Save(const string& path, uint64_t&);
 
-	// Read / Write
 	bool ReadSector(span<uint8_t>, int) const;				// Sector Read
 	bool WriteSector(span<const uint8_t> buf, int);			// Sector Write
 

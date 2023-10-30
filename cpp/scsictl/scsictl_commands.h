@@ -48,6 +48,7 @@ private:
 	bool CommandLogLevelInfo();
 	bool CommandReservedIdsInfo();
 	bool CommandMappingInfo();
+	bool CommandStatisticsInfo();
 	bool CommandOperationInfo();
 	bool SendCommand();
 	bool EvaluateParams(string_view, const string&, const string&);

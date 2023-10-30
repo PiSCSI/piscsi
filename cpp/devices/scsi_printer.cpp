@@ -115,6 +115,8 @@ void SCSIPrinter::Print()
 		LogError("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected");
 
+		++print_error_count;
+
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
@@ -128,6 +130,8 @@ void SCSIPrinter::SynchronizeBuffer()
 {
 	if (!out.is_open()) {
 		LogWarn("Nothing to print");
+
+		++print_warning_count;
 
 		throw scsi_exception(sense_key::aborted_command);
 	}
@@ -145,6 +149,8 @@ void SCSIPrinter::SynchronizeBuffer()
 	if (system(cmd.c_str())) {
 		LogError("Printing file '" + filename + "' failed, the printing system might not be configured");
 
+		++print_error_count;
+
 		CleanUp();
 
 		throw scsi_exception(sense_key::aborted_command);
@@ -157,6 +163,8 @@ void SCSIPrinter::SynchronizeBuffer()
 
 bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 {
+	byte_receive_count += buf.size();
+
 	if (!out.is_open()) {
 		vector<char> f(file_template.begin(), file_template.end());
 		f.push_back(0);
@@ -165,6 +173,9 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 		const int fd = mkstemp(f.data());
 		if (fd == -1) {
 			LogError("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
+
+			++print_error_count;
+
 			return false;
 		}
 		close(fd);
@@ -173,6 +184,8 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 
 		out.open(filename, ios::binary);
 		if (out.fail()) {
+			++print_error_count;
+
 			throw scsi_exception(sense_key::aborted_command);
 		}
 
@@ -183,5 +196,43 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 
 	out.write((const char *)buf.data(), buf.size());
 
-	return !out.fail();
+	const bool status = out.fail();
+	if (!status) {
+		++print_error_count;
+	}
+
+	return !status;
+}
+
+vector<PbStatistics> SCSIPrinter::GetStatistics() const
+{
+	vector<PbStatistics> statistics = PrimaryDevice::GetStatistics();
+
+	PbStatistics s;
+	s.set_id(GetId());
+	s.set_unit(GetLun());
+
+	s.set_category(PbStatisticsCategory::CATEGORY_INFO);
+
+	s.set_key(FILE_PRINT_COUNT);
+	s.set_value(file_print_count);
+	statistics.push_back(s);
+
+	s.set_key(BYTE_RECEIVE_COUNT);
+	s.set_value(byte_receive_count);
+	statistics.push_back(s);
+
+	s.set_category(PbStatisticsCategory::CATEGORY_ERROR);
+
+	s.set_key(PRINT_ERROR_COUNT);
+	s.set_value(print_error_count);
+	statistics.push_back(s);
+
+	s.set_category(PbStatisticsCategory::CATEGORY_WARNING);
+
+	s.set_key(PRINT_WARNING_COUNT);
+	s.set_value(print_warning_count);
+	statistics.push_back(s);
+
+	return statistics;
 }
