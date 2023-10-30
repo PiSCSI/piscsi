@@ -92,35 +92,6 @@ TEST(DeviceFactoryTest, GetExtensionMapping)
 	EXPECT_EQ(SCCD, mapping["is1"]);
 }
 
-TEST(DeviceFactoryTest, GetDefaultParams)
-{
-	DeviceFactory device_factory;
-
-	param_map params = device_factory.GetDefaultParams(SCHD);
-	EXPECT_TRUE(params.empty());
-
-	params = device_factory.GetDefaultParams(SCRM);
-	EXPECT_TRUE(params.empty());
-
-	params = device_factory.GetDefaultParams(SCMO);
-	EXPECT_TRUE(params.empty());
-
-	params = device_factory.GetDefaultParams(SCCD);
-	EXPECT_TRUE(params.empty());
-
-	params = device_factory.GetDefaultParams(SCHS);
-	EXPECT_TRUE(params.empty());
-
-	params = device_factory.GetDefaultParams(SCBR);
-	EXPECT_EQ(2, params.size());
-
-	params = device_factory.GetDefaultParams(SCDP);
-	EXPECT_EQ(2, params.size());
-
-	params = device_factory.GetDefaultParams(SCLP);
-	EXPECT_EQ(1, params.size());
-}
-
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
 	DeviceFactory device_factory;

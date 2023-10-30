@@ -13,6 +13,13 @@
 
 using namespace std;
 
+TEST(ScsiPrinterTest, GetDefaultParams)
+{
+	const auto [controller, printer] = CreateDevice(SCLP);
+	const auto params = printer->GetDefaultParams();
+	EXPECT_EQ(1, params.size());
+}
+
 TEST(ScsiPrinterTest, Init)
 {
 	auto [controller, printer] = CreateDevice(SCLP);

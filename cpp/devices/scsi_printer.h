@@ -33,6 +33,8 @@ public:
 	bool Init(const param_map&) override;
 	void CleanUp() override;
 
+	param_map GetDefaultParams() const override;
+
 	vector<uint8_t> InquiryInternal() const override;
 
 	bool WriteByteSequence(span<const uint8_t>) override;

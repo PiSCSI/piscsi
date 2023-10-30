@@ -10,6 +10,14 @@
 #include "mocks.h"
 #include "devices/device.h"
 
+TEST(DeviceTest, GetDefaultParams)
+{
+	MockDevice device(0);
+
+	const auto params = device.GetDefaultParams();
+	EXPECT_TRUE(params.empty());
+}
+
 TEST(DeviceTest, Properties)
 {
 	const int LUN = 5;
@@ -190,26 +198,6 @@ TEST(DeviceTest, GetPaddedName)
 	device.SetRevision("R");
 
 	EXPECT_EQ("V       P               R   ", device.GetPaddedName());
-}
-
-TEST(DeviceTest, Params)
-{
-	MockDevice device(0);
-	param_map params;
-	params["key"] = "value";
-
-	EXPECT_EQ("", device.GetParam("key"));
-
-	device.SetParams(params);
-	EXPECT_EQ("", device.GetParam("key"));
-
-	param_map default_params;
-	default_params["key"] = "value";
-	device.SetDefaultParams(default_params);
-	EXPECT_EQ("", device.GetParam("key"));
-
-	device.SetParams(params);
-	EXPECT_EQ("value", device.GetParam("key"));
 }
 
 TEST(DeviceTest, StatusCode)
