@@ -684,7 +684,7 @@ bool ScsiController::XferOut(bool cont)
 	return device != nullptr ? device->WriteByteSequence(span(GetBuffer().data(), count)) : false;
 }
 
-void ScsiController::DataOutNonBlockOriented()
+void ScsiController::DataOutNonBlockOriented() const
 {
 	assert(IsDataOut());
 
@@ -696,18 +696,8 @@ void ScsiController::DataOutNonBlockOriented()
 		case scsi_command::eCmdWriteLong16:
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
-			break;
-
 		case scsi_command::eCmdModeSelect6:
-		case scsi_command::eCmdModeSelect10: {
-				if (auto device = dynamic_pointer_cast<ModePageDevice>(GetDeviceForLun(GetEffectiveLun()));
-					device != nullptr) {
-					device->ModeSelect(GetOpcode(), GetCmd(), GetBuffer(), GetOffset());
-				}
-				else {
-					throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
-				}
-			}
+		case scsi_command::eCmdModeSelect10:
 			break;
 
 		case scsi_command::eCmdSetMcastAddr:
@@ -806,9 +796,6 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdWrite6:
 		case scsi_command::eCmdWrite10:
 		case scsi_command::eCmdWrite16:
-		// TODO Verify has to verify, not to write, see https://github.com/PiSCSI/piscsi/issues/807
-		case scsi_command::eCmdVerify10:
-		case scsi_command::eCmdVerify16:
 		{
 			// TODO Get rid of this special case for SCBR
 			if (auto bridge = dynamic_pointer_cast<SCSIBR>(device); bridge) {
@@ -846,12 +833,29 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 			// If you do not need the next block, end here
 			IncrementNext();
-			if (!cont) {
-				break;
+			if (cont) {
+				SetLength(disk->GetSectorSizeInBytes());
+				ResetOffset();
 			}
 
-			SetLength(disk->GetSectorSizeInBytes());
-			ResetOffset();
+			break;
+		}
+
+		case scsi_command::eCmdVerify10:
+		case scsi_command::eCmdVerify16:
+		{
+			auto disk = dynamic_pointer_cast<Disk>(device);
+			if (disk == nullptr) {
+				return false;
+			}
+
+			// If you do not need the next block, end here
+			IncrementNext();
+			if (cont) {
+				SetLength(disk->GetSectorSizeInBytes());
+				ResetOffset();
+			}
+
 			break;
 		}
 

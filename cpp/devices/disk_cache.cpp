@@ -27,11 +27,11 @@ DiskCache::DiskCache(const string& path, int size, uint32_t blocks, off_t imgoff
 	assert(imgoff >= 0);
 }
 
-bool DiskCache::Save() const
+bool DiskCache::Save()
 {
 	// Save valid tracks
 	return ranges::none_of(cache.begin(), cache.end(), [this](const cache_t& c)
-			{ return c.disktrk != nullptr && !c.disktrk->Save(sec_path); });
+			{ return c.disktrk != nullptr && !c.disktrk->Save(sec_path, cache_miss_write_count); });
 }
 
 shared_ptr<DiskTrack> DiskCache::GetTrack(uint32_t block)
@@ -120,7 +120,7 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 	}
 
 	// Save this track
-	if (!cache[c].disktrk->Save(sec_path)) {
+	if (!cache[c].disktrk->Save(sec_path, cache_miss_write_count)) {
 		return nullptr;
 	}
 
@@ -156,17 +156,16 @@ bool DiskCache::Load(int index, int track, shared_ptr<DiskTrack> disktrk)
 		sectors = 0x100;
 	}
 
-	// Create a disk track
 	if (disktrk == nullptr) {
 		disktrk = make_shared<DiskTrack>();
 	}
 
-	// Initialize disk track
 	disktrk->Init(track, sec_size, sectors, cd_raw, imgoffset);
 
 	// Try loading
-	if (!disktrk->Load(sec_path)) {
-		// Failure
+	if (!disktrk->Load(sec_path, cache_miss_read_count)) {
+		++read_error_count;
+
 		return false;
 	}
 
@@ -190,3 +189,35 @@ void DiskCache::UpdateSerialNumber()
 	}
 }
 
+vector<PbStatistics> DiskCache::GetStatistics(bool is_read_only) const
+{
+	vector<PbStatistics> statistics;
+
+	PbStatistics s;
+
+	s.set_category(PbStatisticsCategory::CATEGORY_INFO);
+
+	s.set_key(CACHE_MISS_READ_COUNT);
+	s.set_value(cache_miss_read_count);
+	statistics.push_back(s);
+
+	if (!is_read_only) {
+		s.set_key(CACHE_MISS_WRITE_COUNT);
+		s.set_value(cache_miss_write_count);
+		statistics.push_back(s);
+	}
+
+	s.set_category(PbStatisticsCategory::CATEGORY_ERROR);
+
+	s.set_key(READ_ERROR_COUNT);
+	s.set_value(read_error_count);
+	statistics.push_back(s);
+
+	if (!is_read_only) {
+		s.set_key(WRITE_ERROR_COUNT);
+		s.set_value(write_error_count);
+		statistics.push_back(s);
+	}
+
+	return statistics;
+}

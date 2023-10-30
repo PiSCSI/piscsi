@@ -68,9 +68,6 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	// The parameters the device was created with
 	param_map params;
 
-	// The default parameters
-	param_map default_params;
-
 	// Sense Key and ASC
 	//	MSB		Reserved (0x00)
 	//			Sense Key
@@ -139,7 +136,7 @@ public:
 	void SupportsParams(bool b) { supports_params = b; }
 	void SupportsFile(bool b) { supports_file = b; }
 	auto GetParams() const { return params; }
-	void SetDefaultParams(const param_map& p) { default_params = p; }
+	virtual param_map GetDefaultParams() const { return {}; }
 
 	void SetStatusCode(int s) { status_code = s; }
 

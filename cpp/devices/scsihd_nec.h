@@ -33,7 +33,7 @@ class SCSIHD_NEC : public SCSIHD //NOSONAR The inheritance hierarchy depth is ac
 {
 public:
 
-	explicit SCSIHD_NEC(int lun) : SCSIHD(lun, sector_sizes, false) {}
+	explicit SCSIHD_NEC(int lun) : SCSIHD(lun, { 512 }, false) {}
 	~SCSIHD_NEC() override = default;
 
 	void Open() override;
@@ -51,8 +51,6 @@ private:
 
 	static int GetInt16LittleEndian(const uint8_t *);
 	static int GetInt32LittleEndian(const uint8_t *);
-
-	static inline const unordered_set<uint32_t> sector_sizes = { 512 };
 
 	// Image file offset
 	off_t image_offset = 0;

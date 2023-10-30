@@ -8,7 +8,6 @@
 //	XM6i
 //	Copyright (C) 2010-2015 isaki@NetBSD.org
 //
-//  	Imported sava's Anex86/T98Next image and MO format support patch.
 //  	Comments translated to english by akuker.
 //
 //---------------------------------------------------------------------------
@@ -16,6 +15,7 @@
 #pragma once
 
 #include "shared/scsi.h"
+#include "shared/piscsi_util.h"
 #include "device_factory.h"
 #include "disk_track.h"
 #include "disk_cache.h"
@@ -42,6 +42,12 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
 	uint32_t size_shift_count = 0;
 
+	uint64_t sector_read_count = 0;
+	uint64_t sector_write_count = 0;
+
+	inline static const string SECTOR_READ_COUNT = "sector_read_count";
+	inline static const string SECTOR_WRITE_COUNT = "sector_write_count";
+
 public:
 
 	using StorageDevice::StorageDevice;
@@ -61,6 +67,8 @@ public:
 	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }
 	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
 	void FlushCache() override;
+
+	vector<PbStatistics> GetStatistics() const override;
 
 private:
 

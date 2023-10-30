@@ -35,7 +35,7 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 				<< "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] "
 				<< "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] "
 				<<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] "
-				<< "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]\n"
+				<< "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-S] [-v] [-V] [-y] [-X]\n"
 				<< " where  ID[:LUN] ID := {0-" << (ControllerManager::GetScsiIdMax() - 1) << "},"
 				<< " LUN := {0-" << (ControllerManager::GetScsiLunMax() - 1) << "}, default is 0\n"
 				<< "        CMD := {attach|detach|insert|eject|protect|unprotect|show}\n"
@@ -82,7 +82,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(),
-			"e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
+			"e::lmos::vDINOSTVXa:b:c:d:f:h:i:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
 			case 'i':
 				if (const string error = SetIdAndLun(*device, optarg); !error.empty()) {
@@ -130,7 +130,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 			case 'e':
 				command.set_operation(DEFAULT_IMAGE_FILES_INFO);
                 if (optarg) {
-                	SetPatternParams(command, optarg);
+                	SetCommandParams(command, optarg);
                 }
                 break;
 
@@ -208,9 +208,13 @@ int ScsiCtl::run(const vector<char *>& args) const
 			case 's':
 				command.set_operation(SERVER_INFO);
                 if (optarg) {
-                	SetPatternParams(command, optarg);
+                	SetCommandParams(command, optarg);
                 }
                 break;
+
+			case 'S':
+				command.set_operation(STATISTICS_INFO);
+				break;
 
 			case 'v':
 				cout << "scsictl version: " << piscsi_get_version_string() << '\n';

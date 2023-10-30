@@ -120,24 +120,20 @@ void CreateTempFileWithData(const string& filename, vector<uint8_t>& data)
     fclose(fp);
 }
 
+// TODO Move this code, it is not shared
 void DeleteTempFile(const string& filename)
 {
-    path temp_file = test_data_temp_path;
-    temp_file += path(filename);
-    remove(temp_file);
-}
-
-void CleanUpAllTempFiles()
-{
-    remove_all(test_data_temp_path);
+	path temp_file = test_data_temp_path;
+	temp_file += path(filename);
+	remove(temp_file);
 }
 
 string ReadTempFileToString(const string& filename)
 {
     const path temp_file = test_data_temp_path / path(filename);
-    ifstream in_fs(temp_file);
+    ifstream in(temp_file);
     stringstream buffer;
-    buffer << in_fs.rdbuf();
+    buffer << in.rdbuf();
 
     return buffer.str();
 }

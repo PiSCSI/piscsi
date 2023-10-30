@@ -9,10 +9,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "monitor/sm_core.h"
+#include "scsimon/sm_core.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
-#include "monitor/sm_reports.h"
+#include "scsimon/sm_reports.h"
 #include "hal/log.h"
 #include "shared/piscsi_version.h"
 #include "shared/piscsi_util.h"

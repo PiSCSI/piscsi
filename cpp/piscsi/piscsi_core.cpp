@@ -361,10 +361,10 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			return context.WriteSuccessResult(result);
 
 		case SERVER_INFO:
-			response.GetServerInfo(*result.mutable_server_info(), controller_manager.GetAllDevices(),
-					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
-					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
-			return context.WriteSuccessResult(result);
+			response.GetServerInfo(*result.mutable_server_info(), command, controller_manager.GetAllDevices(),
+					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
+			context.WriteSuccessResult(result);
+			break;
 
 		case VERSION_INFO:
 			response.GetVersionInfo(*result.mutable_version_info());
@@ -405,6 +405,11 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 		case MAPPING_INFO:
 			response.GetMappingInfo(*result.mutable_mapping_info());
 			return context.WriteSuccessResult(result);
+
+		case STATISTICS_INFO:
+			response.GetStatisticsInfo(*result.mutable_statistics_info(), controller_manager.GetAllDevices());
+			context.WriteSuccessResult(result);
+			break;
 
 		case OPERATION_INFO:
 			response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());

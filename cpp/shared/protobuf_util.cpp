@@ -14,7 +14,7 @@
 #include <sstream>
 #include <array>
 #include <vector>
-
+#include <iomanip>
 
 using namespace std;
 using namespace piscsi_util;
@@ -42,21 +42,33 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	}
 }
 
-void protobuf_util::SetPatternParams(PbCommand& command, const string& patterns)
+void protobuf_util::SetCommandParams(PbCommand& command, const string& params)
 {
 	string folder_pattern;
 	string file_pattern;
+	string operations;
 
-	if (const auto& components = Split(patterns, ':', 2); components.size() == 2) {
-		folder_pattern = components[0];
-		file_pattern = components[1];
-	}
-	else {
-		file_pattern = patterns;
+	switch (const auto& components = Split(params, COMPONENT_SEPARATOR, 3); components.size()) {
+		case 3:
+			operations = components[2];
+			[[fallthrough]];
+
+		case 2:
+			folder_pattern = components[0];
+			file_pattern = components[1];
+			break;
+
+		case 1:
+			file_pattern = components[0];
+			break;
+
+		default:
+			break;
 	}
 
 	SetParam(command, "folder_pattern", folder_pattern);
 	SetParam(command, "file_pattern", file_pattern);
+	SetParam(command, "operations", operations);
 }
 
 void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& data)
@@ -132,7 +144,7 @@ string protobuf_util::ListDevices(const vector<PbDevice>& pb_devices)
 				break;
 		}
 
-		s << "|  " << device.id() << " |   " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
+		s << "|  " << device.id() << " | " << setw(3) << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
 				<< (filename.empty() ? "NO MEDIUM" : filename)
 				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
 				<< '\n';

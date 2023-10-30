@@ -15,17 +15,29 @@
 
 #pragma once
 
+#include "generated/piscsi_interface.pb.h"
 #include <span>
 #include <array>
 #include <memory>
 #include <string>
 
 using namespace std;
+using namespace piscsi_interface;
 
 class DiskCache
 {
 	// Number of tracks to cache
 	static const int CACHE_MAX = 16;
+
+	uint64_t read_error_count = 0;
+	uint64_t write_error_count = 0;
+	uint64_t cache_miss_read_count = 0;
+	uint64_t cache_miss_write_count = 0;
+
+	inline static const string READ_ERROR_COUNT = "read_error_count";
+	inline static const string WRITE_ERROR_COUNT = "write_error_count";
+	inline static const string CACHE_MISS_READ_COUNT = "cache_miss_read_count";
+	inline static const string CACHE_MISS_WRITE_COUNT = "cache_miss_write_count";
 
 public:
 
@@ -40,10 +52,11 @@ public:
 
 	void SetRawMode(bool b) { cd_raw = b; }		// CD-ROM raw mode setting
 
-	// Access
-	bool Save() const;							// Save and release all
+	bool Save();							// Save and release all
 	bool ReadSector(span<uint8_t>, uint32_t);			// Sector Read
 	bool WriteSector(span<const uint8_t>, uint32_t);	// Sector Write
+
+	vector<PbStatistics> GetStatistics(bool) const;
 
 private:
 

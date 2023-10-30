@@ -54,7 +54,13 @@ public:
 	void Reset() override;
 
 	virtual void FlushCache() {
-		// Devices with a cache have to implement this method
+		// Devices with a cache have to override this method
+	}
+
+	virtual vector<PbStatistics> GetStatistics() const {
+		// Devices which provide statistics have to override this method
+
+		return vector<PbStatistics>();
 	}
 
 protected:

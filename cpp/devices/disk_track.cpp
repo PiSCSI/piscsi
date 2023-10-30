@@ -48,13 +48,15 @@ void DiskTrack::Init(int track, int size, int sectors, bool raw, off_t imgoff)
 	dt.imgoffset = imgoff;
 }
 
-bool DiskTrack::Load(const string& path)
+bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 {
 	// Not needed if already loaded
 	if (dt.init) {
 		assert(dt.buffer);
 		return true;
 	}
+
+	++cache_miss_read_count;
 
 	// Calculate offset (previous tracks are considered to hold 256 sectors)
 	off_t offset = ((off_t)dt.track << 8);
@@ -138,7 +140,7 @@ bool DiskTrack::Load(const string& path)
 	return true;
 }
 
-bool DiskTrack::Save(const string& path)
+bool DiskTrack::Save(const string& path, uint64_t& cache_miss_write_count)
 {
 	// Not needed if not initialized
 	if (!dt.init) {
@@ -149,6 +151,8 @@ bool DiskTrack::Save(const string& path)
 	if (!dt.changed) {
 		return true;
 	}
+
+	++cache_miss_write_count;
 
 	// Need to write
 	assert(dt.buffer);

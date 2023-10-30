@@ -29,14 +29,6 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCCD] = { 512, 2048};
 
-	const string interfaces = Join(GetNetworkInterfaces(), ",");
-
-	default_params[SCBR]["interface"] = interfaces;
-	default_params[SCBR]["inet"] = DEFAULT_IP;
-	default_params[SCDP]["interface"] = interfaces;
-	default_params[SCDP]["inet"] = DEFAULT_IP;
-	default_params[SCLP]["cmd"] = "lp -oraw %f";
-
 	extension_mapping["hd1"] = SCHD;
 	extension_mapping["hds"] = SCHD;
 	extension_mapping["hda"] = SCHD;
@@ -115,7 +107,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
-		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	case SCDP:
@@ -124,7 +115,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
 		device->SetRevision("1.4a");
-		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	case SCHS:
@@ -137,7 +127,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	case SCLP:
 		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
-		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	default:
@@ -147,14 +136,14 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	return device;
 }
 
-const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const
+// TODO Move to respective device, which may require changes in the SCSI_HD/SCSIHD_NEC inheritance hierarchy
+unordered_set<uint32_t> DeviceFactory::GetSectorSizes(PbDeviceType type) const
 {
 	const auto& it = sector_sizes.find(type);
-	return it != sector_sizes.end() ? it->second : EMPTY_SET;
-}
-
-const param_map& DeviceFactory::GetDefaultParams(PbDeviceType type) const
-{
-	const auto& it = default_params.find(type);
-	return it != default_params.end() ? it->second : EMPTY_PARAM_MAP;
+	if (it != sector_sizes.end()) {
+		return it->second;
+	}
+	else {
+		return {};
+	}
 }

@@ -81,6 +81,9 @@ bool ScsictlCommands::Execute(string_view log_level, string_view default_folder,
 		case MAPPING_INFO:
 			return CommandMappingInfo();
 
+		case STATISTICS_INFO:
+			return CommandStatisticsInfo();
+
 		case OPERATION_INFO:
 			return CommandOperationInfo();
 
@@ -245,16 +248,43 @@ bool ScsictlCommands::CommandServerInfo()
 
 	PbServerInfo server_info = result.server_info();
 
-	cout << scsictl_display.DisplayVersionInfo(server_info.version_info());
-	cout << scsictl_display.DisplayLogLevelInfo(server_info.log_level_info());
-	cout << scsictl_display.DisplayImageFilesInfo(server_info.image_files_info());
-	cout << scsictl_display.DisplayMappingInfo(server_info.mapping_info());
-	cout << scsictl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
-	cout << scsictl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
-	cout << scsictl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
-	cout << scsictl_display.DisplayOperationInfo(server_info.operation_info());
+	if (server_info.has_version_info()) {
+		cout << scsictl_display.DisplayVersionInfo(server_info.version_info());
+	}
 
-	if (server_info.devices_info().devices_size()) {
+	if (server_info.has_log_level_info()) {
+		cout << scsictl_display.DisplayLogLevelInfo(server_info.log_level_info());
+	}
+
+	if (server_info.has_image_files_info()) {
+		cout << scsictl_display.DisplayImageFilesInfo(server_info.image_files_info());
+	}
+
+	if (server_info.has_mapping_info()) {
+		cout << scsictl_display.DisplayMappingInfo(server_info.mapping_info());
+	}
+
+	if (server_info.has_network_interfaces_info()) {
+		cout << scsictl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
+	}
+
+	if (server_info.has_device_types_info()) {
+		cout << scsictl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
+	}
+
+	if (server_info.has_reserved_ids_info()) {
+		cout << scsictl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
+	}
+
+	if (server_info.has_statistics_info()) {
+		cout << scsictl_display.DisplayStatisticsInfo(server_info.statistics_info());
+	}
+
+	if (server_info.has_operation_info()) {
+		cout << scsictl_display.DisplayOperationInfo(server_info.operation_info());
+	}
+
+	if (server_info.has_devices_info() && server_info.devices_info().devices_size()) {
 		vector<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 		ranges::sort(sorted_devices, [](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
@@ -322,6 +352,15 @@ bool ScsictlCommands::CommandMappingInfo()
 	SendCommand();
 
 	cout << scsictl_display.DisplayMappingInfo(result.mapping_info()) << flush;
+
+	return true;
+}
+
+bool ScsictlCommands::CommandStatisticsInfo()
+{
+	SendCommand();
+
+	cout << scsictl_display.DisplayStatisticsInfo(result.statistics_info()) << flush;
 
 	return true;
 }

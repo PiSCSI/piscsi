@@ -74,8 +74,25 @@ from settings import (
 )
 
 
+def get_locale():
+    """
+    Uses the session language, or tries to detect based on accept-languages header
+    """
+    session_locale = session.get("language")
+    if session_locale:
+        return session_locale
+
+    client_locale = request.accept_languages.best_match(LANGUAGES)
+    if client_locale:
+        return client_locale
+
+    logging.info("The default locale could not be detected. Falling back to English.")
+    return "en"
+
+
 APP = Flask(__name__)
 BABEL = Babel(APP)
+BABEL.init_app(APP, locale_selector=get_locale)
 
 
 def get_env_info():
@@ -183,23 +200,6 @@ def response(
     if redirect_url:
         return redirect(url_for(redirect_url))
     return redirect(url_for("index"))
-
-
-@BABEL.localeselector
-def get_locale():
-    """
-    Uses the session language, or tries to detect based on accept-languages header
-    """
-    session_locale = session.get("language")
-    if session_locale:
-        return session_locale
-
-    client_locale = request.accept_languages.best_match(LANGUAGES)
-    if client_locale:
-        return client_locale
-
-    logging.info("The default locale could not be detected. Falling back to English.")
-    return "en"
 
 
 def get_supported_locales():

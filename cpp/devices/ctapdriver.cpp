@@ -213,6 +213,14 @@ void CTapDriver::CleanUp() const
 	}
 }
 
+param_map CTapDriver::GetDefaultParams() const
+{
+	return {
+		{ "interface", Join(GetNetworkInterfaces(), ",") },
+		{ "inet", DEFAULT_IP }
+	};
+}
+
 pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 {
 	string address = s;

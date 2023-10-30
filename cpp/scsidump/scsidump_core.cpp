@@ -12,9 +12,9 @@
 
 // TODO Evaluate CHECK CONDITION after sending a command
 // TODO Send IDENTIFY message in order to support LUNS > 7
+// TODO Get rid of some fields in favor of method arguments
 
 #include "scsidump/scsidump_core.h"
-#include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
 #include "controllers/controller_manager.h"
@@ -44,11 +44,11 @@ void ScsiDump::CleanUp()
     }
 }
 
-void ScsiDump::KillHandler(int)
+void ScsiDump::TerminationHandler(int)
 {
     CleanUp();
 
-    exit(EXIT_SUCCESS);
+	// Process will terminate automatically
 }
 
 bool ScsiDump::Banner(span<char *> args) const
@@ -56,7 +56,7 @@ bool ScsiDump::Banner(span<char *> args) const
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p]\n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
              << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
              << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
 			 << " Default is 0.\n"
@@ -67,6 +67,8 @@ bool ScsiDump::Banner(span<char *> args) const
              << " -v Enable verbose logging.\n"
              << " -r Restore instead of dump.\n"
              << " -p Generate .properties file to be used with the PiSCSI web interface. Only valid for dump mode.\n"
+			 << " -I Display INQUIRY data of ID[:LUN].\n"
+			 << " -S Scan SCSI bus for devices.\n"
              << flush;
 
         return false;
@@ -77,11 +79,13 @@ bool ScsiDump::Banner(span<char *> args) const
 
 bool ScsiDump::Init() const
 {
-    // Interrupt handler setting
-    if (signal(SIGINT, KillHandler) == SIG_ERR || signal(SIGHUP, KillHandler) == SIG_ERR ||
-        signal(SIGTERM, KillHandler) == SIG_ERR) {
-        return false;
-    }
+	// Signal handler for cleaning up
+	struct sigaction termination_handler;
+	termination_handler.sa_handler = TerminationHandler;
+	sigemptyset(&termination_handler.sa_mask);
+	termination_handler.sa_flags = 0;
+	sigaction(SIGTERM, &termination_handler, nullptr);
+	signal(SIGPIPE, SIG_IGN);
 
     bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR);
 
@@ -95,7 +99,7 @@ void ScsiDump::ParseArguments(span<char *> args)
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvp")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvpIS")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -107,6 +111,10 @@ void ScsiDump::ParseArguments(span<char *> args)
             filename = optarg;
             break;
 
+        case 'I':
+        	inquiry = true;
+        	break;
+
         case 's':
             if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
                 throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
@@ -114,12 +122,15 @@ void ScsiDump::ParseArguments(span<char *> args)
 
             break;
 
-        case 't': {
-            const string error = ProcessId(optarg, target_id, target_lun);
-            if (!error.empty()) {
+        case 'S':
+        	scan_bus = true;
+        	break;
+
+        case 't':
+            if (const string error = ProcessId(optarg, target_id, target_lun); !error.empty()) {
                 throw parser_exception(error);
             }
-        } break;
+            break;
 
         case 'v':
             set_level(level::debug);
@@ -138,32 +149,44 @@ void ScsiDump::ParseArguments(span<char *> args)
         }
     }
 
+    if (!scan_bus && !inquiry && filename.empty()) {
+        throw parser_exception("Missing filename");
+    }
+
+    if (!scan_bus && !inquiry && target_id == -1) {
+    	throw parser_exception("Missing target ID");
+    }
+
     if (target_id == initiator_id) {
         throw parser_exception("Target ID and PiSCSI board ID must not be identical");
     }
 
-    if (filename.empty()) {
-        throw parser_exception("Missing filename");
+    if (target_lun == -1) {
+    	target_lun = 0;
+    }
+
+    if (scan_bus) {
+    	inquiry = false;
     }
 
     buffer = vector<uint8_t>(buffer_size);
 }
 
-void ScsiDump::WaitPhase(phase_t phase) const
+void ScsiDump::WaitForPhase(phase_t phase) const
 {
     spdlog::debug(string("Waiting for ") + BUS::GetPhaseStrRaw(phase) + " phase");
 
     // Timeout (3000ms)
     const uint32_t now = SysTimer::GetTimerLow();
-    while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
+    while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
         bus->Acquire();
         if (bus->GetREQ() && bus->GetPhase() == phase) {
             return;
         }
     }
 
-    throw parser_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is " +
-                           string(BUS::GetPhaseStrRaw(bus->GetPhase())));
+    throw phase_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is " +
+    		string(BUS::GetPhaseStrRaw(bus->GetPhase())));
 }
 
 void ScsiDump::Selection() const
@@ -186,7 +209,7 @@ void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 
     Selection();
 
-    WaitPhase(phase_t::command);
+    WaitForPhase(phase_t::command);
 
     cdb[0] = static_cast<uint8_t>(cmd);
     cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
@@ -194,43 +217,43 @@ void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
         bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
         BusFree();
 
-        throw parser_exception(command_mapping.find(cmd)->second.second + string(" failed"));
+        throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
     }
 }
 
 void ScsiDump::DataIn(int length)
 {
-    WaitPhase(phase_t::datain);
+    WaitForPhase(phase_t::datain);
 
     if (!bus->ReceiveHandShake(buffer.data(), length)) {
-        throw parser_exception("DATA IN failed");
+        throw phase_exception("DATA IN failed");
     }
 }
 
 void ScsiDump::DataOut(int length)
 {
-    WaitPhase(phase_t::dataout);
+    WaitForPhase(phase_t::dataout);
 
     if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
-        throw parser_exception("DATA OUT failed");
+        throw phase_exception("DATA OUT failed");
     }
 }
 
 void ScsiDump::Status() const
 {
-    WaitPhase(phase_t::status);
+    WaitForPhase(phase_t::status);
 
     if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-        throw parser_exception("STATUS failed");
+        throw phase_exception("STATUS failed");
     }
 }
 
 void ScsiDump::MessageIn() const
 {
-    WaitPhase(phase_t::msgin);
+    WaitForPhase(phase_t::msgin);
 
     if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-        throw parser_exception("MESSAGE IN failed");
+        throw phase_exception("MESSAGE IN failed");
     }
 }
 
@@ -385,7 +408,7 @@ void ScsiDump::WaitForBusy() const
 
     // Success if the target is busy
     if (!bus->GetBSY()) {
-        throw parser_exception("SELECTION failed");
+    	throw phase_exception("SELECTION failed");
     }
 }
 
@@ -395,28 +418,49 @@ int ScsiDump::run(span<char *> args)
         return EXIT_SUCCESS;
     }
 
-    if (!Init()) {
-        cerr << "Error: Initializing. Are you root?" << endl;
+    try {
+        ParseArguments(args);
+    }
+    catch (const parser_exception& e) {
+        cerr << "Error: " << e.what() << endl;
+        return EXIT_FAILURE;
+    }
 
-        // Probably not root
-        return EPERM;
+    if (getuid()) {
+    	cerr << "Error: GPIO bus access requires root permissions. Are you running as root?" << endl;
+        return EXIT_FAILURE;
+    }
+
+#ifndef USE_SEL_EVENT_ENABLE
+    cerr << "Error: No PiSCSI hardware support" << endl;
+    return EXIT_FAILURE;
+#endif
+
+    if (!Init()) {
+		cerr << "Error: Can't initialize bus" << endl;
+        return EXIT_FAILURE;
     }
 
     try {
-        ParseArguments(args);
+    	if (scan_bus) {
+    		ScanBus();
+    	}
+    	else if (inquiry) {
+    		DisplayBoardId();
 
-#ifndef USE_SEL_EVENT_ENABLE
-        cerr << "Error: No PiSCSI hardware support" << endl;
-        return EXIT_FAILURE;
-#endif
+    		inquiry_info_t inq_info;
+    		DisplayInquiry(inq_info, false);
+    	}
+    	else {
+    		DumpRestore();
+    	}
+    }
+    catch (const phase_exception& e) {
+    	cerr << "Error: " << e.what() << endl;
 
-        return DumpRestore();
-    } catch (const parser_exception& e) {
-        cerr << "Error: " << e.what() << endl;
+    	CleanUp();
 
-        CleanUp();
-
-        return EXIT_FAILURE;
+    	return EXIT_FAILURE;
     }
 
     CleanUp();
@@ -424,9 +468,92 @@ int ScsiDump::run(span<char *> args)
     return EXIT_SUCCESS;
 }
 
+void ScsiDump::DisplayBoardId() const
+{
+    cout << DIVIDER << "\nPiSCSI board ID is " << initiator_id << "\n";
+}
+
+void ScsiDump::ScanBus()
+{
+    DisplayBoardId();
+
+	for (target_id = 0; target_id < ControllerManager::GetScsiIdMax(); target_id++) {
+		if (initiator_id == target_id) {
+			continue;
+		}
+
+		for (target_lun = 0; target_lun < 8; target_lun++) {
+			inquiry_info_t inq_info;
+			try {
+				DisplayInquiry(inq_info, false);
+			}
+			catch(const phase_exception&) {
+				// Continue with next ID if there is no LUN 0
+				if (!target_lun) {
+					break;
+				}
+			}
+		}
+	}
+}
+
+bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool check_type)
+{
+    // Assert RST for 1 ms
+    bus->SetRST(true);
+    const timespec ts = {.tv_sec = 0, .tv_nsec = 1000 * 1000};
+    nanosleep(&ts, nullptr);
+    bus->SetRST(false);
+
+    cout << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
+
+    Inquiry();
+
+    const auto type = static_cast<byte>(buffer[0]);
+    if ((type & byte{0x1f}) == byte{0x1f}) {
+    	// Requested LUN is not available
+    	return false;
+    }
+
+    array<char, 17> str = {};
+    memcpy(str.data(), &buffer[8], 8);
+    inq_info.vendor = string(str.data());
+    cout << "Vendor:      " << inq_info.vendor << "\n";
+
+    str.fill(0);
+    memcpy(str.data(), &buffer[16], 16);
+    inq_info.product = string(str.data());
+    cout << "Product:     " << inq_info.product << "\n";
+
+    str.fill(0);
+    memcpy(str.data(), &buffer[32], 4);
+    inq_info.revision = string(str.data());
+    cout << "Revision:    " << inq_info.revision << "\n" << flush;
+
+    if (const auto& t = DEVICE_TYPES.find(type & byte{0x1f}); t != DEVICE_TYPES.end()) {
+    	cout << "Device Type: " << (*t).second << "\n";
+    }
+    else {
+    	cout << "Device Type: Unknown\n";
+    }
+
+    cout << "Removable:   " << (((static_cast<byte>(buffer[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
+
+    if (check_type && type != static_cast<byte>(device_type::direct_access) &&
+    		type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
+    	cerr << "Invalid device type, supported types for dump/restore are DIRECT ACCESS, CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
+    	return false;
+    }
+
+    return true;
+}
+
 int ScsiDump::DumpRestore()
 {
-    const auto inq_info = GetDeviceInfo();
+	inquiry_info_t inq_info;
+    if (!GetDeviceInfo(inq_info)) {
+    	return EXIT_FAILURE;
+    }
 
     fstream fs;
     fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
@@ -507,58 +634,28 @@ int ScsiDump::DumpRestore()
 
     const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
-    cout << divider_str << "\n";
+    cout << DIVIDER << "\n";
     cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
          << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
     cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
     cout << "Averate transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
          << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
          << " KiB per second)\n";
-    cout << divider_str << "\n";
+    cout << DIVIDER << "\n";
 
     if (properties_file && !restore) {
-        GeneratePropertiesFile(filename, inq_info);
+        inq_info.GeneratePropertiesFile(filename + ".properties");
     }
 
     return EXIT_SUCCESS;
 }
 
-ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
+bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
 {
-    // Assert RST for 1 ms
-    bus->SetRST(true);
-    const timespec ts = {.tv_sec = 0, .tv_nsec = 1000 * 1000};
-    nanosleep(&ts, nullptr);
-    bus->SetRST(false);
+    DisplayBoardId();
 
-    cout << divider_str << "\n";
-    cout << "PiSCSI board ID: " << initiator_id << "\n";
-    cout << divider_str << "\n" << flush;
-    cout << "Target device ID: " << target_id << ", LUN: " << target_lun << "\n";
-
-    Inquiry();
-
-    inquiry_info_t inq_info;
-
-    // Display INQUIRY information
-    array<char, 17> str = {};
-    memcpy(str.data(), &buffer[8], 8);
-    cout << "Vendor:       " << str.data() << "\n";
-    inq_info.vendor = string(str.data());
-
-    str.fill(0);
-    memcpy(str.data(), &buffer[16], 16);
-    cout << "Product:      " << str.data() << "\n";
-    inq_info.product = string(str.data());
-
-    str.fill(0);
-    memcpy(str.data(), &buffer[32], 4);
-    cout << "Revision:     " << str.data() << "\n" << flush;
-    inq_info.revision = string(str.data());
-
-    if (const auto type = static_cast<device_type>(buffer[0]);
-        type != device_type::direct_access && type != device_type::cd_rom && type != device_type::optical_memory) {
-        throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
+    if (!DisplayInquiry(inq_info, true)) {
+    	return false;
     }
 
     TestUnitReady();
@@ -569,35 +666,28 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     inq_info.capacity = capacity;
     inq_info.sector_size = sector_size;
 
-    cout << "Sectors:      " << capacity << "\n"
-         << "Sector size:  " << sector_size << " bytes\n"
-         << "Capacity:     " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
+    cout << "Sectors:     " << capacity << "\n"
+         << "Sector size: " << sector_size << " bytes\n"
+         << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
          << " bytes)\n"
-         << divider_str << "\n\n"
+         << DIVIDER << "\n\n"
          << flush;
 
-    return inq_info;
+    return true;
 }
 
-void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info_t& inq_info)
+void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file) const
 {
-    const string prop_filename = filename + ".properties";
-    stringstream prop_stream;
+	ofstream prop_stream(property_file);
 
     prop_stream << "{" << endl;
-    prop_stream << "   \"vendor\": \"" << inq_info.vendor << "\"," << endl;
-    prop_stream << "   \"product\": \"" << inq_info.product << "\"," << endl;
-    prop_stream << "   \"revision\": \"" << inq_info.revision << "\"," << endl;
-    prop_stream << "   \"block_size\": \"" << inq_info.sector_size << "\"," << endl;
+    prop_stream << "   \"vendor\": \"" << vendor << "\"," << endl;
+    prop_stream << "   \"product\": \"" << product << "\"," << endl;
+    prop_stream << "   \"revision\": \"" << revision << "\"," << endl;
+    prop_stream << "   \"block_size\": \"" << sector_size << "\"" << endl;
     prop_stream << "}" << endl;
 
-    FILE* fp = fopen(prop_filename.c_str(), "w");
-    if (fp) {
-        fputs(prop_stream.str().c_str(), fp);
-    } else {
-        spdlog::warn("Unable to open output file '" + prop_filename + "'");
-        return;
+    if (prop_stream.fail()) {
+        spdlog::warn("Unable to create properties file '" + property_file + "'");
     }
-
-    fclose(fp);
 }
