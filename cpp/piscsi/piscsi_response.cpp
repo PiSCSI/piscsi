@@ -238,7 +238,7 @@ void PiscsiResponse::GetServerInfo(PbServerInfo& server_info, const PbCommand& c
 	}
 
 	if (!operations.empty()) {
-		spdlog::trace("Requested operations are " + Join(operations, ","));
+		spdlog::trace("Requested operation(s): " + Join(operations, ","));
 	}
 
 	if (HasOperation(operations, PbOperation::VERSION_INFO)) {
