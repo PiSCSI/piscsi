@@ -5,7 +5,6 @@ Module for methods reading from and writing to the file system
 import logging
 import asyncio
 from os import walk, path
-from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
 from subprocess import run, Popen, PIPE, CalledProcessError, TimeoutExpired
@@ -17,18 +16,15 @@ from re import search
 
 import requests
 
-import piscsi_interface_pb2 as proto
 from piscsi.common_settings import (
     CFG_DIR,
     CONFIG_FILE_SUFFIX,
     PROPERTIES_SUFFIX,
-    ARCHIVE_FILE_SUFFIXES,
     RESERVATIONS,
     SHELL_ERROR,
 )
 from piscsi.piscsi_cmds import PiscsiCmds
 from piscsi.return_codes import ReturnCodes
-from piscsi.socket_cmds import SocketCmds
 from util import unarchiver
 
 FILE_READ_ERROR = "Unhandled exception when reading file: %s"
@@ -41,18 +37,8 @@ class FileCmds:
     class for methods reading from and writing to the file system
     """
 
-    def __init__(self, sock_cmd: SocketCmds, piscsi: PiscsiCmds, token=None, locale=None):
-        self.sock_cmd = sock_cmd
+    def __init__(self, piscsi: PiscsiCmds):
         self.piscsi = piscsi
-        self.token = token
-        self.locale = locale
-
-    def send_pb_command(self, command):
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            # TODO: Uncouple/move to common dependency
-            logging.debug(self.piscsi.format_pb_command(command))
-
-        return self.sock_cmd.send_pb_command(command.SerializeToString())
 
     # noinspection PyMethodMayBeStatic
     def list_config_files(self):
@@ -86,76 +72,6 @@ class FileCmds:
 
         subdir_list.sort()
         return subdir_list
-
-    def list_images(self):
-        """
-        Sends a IMAGE_FILES_INFO command to the server
-        Returns a (dict) with (bool) status, (str) msg, and (list) of (dict)s files
-
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
-        command.params["token"] = self.token
-        command.params["locale"] = self.locale
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-
-        server_info = self.piscsi.get_server_info()
-        files = []
-        for file in result.image_files_info.image_files:
-            prop_file_path = Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
-            # Add properties meta data for the image, if matching prop file is found
-            if prop_file_path.exists():
-                process = self.read_drive_properties(prop_file_path)
-                prop = process["conf"]
-            else:
-                prop = False
-
-            archive_contents = []
-            if PurePath(file.name).suffix.lower()[1:] in ARCHIVE_FILE_SUFFIXES:
-                try:
-                    archive_info = self._get_archive_info(
-                        f"{server_info['image_dir']}/{file.name}",
-                        _cache_extra_key=file.size,
-                    )
-
-                    properties_files = [
-                        x["path"]
-                        for x in archive_info["members"]
-                        if x["path"].endswith(PROPERTIES_SUFFIX)
-                    ]
-
-                    for member in archive_info["members"]:
-                        if member["is_dir"] or member["is_resource_fork"]:
-                            continue
-
-                        if PurePath(member["path"]).suffix.lower()[1:] == PROPERTIES_SUFFIX:
-                            member["is_properties_file"] = True
-                        elif f"{member['path']}.{PROPERTIES_SUFFIX}" in properties_files:
-                            member[
-                                "related_properties_file"
-                            ] = f"{member['path']}.{PROPERTIES_SUFFIX}"
-
-                        archive_contents.append(member)
-                except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):
-                    pass
-
-            size_mb = "{:,.1f}".format(file.size / 1024 / 1024)
-            dtype = proto.PbDeviceType.Name(file.type)
-            files.append(
-                {
-                    "name": file.name,
-                    "size": file.size,
-                    "size_mb": size_mb,
-                    "detected_type": dtype,
-                    "prop": prop,
-                    "archive_contents": archive_contents,
-                }
-            )
-
-        return {"status": result.status, "msg": result.msg, "files": files}
 
     # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
@@ -892,15 +808,3 @@ class FileCmds:
             logging.info("stderr: %s", stderr)
 
         return {"returncode": proc.returncode, "stdout": stdout, "stderr": stderr}
-
-    # noinspection PyMethodMayBeStatic
-    @lru_cache(maxsize=32)
-    def _get_archive_info(self, file_path, **kwargs):
-        """
-        Cached wrapper method to improve performance, e.g. on index screen
-        """
-        try:
-            return unarchiver.inspect_archive(file_path)
-        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError) as error:
-            logging.error(str(error))
-            raise
