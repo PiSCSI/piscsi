@@ -10,7 +10,6 @@
 #pragma once
 
 #include "controllers/controller_manager.h"
-#include "controllers/abstract_controller.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
 #include "piscsi/piscsi_image.h"
@@ -20,7 +19,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <span>
 #include <string>
-#include <atomic>
+#include <mutex>
 
 using namespace std;
 
@@ -49,9 +48,12 @@ private:
 	void Process();
 	bool IsNotBusy() const;
 
-	void ShutDown(AbstractController::piscsi_shutdown_mode);
+	bool ShutDown(AbstractController::piscsi_shutdown_mode);
+	bool ShutDown(const CommandContext&, const string&);
 
-	bool ExecuteCommand(CommandContext&);
+	bool ExecuteCommand(const CommandContext&);
+	bool ExecuteWithLock(const CommandContext&);
+	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
 
 	bool SetLogLevel(const string&) const;
 
@@ -59,8 +61,7 @@ private:
 
 	static PbDeviceType ParseDeviceType(const string&);
 
-	// Processing flag
-	atomic_bool target_is_active;
+	mutex execution_locker;
 
 	string access_token;
 

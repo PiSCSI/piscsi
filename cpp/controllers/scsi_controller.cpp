@@ -411,8 +411,8 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 
 	if (sense_key != sense_key::no_sense || asc != asc::no_additional_sense_information) {
 		stringstream s;
-		s << setfill('0') << setw(2) << hex << "Error status: Sense Key $" << static_cast<int>(sense_key)
-				<< ", ASC $" << static_cast<int>(asc);
+		s << setfill('0') << hex << "Error status: Sense Key $" << setw(2) << static_cast<int>(sense_key)
+				<< ", ASC $" << setw(2) << static_cast<int>(asc);
 		LogDebug(s.str());
 
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
@@ -421,8 +421,6 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 
 	SetStatus(status);
 	SetMessage(0x00);
-
-	LogTrace("Error (to status phase)");
 
 	Status();
 }
@@ -478,24 +476,19 @@ void ScsiController::Send()
 		case phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
-				// flag off
 				scsi.atnmsg = false;
 
-				// command phase
 				Command();
 			} else {
-				// Bus free phase
 				BusFree();
 			}
 			break;
 
 		case phase_t::datain:
-			// status phase
 			Status();
 			break;
 
 		case phase_t::status:
-			// Message in phase
 			SetLength(1);
 			SetBlocks(1);
 			GetBuffer()[0] = (uint8_t)GetMessage();

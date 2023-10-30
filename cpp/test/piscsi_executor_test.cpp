@@ -15,7 +15,6 @@
 #include "generated/piscsi_interface.pb.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_response.h"
-#include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_executor.h"
 #include <filesystem>
 
@@ -31,8 +30,7 @@ TEST(PiscsiExecutorTest, ProcessDeviceCmd)
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
 	MockAbstractController controller(bus, ID);
-	PiscsiImage piscsi_image;
-	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *bus, controller_manager);
+	auto executor = make_shared<MockPiscsiExecutor>(*bus, controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
 	CommandContext context(command, "", "");
@@ -115,8 +113,7 @@ TEST(PiscsiExecutorTest, ProcessCmd)
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
 	MockAbstractController controller(bus, 0);
-	PiscsiImage piscsi_image;
-	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *bus, controller_manager);
+	auto executor = make_shared<MockPiscsiExecutor>(*bus, controller_manager);
 
 	PbCommand command_detach_all;
 	command_detach_all.set_operation(DETACH_ALL);
@@ -167,35 +164,6 @@ TEST(PiscsiExecutorTest, ProcessCmd)
 	device2->set_unit(1);
 	CommandContext context_attach2(command_attach2, "", "");
 	EXPECT_FALSE(executor->ProcessCmd(context_attach2)) << "LUN 0 is missing";
-
-	// The operations below must fail because of missing parameters.
-	// The respective functionality is tested in piscsi_image_test.cpp.
-
-	PbCommand command;
-
-	command.set_operation(CREATE_IMAGE);
-	CommandContext context_create_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessCmd(context_create_image));
-
-	command.set_operation(DELETE_IMAGE);
-	CommandContext context_delete_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessCmd(context_delete_image));
-
-	command.set_operation(RENAME_IMAGE);
-	CommandContext context_rename_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessCmd(context_rename_image));
-
-	command.set_operation(COPY_IMAGE);
-	CommandContext context_copy_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessCmd(context_copy_image));
-
-	command.set_operation(PROTECT_IMAGE);
-	CommandContext context_protect_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessCmd(context_protect_image));
-
-	command.set_operation(UNPROTECT_IMAGE);
-	CommandContext context_unprotect_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessCmd(context_unprotect_image));
 }
 
 TEST(PiscsiExecutorTest, Attach)
@@ -206,8 +174,7 @@ TEST(PiscsiExecutorTest, Attach)
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
 	CommandContext context(command, "", "");
@@ -290,8 +257,7 @@ TEST(PiscsiExecutorTest, Insert)
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
 	auto [controller, device] = CreateDevice(SCHD);
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
 	CommandContext context(command, "", "");
@@ -348,8 +314,7 @@ TEST(PiscsiExecutorTest, Detach)
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 
@@ -375,8 +340,7 @@ TEST(PiscsiExecutorTest, DetachAll)
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 
 	auto device = device_factory.CreateDevice(SCHS, 0, "");
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
@@ -388,31 +352,12 @@ TEST(PiscsiExecutorTest, DetachAll)
 	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
 }
 
-TEST(PiscsiExecutorTest, ShutDown)
-{
-	auto bus = make_shared<MockBus>();
-	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
-
-	PbCommand command;
-	command.set_operation(SHUT_DOWN);
-	CommandContext context(command, "", "");
-	EXPECT_FALSE(executor.ShutDown(context, ""));
-	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
-
-	EXPECT_FALSE(executor.ShutDown(context, "system")) << "Only available for the root user";
-	EXPECT_FALSE(executor.ShutDown(context, "reboot")) << "Only available for the root user";
-	EXPECT_TRUE(executor.ShutDown(context, "rascsi"));
-}
-
 TEST(PiscsiExecutorTest, SetReservedIds)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 
 	string error = executor.SetReservedIds("xyz");
 	EXPECT_FALSE(error.empty());
@@ -451,8 +396,7 @@ TEST(PiscsiExecutorTest, ValidateImageFile)
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 
@@ -466,8 +410,7 @@ TEST(PiscsiExecutorTest, PrintCommand)
 {
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbDeviceDefinition definition;
 
 	PbCommand command;
@@ -493,8 +436,7 @@ TEST(PiscsiExecutorTest, EnsureLun0)
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 
 	auto device1 = command.add_devices();
@@ -521,8 +463,7 @@ TEST(PiscsiExecutorTest, VerifyExistingIdAndLun)
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 
@@ -537,8 +478,7 @@ TEST(PiscsiExecutorTest, CreateDevice)
 {
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 
@@ -555,8 +495,7 @@ TEST(PiscsiExecutorTest, SetSectorSize)
 {
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 
@@ -575,8 +514,7 @@ TEST(PiscsiExecutorTest, ValidateOperationAgainstDevice)
 {
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 
@@ -629,8 +567,7 @@ TEST(PiscsiExecutorTest, ValidateIdAndLun)
 {
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 
@@ -646,8 +583,7 @@ TEST(PiscsiExecutorTest, SetProductData)
 {
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *bus, controller_manager);
+	PiscsiExecutor executor(*bus, controller_manager);
 	PbCommand command;
 	CommandContext context(command, "", "");
 	PbDeviceDefinition definition;

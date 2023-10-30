@@ -11,7 +11,6 @@
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>

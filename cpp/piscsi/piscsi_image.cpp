@@ -276,6 +276,10 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 
 	const bool protect = context.GetCommand().operation() == PROTECT_IMAGE;
 
+	if (protect && !IsReservedFile(context, full_filename, "protect")) {
+		return false;
+	}
+
 	try {
 		permissions(path(full_filename), protect ?
 				perms::owner_read | perms::group_read | perms::others_read :

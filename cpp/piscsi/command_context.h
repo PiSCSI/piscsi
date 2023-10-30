@@ -29,7 +29,7 @@ public:
 	void SetDefaultFolder(string_view f) { default_folder = f; }
 	bool ReadCommand();
 	void WriteResult(const PbResult&) const;
-	void WriteSuccessResult(PbResult&) const;
+	bool WriteSuccessResult(PbResult&) const;
 	const PbCommand& GetCommand() const { return command; }
 
 	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;

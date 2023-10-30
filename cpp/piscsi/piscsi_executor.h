@@ -11,24 +11,21 @@
 
 #include "hal/bus.h"
 #include "controllers/controller_manager.h"
-#include "piscsi/piscsi_response.h"
 #include <unordered_set>
 
-class PiscsiImage;
 class DeviceFactory;
 class PrimaryDevice;
 class StorageDevice;
 class CommandContext;
 
-using namespace spdlog;
-
 class PiscsiExecutor
 {
 public:
 
-	PiscsiExecutor(PiscsiImage& piscsi_image, BUS& bus, ControllerManager& controller_manager)
-		: piscsi_image(piscsi_image), bus(bus), controller_manager(controller_manager) {}
+	PiscsiExecutor(BUS& bus, ControllerManager& controller_manager) : bus(bus), controller_manager(controller_manager) {}
 	~PiscsiExecutor() = default;
+
+	// TODO At least some of these methods should be private, currently they are directly called by the unit tests
 
 	auto GetReservedIds() const { return reserved_ids; }
 
@@ -43,7 +40,6 @@ public:
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, const shared_ptr<PrimaryDevice>&, bool) const;
 	bool Detach(const CommandContext&, PrimaryDevice&, bool);
 	void DetachAll();
-	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
 	bool ValidateImageFile(const CommandContext&, StorageDevice&, const string&) const;
 	string PrintCommand(const PbCommand&, const PbDeviceDefinition&) const;
@@ -59,10 +55,6 @@ public:
 private:
 
 	static bool CheckForReservedFile(const CommandContext&, const string&);
-
-	const PiscsiResponse piscsi_response;
-
-	PiscsiImage& piscsi_image;
 
 	BUS& bus;
 
