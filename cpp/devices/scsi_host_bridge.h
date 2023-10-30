@@ -38,6 +38,8 @@ public:
 	bool Init(const param_map&) override;
 	void CleanUp() override;
 
+	param_map GetDefaultParams() const override { return tap.GetDefaultParams(); }
+
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
 	int GetMessage10(cdb_t, vector<uint8_t>&);
@@ -55,7 +57,7 @@ private:
 	void SendPacket(span<const uint8_t>, int) const;	// Send a packet
 
 	CTapDriver tap;								// TAP driver
-	bool m_bTapEnable = false;					// TAP valid flag
+	bool tap_enabled = false;					// TAP valid flag
 	array<uint8_t, 6> mac_addr = {};			// MAC Address
 	int packet_len = 0;							// Receive packet size
 	array<uint8_t, 0x1000> packet_buf;			// Receive packet buffer

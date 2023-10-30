@@ -42,14 +42,14 @@ bool SCSIBR::Init(const param_map& params)
 	AddCommand(scsi_command::eCmdSendMessage10, [this] { SendMessage10(); });
 
 #ifdef __linux__
-	m_bTapEnable = tap.Init(GetParams());
-	if (!m_bTapEnable){
+	tap_enabled = tap.Init(GetParams());
+	if (!tap_enabled){
 		return false;
 	}
 #endif
 
 	// Generate MAC Address
-	if (m_bTapEnable) {
+	if (tap_enabled) {
 		tap.GetMacAddr(mac_addr.data());
 		mac_addr[5]++;
 	}
@@ -57,13 +57,13 @@ bool SCSIBR::Init(const param_map& params)
 	// Packet reception flag OFF
 	packet_enable = false;
 
-	SetReady(m_bTapEnable);
+	SetReady(tap_enabled);
 
 // Not terminating on regular Linux PCs is helpful for testing
 #if defined(__x86_64__) || defined(__X86__)
 	return true;
 #else
-	return m_bTapEnable;
+	return tap_enabled;
 #endif
 }
 
@@ -85,7 +85,7 @@ vector<uint8_t> SCSIBR::InquiryInternal() const
 	buf[36] = '0';
 
 	// TAP Enable
-	if (m_bTapEnable) {
+	if (tap_enabled) {
 		buf[37] = '1';
 	}
 
@@ -115,7 +115,7 @@ int SCSIBR::GetMessage10(cdb_t cdb, vector<uint8_t>& buf)
 	switch (type) {
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
-			if (!m_bTapEnable) {
+			if (!tap_enabled) {
 				return 0;
 			}
 
@@ -206,7 +206,7 @@ bool SCSIBR::ReadWrite(cdb_t cdb, vector<uint8_t>& buf)
 	switch (type) {
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
-			if (!m_bTapEnable) {
+			if (!tap_enabled) {
 				return false;
 			}
 

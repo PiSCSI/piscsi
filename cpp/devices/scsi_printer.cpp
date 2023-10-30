@@ -73,6 +73,27 @@ bool SCSIPrinter::Init(const param_map& params)
 	return true;
 }
 
+void SCSIPrinter::CleanUp()
+{
+	PrimaryDevice::CleanUp();
+
+	if (out.is_open()) {
+		out.close();
+
+		error_code error;
+		remove(path(filename), error);
+
+		filename = "";
+	}
+}
+
+param_map SCSIPrinter::GetDefaultParams() const
+{
+	return {
+		{ "cmd", "lp -oraw %f" }
+	};
+}
+
 void SCSIPrinter::TestUnitReady()
 {
 	// The printer is always ready
@@ -181,20 +202,6 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 	}
 
 	return !status;
-}
-
-void SCSIPrinter::CleanUp()
-{
-	PrimaryDevice::CleanUp();
-
-	if (out.is_open()) {
-		out.close();
-
-		error_code error;
-		remove(path(filename), error);
-
-		filename = "";
-	}
 }
 
 vector<PbStatistics> SCSIPrinter::GetStatistics() const

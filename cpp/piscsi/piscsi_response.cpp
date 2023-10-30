@@ -35,9 +35,11 @@ void PiscsiResponse::GetDeviceProperties(const Device& device, PbDevicePropertie
 	properties.set_supports_file(device.SupportsFile());
 	properties.set_supports_params(device.SupportsParams());
 
-	for (const auto& [key, value] : device_factory.GetDefaultParams(device.GetType())) {
-		auto& map = *properties.mutable_default_params();
-		map[key] = value;
+	if (device.SupportsParams()) {
+		for (const auto& [key, value] : device.GetDefaultParams()) {
+			auto& map = *properties.mutable_default_params();
+			map[key] = value;
+		}
 	}
 
 	for (const auto& block_size : device_factory.GetSectorSizes(device.GetType())) {

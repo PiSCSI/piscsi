@@ -58,6 +58,8 @@ public:
 	bool Init(const param_map&) override;
 	void CleanUp() override;
 
+	param_map GetDefaultParams() const override { return tap.GetDefaultParams(); }
+
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
 	int Read(cdb_t, vector<uint8_t>&, uint64_t);
@@ -124,8 +126,7 @@ private:
 		.frames_lost = 0,
 	};
 
-	CTapDriver m_tap;
+	CTapDriver tap;
 
-	// TAP valid flag
-	bool m_bTapEnable = false;
+	bool tap_enabled = false;
 };

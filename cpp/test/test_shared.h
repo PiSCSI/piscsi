@@ -35,8 +35,6 @@ path CreateTempFileWithData(span<const byte>);
 void CreateTempFileWithData(const string&, vector<uint8_t>&);
 
 void DeleteTempFile(const string&);
-// Call this at the end of every test case to make sure things are cleaned up
-void CleanUpAllTempFiles();
 
 string ReadTempFileToString(const string& filename);
 

@@ -31,6 +31,8 @@ class CTapDriver
 {
 	static const string BRIDGE_NAME;
 
+	const inline static string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hardcoded IP address is safe
+
 public:
 
 	CTapDriver() = default;
@@ -40,6 +42,8 @@ public:
 
 	bool Init(const param_map&);
 	void CleanUp() const;
+
+	param_map GetDefaultParams() const;
 
 	void GetMacAddr(uint8_t *) const;
 	int Receive(uint8_t *) const;
