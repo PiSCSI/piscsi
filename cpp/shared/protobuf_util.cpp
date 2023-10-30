@@ -44,6 +44,11 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 
 void protobuf_util::SetCommandParams(PbCommand& command, const string& params)
 {
+	if (params.find(KEY_VALUE_SEPARATOR) != string::npos) {
+		SetFromGenericParams(command, params);
+		return;
+	}
+
 	string folder_pattern;
 	string file_pattern;
 	string operations;
@@ -69,6 +74,19 @@ void protobuf_util::SetCommandParams(PbCommand& command, const string& params)
 	SetParam(command, "folder_pattern", folder_pattern);
 	SetParam(command, "file_pattern", file_pattern);
 	SetParam(command, "operations", operations);
+}
+
+void protobuf_util::SetFromGenericParams(PbCommand& command, const string& params)
+{
+	for (const string& key_value : Split(params, COMPONENT_SEPARATOR)) {
+		const auto& param = Split(key_value, KEY_VALUE_SEPARATOR, 2);
+		if (param.size() > 1 && !param[0].empty()) {
+			SetParam(command, param[0], param[1]);
+		}
+		else {
+			throw parser_exception("Parameter '" + key_value + "' has to be a key/value pair");
+		}
+	}
 }
 
 void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& data)
