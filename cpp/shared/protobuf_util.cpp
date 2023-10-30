@@ -42,8 +42,12 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	}
 }
 
-void protobuf_util::SetCommandParams(PbCommand& command, const string& params)
+string protobuf_util::SetCommandParams(PbCommand& command, const string& params)
 {
+	if (params.find(KEY_VALUE_SEPARATOR) != string::npos) {
+		return SetFromGenericParams(command, params);
+	}
+
 	string folder_pattern;
 	string file_pattern;
 	string operations;
@@ -69,6 +73,8 @@ void protobuf_util::SetCommandParams(PbCommand& command, const string& params)
 	SetParam(command, "folder_pattern", folder_pattern);
 	SetParam(command, "file_pattern", file_pattern);
 	SetParam(command, "operations", operations);
+
+	return "";
 }
 
 string protobuf_util::SetFromGenericParams(PbCommand& command, const string& params)
