@@ -64,7 +64,7 @@ class FileCmds:
         excluded_dirs = ("Network Trash Folder", "Temporary Items", "TheVolumeSettingsFolder")
         for root, dirs, _files in walk(directory, topdown=True):
             # Strip out dirs that begin with .
-            dirs[:] = [d for d in dirs if not d[0] == "."]
+            dirs[:] = [d for d in dirs if d[0] != "."]
             for dir in dirs:
                 if dir not in excluded_dirs:
                     dirpath = path.join(root, dir)
