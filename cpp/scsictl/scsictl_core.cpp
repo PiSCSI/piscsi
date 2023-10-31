@@ -207,8 +207,11 @@ int ScsiCtl::run(const vector<char *>& args) const
 
 			case 's':
 				command.set_operation(SERVER_INFO);
-                if (optarg) {
-                	SetCommandParams(command, optarg);
+				if (optarg) {
+					if (const string error = SetCommandParams(command, optarg); !error.empty()) {
+						cerr << "Error: " << error << endl;
+						exit(EXIT_FAILURE);
+					}
                 }
                 break;
 

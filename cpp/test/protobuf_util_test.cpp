@@ -87,6 +87,20 @@ TEST(ProtobufUtil, SetCommandParams)
 	EXPECT_EQ("operations", GetParam(command6, "operations"));
 }
 
+TEST(ProtobufUtil, SetFromGenericParams)
+{
+	PbCommand command1;
+	EXPECT_TRUE(SetFromGenericParams(command1, "operations=mapping_info:folder_pattern=pattern").empty());
+	EXPECT_EQ("mapping_info", GetParam(command1, "operations"));
+	EXPECT_EQ("pattern", GetParam(command1, "folder_pattern"));
+
+	PbCommand command2;
+	EXPECT_FALSE(SetFromGenericParams(command2, "=mapping_info").empty());
+
+	PbCommand command3;
+	EXPECT_FALSE(SetFromGenericParams(command3, "=").empty());
+}
+
 TEST(ProtobufUtil, ListDevices)
 {
 	vector<PbDevice> devices;
