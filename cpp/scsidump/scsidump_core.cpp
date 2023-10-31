@@ -153,7 +153,7 @@ void ScsiDump::ParseArguments(span<char *> args)
         throw parser_exception("Missing filename");
     }
 
-    if (!scan_bus && !inquiry && target_id == -1) {
+    if (!scan_bus && target_id == -1) {
     	throw parser_exception("Missing target ID");
     }
 
