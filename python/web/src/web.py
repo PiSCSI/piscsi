@@ -8,11 +8,13 @@ import argparse
 from pathlib import Path, PurePath
 from functools import wraps
 from grp import getgrall
-
+from os import path
 import bjoern
+
 from piscsi.return_codes import ReturnCodes
 from simplepam import authenticate
 from flask_babel import Babel, Locale, refresh, _
+from werkzeug.utils import secure_filename
 
 from flask import (
     Flask,
@@ -55,7 +57,6 @@ from web_utils import (
     auth_active,
     is_bridge_configured,
     is_safe_path,
-    upload_with_dropzonejs,
     browser_supports_modern_themes,
 )
 from settings import (
@@ -225,9 +226,8 @@ def index():
 
     devices = piscsi_cmd.list_devices()
     device_types = map_device_types_and_names(piscsi_cmd.get_device_types()["device_types"])
-    image_files = file_cmd.list_images()
+    image_files = piscsi_cmd.list_images()
     config_files = file_cmd.list_config_files()
-    ip_addr, host = sys_cmd.get_ip_and_host()
     formatted_image_files = format_image_list(
         image_files["files"], Path(server_info["image_dir"]).name, device_types
     )
@@ -315,7 +315,7 @@ def drive_list():
     return response(
         template="drives.html",
         page_title=_("PiSCSI Create Drive"),
-        files=file_cmd.list_images()["files"],
+        files=piscsi_cmd.list_images()["files"],
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
     )
 
@@ -1035,7 +1035,41 @@ def upload_file():
     else:
         return make_response(_("Unknown destination"), 403)
 
-    return upload_with_dropzonejs(destination_dir)
+    log = logging.getLogger("pydrop")
+    file_object = request.files["file"]
+    file_name = secure_filename(file_object.filename)
+    tmp_file_name = "__tmp_" + file_name
+
+    save_path = path.join(destination_dir, file_name)
+    tmp_save_path = path.join(destination_dir, tmp_file_name)
+    current_chunk = int(request.form["dzchunkindex"])
+
+    # Makes sure not to overwrite an existing file,
+    # but continues writing to a file transfer in progress
+    if path.exists(save_path) and current_chunk == 0:
+        return make_response(_("The file already exists!"), 400)
+
+    try:
+        with open(tmp_save_path, "ab") as save:
+            save.seek(int(request.form["dzchunkbyteoffset"]))
+            save.write(file_object.stream.read())
+    except OSError:
+        log.exception("Could not write to file")
+        return make_response(_("Unable to write the file to disk!"), 500)
+
+    total_chunks = int(request.form["dztotalchunkcount"])
+
+    if current_chunk + 1 == total_chunks:
+        # Validate the resulting file size after writing the last chunk
+        if path.getsize(tmp_save_path) != int(request.form["dztotalfilesize"]):
+            log.error("File size mismatch between the original file and transferred file.")
+            return make_response(_("Transferred file corrupted!"), 500)
+
+        process = file_cmd.rename_file(Path(tmp_save_path), Path(save_path))
+        if not process["status"]:
+            return make_response(_("Unable to rename temporary file!"), 500)
+
+    return make_response(_("File upload successful!"), 200)
 
 
 @APP.route("/files/create", methods=["POST"])
@@ -1487,7 +1521,7 @@ if __name__ == "__main__":
 
     sock_cmd = SocketCmdsFlask(host=arguments.backend_host, port=arguments.backend_port)
     piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
-    file_cmd = FileCmds(sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"])
+    file_cmd = FileCmds(piscsi=piscsi_cmd)
     sys_cmd = SysCmds()
 
     if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:

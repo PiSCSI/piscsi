@@ -4,12 +4,11 @@ Module for PiSCSI Web Interface utility methods
 
 import logging
 from grp import getgrall
-from os import path
 from pathlib import Path
 from ua_parser import user_agent_parser
 from re import findall
 
-from flask import request, make_response, abort
+from flask import request, abort
 from flask_babel import _
 from werkzeug.utils import secure_filename
 
@@ -323,42 +322,6 @@ def is_safe_path(file_name):
         return {"status": False, "msg": error_message}
 
     return {"status": True, "msg": ""}
-
-
-def upload_with_dropzonejs(image_dir):
-    """
-    Takes (str) image_dir which is the path to the image dir to store files.
-    Opens a stream to transfer a file via the embedded dropzonejs library.
-    """
-    log = logging.getLogger("pydrop")
-    file_object = request.files["file"]
-    file_name = secure_filename(file_object.filename)
-
-    save_path = path.join(image_dir, file_name)
-    current_chunk = int(request.form["dzchunkindex"])
-
-    # Makes sure not to overwrite an existing file,
-    # but continues writing to a file transfer in progress
-    if path.exists(save_path) and current_chunk == 0:
-        return make_response(_("The file already exists!"), 400)
-
-    try:
-        with open(save_path, "ab") as save:
-            save.seek(int(request.form["dzchunkbyteoffset"]))
-            save.write(file_object.stream.read())
-    except OSError:
-        log.exception("Could not write to file")
-        return make_response(_("Unable to write the file to disk!"), 500)
-
-    total_chunks = int(request.form["dztotalchunkcount"])
-
-    if current_chunk + 1 == total_chunks:
-        # Validate the resulting file size after writing the last chunk
-        if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error("File size mismatch between the original file and transferred file.")
-            return make_response(_("Transferred file corrupted!"), 500)
-
-    return make_response(_("File upload successful!"), 200)
 
 
 def browser_supports_modern_themes():
