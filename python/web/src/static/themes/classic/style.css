@@ -203,3 +203,7 @@ div.throttle-notice > div a {
 div.throttle-notice > div a:hover {
   text-decoration: underline;
 }
+
+label.hidden {
+  display: none;
+}
