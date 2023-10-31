@@ -486,14 +486,14 @@ class FileCmds:
 
         file_name = PurePath(url).name
         iso_filename = Path(server_info["image_dir"]) / f"{file_name}.iso"
+        tmp_full_path = Path(tmp_dir) / file_name
 
         with TemporaryDirectory() as tmp_dir:
-            req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
+            req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_full_path)
             logging.info("Downloaded %s to %s", file_name, tmp_dir)
             if not req_proc["status"]:
                 return {"status": False, "msg": req_proc["msg"]}
 
-            tmp_full_path = Path(tmp_dir) / file_name
             if is_zipfile(tmp_full_path):
                 if "XtraStuf.mac" in str(ZipFile(str(tmp_full_path)).namelist()):
                     logging.info(
@@ -565,9 +565,9 @@ class FileCmds:
         }
 
     # noinspection PyMethodMayBeStatic
-    def download_to_dir(self, url, save_dir, file_name):
+    def download_to_dir(self, url, target_path):
         """
-        Takes (str) url, (str) save_dir, (str) file_name
+        Takes (str) url, (Path) target_path
         Returns (dict) with (bool) status and (str) msg
         """
         logging.info("Making a request to download %s", url)
@@ -580,7 +580,7 @@ class FileCmds:
             ) as req:
                 req.raise_for_status()
                 try:
-                    with open(f"{save_dir}/{file_name}", "wb") as download:
+                    with open(str(target_path), "wb") as download:
                         for chunk in req.iter_content(chunk_size=8192):
                             download.write(chunk)
                 except FileNotFoundError as error:
@@ -593,7 +593,7 @@ class FileCmds:
         logging.info("Response content-type: %s", req.headers["content-type"])
         logging.info("Response status code: %s", req.status_code)
 
-        parameters = {"file_name": file_name, "save_dir": save_dir}
+        parameters = {"target_path": str(target_path)}
         return {
             "status": True,
             "return_code": ReturnCodes.DOWNLOADTODIR_SUCCESS,

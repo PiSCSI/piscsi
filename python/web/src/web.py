@@ -991,7 +991,7 @@ def download_file():
     else:
         return response(error=True, message=_("Unknown destination"))
 
-    process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
+    process = file_cmd.download_to_dir(url, Path(destination_dir) / Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         return response(message=process["msg"])

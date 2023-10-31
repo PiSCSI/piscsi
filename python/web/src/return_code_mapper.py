@@ -23,7 +23,7 @@ class ReturnCodeMapper:
         ReturnCodes.DOWNLOADFILETOISO_SUCCESS:
             _("Created CD-ROM ISO image with arguments \"%(value)s\""),
         ReturnCodes.DOWNLOADTODIR_SUCCESS:
-            _("%(file_name)s downloaded to %(save_dir)s"),
+            _("Downloaded file to %(target_path)s"),
         ReturnCodes.WRITEFILE_SUCCESS:
             _("File created: %(target_path)s"),
         ReturnCodes.WRITEFILE_COULD_NOT_WRITE:
