@@ -31,6 +31,7 @@ TEST(ScsiControllerTest, Process)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
+	controller.Init();
 
 	controller.SetPhase(phase_t::reserved);
 	ON_CALL(*bus, GetRST).WillByDefault(Return(true));

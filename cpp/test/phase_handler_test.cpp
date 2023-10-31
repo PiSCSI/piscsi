@@ -98,6 +98,7 @@ TEST(PhaseHandlerTest, Phases)
 TEST(PhaseHandlerTest, ProcessPhase)
 {
 	MockPhaseHandler handler;
+	handler.Init();
 
 	handler.SetPhase(phase_t::selection);
 	EXPECT_CALL(handler, Selection);

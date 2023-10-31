@@ -15,7 +15,10 @@ using namespace std;
 
 shared_ptr<ScsiController> ControllerManager::CreateScsiController(BUS& bus, int id) const
 {
-	return make_shared<ScsiController>(bus, id);
+	auto controller = make_shared<ScsiController>(bus, id);
+	controller->Init();
+
+	return controller;
 }
 
 bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryDevice> device)
