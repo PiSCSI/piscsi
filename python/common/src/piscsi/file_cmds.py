@@ -486,9 +486,9 @@ class FileCmds:
 
         file_name = PurePath(url).name
         iso_filename = Path(server_info["image_dir"]) / f"{file_name}.iso"
-        tmp_full_path = Path(tmp_dir) / file_name
 
         with TemporaryDirectory() as tmp_dir:
+            tmp_full_path = Path(tmp_dir) / file_name
             req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_full_path)
             logging.info("Downloaded %s to %s", file_name, tmp_dir)
             if not req_proc["status"]:

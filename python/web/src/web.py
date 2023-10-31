@@ -1454,7 +1454,7 @@ def check_backend_auth():
         abort(
             403,
             "PiSCSI is password protected. "
-            "Start the Web Interface with the --password parameter."
+            "Start the Web Interface with the --password parameter.",
         )
 
 
