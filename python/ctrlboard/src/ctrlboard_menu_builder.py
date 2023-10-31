@@ -8,7 +8,7 @@ from piscsi.piscsi_cmds import PiscsiCmds
 
 
 class CtrlBoardMenuBuilder(MenuBuilder):
-    """Class fgor building the control board UI specific menus"""
+    """Class for building the control board UI specific menus"""
 
     SCSI_ID_MENU = "scsi_id_menu"
     ACTION_MENU = "action_menu"
@@ -48,7 +48,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             return self.create_device_info_menu(context_object)
 
         log = logging.getLogger(__name__)
-        log.warning("Provided menu name [%s] cannot be built!", name)
+        log.error("Provided menu name cannot be built!")
 
         return self.create_scsi_id_list_menu(context_object)
 
