@@ -638,7 +638,7 @@ int ScsiDump::DumpRestore()
     cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
          << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
     cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
-    cout << "Averate transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
+    cout << "Average transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
          << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
          << " KiB per second)\n";
     cout << DIVIDER << "\n";
