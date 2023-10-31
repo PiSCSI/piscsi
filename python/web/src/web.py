@@ -27,6 +27,7 @@ from flask import (
     make_response,
     session,
     jsonify,
+    abort,
 )
 
 from piscsi.piscsi_cmds import PiscsiCmds
@@ -1447,6 +1448,16 @@ def log_http_request():
         logging.debug(message)
 
 
+@APP.before_request
+def check_backend_auth():
+    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
+        abort(
+            403,
+            "PiSCSI is password protected. "
+            "Start the Web Interface with the --password parameter."
+        )
+
+
 if __name__ == "__main__":
     APP.secret_key = "piscsi_is_awesome_insecure_secret_key"
     APP.config["SESSION_TYPE"] = "filesystem"
@@ -1523,12 +1534,6 @@ if __name__ == "__main__":
     piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
     file_cmd = FileCmds(piscsi=piscsi_cmd)
     sys_cmd = SysCmds()
-
-    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
-        raise Exception(
-            "PiSCSI is password protected. "
-            "Start the Web Interface with the --password parameter."
-        )
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmd.read_config(DEFAULT_CONFIG)
