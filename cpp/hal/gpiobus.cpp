@@ -321,12 +321,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
         phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
-            if (i == delay_after_bytes) {
-                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " after " +
-                		to_string(delay_after_bytes) + " bytes");
-                SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
-            }
-
             // Set the DATA signals
             SetDAT(*buf);
 
@@ -336,6 +330,11 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
             // Check for timeout waiting for REQ to be asserted
             if (!ret) {
                 break;
+            }
+
+           	// Signal the last MESSAGE OUT byte
+            if (phase == phase_t::msgout && i == count - 1) {
+            	SetATN(false);
             }
 
             // Phase error
