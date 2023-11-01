@@ -25,6 +25,8 @@ public:
 	PhaseHandler() = default;
 	virtual ~PhaseHandler() = default;
 
+	void Init();
+
 	virtual void BusFree() = 0;
 	virtual void Selection() = 0;
 	virtual void Command() = 0;
@@ -61,14 +63,5 @@ protected:
 
 private:
 
-	const unordered_map<phase_t, function<void()>> phase_executors = {
-			{ phase_t::busfree, [this] () { BusFree(); } },
-			{ phase_t::selection, [this] () { Selection(); } },
-			{ phase_t::dataout, [this] () { DataOut(); } },
-			{ phase_t::datain, [this] () { DataIn(); } },
-			{ phase_t::command, [this] () { Command(); } },
-			{ phase_t::status, [this] () { Status(); } },
-			{ phase_t::msgout, [this] () { MsgOut(); } },
-			{ phase_t::msgin, [this] () { MsgIn(); } },
-	};
+	unordered_map<phase_t, function<void()>> phase_executors;
 };
