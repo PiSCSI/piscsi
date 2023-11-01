@@ -3,9 +3,9 @@ name: C++ Tests/Analysis
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'cpp/**'
-      - '.github/workflows/cpp.yml'
+    branches:
+      - 'develop'
+      - 'main'
   pull_request:
     paths:
       - 'cpp/**'
@@ -15,9 +15,6 @@ on:
       - opened
       - synchronize
       - reopened
-    branches:
-      - 'develop'
-      - 'main'
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
@@ -117,5 +114,4 @@ jobs:
           --define sonar.cfamily.gcov.reportsPath=.
           --define sonar.coverage.exclusions="cpp/**/test/**"
           --define sonar.cpd.exclusions="cpp/**/test/**"
-          --define sonar.inclusions="cpp/**,python/**"
-          --define sonar.python.version=3.7,3.9
+          --define sonar.inclusions="cpp/**"

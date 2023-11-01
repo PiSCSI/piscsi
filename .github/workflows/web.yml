@@ -3,11 +3,9 @@ name: Web Tests/Analysis
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'python/web/**'
-      - 'python/common/**'
-      - '.github/workflows/web.yml'
-      - 'easyinstall.sh'
+    branches:
+      - 'develop'
+      - 'main'
   pull_request:
     paths:
       - 'python/web/**'
@@ -19,9 +17,6 @@ on:
       - opened
       - synchronize
       - reopened
-    branches:
-      - 'develop'
-      - 'main'
 
 jobs:
   backend_checks:
@@ -146,3 +141,61 @@ jobs:
         npx prettier --check src/static/themes/modern/style.css
         npx prettier --check src/static/themes/classic/style.css
       if: success() || failure() && steps.npm.outcome == 'success'
+
+  sonarcloud:
+    runs-on: ubuntu-22.04
+    if: github.repository == 'PiSCSI/piscsi'
+    env:
+      SOURCES: python
+      BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed
+      SONAR_SCANNER_VERSION: 5.0.1.3006
+      SONAR_SERVER_URL: "https://sonarcloud.io"
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_PROJECT_KEY: "akuker-PISCSI"
+      SONAR_ORGANIZATION: "piscsi"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - uses: actions/cache@v3
+        name: Cache SonarCloud setup
+        id: sonar-install-cache
+        with:
+          path: ~/.sonar
+          key: sonar-with-build-wrapper-${{ env.SONAR_SCANNER_VERSION }}
+
+      - name: Set up SonarCloud scanner
+        if: steps.sonar-install-cache.outputs.cache-hit != 'true'
+        env:
+          SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
+        run: |
+          mkdir -p $HOME/.sonar
+          curl -sSLo /tmp/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }}
+          unzip -o /tmp/sonar-scanner.zip -d $HOME/.sonar/
+
+      - name: Set up SonarCloud build wrapper
+        if: steps.sonar-install-cache.outputs.cache-hit != 'true'
+        env:
+          BUILD_WRAPPER_DOWNLOAD_URL: ${{ env.SONAR_SERVER_URL }}/static/cpp/build-wrapper-linux-x86.zip
+        run: |
+          curl -sSLo /tmp/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
+          unzip -o /tmp/build-wrapper-linux-x86.zip -d $HOME/.sonar/
+
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          $HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin/sonar-scanner
+          --define sonar.host.url="${{ env.SONAR_SERVER_URL }}"
+          --define sonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+          --define sonar.organization=${{ env.SONAR_ORGANIZATION }}
+          --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+          --define sonar.cfamily.gcov.reportsPath=.
+          --define sonar.inclusions="python/**"
+          --define sonar.python.version=3.9,3.11
