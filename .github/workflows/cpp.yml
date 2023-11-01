@@ -1,23 +1,21 @@
-name: C++ Tests/Analysis
+name: C++ Tests; Full Static Analysis
 
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'cpp/**'
-      - '.github/workflows/cpp.yml'
+    branches:
+      - 'develop'
+      - 'main'
   pull_request:
     paths:
       - 'cpp/**'
+      - 'python/**'
       - '.github/workflows/cpp.yml'
     types:
       - assigned
       - opened
       - synchronize
       - reopened
-    branches:
-      - 'develop'
-      - 'main'
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
@@ -118,4 +116,4 @@ jobs:
           --define sonar.coverage.exclusions="cpp/**/test/**"
           --define sonar.cpd.exclusions="cpp/**/test/**"
           --define sonar.inclusions="cpp/**,python/**"
-          --define sonar.python.version=3.7,3.9
+          --define sonar.python.version=3.9,3.11
