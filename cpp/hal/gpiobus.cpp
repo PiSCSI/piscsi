@@ -388,7 +388,6 @@ bool GPIOBUS::PollSelectEvent()
     return false;
 #else
     GPIO_FUNCTION_TRACE
-    spdlog::trace(__PRETTY_FUNCTION__);
     errno = 0;
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
