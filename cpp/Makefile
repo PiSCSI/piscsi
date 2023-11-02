@@ -132,6 +132,14 @@ OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
 
+BINARIES = $(USR_LOCAL_BIN)/$(SCSICTL) \
+	$(USR_LOCAL_BIN)/$(PISCSI) \
+	$(USR_LOCAL_BIN)/$(SCSIMON) \
+	$(USR_LOCAL_BIN)/$(SCSILOOP)
+ifeq ($(CONNECT_TYPE), FULLSPEC)
+	BINARIES += $(USR_LOCAL_BIN)/$(SCSIDUMP)
+endif
+
 MAN_PAGES = $(MAN_PAGE_DIR)/piscsi.1 \
 	$(MAN_PAGE_DIR)/scsictl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
@@ -245,11 +253,7 @@ clean:
 .PHONY: install
 install: \
 	$(MAN_PAGES) \
-	$(USR_LOCAL_BIN)/$(SCSICTL) \
-	$(USR_LOCAL_BIN)/$(PISCSI) \
-	$(USR_LOCAL_BIN)/$(SCSIMON) \
-	$(USR_LOCAL_BIN)/$(SCSILOOP) \
-	$(USR_LOCAL_BIN)/$(SCSIDUMP) \
+	$(BINARIES) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
 	$(RSYSLOG_LOG)
