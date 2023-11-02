@@ -38,11 +38,10 @@ bool GPIOBUS::Init(mode_e mode)
 //---------------------------------------------------------------------------
 int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 {
-    GPIO_FUNCTION_TRACE
     // Only works in TARGET mode
-    if (actmode != mode_e::TARGET) {
-        return 0;
-    }
+	assert(actmode == mode_e::TARGET);
+
+	GPIO_FUNCTION_TRACE
 
     DisableIRQ();
 
