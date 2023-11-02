@@ -132,6 +132,14 @@ OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
 
+MAN_PAGES = $(MAN_PAGE_DIR)/piscsi.1 \
+	$(MAN_PAGE_DIR)/scsictl.1 \
+	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/scsiloop.1
+ifeq ($(CONNECT_TYPE), FULLSPEC)
+	MAN_PAGES += $(MAN_PAGE_DIR)/scsidump.1
+endif
+
 GENERATED_DIR := generated
 
 # For the unit tests, the following functions will be "wrapped" by the linker, meaning the
@@ -236,11 +244,7 @@ clean:
 ##              *   sudo systemctl start piscsi
 .PHONY: install
 install: \
-	$(MAN_PAGE_DIR)/piscsi.1 \
-	$(MAN_PAGE_DIR)/scsictl.1 \
-	$(MAN_PAGE_DIR)/scsimon.1 \
-	$(MAN_PAGE_DIR)/scsiloop.1 \
-	$(MAN_PAGE_DIR)/scsidump.1 \
+	$(MAN_PAGES) \
 	$(USR_LOCAL_BIN)/$(SCSICTL) \
 	$(USR_LOCAL_BIN)/$(PISCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
