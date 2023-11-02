@@ -71,7 +71,7 @@ BIN_ALL = \
 
 # scsidump requires initiator support
 ifeq ($(CONNECT_TYPE), FULLSPEC)
-BIN_ALL += $(BINDIR)/$(SCSIDUMP)
+	BIN_ALL += $(BINDIR)/$(SCSIDUMP)
 endif
 
 SRC_PROTOC = piscsi_interface.proto
