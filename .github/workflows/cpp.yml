@@ -12,6 +12,9 @@ on:
       - 'cpp/**'
       - 'python/**'
       - '.github/workflows/cpp.yml'
+    branches:
+      - 'develop'
+      - 'main'
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
