@@ -3,6 +3,10 @@ name: C++ Tests; Full Static Analysis
 on:
   workflow_dispatch:
   push:
+    paths:
+      - 'cpp/**'
+      - 'python/**'
+      - '.github/workflows/cpp.yml'
     branches:
       - 'develop'
       - 'main'

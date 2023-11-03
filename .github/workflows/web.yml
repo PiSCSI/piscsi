@@ -3,6 +3,11 @@ name: Web Tests/Analysis
 on:
   workflow_dispatch:
   push:
+    paths:
+      - 'python/web/**'
+      - 'python/common/**'
+      - '.github/workflows/web.yml'
+      - 'easyinstall.sh'
     branches:
       - 'develop'
       - 'main'
