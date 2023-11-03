@@ -1038,14 +1038,14 @@ def upload_file():
         if not safe_path["status"]:
             return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"] + images_subdir
+        destination_dir = Path(server_info["image_dir"]) / images_subdir
     elif destination == "shared_files":
         safe_path = is_safe_path(Path("." + shared_subdir))
         if not safe_path["status"]:
             return make_response(safe_path["msg"], 403)
-        destination_dir = FILE_SERVER_DIR + shared_subdir
+        destination_dir = Path(FILE_SERVER_DIR) / shared_subdir
     elif destination == "piscsi_config":
-        destination_dir = CFG_DIR
+        destination_dir = Path(CFG_DIR)
     else:
         return make_response(_("Unknown destination"), 403)
 
@@ -1054,8 +1054,8 @@ def upload_file():
     file_name = secure_filename(file_object.filename)
     tmp_file_name = "__tmp_" + file_name
 
-    save_path = path.join(destination_dir, file_name)
-    tmp_save_path = path.join(destination_dir, tmp_file_name)
+    save_path = destination_dir / file_name
+    tmp_save_path = destination_dir / tmp_file_name
     current_chunk = int(request.form["dzchunkindex"])
 
     # Makes sure not to overwrite an existing file,

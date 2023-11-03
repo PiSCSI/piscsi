@@ -21,7 +21,7 @@
     {% for dir in images_subdirs %}
     <option value="{{dir}}">{{dir}}</option>
     {% endfor %}
-    <option value="/" selected>/</option>
+    <option value="" selected>/</option>
     </select>
     {% if file_server_dir_exists %}
     <input type="radio" name="destination" id="shared_files" value="shared_files">
@@ -31,7 +31,7 @@
     {% for dir in shared_subdirs %}
     <option value="{{dir}}">{{dir}}</option>
     {% endfor %}
-    <option value="/" selected>/</option>
+    <option value="" selected>/</option>
     </select>
     {% endif %}
     <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">
