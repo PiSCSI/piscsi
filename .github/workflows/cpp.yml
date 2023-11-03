@@ -11,11 +11,6 @@ on:
       - 'cpp/**'
       - 'python/**'
       - '.github/workflows/cpp.yml'
-    types:
-      - assigned
-      - opened
-      - synchronize
-      - reopened
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
