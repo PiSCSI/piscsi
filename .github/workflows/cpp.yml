@@ -7,9 +7,6 @@ on:
       - 'cpp/**'
       - 'python/**'
       - '.github/workflows/cpp.yml'
-    branches:
-      - 'develop'
-      - 'main'
   pull_request:
     paths:
       - 'cpp/**'
