@@ -205,7 +205,7 @@ def get_supported_locales():
     """
     locales = [
         {"language": x.language, "display_name": x.display_name}
-        for x in [*BABEL.list_translations(), Locale("en")]
+        for x in [*BABEL.list_translations()]
     ]
 
     return sorted(locales, key=lambda x: x["language"])
