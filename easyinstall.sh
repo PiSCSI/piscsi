@@ -111,7 +111,15 @@ function sudoCheck() {
 function deleteFile() {
     if sudo test -f "$1/$2"; then
         sudo rm "$1/$2" || exit 1
-        echo "Deleted $1/$2"
+        echo "Deleted file $1/$2"
+    fi
+}
+
+# Delete dir if it exists
+function deleteDir() {
+    if sudo test -d "$1"; then
+        sudo rm -rf "$1" || exit 1
+        echo "Deleted directory $1"
     fi
 }
 
@@ -228,6 +236,9 @@ function installPiscsiWebInterface() {
 
     deleteFile "$SSL_CERTS_PATH" "rascsi-web.crt"
     deleteFile "$SSL_KEYS_PATH" "rascsi-web.key"
+
+    # Deleting previous venv dir, if one exists, to avoid the common issue of broken python dependencies
+    deleteDir "$WEB_INSTALL_PATH/venv"
 
     if [ -f "$SSL_CERTS_PATH/piscsi-web.crt" ]; then
         echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt already exists."
@@ -1025,6 +1036,9 @@ function installPiscsiScreen() {
         REBOOT=1
     fi
 
+    # Deleting previous venv dir, if one exists, to avoid the common issue of broken python dependencies
+    deleteDir "$OLED_INSTALL_PATH/venv"
+
     echo "Installing the piscsi-oled.service configuration..."
     sudo cp -f "$OLED_INSTALL_PATH/service-infra/piscsi-oled.service" "$SYSTEMD_PATH/piscsi-oled.service"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-oled.service"
@@ -1129,6 +1143,9 @@ function installPiscsiCtrlBoard() {
     fi
     set -e
 
+    # Deleting previous venv dir, if one exists, to avoid the common issue of broken python dependencies
+    deleteDir "$CTRLBOARD_INSTALL_PATH/venv"
+
     echo "Installing the piscsi-ctrlboard.service configuration..."
     sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/piscsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-ctrlboard.service"
@@ -1223,7 +1240,7 @@ function runChoice() {
               compilePiscsi
               backupPiscsiService
               installPiscsi
-	      configurePiscsiService
+              configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
@@ -1266,7 +1283,7 @@ function runChoice() {
               backupPiscsiService
               preparePythonCommon
               installPiscsi
-	      configurePiscsiService
+              configurePiscsiService
               enablePiscsiService
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
@@ -1454,7 +1471,7 @@ function runChoice() {
               fetchHardDiskDrivers
               compilePiscsi
               installPiscsi
-	      configurePiscsiService
+              configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               cachePipPackages
