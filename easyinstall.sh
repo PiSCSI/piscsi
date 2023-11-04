@@ -968,7 +968,7 @@ function installWebmin() {
     curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
     sudo sh setup-repos.sh
     rm setup-repos.sh
-    sudo apt-get install webmin --install-recommends
+    sudo apt-get install webmin libcgi-session-perl --install-recommends
     echo
     echo "Downloading and installing Webmin module..."
     rm netatalk2-wbm.tgz || true
