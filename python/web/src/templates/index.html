@@ -383,35 +383,35 @@
     </summary>
     <ul>
         <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
-	{% if file_server_dir_exists %}
+        {% if file_server_dir_exists %}
         <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
-	{% else %}
+        {% else %}
         <li>{{ _("Install a file server and create the shared files directory in order to share files between the Pi and your vintage computers.") }}</li>
-	{% endif %}
+        {% endif %}
     </ul>
 </details>
 
 <form action="/files/download_url" method="post">
     <label for="download_url">{{ _("Download file from URL:") }}</label>
     <input name="url" id="download_url" required="" type="url">
+    <label for="disk_images" class="hidden">{{ _("Disk Images") }}</label>
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
-    <label for="disk_images">{{ _("Disk Images") }}</label>
     <label for="images_subdir" class="hidden">{{ _("Directory") }}</label>
     <select name="images_subdir" id="images_subdir">
     {% for dir in images_subdirs %}
-    <option value="{{dir}}">{{dir}}</option>
+    <option value="{{dir}}">{{env['image_root_dir']}}/{{dir}}</option>
     {% endfor %}
-    <option value="" selected>/</option>
+    <option value="" selected>{{env['image_root_dir']}}/</option>
     </select>
     {% if file_server_dir_exists %}
+    <label for="shared_files" class="hidden">{{ _("Shared Files") }}</label>
     <input type="radio" name="destination" id="shared_files" value="shared_files">
-    <label for="shared_files">{{ _("Shared Files") }}</label>
     <label for="shared_subdir" class="hidden">{{ _("Directory") }}</label>
     <select name="shared_subdir" id="shared_subdir">
     {% for dir in shared_subdirs %}
-    <option value="{{dir}}">{{dir}}</option>
+    <option value="{{dir}}">{{env['shared_root_dir']}}/{{dir}}</option>
     {% endfor %}
-    <option value="" selected>/</option>
+    <option value="" selected>{{env['shared_root_dir']}}/</option>
     </select>
     {% endif %}
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">

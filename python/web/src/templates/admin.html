@@ -117,12 +117,12 @@
         <li>{{ _("In order to manage the services in the Web UI, you may install Webmin as well.") }}</li>
     </ul>
 </details>
-<ul>
+<ul class="service_status">
     {% if netatalk_configured %}
-    <li class="enabled">
+    <li class="service-item enabled">
         {{ _("Mac AFP file sharing is enabled.") }}
     {% else %}
-    <li class="disabled">
+    <li class="service-item disabled">
         {{ _("Mac AFP file sharing is disabled.") }}
     {% endif %}
     </li>
@@ -134,10 +134,10 @@
     </li>
     {% endif %}
     {% if samba_configured %}
-    <li class="enabled">
+    <li class="service-item enabled">
         {{ _("Windows SMB file sharing is enabled.") }}
     {% else %}
-    <li class="disabled">
+    <li class="service-item disabled">
         {{ _("Windows SMB file sharing is disabled.") }}
     {% endif %}
     </li>
@@ -149,18 +149,18 @@
     </li>
     {% endif %}
     {% if ftp_configured %}
-    <li class="enabled">
+    <li class="service-item enabled">
         {{ _("FTP file sharing is enabled.") }}
     {% else %}
-    <li class="disabled">
+    <li class="service-item disabled">
         {{ _("FTP file sharing is disabled.") }}
     {% endif %}
     </li>
     {% if macproxy_configured %}
-    <li class="enabled">
+    <li class="service-item enabled">
         {{ _("Vintage web proxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
     {% else %}
-    <li class="disabled">
+    <li class="service-item disabled">
         {{ _("Vintage web proxy is disabled.") }}
     {% endif %}
     </li>

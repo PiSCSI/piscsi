@@ -974,12 +974,12 @@ section#manual a p {
  Admin > Section: Services
  ------------------------------------------------------------------------------
  */
-section#services ul {
+section#services ul.service-list {
   list-style: none;
   padding-left: 0;
 }
 
-section#services li {
+section#services li.service-item {
   margin-bottom: 0.5em;
   padding: 0.25rem 0 0.25rem 2rem;
 }
