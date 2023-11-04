@@ -208,7 +208,7 @@ def test_extract_file(
         "/files/download_url",
         data={
             "destination": "disk_images",
-            "images_subdir": "/",
+            "images_subdir": "",
             "url": url,
         },
     )
@@ -335,7 +335,7 @@ def test_download_properties(http_client, list_files, delete_file):
 def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_file):
     file_name = str(uuid.uuid4())
     http_path = f"/images/{file_name}"
-    subdir = "/"
+    subdir = ""
     url = httpserver.url_for(http_path)
 
     with open("tests/assets/test_image.hds", mode="rb") as file:
@@ -362,7 +362,7 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
     assert file_name in list_files()
     assert (
         response_data["messages"][0]["message"]
-        == f"Downloaded file to {env['images_dir']}{subdir}{file_name}"
+        == f"Downloaded file to {env['images_dir']}/{subdir}{file_name}"
     )
 
     # Cleanup
