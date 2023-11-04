@@ -125,6 +125,7 @@ def get_env_info():
         "version": server_info["version"],
         "image_dir": server_info["image_dir"],
         "image_root_dir": Path(server_info["image_dir"]).name,
+        "shared_root_dir": Path(FILE_SERVER_DIR).name,
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
