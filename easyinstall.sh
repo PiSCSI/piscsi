@@ -964,7 +964,7 @@ function installWebmin() {
 
     echo
     echo "Installing packages..."
-    sudo apt-get install curl --no-install-recommends --assume-yes </dev/null
+    sudo apt-get install curl libcgi-session-perl --no-install-recommends --assume-yes </dev/null
     curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
     sudo sh setup-repos.sh
     rm setup-repos.sh
