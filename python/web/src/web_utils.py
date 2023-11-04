@@ -8,7 +8,7 @@ from pathlib import Path
 from ua_parser import user_agent_parser
 from re import findall
 
-from flask import request, abort
+from flask import request, abort, make_response
 from flask_babel import _
 from werkzeug.utils import secure_filename
 
@@ -322,6 +322,16 @@ def is_safe_path(file_name):
         return {"status": False, "msg": error_message}
 
     return {"status": True, "msg": ""}
+
+
+def validate_target_dir(target_dir):
+    """
+    Takes (Path) target_dir on the host and validates that it is a valid dir for uploading.
+    """
+    safe_path = is_safe_path(Path(".") / target_dir)
+    if not safe_path["status"]:
+        return make_response(safe_path["msg"], 403)
+    return True
 
 
 def browser_supports_modern_themes():

@@ -30,6 +30,8 @@ from util import unarchiver
 FILE_READ_ERROR = "Unhandled exception when reading file: %s"
 FILE_WRITE_ERROR = "Unhandled exception when writing to file: %s"
 URL_SAFE = "/:?&"
+# Common file sharing protocol meta data dirs to filter out from target upload dirs
+EXCLUDED_DIRS = ["Network Trash Folder", "Temporary Items", "TheVolumeSettingsFolder"]
 
 
 class FileCmds:
@@ -60,15 +62,14 @@ class FileCmds:
         Returns a (list) of (str) subdir_list.
         """
         subdir_list = []
-        # Filter out file sharing meta data dirs
-        excluded_dirs = ("Network Trash Folder", "Temporary Items", "TheVolumeSettingsFolder")
         for root, dirs, _files in walk(directory, topdown=True):
             # Strip out dirs that begin with .
             dirs[:] = [d for d in dirs if d[0] != "."]
             for dir in dirs:
-                if dir not in excluded_dirs:
+                if dir not in EXCLUDED_DIRS:
                     dirpath = path.join(root, dir)
-                    subdir_list.append(dirpath.replace(directory, "", 1))
+                    # Remove the section of the path up until the first subdir
+                    subdir_list.append(dirpath.replace(directory + "/", "", 1))
 
         subdir_list.sort()
         return subdir_list
