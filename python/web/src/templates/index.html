@@ -383,11 +383,11 @@
     </summary>
     <ul>
         <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
-	{% if file_server_dir_exists %}
+        {% if file_server_dir_exists %}
         <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
-	{% else %}
+        {% else %}
         <li>{{ _("Install a file server and create the shared files directory in order to share files between the Pi and your vintage computers.") }}</li>
-	{% endif %}
+        {% endif %}
     </ul>
 </details>
 
