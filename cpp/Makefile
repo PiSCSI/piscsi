@@ -14,7 +14,7 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug compiler flags
-	CXXFLAGS += -Og -g -Wall -Wextra -DDEBUG
+	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
 else
 	# Release compiler flags
 	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
