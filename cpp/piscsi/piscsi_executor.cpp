@@ -263,7 +263,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
 
-	if (storage_device != nullptr) {
+	if (storage_device != nullptr && !storage_device->IsRemoved()) {
 		storage_device->ReserveFile();
 	}
 
