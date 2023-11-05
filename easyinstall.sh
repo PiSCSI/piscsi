@@ -974,8 +974,7 @@ function installWebmin() {
     rm netatalk2-wbm.tgz || true
     wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_MODULE_VERSION/netatalk2-wbm-$WEBMIN_MODULE_VERSION.tgz" </dev/null
     sudo /usr/share/webmin/install-module.pl netatalk2-wbm.tgz
-    sudo sed -i 's/\/sbin/\/local\/sbin/' /etc/webmin/netatalk2/config
-    sudo systemctl restart webmin
+    sudo sed -i 's@/sbin@/local/sbin@' /etc/webmin/netatalk2/config
     rm netatalk2-wbm.tgz
 }
 
