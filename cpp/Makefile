@@ -14,7 +14,7 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug compiler flags
-	CXXFLAGS += -Og -g -Wall -Wextra -DDEBUG
+	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
 else
 	# Release compiler flags
 	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
@@ -39,7 +39,7 @@ CXXFLAGS += $(EXTRA_FLAGS)
 CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
-CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
+	CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 endif
 
 PISCSI = piscsi
@@ -67,8 +67,12 @@ BIN_ALL = \
 	$(BINDIR)/$(PISCSI) \
 	$(BINDIR)/$(SCSICTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(SCSIDUMP) \
 	$(BINDIR)/$(SCSILOOP)
+
+# scsidump requires initiator support
+ifeq ($(CONNECT_TYPE), FULLSPEC)
+	BIN_ALL += $(BINDIR)/$(SCSIDUMP)
+endif
 
 SRC_PROTOC = piscsi_interface.proto
 
@@ -127,6 +131,22 @@ OBJ_SCSILOOP  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSILOOP:%.cpp=%.o)))
 OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
+
+BINARIES = $(USR_LOCAL_BIN)/$(SCSICTL) \
+	$(USR_LOCAL_BIN)/$(PISCSI) \
+	$(USR_LOCAL_BIN)/$(SCSIMON) \
+	$(USR_LOCAL_BIN)/$(SCSILOOP)
+ifeq ($(CONNECT_TYPE), FULLSPEC)
+	BINARIES += $(USR_LOCAL_BIN)/$(SCSIDUMP)
+endif
+
+MAN_PAGES = $(MAN_PAGE_DIR)/piscsi.1 \
+	$(MAN_PAGE_DIR)/scsictl.1 \
+	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/scsiloop.1
+ifeq ($(CONNECT_TYPE), FULLSPEC)
+	MAN_PAGES += $(MAN_PAGE_DIR)/scsidump.1
+endif
 
 GENERATED_DIR := generated
 
@@ -232,16 +252,8 @@ clean:
 ##              *   sudo systemctl start piscsi
 .PHONY: install
 install: \
-	$(MAN_PAGE_DIR)/piscsi.1 \
-	$(MAN_PAGE_DIR)/scsictl.1 \
-	$(MAN_PAGE_DIR)/scsimon.1 \
-	$(MAN_PAGE_DIR)/scsiloop.1 \
-	$(MAN_PAGE_DIR)/scsidump.1 \
-	$(USR_LOCAL_BIN)/$(SCSICTL) \
-	$(USR_LOCAL_BIN)/$(PISCSI) \
-	$(USR_LOCAL_BIN)/$(SCSIMON) \
-	$(USR_LOCAL_BIN)/$(SCSILOOP) \
-	$(USR_LOCAL_BIN)/$(SCSIDUMP) \
+	$(MAN_PAGES) \
+	$(BINARIES) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
 	$(RSYSLOG_LOG)
