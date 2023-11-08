@@ -214,7 +214,7 @@ void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
     cdb[0] = static_cast<uint8_t>(cmd);
     cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
     if (static_cast<int>(cdb.size()) !=
-        bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()))) {
+        bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
         BusFree();
 
         throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
@@ -234,7 +234,7 @@ void ScsiDump::DataOut(int length)
 {
     WaitForPhase(phase_t::dataout);
 
-    if (!bus->SendHandShake(buffer.data(), length)) {
+    if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
         throw phase_exception("DATA OUT failed");
     }
 }

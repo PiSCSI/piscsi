@@ -336,6 +336,7 @@ bool CTapDriver::HasPendingPackets() const
 	fds.events = POLLIN | POLLERR;
 	fds.revents = 0;
 	poll(&fds, 1, 0);
+	spdlog::trace(to_string(fds.revents) + " revents");
 	return fds.revents & POLLIN;
 }
 
