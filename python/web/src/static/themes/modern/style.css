@@ -1062,3 +1062,7 @@ a.back {
   font-weight: bold;
   background: url("icons/chevrons-left.svg") no-repeat left center;
 }
+
+a.back span.separator {
+  display: none;
+}

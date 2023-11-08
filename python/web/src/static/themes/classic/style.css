@@ -21,6 +21,11 @@ td {
   margin: none;
 }
 
+th {
+  color: white;
+  background-color: black;
+}
+
 h1 {
   color: white;
   font-size: 20px;
