@@ -26,11 +26,17 @@
 //---------------------------------------------------------------------------
 //#define CONNECT_TYPE_STANDARD		// Standard (SCSI logic, standard pin assignment)
 //#define CONNECT_TYPE_FULLSPEC		// Full spec (SCSI logic, standard pin assignment)
+//#define CONNECT_TYPE_AIBOM		// AIBOM version (positive logic, unique pin assignment)
+//#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/connection_type/connection_standard.h"
 #elif defined CONNECT_TYPE_FULLSPEC
 #include "hal/connection_type/connection_fullspec.h"
+#elif defined CONNECT_TYPE_AIBOM
+#include "hal/connection_type/connection_aibom.h"
+#elif defined CONNECT_TYPE_GAMERNIUM
+#include "hal/connection_type/connection_gamernium.h"
 #else
 #error Invalid connection type or none specified
 #endif
