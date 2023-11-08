@@ -177,11 +177,3 @@ TEST(ScsiDaynaportTest, EnableInterface)
 			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
 			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
 }
-
-TEST(ScsiDaynaportTest, GetSendDelay)
-{
-	SCSIDaynaPort daynaport(0);
-	daynaport.Init({});
-
-	EXPECT_EQ(6, daynaport.GetSendDelay());
-}

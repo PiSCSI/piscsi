@@ -178,7 +178,7 @@ class GPIOBUS : public BUS
     // Data receive handshake
     int ReceiveHandShake(uint8_t *, int) override;
     // Data transmission handshake
-    int SendHandShake(uint8_t *, int, int) override;
+    int SendHandShake(uint8_t *, int) override;
 
     // SEL signal event polling
     bool PollSelectEvent() override;
