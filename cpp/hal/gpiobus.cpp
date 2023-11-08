@@ -38,11 +38,10 @@ bool GPIOBUS::Init(mode_e mode)
 //---------------------------------------------------------------------------
 int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 {
-    GPIO_FUNCTION_TRACE
     // Only works in TARGET mode
-    if (actmode != mode_e::TARGET) {
-        return 0;
-    }
+	assert(actmode == mode_e::TARGET);
+
+	GPIO_FUNCTION_TRACE
 
     DisableIRQ();
 
@@ -326,6 +325,11 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count)
                 break;
             }
 
+           	// Signal the last MESSAGE OUT byte
+            if (phase == phase_t::msgout && i == count - 1) {
+            	SetATN(false);
+            }
+
             // Phase error
             Acquire();
             if (GetPhase() != phase) {
@@ -377,7 +381,6 @@ bool GPIOBUS::PollSelectEvent()
     return false;
 #else
     GPIO_FUNCTION_TRACE
-    spdlog::trace(__PRETTY_FUNCTION__);
     errno = 0;
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
