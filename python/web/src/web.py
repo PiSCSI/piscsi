@@ -261,6 +261,7 @@ def index():
     return response(
         template="index.html",
         page_title=_("PiSCSI Control Page"),
+        is_root_page=True,
         netinfo=piscsi_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
         devices=formatted_devices,
@@ -347,6 +348,7 @@ def upload_page():
     return response(
         template="upload.html",
         page_title=_("PiSCSI File Upload"),
+        is_root_page=True,
         images_subdirs=file_cmd.list_subdirs(server_info["image_dir"]),
         shared_subdirs=file_cmd.list_subdirs(FILE_SERVER_DIR),
         file_server_dir_exists=Path(FILE_SERVER_DIR).exists(),
