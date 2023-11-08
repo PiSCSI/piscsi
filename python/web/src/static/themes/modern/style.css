@@ -545,7 +545,7 @@ div.flash > div {
 }
 
 div.flash > div a {
-  display: inline-block !important;
+  display: inline-block;
   padding: 0.25rem 0.75rem;
   margin-left: auto;
   color: #fff;
