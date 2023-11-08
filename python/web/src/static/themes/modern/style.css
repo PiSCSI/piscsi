@@ -1060,7 +1060,7 @@ body.page-manpage div.content p.home {
 a.back {
   padding: 0.25rem 0 0.25rem 2rem;
   font-weight: bold;
-  background: url("icons/chevrons-left.svg") no-repeat left center;
+  background: url("icons/home.svg") no-repeat left center;
 }
 
 a.back span.separator {
