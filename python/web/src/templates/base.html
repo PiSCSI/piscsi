@@ -105,7 +105,15 @@
         {{ content_class }}
         {% block content %}{% endblock content %}
     </div>
+    {% if not is_root_page %}
+    <div class="content">
+        <a class="back" href="/">{{ _("Go to Home") }}</a>
+    </div>
+    {% endif %}
     <div align="center" class="footer">
+        <div>
+            <a href="/sys/manpage?app=piscsi">{{ _("Read the PiSCSI Manual") }}</a>
+        </div>
         <div>
             {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
         </div>
