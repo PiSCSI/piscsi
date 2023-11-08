@@ -46,6 +46,8 @@ public:
 
 	virtual bool WriteByteSequence(span<const uint8_t>);
 
+	int GetSendDelay() const { return send_delay; }
+
 	bool CheckReservation(int, scsi_command, bool) const;
 	void DiscardReservation();
 
@@ -68,6 +70,8 @@ protected:
 	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<uint8_t> InquiryInternal() const = 0;
 	void CheckReady();
+
+	void SetSendDelay(int s) { send_delay = s; }
 
 	void SendDiagnostic() override;
 	void ReserveUnit() override;
@@ -105,6 +109,8 @@ private:
 	AbstractController *controller = nullptr;
 
 	unordered_map<scsi_command, operation> commands;
+
+	int send_delay = BUS::SEND_NO_DELAY;
 
 	int reserving_initiator = NOT_RESERVED;
 };

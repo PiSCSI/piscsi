@@ -50,6 +50,10 @@ bool SCSIDaynaPort::Init(const param_map& params)
 	AddCommand(scsi_command::eCmdSetMcastAddr, [this] { SetMcastAddr(); });
 	AddCommand(scsi_command::eCmdEnableInterface, [this] { EnableInterface(); });
 
+	// The Daynaport needs to have a delay after the size/flags field of the read response.
+	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.
+	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
+
 	tap_enabled = tap.Init(GetParams());
 	if (!tap_enabled) {
 // Not terminating on regular Linux PCs is helpful for testing

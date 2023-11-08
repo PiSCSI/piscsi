@@ -433,7 +433,10 @@ void ScsiController::Send()
 	if (HasValidLength()) {
 		LogTrace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
 
-		if (const int len = GetBus().SendHandShake(GetBuffer().data() + GetOffset(), GetLength());
+		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
+		// LUNs other than 0 this work-around works.
+		if (const int len = GetBus().SendHandShake(GetBuffer().data() + GetOffset(), GetLength(),
+				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != static_cast<int>(GetLength())) {
 			// If you cannot send all, move to status phase
 			Error(sense_key::aborted_command);
