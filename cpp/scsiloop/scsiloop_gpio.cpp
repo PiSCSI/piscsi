@@ -18,6 +18,10 @@
 #include "hal/connection_type/connection_standard.h"
 #elif defined CONNECT_TYPE_FULLSPEC
 #include "hal/connection_type/connection_fullspec.h"
+#elif defined CONNECT_TYPE_AIBOM
+#include "hal/connection_type/connection_aibom.h"
+#elif defined CONNECT_TYPE_GAMERNIUM
+#include "hal/connection_type/connection_gamernium.h"
 #else
 #error Invalid connection type or none specified
 #endif
