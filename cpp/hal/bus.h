@@ -92,7 +92,7 @@ class BUS : public PinControl
     virtual unique_ptr<DataSample> GetSample(uint64_t timestamp = 0)          = 0;
     virtual int CommandHandShake(vector<uint8_t> &)                           = 0;
     virtual int ReceiveHandShake(uint8_t *buf, int count)                     = 0;
-    virtual int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) = 0;
+    virtual int SendHandShake(uint8_t *buf, int count) = 0;
 
     // SEL signal event polling
     virtual bool PollSelectEvent() = 0;

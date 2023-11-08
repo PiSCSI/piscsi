@@ -339,15 +339,6 @@ TEST(PrimaryDeviceTest, WriteByteSequence)
 	EXPECT_FALSE(device->WriteByteSequence({})) << "Primary device does not support writing byte sequences";
 }
 
-TEST(PrimaryDeviceTest, GetSetSendDelay)
-{
-	MockPrimaryDevice device(0);
-
-	EXPECT_EQ(-1, device.GetSendDelay()) << "Wrong delay default value";
-	device.SetSendDelay(1234);
-	EXPECT_EQ(1234, device.GetSendDelay());
-}
-
 TEST(PrimaryDeviceTest, Init)
 {
 	param_map params;

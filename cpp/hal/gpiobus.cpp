@@ -266,7 +266,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 //	Data transmission handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::SendHandShake(uint8_t *buf, int count, int)
+int GPIOBUS::SendHandShake(uint8_t *buf, int count)
 {
     GPIO_FUNCTION_TRACE
     int i;
