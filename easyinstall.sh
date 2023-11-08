@@ -948,6 +948,7 @@ function installSamba() {
 # Installs and configures Webmin
 function installWebmin() {
     WEBMIN_PATH="/usr/share/webmin"
+    WEBMIN_MODULE_CONFIG="/etc/webmin/netatalk2/config"
     WEBMIN_MODULE_VERSION="1.0"
 
     if [ -d "$WEBMIN_PATH" ]; then
@@ -968,14 +969,23 @@ function installWebmin() {
     curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
     sudo sh setup-repos.sh
     rm setup-repos.sh
-    sudo apt-get install webmin --install-recommends
+    sudo apt-get install webmin --install-recommends </dev/null
     echo
     echo "Downloading and installing Webmin module..."
-    rm netatalk2-wbm.tgz || true
+    if [[ -f "$WEBMIN_MODULE_CONFIG" ]]; then
+        echo "$WEBMIN_MODULE_CONFIG already exists; will not modify..."
+	WEBMIN_MODULE_FLAG=1
+    fi
+
+    rm netatalk2-wbm.tgz 2> /dev/null || true
     wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_MODULE_VERSION/netatalk2-wbm-$WEBMIN_MODULE_VERSION.tgz" </dev/null
-    sudo /usr/share/webmin/install-module.pl netatalk2-wbm.tgz
-    sudo sed -i 's@/sbin@/local/sbin@' /etc/webmin/netatalk2/config
-    rm netatalk2-wbm.tgz
+    sudo "$WEBMIN_PATH/install-module.pl" netatalk2-wbm.tgz
+
+    if [[ ! $WEBMIN_MODULE_FLAG ]]; then
+        echo "Modifying $WEBMIN_MODULE_CONFIG..."
+        sudo sed -i 's@/usr/sbin@/usr/local/sbin@' "$WEBMIN_MODULE_CONFIG"
+    fi
+    rm netatalk2-wbm.tgz || true
 }
 
 # updates configuration files and installs packages needed for the OLED screen script
