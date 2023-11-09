@@ -28,7 +28,7 @@ class SCSIHD : public Disk
 
 public:
 
-	SCSIHD(int, const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::scsi_2);
+	SCSIHD(int, bool, scsi_defs::scsi_level, const unordered_set<uint32_t>& = { 512, 1024, 2048, 4096 });
 	~SCSIHD() override = default;
 
 	void FinalizeSetup(off_t);

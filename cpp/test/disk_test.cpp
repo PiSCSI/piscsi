@@ -774,13 +774,7 @@ TEST(DiskTest, SectorSize)
 {
 	MockDisk disk;
 
-	unordered_set<uint32_t> sizes = { 512, 1024 };
-	disk.SetSectorSizes(sizes);
 	EXPECT_TRUE(disk.IsSectorSizeConfigurable());
-
-	sizes.clear();
-	disk.SetSectorSizes(sizes);
-	EXPECT_FALSE(disk.IsSectorSizeConfigurable());
 
 	disk.SetSectorSizeShiftCount(9);
 	EXPECT_EQ(9, disk.GetSectorSizeShiftCount());
@@ -815,13 +809,12 @@ TEST(DiskTest, SectorSize)
 
 TEST(DiskTest, ConfiguredSectorSize)
 {
-	DeviceFactory device_factory;
-	MockSCSIHD disk(0, {}, false);
+	MockSCSIHD disk(0, false);
 
-	EXPECT_TRUE(disk.SetConfiguredSectorSize(device_factory, 512));
+	EXPECT_TRUE(disk.SetConfiguredSectorSize(512));
 	EXPECT_EQ(512, disk.GetConfiguredSectorSize());
 
-	EXPECT_FALSE(disk.SetConfiguredSectorSize(device_factory, 1234));
+	EXPECT_FALSE(disk.SetConfiguredSectorSize(1234));
 	EXPECT_EQ(512, disk.GetConfiguredSectorSize());
 }
 

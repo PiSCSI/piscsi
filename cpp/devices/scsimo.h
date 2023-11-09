@@ -26,7 +26,7 @@ class SCSIMO : public Disk
 {
 public:
 
-	SCSIMO(int, const unordered_set<uint32_t>&);
+	explicit SCSIMO(int);
 	~SCSIMO() override = default;
 
 	void Open() override;
