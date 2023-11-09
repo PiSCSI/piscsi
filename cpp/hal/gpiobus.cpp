@@ -407,7 +407,7 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
     const auto now = chrono::steady_clock::now();
 
-    // Wait 3 s
+    // Wait up to 3 s
     do {
         Acquire();
 
