@@ -337,7 +337,7 @@ bool CTapDriver::HasPendingPackets() const
 	fds.revents = 0;
 	poll(&fds, 1, 0);
 	spdlog::trace(to_string(fds.revents) + " revents");
-	return !(fds.revents & POLLIN);
+	return fds.revents & POLLIN;
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li

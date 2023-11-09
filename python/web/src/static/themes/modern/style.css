@@ -545,7 +545,7 @@ div.flash > div {
 }
 
 div.flash > div a {
-  display: inline-block !important;
+  display: inline-block;
   padding: 0.25rem 0.75rem;
   margin-left: auto;
   color: #fff;
@@ -950,27 +950,6 @@ section#system div.power-control {
 
 /*
  ------------------------------------------------------------------------------
- Index > Section: Manual
- ------------------------------------------------------------------------------
- */
-section#manual {
-  margin: 2rem 0 1rem;
-}
-
-section#manual a {
-  margin: auto;
-  display: block;
-  padding: 0.25rem 0 0.25rem 2rem;
-  background: url("icons/manual.svg") no-repeat left center;
-  font-weight: bold;
-}
-
-section#manual a p {
-  margin: 0;
-}
-
-/*
- ------------------------------------------------------------------------------
  Admin > Section: Services
  ------------------------------------------------------------------------------
  */
@@ -1071,4 +1050,19 @@ body.page-manpage div#manpage-content h2 {
 body.page-manpage div.content p.home {
   margin-top: 2rem;
   font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Base > Back
+ ------------------------------------------------------------------------------
+ */
+a.back {
+  padding: 0.25rem 0 0.25rem 2rem;
+  font-weight: bold;
+  background: url("icons/home.svg") no-repeat left center;
+}
+
+a.back span.separator {
+  display: none;
 }

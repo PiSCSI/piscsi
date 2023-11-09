@@ -21,6 +21,11 @@ td {
   margin: none;
 }
 
+th {
+  color: white;
+  background-color: black;
+}
+
 h1 {
   color: white;
   font-size: 20px;
@@ -95,6 +100,10 @@ div.flash div.error {
 
 div.flash div.info {
   background-color: #0d6efd;
+}
+
+div.flash > div a {
+  display: none;
 }
 
 td.inactive {

@@ -2,7 +2,32 @@
 
 {% block content %}
 <h2>{{ _("System Logs: %(scope)s %(lines)s lines", scope=scope, lines=lines) }}</h2>
+<div>
+<form action="/logs/show" method="post">
+    <label for="log_lines">{{ _("Log Lines:") }}</label>
+    <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
+    <label for="log_scope">{{ _("Scope:") }}</label>
+    <select name="scope" id="log_scope">
+        <option value="">
+            {{ _("All logs") }}
+        </option>
+        <option value="piscsi">
+            piscsi
+        </option>
+        <option value="piscsi-web">
+            piscsi-web
+        </option>
+        <option value="piscsi-oled">
+            piscsi-oled
+        </option>
+        <option value="piscsi-ctrlboard">
+            piscsi-ctrlboard
+        </option>
+    </select>
+    <input type="submit" value="{{ _("Show Logs") }}">
+</form>
+</div>
 <p><pre>{{ logs }}</pre></p>
-<p class="home"><a href="/">{{ _("Go to Home") }}</a></p>
 
+<hr/>
 {% endblock content %}

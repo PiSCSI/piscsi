@@ -95,7 +95,7 @@
                     {% else %}
                         <div>{{ message }}</div>
                     {% endif %}
-                    <a style="display: none;" href="/"></a>
+                    <a href="/"></a>
                 </div>
             {% endfor %}
         {% endif %}
@@ -105,7 +105,15 @@
         {{ content_class }}
         {% block content %}{% endblock content %}
     </div>
+    {% if not is_root_page %}
+    <div class="content">
+        <a class="back" href="/"><span class="separator">&lt;&lt; </span>{{ _("Go to Home") }}</a>
+    </div>
+    {% endif %}
     <div align="center" class="footer">
+        <div>
+            <a href="/sys/manpage?app=piscsi">{{ _("Read the PiSCSI Manual") }}</a>
+        </div>
         <div>
             {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
         </div>

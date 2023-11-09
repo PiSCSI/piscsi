@@ -2,56 +2,38 @@
 
 {% block content %}
 <h2>{{ _("Detailed Info for Attached Devices") }}</h2>
-{% for device in devices %}
 <p>
 <table border="black" cellpadding="3" summary="Detailed information for attached devices">
 <tr>
     <th scope="row">{{ _("SCSI ID") }}</th>
-    <td>{{ device["id"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("LUN") }}</th>
-    <td>{{ device["unit"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Type") }}</th>
-    <td>{{ device["device_type"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Status") }}</th>
-    <td>{{ device["status"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("File") }}</th>
-    <td>{{ device["image"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Parameters") }}</th>
-    <td>{{ device["params"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Vendor") }}</th>
-    <td>{{ device["vendor"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Product") }}</th>
-    <td>{{ device["product"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Revision") }}</th>
-    <td>{{ device["revision"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Block Size") }}</th>
-    <td>{{ device["block_size"] }}</td>
-</tr>
-<tr>
     <th scope="row">{{ _("Image Size") }}</th>
+</tr>
+{% for device in devices %}
+<tr>
+    <td>{{ device["id"] }}</td>
+    <td>{{ device["unit"] }}</td>
+    <td>{{ device["device_type"] }}</td>
+    <td>{{ device["status"] }}</td>
+    <td>{{ device["image"] }}</td>
+    <td>{{ device["params"] }}</td>
+    <td>{{ device["vendor"] }}</td>
+    <td>{{ device["product"] }}</td>
+    <td>{{ device["revision"] }}</td>
+    <td>{{ device["block_size"] }}</td>
     <td>{{ device["size"] }}</td>
 </tr>
+{% endfor %}
 </table>
 </p>
-{% endfor %}
-<p class="home"><a href="/">{{ _("Go to Home") }}</a></p>
 
+<hr/>
 {% endblock content %}

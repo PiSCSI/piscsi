@@ -298,9 +298,8 @@ def is_bridge_configured(interface):
         return_msg = _(
             "Configure the network bridge for %(interface)s first: ", interface=interface
         )
-        return {"status": False, "msg": return_msg + ", ".join(to_configure)}
 
-    return {"status": True, "msg": return_msg}
+    return {"status": True, "msg": return_msg + ", ".join(to_configure)}
 
 
 def is_safe_path(file_name):
