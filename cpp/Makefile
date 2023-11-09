@@ -60,8 +60,8 @@ COVERAGE_DIR = coverage
 COVERAGE_FILE = piscsi.dat
 OS_FILES = ../os_integration
 
-OBJDIR := obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
-BINDIR := bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
+OBJDIR := obj
+BINDIR := bin
 
 BIN_ALL = \
 	$(BINDIR)/$(PISCSI) \
