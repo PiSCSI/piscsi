@@ -53,6 +53,7 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "en", "Device type %1 requires a filename");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "de", "Gerätetyp %1 erfordert einen Dateinamen");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "sv", "Enhetstypen %1 kräver ett filnamn");
+	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "fr", "Périphérique de type %1 à besoin d'un nom de fichier");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "es", "El tipo de dispositivo %1 requiere un nombre de archivo");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "zh", "设备类型 %1 需要一个文件名");
 
@@ -66,6 +67,7 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "en", "Can't create image file info for '%1'");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "de", "Image-Datei-Information für '%1' kann nicht erzeugt werden");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "sv", "Kunde ej skapa skivbildsfilsinfo för '%1'");
+	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "fr", "Ne peux pas créer les informations du fichier image '%1'");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "es", "No se puede crear información de archivo de imagen para '%1'");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "zh", "无法为'%1'创建图像文件信息");
 
@@ -114,6 +116,7 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_DETACH, "en", "Couldn't detach device");
 	Add(LocalizationKey::ERROR_DETACH, "de", "Geräte konnte nicht entfernt werden");
 	Add(LocalizationKey::ERROR_DETACH, "sv", "Kunde ej koppla ifrån enheten");
+	Add(LocalizationKey::ERROR_DETACH, "fr", "Impossible de détacher le périphérique");
 	Add(LocalizationKey::ERROR_DETACH, "es", "No se ha podido desconectar el dispositivo");
 	Add(LocalizationKey::ERROR_DETACH, "zh", "无法卸载设备");
 
@@ -176,54 +179,63 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_SCSI_CONTROLLER, "en", "Couldn't create SCSI controller");
 	Add(LocalizationKey::ERROR_SCSI_CONTROLLER, "de", "SCSI-Controller konnte nicht erzeugt werden");
 	Add(LocalizationKey::ERROR_SCSI_CONTROLLER, "sv", "Kunde ej skapa SCSI-gränssnitt");
+	Add(LocalizationKey::ERROR_SCSI_CONTROLLER, "fr", "Impossible de créer le contrôleur SCSI");
 	Add(LocalizationKey::ERROR_SCSI_CONTROLLER, "es", "No se ha podido crear el controlador SCSI");
 	Add(LocalizationKey::ERROR_SCSI_CONTROLLER, "zh", "无法创建 SCSI 控制器");
 
 	Add(LocalizationKey::ERROR_INVALID_ID, "en", "Invalid device ID %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_ID, "de", "Ungültige Geräte-ID %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_ID, "sv", "Ogiltigt enhets-id %1 (0-%2)");
+	Add(LocalizationKey::ERROR_INVALID_ID, "fr", "ID de périphérique invalide %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_ID, "es", "ID de dispositivo inválido %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_ID, "zh", "无效的设备 ID %1 (0-%2)");
 
 	Add(LocalizationKey::ERROR_INVALID_LUN, "en", "Invalid LUN %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_LUN, "de", "Ungültige LUN %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_LUN, "sv", "Ogiltigt enhetsnummer %1 (0-%2)");
+	Add(LocalizationKey::ERROR_INVALID_LUN, "fr", "LUN invalide %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_LUN, "es", "LUN invalido %1 (0-%2)");
 	Add(LocalizationKey::ERROR_INVALID_LUN, "zh", "无效的 LUN %1 (0-%2)");
 
 	Add(LocalizationKey::ERROR_LUN0, "en", "LUN 0 cannot be detached as long as there is still another LUN");
 	Add(LocalizationKey::ERROR_LUN0, "de", "LUN 0 kann nicht entfernt werden, solange noch eine andere LUN existiert");
 	Add(LocalizationKey::ERROR_LUN0, "sv", "Enhetsnummer 0 kan ej bli frånkopplat så länge som andra enhetsnummer är anslutna");
+	Add(LocalizationKey::ERROR_LUN0, "fr", "LUN 0 ne peux pas être détaché tant qu'il y'a un autre LUN");
 	Add(LocalizationKey::ERROR_LUN0, "es", "El LUN 0 no se puede desconectar mientras haya otro LUN");
 	Add(LocalizationKey::ERROR_LUN0, "zh", "LUN 0 无法卸载，因为当前仍有另一个 LUN。");
 
 	Add(LocalizationKey::ERROR_INITIALIZATION, "en", "Initialization of %1 failed");
 	Add(LocalizationKey::ERROR_INITIALIZATION, "de", "Initialisierung von %1 fehlgeschlagen");
 	Add(LocalizationKey::ERROR_INITIALIZATION, "sv", "Kunde ej initialisera %1 ");
+	Add(LocalizationKey::ERROR_INITIALIZATION, "fr", "Echec de l'initialisation de %1");
 	Add(LocalizationKey::ERROR_INITIALIZATION, "es", "La inicialización del %1 falló");
 	Add(LocalizationKey::ERROR_INITIALIZATION, "zh", "%1 的初始化失败");
 
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "en", "%1 operation denied, %2 isn't stoppable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "de", "%1-Operation verweigert, %2 ist nicht stopbar");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "sv", "Operationen %1 nekades för att %2 inte kan stoppas");
+	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "fr", "Opération %1 refusée, %2 ne peut être stoppé");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "es", "%1 operación denegada, %2 no se puede parar");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "zh", "%1 操作被拒绝，%2 不可停止");
 
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, "en", "%1 operation denied, %2 isn't removable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, "de", "%1-Operation verweigert, %2 ist nicht wechselbar");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, "sv", "Operationen %1 nekades för att %2 inte är uttagbar(t)");
+	Add(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, "fr", "Opération %1 refusée, %2 n'est pas détachable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, "es", "%1 operación denegada, %2 no es removible");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, "zh", "%1 操作被拒绝，%2 不可移除");
 
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "en", "%1 operation denied, %2 isn't protectable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "de", "%1-Operation verweigert, %2 ist nicht schützbar");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "sv", "Operationen %1 nekades för att %2 inte är skyddbar(t)");
+	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "fr", "Opération %1 refusée, %2 n'est pas protégeable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "es", "%1 operación denegada, %2 no es protegible");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "zh", "%1 操作被拒绝,%2 不可保护");
 
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "en", "%1 operation denied, %2 isn't ready");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "de", "%1-Operation verweigert, %2 ist nicht bereit");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "sv", "Operationen %1 nekades för att %2 inte är redo");
+	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "fr", "Opération %1 refusée, %2 n'est pas prêt");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "es", "%1 operación denegada, %2 no está listo");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "zh", "%1 操作被拒绝,%2 还没有准备好");
 }
