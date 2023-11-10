@@ -97,9 +97,6 @@ class BUS : public PinControl
     // SEL signal event polling
     virtual bool PollSelectEvent() = 0;
 
-    // Clear SEL signal event
-    virtual void ClearSelectEvent() = 0;
-
     virtual bool GetSignal(int pin) const = 0;
     // Get SCSI input signal value
     virtual void SetSignal(int pin, bool ast) = 0;
