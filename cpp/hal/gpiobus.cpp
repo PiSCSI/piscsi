@@ -276,7 +276,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " after " +
+                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " us after " +
                 		to_string(delay_after_bytes) + " bytes");
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
