@@ -212,13 +212,14 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 			// 	response->flags = e_no_more_data;
 			// }
 			int size = rx_packet_size;
-			if (size < 64) {
-				// A frame must have at least 64 bytes (see https://github.com/PiSCSI/piscsi/issues/619)
+            if (size < 128) {
+                // A frame must have at least 128 bytes (see https://github.com/PiSCSI/piscsi/issues/619
+                // and https://github.com/PiSCSI/piscsi/issues/1098.
 				// Note that this work-around breaks the checksum. As currently there are no known drivers
-				// that care for the checksum, and the Daynaport driver for the Atari expects frames of
-				// 64 bytes it was decided to accept the broken checksum. If a driver should pop up that
-				// breaks because of this, the work-around has to be re-evaluated.
-				size = 64;
+                // that care for the checksum, the Daynaport driver for the Atari expects frames of 64 bytes
+                // and the driver for NetBSD 128 bytes it was decided to accept the broken checksum.
+                // If a driver should pop up that breaks because of this, the work-around has to be re-evaluated.
+                size = 128;
 			}
 			SetInt16(buf, 0, size);
 			SetInt32(buf, 2, tap.HasPendingPackets() ? 0x10 : 0x00);
