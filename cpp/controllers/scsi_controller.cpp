@@ -178,13 +178,15 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	stringstream s;
-	s << "Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $"
-			<< setfill('0') << hex;
-	for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
-		s << setw(2) << GetCmdByte(i);
-	}
-	LogDebug(s.str());
+    if (spdlog::get_level() == spdlog::level::trace) {
+        stringstream s;
+        s << "Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $"
+            << setfill('0') << hex;
+        for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
+            s << setw(2) << GetCmdByte(i);
+        }
+        LogTrace(s.str());
+    }
 
 	// Initialization for data transfer
 	ResetOffset();
