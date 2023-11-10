@@ -155,7 +155,7 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 			return DAYNAPORT_READ_HEADER_SZ;
 		}
 
-		byte_read_count += rx_packet_size * read_count;
+        byte_read_count += rx_packet_size;
 
 		LogTrace("Packet Size " + to_string(rx_packet_size) + ", read count: " + to_string(read_count));
 
