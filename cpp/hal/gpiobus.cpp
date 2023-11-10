@@ -1,10 +1,11 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@
 #ifdef __linux__
 #include <sys/epoll.h>
 #endif
+#include <chrono>
 
 using namespace std;
 
