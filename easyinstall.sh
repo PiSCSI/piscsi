@@ -76,7 +76,7 @@ SECRET_FILE="$HOME/.config/piscsi/secret"
 FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
 
-APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils dhcpcd ca-certificates"
+APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils ca-certificates"
 APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang"
 APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
 APT_PACKAGES_WEB="nginx-light genisoimage man2html hfsutils dosfstools kpartx unzip unar disktype gettext"
