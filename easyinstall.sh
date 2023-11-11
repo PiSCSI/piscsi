@@ -558,7 +558,7 @@ function installHfdisk() {
     HFDISK_VERSION="2022.11"
     if [ ! -x "$HFDISK_BIN" ]; then
         cd "$BASE" || exit 1
-        wget -O "hfdisk-$HFDISK_VERSION.tar.gz" "https://github.com/rdmark/hfdisk/archive/refs/tags/$HFDISK_VERSION.tar.gz" </dev/null
+        wget --no-check-certificate -O "hfdisk-$HFDISK_VERSION.tar.gz" "https://github.com/rdmark/hfdisk/archive/refs/tags/$HFDISK_VERSION.tar.gz" </dev/null
         tar -xzvf "hfdisk-$HFDISK_VERSION.tar.gz"
         rm "hfdisk-$HFDISK_VERSION.tar.gz"
         cd "hfdisk-$HFDISK_VERSION" || exit 1
@@ -576,7 +576,7 @@ function fetchHardDiskDrivers() {
     if [ ! -d "$BASE/$DRIVER_ARCHIVE" ]; then
         cd "$BASE" || exit 1
         # -N option overwrites if downloaded file is newer than existing file
-        wget -N "https://www.dropbox.com/s/gcs4v5pcmk7rxtb/$DRIVER_ARCHIVE.zip?dl=1" -O "$DRIVER_ARCHIVE.zip"
+        wget --no-check-certificate -N "https://www.dropbox.com/s/gcs4v5pcmk7rxtb/$DRIVER_ARCHIVE.zip?dl=1" -O "$DRIVER_ARCHIVE.zip"
         unzip -d "$DRIVER_ARCHIVE" "$DRIVER_ARCHIVE.zip"
         rm "$DRIVER_ARCHIVE.zip"
     fi
@@ -792,7 +792,7 @@ function installNetatalk() {
     echo
     echo "Downloading tarball to $HOME..."
     cd $HOME || exit 1
-    wget -O "netatalk-2.$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/netatalk-2.x/releases/download/netatalk-2-$NETATALK_VERSION/netatalk-2.$NETATALK_VERSION.tar.gz" </dev/null
+    wget --no-check-certificate -O "netatalk-2.$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/netatalk-2.x/releases/download/netatalk-2-$NETATALK_VERSION/netatalk-2.$NETATALK_VERSION.tar.gz" </dev/null
 
     echo "Unpacking tarball..."
     tar -xzf "netatalk-2.$NETATALK_VERSION.tar.gz"
@@ -873,7 +873,7 @@ function installMacproxy {
         sudo rm -rf "$MACPROXY_PATH"
     fi
     cd "$HOME" || exit 1
-    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
+    wget --no-check-certificate -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
 
     sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
@@ -978,7 +978,7 @@ function installWebmin() {
     fi
 
     rm netatalk2-wbm.tgz 2> /dev/null || true
-    wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_MODULE_VERSION/netatalk2-wbm-$WEBMIN_MODULE_VERSION.tgz" </dev/null
+    wget --no-check-certificate -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_MODULE_VERSION/netatalk2-wbm-$WEBMIN_MODULE_VERSION.tgz" </dev/null
     sudo "$WEBMIN_PATH/install-module.pl" netatalk2-wbm.tgz
 
     if [[ ! $WEBMIN_MODULE_FLAG ]]; then
