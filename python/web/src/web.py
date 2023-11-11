@@ -1072,8 +1072,13 @@ def upload_file():
 
     try:
         with open(tmp_save_path, "ab") as save:
+            log.info(request.form)
+            log.info(request.files)
             save.seek(int(request.form["dzchunkbyteoffset"]))
-            save.write(file_object.stream.read())
+            chunk = file_object.stream.read()
+            # Remove CRLF characters from the end of the chunk
+            # chunk = chunk.rstrip(b"\r\n")
+            save.write(chunk)
     except OSError:
         log.exception("Could not write to file")
         return make_response(_("Unable to write the file to disk!"), 500)
