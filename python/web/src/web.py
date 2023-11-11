@@ -58,7 +58,6 @@ from web_utils import (
     auth_active,
     is_bridge_configured,
     is_safe_path,
-    validate_target_dir,
     browser_supports_modern_themes,
 )
 from settings import (
@@ -996,14 +995,18 @@ def download_file():
     images_subdir = request.form.get("images_subdir")
     shared_subdir = request.form.get("shared_subdir")
     if destination == "disk_images":
+        safe_path = is_safe_path(Path(images_subdir))
+        if not safe_path["status"]:
+            return response(error=True, message=safe_path["msg"])
         server_info = piscsi_cmd.get_server_info()
         destination_dir = Path(server_info["image_dir"]) / images_subdir
     elif destination == "shared_files":
+        safe_path = is_safe_path(Path(shared_subdir))
+        if not safe_path["status"]:
+            return response(error=True, message=safe_path["msg"])
         destination_dir = Path(FILE_SERVER_DIR) / shared_subdir
     else:
         return response(error=True, message=_("Unknown destination"))
-
-    validate_target_dir(destination_dir)
 
     process = file_cmd.download_to_dir(url, Path(destination_dir) / Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
@@ -1034,16 +1037,20 @@ def upload_file():
     images_subdir = request.form.get("images_subdir")
     shared_subdir = request.form.get("shared_subdir")
     if destination == "disk_images":
+        safe_path = is_safe_path(Path(images_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
         destination_dir = Path(server_info["image_dir"]) / images_subdir
     elif destination == "shared_files":
+        safe_path = is_safe_path(Path(shared_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
         destination_dir = Path(FILE_SERVER_DIR) / shared_subdir
     elif destination == "piscsi_config":
         destination_dir = Path(CFG_DIR)
     else:
         return make_response(_("Unknown destination"), 403)
-
-    validate_target_dir(destination_dir)
 
     log = logging.getLogger("pydrop")
     file_object = request.files["file"]
