@@ -12,6 +12,7 @@
 #pragma once
 
 #include "shared/scsi.h"
+#include <cstdint>
 #include <string>
 
 using namespace scsi_defs;

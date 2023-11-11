@@ -13,7 +13,6 @@
 
 #include "hal/data_sample_raspberry.h"
 #include "hal/gpiobus.h"
-#include "shared/log.h"
 #include "shared/scsi.h"
 #include <map>
 
@@ -163,9 +162,9 @@ class GPIOBUS_Raspberry : public GPIOBUS
 
   protected:
     // All bus signals
-    uint32_t signals = 0; // NOSONAR: Must be protected (not private) for testability
+    uint32_t signals = 0;
     // GPIO input level
-    volatile uint32_t *level = nullptr; // NOSONAR: Must be protected (not private) for testability
+    volatile uint32_t *level = nullptr;
 
   private:
     // SCSI I/O signal control

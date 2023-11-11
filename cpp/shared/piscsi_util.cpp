@@ -7,13 +7,48 @@
 //
 //---------------------------------------------------------------------------
 
+#include "controllers/controller_manager.h"
 #include "piscsi_version.h"
 #include "piscsi_util.h"
+#include <spdlog/spdlog.h>
 #include <cassert>
+#include <cstring>
 #include <sstream>
+#include <filesystem>
 #include <algorithm>
 
 using namespace std;
+using namespace filesystem;
+
+vector<string> piscsi_util::Split(const string& s, char separator, int limit)
+{
+	assert(limit >= 0);
+
+	string component;
+	vector<string> result;
+	stringstream str(s);
+
+	while (--limit > 0 && getline(str, component, separator)) {
+		result.push_back(component);
+	}
+
+	if (!str.eof()) {
+		getline(str, component);
+		result.push_back(component);
+	}
+
+	return result;
+}
+
+string piscsi_util::GetLocale()
+{
+	const char *locale = setlocale(LC_MESSAGES, "");
+	if (locale == nullptr || !strcmp(locale, "C")) {
+		locale = "en";
+	}
+
+	return locale;
+}
 
 bool piscsi_util::GetAsUnsignedInt(const string& value, int& result)
 {
@@ -35,10 +70,8 @@ bool piscsi_util::GetAsUnsignedInt(const string& value, int& result)
 	return true;
 }
 
-string piscsi_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
+string piscsi_util::ProcessId(const string& id_spec, int& id, int& lun)
 {
-	assert(max_luns > 0);
-
 	id = -1;
 	lun = -1;
 
@@ -46,27 +79,32 @@ string piscsi_util::ProcessId(const string& id_spec, int max_luns, int& id, int&
 		return "Missing device ID";
 	}
 
-	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
-		if (!GetAsUnsignedInt(id_spec, id) || id >= 8) {
-			id = -1;
+	const int id_max = ControllerManager::GetScsiIdMax();
+	const int lun_max = ControllerManager::GetScsiLunMax();
 
-			return "Invalid device ID (0-7)";
+	if (const auto& components = Split(id_spec, COMPONENT_SEPARATOR, 2); !components.empty()) {
+		if (components.size() == 1) {
+			if (!GetAsUnsignedInt(components[0], id) || id >= id_max) {
+				id = -1;
+
+				return "Invalid device ID (0-" + to_string(ControllerManager::GetScsiIdMax() - 1) + ")";
+			}
+
+			return "";
 		}
 
-		lun = 0;
-	}
-	else if (!GetAsUnsignedInt(id_spec.substr(0, separator_pos), id) || id > 7 ||
-			!GetAsUnsignedInt(id_spec.substr(separator_pos + 1), lun) || lun >= max_luns) {
-		id = -1;
-		lun = -1;
+		if (!GetAsUnsignedInt(components[0], id) || id >= id_max || !GetAsUnsignedInt(components[1], lun) || lun >= lun_max) {
+			id = -1;
+			lun = -1;
 
-		return "Invalid LUN (0-" + to_string(max_luns - 1) + ")";
+			return "Invalid LUN (0-" + to_string(lun_max - 1) + ")";
+		}
 	}
 
 	return "";
 }
 
-string piscsi_util::Banner(const string& app)
+string piscsi_util::Banner(string_view app)
 {
 	ostringstream s;
 
@@ -79,15 +117,18 @@ string piscsi_util::Banner(const string& app)
 	return s.str();
 }
 
-string piscsi_util::GetExtensionLowerCase(const string& filename)
+string piscsi_util::GetExtensionLowerCase(string_view filename)
 {
 	string ext;
-	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
-		ext = filename.substr(separator + 1);
-	}
-	transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
+	ranges::transform(path(filename).extension().string(), back_inserter(ext), ::tolower);
 
-	return ext;
+	// Remove the leading dot
+	return ext.empty() ? "" : ext.substr(1);
+}
+
+void piscsi_util::LogErrno(const string& msg)
+{
+	spdlog::error(errno ? msg + ": " + string(strerror(errno)) : msg);
 }
 
 // Pin the thread to a specific CPU

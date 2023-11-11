@@ -3,13 +3,12 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "shared/protobuf_serializer.h"
 #include "generated/piscsi_interface.pb.h"
 #include "scsictl_display.h"
 #include <string>
@@ -26,40 +25,39 @@ public:
 		: command(command), hostname(hostname), port(port) {}
 	~ScsictlCommands() = default;
 
-	bool Execute(const string&, const string&, const string&, const string&, const string&);
+	bool Execute(string_view, string_view, string_view, string_view, string_view);
 
 	bool CommandDevicesInfo();
 
 private:
 
-	bool CommandLogLevel(const string&);
-	bool CommandReserveIds(const string&);
-	bool CommandCreateImage(const string&);
-	bool CommandDeleteImage(const string&);
-	bool CommandRenameImage(const string&);
-	bool CommandCopyImage(const string&);
-	bool CommandDefaultImageFolder(const string&);
+	bool CommandLogLevel(string_view);
+	bool CommandReserveIds(string_view);
+	bool CommandCreateImage(string_view);
+	bool CommandDeleteImage(string_view);
+	bool CommandRenameImage(string_view);
+	bool CommandCopyImage(string_view);
+	bool CommandDefaultImageFolder(string_view);
 	bool CommandDeviceInfo();
 	bool CommandDeviceTypesInfo();
 	bool CommandVersionInfo();
 	bool CommandServerInfo();
 	bool CommandDefaultImageFilesInfo();
-	bool CommandImageFileInfo(const string&);
+	bool CommandImageFileInfo(string_view);
 	bool CommandNetworkInterfacesInfo();
 	bool CommandLogLevelInfo();
 	bool CommandReservedIdsInfo();
 	bool CommandMappingInfo();
+	bool CommandStatisticsInfo();
 	bool CommandOperationInfo();
 	bool SendCommand();
+	bool EvaluateParams(string_view, const string&, const string&);
 
-	static bool ResolveHostName(const string&, sockaddr_in *);
-
-	ProtobufSerializer serializer;
 	PbCommand& command;
 	string hostname;
 	int port;
 
 	PbResult result;
 
-	ScsictlDisplay scsictl_display;
+	[[no_unique_address]] const ScsictlDisplay scsictl_display;
 };

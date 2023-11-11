@@ -32,7 +32,9 @@
                 <div align="center" class="login-status logged-in">
                     <span class="logged-in-as-text">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }}</span>
                     <span class="separator">-</span>
-                    <a href="/logout">{{ _("Log Out") }}</a>
+                    <span class="log-out-button"><a href="/logout">{{ _("Log Out") }}</a></span>
+                    <span class="separator">-</span>
+                    <span class="admin-button"><a href="/sys/admin">{{ _("Settings") }}</a></span>
                 </div>
             {% else %}
                 <div align="center" class="login-status logged-out">
@@ -73,6 +75,17 @@
         </div>
     </div>
 
+    <div class="throttle-notice">
+        {% if (env["throttle_status"]|length > 0) %}
+        {% for category, response in env["throttle_status"] %}
+        <div class="{{ category }}">
+        <span class="message" title="{{ response['msg'] }}"><a
+                href="https://www.raspberrypi.com/documentation/computers/configuration.html#undervoltage-warning">{{ response['msg'] }}</a></span>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+
     <div class="flash" id="flash">
         {% if get_flashed_messages(): %}
             {% for category, message in get_flashed_messages(with_categories=true) %}
@@ -82,7 +95,7 @@
                     {% else %}
                         <div>{{ message }}</div>
                     {% endif %}
-                    <a style="display: none;" href="/"></a>
+                    <a href="/"></a>
                 </div>
             {% endfor %}
         {% endif %}
@@ -92,32 +105,17 @@
         {{ content_class }}
         {% block content %}{% endblock content %}
     </div>
+    {% if not is_root_page %}
+    <div class="content">
+        <a class="back" href="/"><span class="separator">&lt;&lt; </span>{{ _("Go to Home") }}</a>
+    </div>
+    {% endif %}
     <div align="center" class="footer">
-        <div class="theme-change-hint">
-            {% if current_theme == "classic" %}
-                {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="modern") }}
-            {% else %}
-                {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="classic") }}
-            {% endif %}
-        </div>
-
         <div>
-            {% if env["netatalk_configured"] == 1 %}
-            {{ _("The AppleShare server is running. No active connections.") }}
-            {% endif %}
-            {% if env["netatalk_configured"] == 2 %}
-            {{ _("%(value)d active AFP connection", value=(env["netatalk_configured"] - 1)) }}
-            {% elif env["netatalk_configured"] > 2 %}
-            {{ _("%(value)d active AFP connections", value=(env["netatalk_configured"] - 1)) }}
-            {% endif %}
+            <a href="/sys/manpage?app=piscsi">{{ _("Read the PiSCSI Manual") }}</a>
         </div>
         <div>
-            {% if env["macproxy_configured"] %}
-            {{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
-            {% endif %}
-        </div>
-        <div>
-	    {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
+            {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
         </div>
         <div>
             {{ _("Hardware and OS:") }} {{ env["running_env"]["env"] }}

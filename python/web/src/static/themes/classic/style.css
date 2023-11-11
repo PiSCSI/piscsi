@@ -13,10 +13,17 @@ form {
   display: inline;
 }
 
-table, tr, td {
+table,
+tr,
+td {
   border: 1px solid black;
   border-collapse: collapse;
   margin: none;
+}
+
+th {
+  color: white;
+  background-color: black;
 }
 
 h1 {
@@ -48,7 +55,7 @@ div.footer {
 }
 
 div.footer div.theme-change-hint {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 div.logged-in {
@@ -95,12 +102,16 @@ div.flash div.info {
   background-color: #0d6efd;
 }
 
+div.flash > div a {
+  display: none;
+}
+
 td.inactive {
   text-align: center;
   background-color: tan;
 }
 
-ul.inline_list {
+ul.inline-list {
   list-style: none;
 }
 
@@ -113,7 +124,8 @@ summary.filename {
   text-decoration: underline;
 }
 
-.dropzone, .dropzone * {
+.dropzone,
+.dropzone * {
   box-sizing: border-box;
 }
 
@@ -134,7 +146,7 @@ summary.filename {
   position: relative;
   display: inline-block;
   width: 180px;
-  margin: .5em;
+  margin: 0.5em;
 }
 
 .dropzone .dz-preview .dz-progress {
@@ -159,7 +171,8 @@ summary.filename {
   display: block;
 }
 
-.dropzone .dz-preview .dz-error-mark, .dropzone .dz-preview .dz-success-mark {
+.dropzone .dz-preview .dz-error-mark,
+.dropzone .dz-preview .dz-success-mark {
   position: absolute;
   display: none;
   top: 30px;
@@ -167,4 +180,39 @@ summary.filename {
   height: 58px;
   left: 50%;
   margin-left: -27px;
+}
+
+div.throttle-notice > div {
+  display: grid;
+  align-items: center;
+  background-color: #efefef;
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  background-size: 1rem;
+  font-size: x-small;
+  font-weight: bold;
+  justify-content: center;
+}
+
+div.throttle-notice > div.error {
+  background-color: #dc3545;
+  align-items: center;
+}
+
+div.throttle-notice > div.warning {
+  background-color: #ffc107;
+  align-items: center;
+}
+
+div.throttle-notice > div a {
+  color: black;
+  text-decoration: none;
+}
+
+div.throttle-notice > div a:hover {
+  text-decoration: underline;
+}
+
+label.hidden {
+  display: none;
 }

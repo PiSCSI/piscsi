@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // Host Services with realtime clock and shutdown support
 //
@@ -25,11 +25,13 @@
 #include "scsi_command_util.h"
 #include "host_services.h"
 #include <algorithm>
+#include <chrono>
 
+using namespace std::chrono;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-bool HostServices::Init(const unordered_map<string, string>& params)
+bool HostServices::Init(const param_map& params)
 {
 	ModePageDevice::Init(params);
 
@@ -49,13 +51,13 @@ void HostServices::TestUnitReady()
 
 vector<uint8_t> HostServices::InquiryInternal() const
 {
-	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	return HandleInquiry(device_type::processor, scsi_level::spc_3, false);
 }
 
 void HostServices::StartStopUnit() const
 {
-	const bool start = GetController()->GetCmd(4) & 0x01;
-	const bool load = GetController()->GetCmd(4) & 0x02;
+	const bool start = GetController()->GetCmdByte(4) & 0x01;
+	const bool load = GetController()->GetCmdByte(4) & 0x02;
 
 	if (!start) {
 		if (load) {
@@ -69,17 +71,17 @@ void HostServices::StartStopUnit() const
 		GetController()->ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI);
 	}
 	else {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	EnterStatusPhase();
 }
 
-int HostServices::ModeSense6(const vector<int>& cdb, vector<uint8_t>& buf) const
+int HostServices::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(cdb[4])));
@@ -93,11 +95,11 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<uint8_t>& buf) const
 	return size;
 }
 
-int HostServices::ModeSense10(const vector<int>& cdb, vector<uint8_t>& buf) const
+int HostServices::ModeSense10(cdb_t cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));
@@ -123,7 +125,8 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 	pages[32] = vector<byte>(10);
 
 	if (!changeable) {
-		time_t t = time(nullptr);
+		const auto now = system_clock::now();
+		const time_t t = system_clock::to_time_t(now);
 		tm localtime;
 		localtime_r(&t, &localtime);
 

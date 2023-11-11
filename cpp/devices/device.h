@@ -3,19 +3,25 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "shared/log.h"
 #include "generated/piscsi_interface.pb.h"
+#include "shared/piscsi_util.h"
 #include <unordered_map>
 #include <string>
 
 using namespace std;
 using namespace piscsi_interface;
+
+// A combination of device ID and LUN
+using id_set = pair<int, int>;
+
+// The map used for storing/passing device parameters
+using param_map = unordered_map<string, string, piscsi_util::StringHash, equal_to<>>;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
@@ -60,10 +66,7 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	string revision;
 
 	// The parameters the device was created with
-	unordered_map<string, string> params;
-
-	// The default parameters
-	unordered_map<string, string> default_params;
+	param_map params;
 
 	// Sense Key and ASC
 	//	MSB		Reserved (0x00)
@@ -90,14 +93,15 @@ protected:
 	int GetStatusCode() const { return status_code; }
 
 	string GetParam(const string&) const;
-	void SetParams(const unordered_map<string, string>&);
+	void SetParams(const param_map&);
 
 public:
 
 	virtual ~Device() = default;
 
 	PbDeviceType GetType() const { return type; }
-	const char *GetTypeString() const { return PbDeviceType_Name(type).c_str(); }
+	string GetTypeString() const { return PbDeviceType_Name(type); }
+	string GetIdentifier() const { return GetTypeString() + " " + to_string(GetId()) + ":" + to_string(lun); }
 
 	bool IsReady() const { return ready; }
 	virtual void Reset();
@@ -131,8 +135,8 @@ public:
 	bool SupportsFile() const { return supports_file; }
 	void SupportsParams(bool b) { supports_params = b; }
 	void SupportsFile(bool b) { supports_file = b; }
-	unordered_map<string, string> GetParams() const { return params; }
-	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
+	auto GetParams() const { return params; }
+	virtual param_map GetDefaultParams() const { return {}; }
 
 	void SetStatusCode(int s) { status_code = s; }
 

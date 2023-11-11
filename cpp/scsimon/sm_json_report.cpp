@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "hal/data_sample_raspberry.h"
-#include "shared/log.h"
+#include "hal/log.h"
 #include "sm_reports.h"
 #include "string.h"
 #include <fstream>
@@ -52,7 +52,7 @@ uint32_t scsimon_read_json(const string &json_filename, vector<shared_ptr<DataSa
 
         sample_count++;
         if (sample_count == UINT32_MAX) {
-            LOGWARN("Maximum number of samples read. Some data may not be included.")
+            spdlog::warn("Maximum number of samples read. Some data may not be included.");
             break;
         }
     }
@@ -69,7 +69,7 @@ uint32_t scsimon_read_json(const string &json_filename, vector<shared_ptr<DataSa
 //---------------------------------------------------------------------------
 void scsimon_generate_json(const string &filename, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
-    LOGTRACE("Creating JSON file (%s)", filename.c_str())
+    spdlog::trace("Creating JSON file (" + filename + ")");
     ofstream json_ofstream;
     json_ofstream.open(filename.c_str(), ios::out);
 

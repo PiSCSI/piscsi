@@ -8,11 +8,9 @@
 //---------------------------------------------------------------------------
 
 #include "test_shared.h"
-#include "controllers/controller_manager.h"
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -28,38 +26,33 @@ const path test_data_temp_path(temp_directory_path() /
                                path(fmt::format("piscsi-test-{}",
                                                 getpid()))); // NOSONAR Publicly writable directory is fine here
 
-shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, const string& extension)
+pair<shared_ptr<MockAbstractController>, shared_ptr<PrimaryDevice>> CreateDevice(PbDeviceType type, const string& extension)
 {
     DeviceFactory device_factory;
 
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
     auto device = device_factory.CreateDevice(type, 0, extension);
-    unordered_map<string, string> params;
-    device->Init(params);
+    device->Init({});
 
-    controller.AddDevice(device);
+    EXPECT_TRUE(controller->AddDevice(device));
 
-    return device;
+    return { controller, device };
 }
 
-void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
-                 bool removable, const string& extension)
+void TestInquiry::Inquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
+		bool removable, const string& extension)
 {
-    auto bus                = make_shared<MockBus>();
-    auto controller_manager = make_shared<ControllerManager>(*bus);
-    auto controller         = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-    auto device             = CreateDevice(type, *controller, extension);
-
-    auto& cmd = controller->GetCmd();
+    auto [controller, device] = CreateDevice(type, extension);
 
     // ALLOCATION LENGTH
-    cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
     EXPECT_CALL(*controller, DataIn());
     device->Dispatch(scsi_command::eCmdInquiry);
     const vector<uint8_t>& buffer = controller->GetBuffer();
     EXPECT_EQ(t, static_cast<device_type>(buffer[0]));
     EXPECT_EQ(removable ? 0x80 : 0x00, buffer[1]);
     EXPECT_EQ(l, static_cast<scsi_level>(buffer[2]));
-    EXPECT_EQ(l > scsi_level::SCSI_2 ? scsi_level::SCSI_2 : l, static_cast<scsi_level>(buffer[3]));
+    EXPECT_EQ(l > scsi_level::scsi_2 ? scsi_level::scsi_2 : l, static_cast<scsi_level>(buffer[3]));
     EXPECT_EQ(additional_length, buffer[4]);
     string product_data;
     if (ident.size() == 24) {
@@ -89,12 +82,17 @@ pair<int, path> OpenTempFile()
 
 path CreateTempFile(int size)
 {
+	const auto data = vector<byte>(size);
+	return CreateTempFileWithData(data);
+}
+
+path CreateTempFileWithData(const span<const byte> data)
+{
     const auto [fd, filename] = OpenTempFile();
 
-    vector<char> data(size);
     const size_t count = write(fd, data.data(), data.size());
-    close(fd);
     EXPECT_EQ(count, data.size()) << "Couldn't create temporary file '" << string(filename) << "'";
+    close(fd);
 
     return path(filename);
 }
@@ -110,36 +108,32 @@ void CreateTempFileWithData(const string& filename, vector<uint8_t>& data)
 
     FILE* fp = fopen(new_filename.c_str(), "wb");
     if (fp == nullptr) {
-        printf("ERROR: Unable to open file %s\n", new_filename.c_str());
+        cerr << "ERROR: Unable to open file '" << new_filename << "'";
         return;
     }
 
     if (const size_t size_written = fwrite(&data[0], sizeof(uint8_t), data.size(), fp);
         size_written != sizeof(vector<uint8_t>::value_type) * data.size()) {
-        printf("Expected to write %zu bytes, but only wrote %zu to %s", size_written,
-               sizeof(vector<uint8_t>::value_type) * data.size(), filename.c_str());
+    	cerr << "ERROR: Expected to write " << sizeof(vector<uint8_t>::value_type) * data.size() << " bytes"
+    			<< ", but only wrote " << data.size() << " to '" << filename << "'";
     }
     fclose(fp);
 }
 
+// TODO Move this code, it is not shared
 void DeleteTempFile(const string& filename)
 {
-    path temp_file = test_data_temp_path;
-    temp_file += path(filename);
-    remove(temp_file);
-}
-
-void CleanupAllTempFiles()
-{
-    remove_all(test_data_temp_path);
+	path temp_file = test_data_temp_path;
+	temp_file += path(filename);
+	remove(temp_file);
 }
 
 string ReadTempFileToString(const string& filename)
 {
-    path temp_file = test_data_temp_path / path(filename);
-    ifstream in_fs(temp_file);
+    const path temp_file = test_data_temp_path / path(filename);
+    ifstream in(temp_file);
     stringstream buffer;
-    buffer << in_fs.rdbuf();
+    buffer << in.rdbuf();
 
     return buffer.str();
 }

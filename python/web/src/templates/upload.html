@@ -4,7 +4,6 @@
 <h2>{{ _("Upload File from Local Computer") }}</h2>
 <ul>
     <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
-    <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling the upload or closing this page.") }}</li>
     <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
     {% if file_server_dir_exists %}
     <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
@@ -12,31 +11,40 @@
     <li>{{ _("PiSCSI Config") }} = {{ CFG_DIR }}</li>
 </ul>
 
-<h3>{{ _("Destination") }}</h3>
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
+    <fieldset>
+    <legend>{{ _("Destination") }}</legend>
+    <label for="disk_images" class="hidden">{{ _("Disk Images") }}</label>
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
-    <label for="disk_images">{{ _("Disk Images") }}</label>
+    <label for="images_subdir" class="hidden">{{ _("To directory:") }}</label>
     <select name="images_subdir" id="images_subdir">
     {% for dir in images_subdirs %}
-    <option value="{{dir}}">{{dir}}</option>
+    <option value="{{dir}}">{{ env['image_root_dir'] }}/{{dir}}</option>
     {% endfor %}
-    <option value="/" selected>/</option>
+    <option value="" selected>{{ env['image_root_dir'] }}/</option>
     </select>
     {% if file_server_dir_exists %}
+    <label for="shared_files" class="hidden">{{ _("Shared Files") }}</label>
     <input type="radio" name="destination" id="shared_files" value="shared_files">
-    <label for="shared_files">{{ _("Shared Files") }}</label>
+    <label for="shared_subdir" class="hidden">{{ _("To directory:") }}</label>
     <select name="shared_subdir" id="shared_subdir">
     {% for dir in shared_subdirs %}
-    <option value="{{dir}}">{{dir}}</option>
+    <option value="{{dir}}">{{ env['shared_root_dir'] }}/{{dir}}</option>
     {% endfor %}
-    <option value="/" selected>/</option>
+    <option value="" selected>{{ env['shared_root_dir'] }}/</option>
     </select>
     {% endif %}
     <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">
     <label for="piscsi_config">{{ _("PiSCSI Config") }}</label>
+    </fieldset>
 </form>
 
-<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+<script
+    type="application/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"
+    integrity="sha384-PwiT+fWTPpIySx6DrH1FKraKo+LvVpOClsjx0TSdMYTKi7BR1hR149f4VHLUUnfA"
+    crossorigin="anonymous"
+></script>
 
 <script type="application/javascript">
     Dropzone.options.dropper = {

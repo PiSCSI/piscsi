@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section id="logging">
+<details>
+    <summary class="heading">
+        {{ _("Logging") }}
+    </summary>
+    <ul>
+        <li>{{ _("The current dropdown selection indicates the active log level.") }}</li>
+    </ul>
+</details>
+
+<div>
+<form action="/logs/show" method="post">
+    <label for="log_lines">{{ _("Log Lines:") }}</label>
+    <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
+    <label for="log_scope">{{ _("Scope:") }}</label>
+    <select name="scope" id="log_scope">
+        <option value="">
+            {{ _("All logs") }}
+        </option>
+        <option value="piscsi">
+            piscsi
+        </option>
+        <option value="piscsi-web">
+            piscsi-web
+        </option>
+        <option value="piscsi-oled">
+            piscsi-oled
+        </option>
+        <option value="piscsi-ctrlboard">
+            piscsi-ctrlboard
+        </option>
+    </select>
+    <input type="submit" value="{{ _("Show Logs") }}">
+</form>
+</div>
+
+<div>
+<form action="/logs/level" method="post">
+    <label for="log_level">{{ _("Log Level:") }}</label>
+    <select name="level" id="log_level">
+    {% for level in log_levels %}
+        <option value="{{ level }}"{% if level == current_log_level %} selected{% endif %}>
+            {{ level }}
+        </option>
+    {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Set Log Level") }}">
+</form>
+</div>
+</section>
+
+<hr/>
+
+<section id="appearance">
+<details>
+    <summary class="heading">
+        {{ _("Appearance") }}
+    </summary>
+    <ul>
+        <li>{{ _("Theme and language are auto-detected for your user agent. Here you can change the default.") }}</li>
+        <li>{{ _("The System Name is the \"pretty\" hostname if set, with a fallback to the regular hostname.") }}</li>
+    </ul>
+</details>
+
+<div>
+    <div class="theme-change-hint">
+        {{ _("The current theme is \"%(theme)s\".", theme=current_theme) }}
+        {% if current_theme == "classic" %}
+            {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="modern") }}
+        {% else %}
+            {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="classic") }}
+        {% endif %}
+    </div>
+
+<form action="/language" method="post">
+    <label for="locale">{{ _("Language:") }}</label>
+    <select name="locale" id="locale">
+    {% for locale in locales %}
+        {% if locale.language == env["locale"] %}
+            <option value="{{ locale.language }}" selected>
+        {% else %}
+            <option value="{{ locale.language }}">
+        {% endif %}
+        {{ locale.language }} - {{ locale.display_name }}
+        </option>
+    {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Change Language") }}">
+</form>
+</div>
+
+<div>
+<form action="/sys/rename" method="post">
+    <label for="system_name">{{ _("System Name:") }}</label>
+    <input name="system_name" id="system_name" type="text" maxlength=120 required value="{{ env['system_name'] }}">
+    <input type="submit" value="{{ _("Rename") }}">
+</form>
+<form action="/sys/rename" method="post">
+    <input name="system_name" type="hidden" value="">
+    <input type="submit" value="{{ _("Reset") }}">
+</form>
+</div>
+</section>
+
+<hr/>
+
+<section id="services">
+<details>
+    <summary class="heading">
+        {{ _("Companion Services") }}
+    </summary>
+    <ul>
+        <li>{{ _("If you want to add a service, run the easyinstall.sh script and choose the one to install.") }}</li>
+        <li>{{ _("In order to manage the services in the Web UI, you may install Webmin as well.") }}</li>
+    </ul>
+</details>
+<ul class="service_status">
+    {% if netatalk_configured %}
+    <li class="service-item enabled">
+        {{ _("Mac AFP file sharing is enabled.") }}
+    {% else %}
+    <li class="service-item disabled">
+        {{ _("Mac AFP file sharing is disabled.") }}
+    {% endif %}
+    </li>
+    {% if webmin_configured %}
+    <li>
+        <a href="https://{{ env["ip_addr"] }}:10000/netatalk2/" target=\"_blank\">
+        {{ _("Manage the AFP server") }}
+        </a>
+    </li>
+    {% endif %}
+    {% if samba_configured %}
+    <li class="service-item enabled">
+        {{ _("Windows SMB file sharing is enabled.") }}
+    {% else %}
+    <li class="service-item disabled">
+        {{ _("Windows SMB file sharing is disabled.") }}
+    {% endif %}
+    </li>
+    {% if webmin_configured %}
+    <li>
+        <a href="https://{{ env["ip_addr"] }}:10000/samba/" target=\"_blank\">
+        {{ _("Manage the SMB server") }}
+        </a>
+    </li>
+    {% endif %}
+    {% if ftp_configured %}
+    <li class="service-item enabled">
+        {{ _("FTP file sharing is enabled.") }}
+    {% else %}
+    <li class="service-item disabled">
+        {{ _("FTP file sharing is disabled.") }}
+    {% endif %}
+    </li>
+    {% if macproxy_configured %}
+    <li class="service-item enabled">
+        {{ _("Vintage web proxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
+    {% else %}
+    <li class="service-item disabled">
+        {{ _("Vintage web proxy is disabled.") }}
+    {% endif %}
+    </li>
+</ul>
+</section>
+
+<hr/>
+
+<section id="system">
+<details>
+    <summary class="heading">
+        {{ _("System Operations") }}
+    </summary>
+    <ul>
+        <li>{{ _("IMPORTANT: Always shut down the system before turning off the power. Failing to do so may lead to data loss.") }}</li>
+    </ul>
+</details>
+
+<div class="power-control">
+<form action="/sys/reboot" method="post" onclick="if (confirm('{{ _("Reboot the System?") }}')) shutdownNotify('{{ _("Rebooting the system...") }}'); else event.preventDefault();">
+    <input type="submit" value="{{ _("Reboot System") }}">
+</form>
+<form action="/sys/shutdown" method="post" onclick="if (confirm('{{ _("Shut Down the System?") }}')) shutdownNotify('{{ _("Shutting down the system...") }}'); else event.preventDefault();">
+    <input type="submit" value="{{ _("Shut Down System") }}">
+</form>
+</div>
+</section>
+
+<hr/>
+{% endblock content %}

@@ -16,6 +16,8 @@
 #pragma once
 
 #include <cstdlib>
+#include <cstdint>
+#include <span>
 #include <vector>
 #include <string>
 
@@ -48,12 +50,11 @@ private:
 	friend class DiskCache;
 
 	void Init(int track, int size, int sectors, bool raw = false, off_t imgoff = 0);
-	bool Load(const string& path);
-	bool Save(const string& path);
+	bool Load(const string& path, uint64_t&);
+	bool Save(const string& path, uint64_t&);
 
-	// Read / Write
-	bool ReadSector(vector<uint8_t>&, int) const;				// Sector Read
-	bool WriteSector(const vector<uint8_t>& buf, int);			// Sector Write
+	bool ReadSector(span<uint8_t>, int) const;				// Sector Read
+	bool WriteSector(span<const uint8_t> buf, int);			// Sector Write
 
 	int GetTrack() const		{ return dt.track; }		// Get track
 };

@@ -14,15 +14,10 @@
 #include "test_shared.h"
 #include "hal/bus.h"
 #include "controllers/scsi_controller.h"
-#include "devices/primary_device.h"
-#include "devices/storage_device.h"
-#include "devices/disk.h"
-#include "devices/scsihd.h"
 #include "devices/scsihd_nec.h"
 #include "devices/scsicd.h"
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
-#include "piscsi/command_context.h"
 #include "piscsi/piscsi_executor.h"
 #include <fcntl.h>
 
@@ -81,10 +76,11 @@ public:
 class MockPhaseHandler : public PhaseHandler
 {
 	FRIEND_TEST(PhaseHandlerTest, Phases);
+	FRIEND_TEST(PhaseHandlerTest, ProcessPhase);
 
 public:
 
-	MOCK_METHOD(phase_t, Process, (int), (override));
+	MOCK_METHOD(bool, Process, (int), (override));
 	MOCK_METHOD(void, Status, (), ());
 	MOCK_METHOD(void, DataIn, (), ());
 	MOCK_METHOD(void, DataOut, (), ());
@@ -97,15 +93,16 @@ public:
 	using PhaseHandler::PhaseHandler;
 };
 
+inline static const auto mock_bus = make_shared<MockBus>();
+
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
+	friend class TestInquiry;
+
 	friend shared_ptr<PrimaryDevice> CreateDevice(piscsi_interface::PbDeviceType, AbstractController&, int);
-	friend void TestInquiry(piscsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
-			scsi_defs::scsi_level, const std::string&, int, bool);
 
 	FRIEND_TEST(AbstractControllerTest, AllocateCmd);
 	FRIEND_TEST(AbstractControllerTest, Reset);
-	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
 	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
 	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
 	FRIEND_TEST(AbstractControllerTest, GetOpcode);
@@ -148,10 +145,26 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
+	FRIEND_TEST(DiskTest, StartStopUnit);
+	FRIEND_TEST(DiskTest, ModeSense6);
+	FRIEND_TEST(DiskTest, ModeSense10);
+	FRIEND_TEST(ScsiDaynaportTest, Read);
+	FRIEND_TEST(ScsiDaynaportTest, Write);
+	FRIEND_TEST(ScsiDaynaportTest, Read6);
+	FRIEND_TEST(ScsiDaynaportTest, Write6);
+	FRIEND_TEST(ScsiDaynaportTest, TestRetrieveStats);
+	FRIEND_TEST(ScsiDaynaportTest, SetInterfaceMode);
+	FRIEND_TEST(ScsiDaynaportTest, SetMcastAddr);
+	FRIEND_TEST(ScsiDaynaportTest, EnableInterface);
+	FRIEND_TEST(HostServicesTest, StartStopUnit);
+	FRIEND_TEST(HostServicesTest, ModeSense6);
+	FRIEND_TEST(HostServicesTest, ModeSense10);
+	FRIEND_TEST(HostServicesTest, SetUpModePages);
+	FRIEND_TEST(ScsiPrinterTest, Print);
 
 public:
 
-	MOCK_METHOD(phase_t, Process, (int), (override));
+	MOCK_METHOD(bool, Process, (int), (override));
 	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 	MOCK_METHOD(int, GetInitiatorId, (), (const override));
@@ -163,10 +176,12 @@ public:
 	MOCK_METHOD(void, Command, (), ());
 	MOCK_METHOD(void, MsgIn, (), ());
 	MOCK_METHOD(void, MsgOut, (), ());
-	MOCK_METHOD(void, ScheduleShutdown, (piscsi_shutdown_mode), (override));
 
-	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
-		: AbstractController(controller_manager, target_id, 32) {
+	MockAbstractController() : AbstractController(*mock_bus, 0, 32) {}
+	explicit MockAbstractController(int target_id) : AbstractController(*mock_bus, target_id, 32) {
+		AllocateBuffer(512);
+	}
+	MockAbstractController(shared_ptr<BUS> bus, int target_id) : AbstractController(*bus, target_id, 32) {
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
@@ -193,10 +208,8 @@ public:
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
-	MockScsiController(shared_ptr<ControllerManager> controller_manager, int target_id)
-		: ScsiController(controller_manager, target_id) {}
-	explicit MockScsiController(shared_ptr<ControllerManager> controller_manager)
-		: ScsiController(controller_manager, 0) {}
+	MockScsiController(shared_ptr<BUS> bus, int target_id) : ScsiController(*bus, target_id) {}
+	explicit MockScsiController(shared_ptr<BUS> bus) : ScsiController(*bus, 0) {}
 	~MockScsiController() override = default;
 
 };
@@ -233,6 +246,7 @@ class MockPrimaryDevice : public PrimaryDevice
 public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
+	MOCK_METHOD(void, FlushCache, (), ());
 
 	explicit MockPrimaryDevice(int lun) : PrimaryDevice(UNDEFINED, lun) {}
 	~MockPrimaryDevice() override = default;
@@ -247,8 +261,8 @@ class MockModePageDevice : public ModePageDevice
 public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense6, (span<const int>, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (span<const int>, vector<uint8_t>&), (const override));
 
 	MockModePageDevice() : ModePageDevice(UNDEFINED, 0) {}
 	~MockModePageDevice() override = default;
@@ -290,8 +304,8 @@ public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense6, (span<const int>, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (span<const int>, vector<uint8_t>&), (const override));
 	MOCK_METHOD(void, SetUpModePages, ((map<int, vector<byte>>&), int, bool), (const override));
 
 	MockStorageDevice() : StorageDevice(UNDEFINED, 0) {}
@@ -389,16 +403,6 @@ class MockHostServices : public HostServices
 	FRIEND_TEST(HostServicesTest, SetUpModePages);
 
 	using HostServices::HostServices;
-};
-
-class MockCommandContext : public CommandContext
-{
-public:
-
-	MockCommandContext() {
-		SetFd(open("/dev/null", O_WRONLY));
-	}
-	~MockCommandContext() = default;
 };
 
 class MockPiscsiExecutor : public PiscsiExecutor

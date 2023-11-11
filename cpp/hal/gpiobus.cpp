@@ -6,15 +6,12 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //
-//	[ GPIO-SCSI bus ]
-//
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
-#include <array>
+#include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
@@ -41,11 +38,10 @@ bool GPIOBUS::Init(mode_e mode)
 //---------------------------------------------------------------------------
 int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 {
-    GPIO_FUNCTION_TRACE
     // Only works in TARGET mode
-    if (actmode != mode_e::TARGET) {
-        return 0;
-    }
+	assert(actmode == mode_e::TARGET);
+
+	GPIO_FUNCTION_TRACE
 
     DisableIRQ();
 
@@ -280,8 +276,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US,
-                         (int)delay_after_bytes)
+                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " us after " +
+                		to_string(delay_after_bytes) + " bytes");
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
@@ -324,12 +320,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
         phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
-            if (i == delay_after_bytes) {
-                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US,
-                         (int)delay_after_bytes)
-                SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
-            }
-
             // Set the DATA signals
             SetDAT(*buf);
 
@@ -339,6 +329,11 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
             // Check for timeout waiting for REQ to be asserted
             if (!ret) {
                 break;
+            }
+
+           	// Signal the last MESSAGE OUT byte
+            if (phase == phase_t::msgout && i == count - 1) {
+            	SetATN(false);
             }
 
             // Phase error
@@ -392,27 +387,18 @@ bool GPIOBUS::PollSelectEvent()
     return false;
 #else
     GPIO_FUNCTION_TRACE
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
-    errno         = 0;
-    int prev_mode = -1;
-    if (SBC_Version::IsBananaPi()) {
-        prev_mode = GetMode(BPI_PIN_SEL);
-        SetMode(BPI_PIN_SEL, GPIO_IRQ_IN);
-    }
+    errno = 0;
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
-        LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__)
+        spdlog::warn("epoll_wait failed");
         return false;
     }
 
     if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
-        LOGWARN("%s read failed", __PRETTY_FUNCTION__)
+        spdlog::warn("read failed");
         return false;
     }
 
-    if (SBC_Version::IsBananaPi()) {
-        SetMode(BPI_PIN_SEL, prev_mode);
-    }
     return true;
 #endif
 }
@@ -435,10 +421,10 @@ void GPIOBUS::ClearSelectEvent()
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
     // Get current time
-    uint32_t now = SysTimer::GetTimerLow();
+    const uint32_t now = SysTimer::GetTimerLow();
 
     // Calculate timeout (3000ms)
-    uint32_t timeout = 3000 * 1000;
+    const uint32_t timeout = 3000 * 1000;
 
     do {
         // Immediately upon receiving a reset

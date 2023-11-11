@@ -3,26 +3,31 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
+#include "shared/network_util.h"
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsictl_commands.h"
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <iostream>
-#include <list>
+#include <vector>
 
 using namespace std;
 using namespace piscsi_interface;
+using namespace network_util;
 using namespace piscsi_util;
 using namespace protobuf_util;
 
-bool ScsictlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
-		const string& image_params, const string& filename)
+bool ScsictlCommands::Execute(string_view log_level, string_view default_folder, string_view reserved_ids,
+		string_view image_params, string_view filename)
 {
 	switch(command.operation()) {
 		case LOG_LEVEL:
@@ -76,8 +81,14 @@ bool ScsictlCommands::Execute(const string& log_level, const string& default_fol
 		case MAPPING_INFO:
 			return CommandMappingInfo();
 
+		case STATISTICS_INFO:
+			return CommandStatisticsInfo();
+
 		case OPERATION_INFO:
 			return CommandOperationInfo();
+
+		case NO_OPERATION:
+			return false;
 
 		default:
 			return SendCommand();
@@ -112,8 +123,8 @@ bool ScsictlCommands::SendCommand()
 		throw io_exception("Can't write magic");
 	}
 
-	serializer.SerializeMessage(fd, command);
-    serializer.DeserializeMessage(fd, result);
+	SerializeMessage(fd, command);
+    DeserializeMessage(fd, result);
 
     close(fd);
 
@@ -137,27 +148,23 @@ bool ScsictlCommands::CommandDevicesInfo()
 	return true;
 }
 
-bool ScsictlCommands::CommandLogLevel(const string& log_level)
+bool ScsictlCommands::CommandLogLevel(string_view log_level)
 {
 	SetParam(command, "level", log_level);
 
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandReserveIds(const string& reserved_ids)
+bool ScsictlCommands::CommandReserveIds(string_view reserved_ids)
 {
 	SetParam(command, "ids", reserved_ids);
 
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandCreateImage(const string& image_params)
+bool ScsictlCommands::CommandCreateImage(string_view image_params)
 {
-	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		SetParam(command, "file", string_view(image_params).substr(0, separator_pos));
-		SetParam(command, "size", string_view(image_params).substr(separator_pos + 1));
-	}
-	else {
+	if (!EvaluateParams(image_params, "file", "size")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
 
 		return false;
@@ -168,20 +175,16 @@ bool ScsictlCommands::CommandCreateImage(const string& image_params)
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandDeleteImage(const string& filename)
+bool ScsictlCommands::CommandDeleteImage(string_view filename)
 {
 	SetParam(command, "file", filename);
 
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandRenameImage(const string& image_params)
+bool ScsictlCommands::CommandRenameImage(string_view image_params)
 {
-	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
-		SetParam(command, "to", string_view(image_params).substr(separator_pos + 1));
-	}
-	else {
+	if (!EvaluateParams(image_params, "from", "to")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
 
 		return false;
@@ -190,13 +193,9 @@ bool ScsictlCommands::CommandRenameImage(const string& image_params)
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandCopyImage(const string& image_params)
+bool ScsictlCommands::CommandCopyImage(string_view image_params)
 {
-	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
-		SetParam(command, "to", string_view(image_params).substr(separator_pos + 1));
-	}
-	else {
+	if (!EvaluateParams(image_params, "from", "to")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
 
 		return false;
@@ -205,7 +204,7 @@ bool ScsictlCommands::CommandCopyImage(const string& image_params)
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandDefaultImageFolder(const string& folder)
+bool ScsictlCommands::CommandDefaultImageFolder(string_view folder)
 {
 	SetParam(command, "folder", folder);
 
@@ -249,18 +248,45 @@ bool ScsictlCommands::CommandServerInfo()
 
 	PbServerInfo server_info = result.server_info();
 
-	cout << scsictl_display.DisplayVersionInfo(server_info.version_info());
-	cout << scsictl_display.DisplayLogLevelInfo(server_info.log_level_info());
-	cout << scsictl_display.DisplayImageFilesInfo(server_info.image_files_info());
-	cout << scsictl_display.DisplayMappingInfo(server_info.mapping_info());
-	cout << scsictl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
-	cout << scsictl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
-	cout << scsictl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
-	cout << scsictl_display.DisplayOperationInfo(server_info.operation_info());
+	if (server_info.has_version_info()) {
+		cout << scsictl_display.DisplayVersionInfo(server_info.version_info());
+	}
 
-	if (server_info.devices_info().devices_size()) {
-		list<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
-		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
+	if (server_info.has_log_level_info()) {
+		cout << scsictl_display.DisplayLogLevelInfo(server_info.log_level_info());
+	}
+
+	if (server_info.has_image_files_info()) {
+		cout << scsictl_display.DisplayImageFilesInfo(server_info.image_files_info());
+	}
+
+	if (server_info.has_mapping_info()) {
+		cout << scsictl_display.DisplayMappingInfo(server_info.mapping_info());
+	}
+
+	if (server_info.has_network_interfaces_info()) {
+		cout << scsictl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
+	}
+
+	if (server_info.has_device_types_info()) {
+		cout << scsictl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
+	}
+
+	if (server_info.has_reserved_ids_info()) {
+		cout << scsictl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
+	}
+
+	if (server_info.has_statistics_info()) {
+		cout << scsictl_display.DisplayStatisticsInfo(server_info.statistics_info());
+	}
+
+	if (server_info.has_operation_info()) {
+		cout << scsictl_display.DisplayOperationInfo(server_info.operation_info());
+	}
+
+	if (server_info.has_devices_info() && server_info.devices_info().devices_size()) {
+		vector<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
+		ranges::sort(sorted_devices, [](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 		cout << "Attached devices:\n";
 
@@ -283,7 +309,7 @@ bool ScsictlCommands::CommandDefaultImageFilesInfo()
 	return true;
 }
 
-bool ScsictlCommands::CommandImageFileInfo(const string& filename)
+bool ScsictlCommands::CommandImageFileInfo(string_view filename)
 {
 	SetParam(command, "file", filename);
 
@@ -330,6 +356,15 @@ bool ScsictlCommands::CommandMappingInfo()
 	return true;
 }
 
+bool ScsictlCommands::CommandStatisticsInfo()
+{
+	SendCommand();
+
+	cout << scsictl_display.DisplayStatisticsInfo(result.statistics_info()) << flush;
+
+	return true;
+}
+
 bool ScsictlCommands::CommandOperationInfo()
 {
 	SendCommand();
@@ -339,15 +374,12 @@ bool ScsictlCommands::CommandOperationInfo()
 	return true;
 }
 
-bool ScsictlCommands::ResolveHostName(const string& host, sockaddr_in *addr)
+bool ScsictlCommands::EvaluateParams(string_view image_params, const string& key1, const string& key2)
 {
-	addrinfo hints = {};
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
+	if (const auto& components = Split(string(image_params), COMPONENT_SEPARATOR, 2); components.size() == 2) {
+		SetParam(command, key1, components[0]);
+		SetParam(command, key2, components[1]);
 
-	if (addrinfo *result; !getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
-		*addr = *(sockaddr_in *)(result->ai_addr);
-		freeaddrinfo(result);
 		return true;
 	}
 

@@ -4,12 +4,11 @@ Module for PiSCSI Web Interface utility methods
 
 import logging
 from grp import getgrall
-from os import path
 from pathlib import Path
 from ua_parser import user_agent_parser
 from re import findall
 
-from flask import request, make_response, abort
+from flask import request, abort
 from flask_babel import _
 from werkzeug.utils import secure_filename
 
@@ -160,9 +159,12 @@ def get_image_description(file_suffix):
     return file_suffix
 
 
-def format_image_list(image_files, device_types=None):
+def format_image_list(image_files, rootdir, device_types=None):
     """
-    Takes a (list) of (dict) image_files and optional (list) device_types
+    Takes:
+    - (list) of (dict) image_files
+    - (str) rootdir, the name of the images root dir
+    - optional (list) device_types
     Returns a formatted (dict) with groups of image_files per subdir key
     """
 
@@ -174,16 +176,16 @@ def format_image_list(image_files, device_types=None):
         subdir_path = findall("^.*/", image["name"])
         if subdir_path:
             subdir = subdir_path[0]
-            if f"images/{subdir}" in subdir_image_files.keys():
-                subdir_image_files[f"images/{subdir}"].append(image)
+            if f"{rootdir}/{subdir}" in subdir_image_files.keys():
+                subdir_image_files[f"{rootdir}/{subdir}"].append(image)
             else:
-                subdir_image_files[f"images/{subdir}"] = [image]
+                subdir_image_files[f"{rootdir}/{subdir}"] = [image]
         else:
             root_image_files.append(image)
 
     formatted_image_files = dict(sorted(subdir_image_files.items()))
     if root_image_files:
-        formatted_image_files["images/"] = root_image_files
+        formatted_image_files[f"{rootdir}/"] = root_image_files
     return formatted_image_files
 
 
@@ -271,75 +273,54 @@ def is_bridge_configured(interface):
     PATH_IPTV4 = "/etc/iptables/rules.v4"
     PATH_DHCPCD = "/etc/dhcpcd.conf"
     PATH_BRIDGE = "/etc/network/interfaces.d/piscsi_bridge"
-    return_msg = _("Configure the network bridge for %(interface)s first: ", interface=interface)
     to_configure = []
     sys_cmd = SysCmds()
-    if interface.startswith("wlan"):
+    if interface.startswith("wlan") or interface.startswith("wlx"):
+        return_msg = _("Wireless network bridge enabled for %(interface)s", interface=interface)
         if not sys_cmd.introspect_file(PATH_SYSCTL, r"^net\.ipv4\.ip_forward=1$"):
             to_configure.append("IPv4 forwarding")
         if not Path(PATH_IPTV4).is_file():
             to_configure.append("NAT")
-    else:
+    elif interface.startswith("eth") or interface.startswith("enx"):
+        return_msg = _("Wired network bridge enabled for %(interface)s", interface=interface)
         if not sys_cmd.introspect_file(PATH_DHCPCD, r"^denyinterfaces " + interface + r"$"):
             to_configure.append(PATH_DHCPCD)
         if not Path(PATH_BRIDGE).is_file():
             to_configure.append(PATH_BRIDGE)
+    else:
+        return_msg = _(
+            "Unable to detect if %(interface)s is Ethernet or WiFi. "
+            "Make sure that the correct network bridge is configured.",
+            interface=interface,
+        )
 
     if to_configure:
-        return {"status": False, "msg": return_msg + ", ".join(to_configure)}
+        return_msg = _(
+            "Configure the network bridge for %(interface)s first: ", interface=interface
+        )
+
+    return {"status": True, "msg": return_msg + ", ".join(to_configure)}
+
+
+def is_safe_path(path_name):
+    """
+    Takes (Path) path_name with the relative path to a file on the file system.
+    Returns False if the path is either absolute, or tries to traverse the file system.
+    Returns True if neither of the above criteria are met.
+    """
+    error_message = ""
+    if path_name.is_absolute():
+        error_message = _("Path must not be absolute")
+    elif "../" in str(path_name):
+        error_message = _("Path must not traverse the file system")
+    elif str(path_name)[0] == "~":
+        error_message = _("Path must not start in the home directory")
+
+    if error_message:
+        logging.error("Not an allowed path: %s", str(path_name))
+        return {"status": False, "msg": error_message}
 
     return {"status": True, "msg": ""}
-
-
-def is_safe_path(file_name):
-    """
-    Takes (Path) file_name with the path to a file on the file system
-    Returns True if the path is safe
-    Returns False if the path is either absolute, or tries to traverse the file system
-    """
-    if file_name.is_absolute() or ".." in str(file_name) or str(file_name)[0] == "~":
-        return {
-            "status": False,
-            "msg": _("No permission to use path '%(file_name)s'", file_name=file_name),
-        }
-
-    return {"status": True, "msg": ""}
-
-
-def upload_with_dropzonejs(image_dir):
-    """
-    Takes (str) image_dir which is the path to the image dir to store files.
-    Opens a stream to transfer a file via the embedded dropzonejs library.
-    """
-    log = logging.getLogger("pydrop")
-    file_object = request.files["file"]
-    file_name = secure_filename(file_object.filename)
-
-    save_path = path.join(image_dir, file_name)
-    current_chunk = int(request.form["dzchunkindex"])
-
-    # Makes sure not to overwrite an existing file,
-    # but continues writing to a file transfer in progress
-    if path.exists(save_path) and current_chunk == 0:
-        return make_response(_("The file already exists!"), 400)
-
-    try:
-        with open(save_path, "ab") as save:
-            save.seek(int(request.form["dzchunkbyteoffset"]))
-            save.write(file_object.stream.read())
-    except OSError:
-        log.exception("Could not write to file")
-        return make_response(_("Unable to write the file to disk!"), 500)
-
-    total_chunks = int(request.form["dztotalchunkcount"])
-
-    if current_chunk + 1 == total_chunks:
-        # Validate the resulting file size after writing the last chunk
-        if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error("File size mismatch between the original file and transferred file.")
-            return make_response(_("Transferred file corrupted!"), 500)
-
-    return make_response(_("File upload successful!"), 200)
 
 
 def browser_supports_modern_themes():

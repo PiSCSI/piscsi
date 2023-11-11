@@ -13,6 +13,15 @@
 
 #pragma once
 
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cstdint>
+#include <cstddef>
+#include <cstdio>
+#include <time.h>
+#include <unistd.h>
+
 using TCHAR = char;
 
 static const int FILEPATH_MAX = 260;

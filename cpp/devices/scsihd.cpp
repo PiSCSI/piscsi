@@ -5,7 +5,7 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//	Copyright (C) 2022 Uwe Seimet
+//	Copyright (C) 2022-2023 Uwe Seimet
 //	Copyright (C) akuker
 //
 //	Licensed under the BSD 3-Clause License.
@@ -14,8 +14,8 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
-#include "scsihd.h"
 #include "scsi_command_util.h"
+#include "scsihd.h"
 
 using namespace scsi_command_util;
 
@@ -70,7 +70,7 @@ void SCSIHD::Open()
 {
 	assert(!IsReady());
 
-	off_t size = GetFileSize();
+	const off_t size = GetFileSize();
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
@@ -81,12 +81,15 @@ void SCSIHD::Open()
 
 vector<uint8_t> SCSIHD::InquiryInternal() const
 {
-	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
+	return HandleInquiry(device_type::direct_access, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length) const
+void SCSIHD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length) const
 {
-	scsi_command_util::ModeSelect(GetLogger(), cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
+	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
+		!result.empty()) {
+		LogWarn(result);
+	}
 }
 
 void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const

@@ -5,7 +5,6 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ GPIO-SCSI bus ]
 //
 //---------------------------------------------------------------------------
 
@@ -13,7 +12,6 @@
 
 #include "hal/data_sample_raspberry.h"
 #include "hal/gpiobus.h"
-#include "shared/log.h"
 #include "shared/scsi.h"
 
 #include <map>

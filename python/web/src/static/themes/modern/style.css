@@ -62,6 +62,10 @@ div.notice {
   color: #fff;
 }
 
+label.hidden {
+  display: none;
+}
+
 /*
  ------------------------------------------------------------------------------
  Tables
@@ -419,9 +423,20 @@ div.header div.authentication-disabled a {
     color: #fff;
   }
 
-  div.header div.login-status.logged-in a {
-    background: var(--danger) no-repeat right 0.5rem center;
+  div.header div.login-status.logged-in span.log-out-button a {
+    background: var(--primary) no-repeat right 0.5rem center;
     background-image: url("icons/log-out.svg");
+    background-size: var(--icon-size);
+    border-radius: var(--border-radius);
+    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-in span.admin-button a {
+    background: var(--secondary) no-repeat right 0.5rem center;
+    background-image: url("icons/command.svg");
     background-size: var(--icon-size);
     border-radius: var(--border-radius);
     padding: 0.25rem 2.25rem 0.25rem 0.75rem;
@@ -472,6 +487,49 @@ div.footer div.theme-change-hint a {
 
 /*
  ------------------------------------------------------------------------------
+ Throttle messages
+ ------------------------------------------------------------------------------
+ */
+
+div.throttle-notice > div {
+  display: grid;
+  align-items: center;
+  background-color: #efefef;
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  background-size: 1rem;
+  font-size: x-small;
+  font-weight: bold;
+}
+
+div.throttle-notice > div.error {
+  background-color: var(--danger);
+  background-image: url("icons/error.svg");
+  color: #fff;
+  align-items: center;
+}
+
+div.throttle-notice > div.warning {
+  background-color: var(--warning);
+  background-image: url("icons/warning.svg");
+  align-items: center;
+}
+
+div.throttle-notice > div > span.message {
+  padding-left: 3rem;
+}
+
+div.throttle-notice > div a {
+  color: black;
+  text-decoration: none;
+}
+
+div.throttle-notice > div a:hover {
+  text-decoration: underline;
+}
+
+/*
+ ------------------------------------------------------------------------------
  Flash messages
  ------------------------------------------------------------------------------
  */
@@ -487,7 +545,7 @@ div.flash > div {
 }
 
 div.flash > div a {
-  display: inline-block !important;
+  display: inline-block;
   padding: 0.25rem 0.75rem;
   margin-left: auto;
   color: #fff;
@@ -892,23 +950,25 @@ section#system div.power-control {
 
 /*
  ------------------------------------------------------------------------------
- Index > Section: Manual
+ Admin > Section: Services
  ------------------------------------------------------------------------------
  */
-section#manual {
-  margin: 2rem 0 1rem;
+section#services ul.service-list {
+  list-style: none;
+  padding-left: 0;
 }
 
-section#manual a {
-  margin: auto;
-  display: block;
+section#services li.service-item {
+  margin-bottom: 0.5em;
   padding: 0.25rem 0 0.25rem 2rem;
-  background: url("icons/manual.svg") no-repeat left center;
-  font-weight: bold;
 }
 
-section#manual a p {
-  margin: 0;
+section#services li.enabled {
+  background: url("icons/cloud.svg") no-repeat left center;
+}
+
+section#services li.disabled {
+  background: url("icons/cloud-off.svg") no-repeat left center;
 }
 
 /*
@@ -990,4 +1050,19 @@ body.page-manpage div#manpage-content h2 {
 body.page-manpage div.content p.home {
   margin-top: 2rem;
   font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Base > Back
+ ------------------------------------------------------------------------------
+ */
+a.back {
+  padding: 0.25rem 0 0.25rem 2rem;
+  font-weight: bold;
+  background: url("icons/home.svg") no-repeat left center;
+}
+
+a.back span.separator {
+  display: none;
 }

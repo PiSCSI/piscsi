@@ -5,7 +5,6 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ GPIO-SCSI bus ]
 //
 //---------------------------------------------------------------------------
 
@@ -13,7 +12,6 @@
 
 #include "hal/bus.h"
 #include "shared/scsi.h"
-#include <array>
 #include <memory>
 #include <vector>
 
@@ -176,11 +174,11 @@ class GPIOBUS : public BUS
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     // Command receive handshake
-    int CommandHandShake(vector<uint8_t> &) override;
+    int CommandHandShake(vector<uint8_t>&) override;
     // Data receive handshake
-    int ReceiveHandShake(uint8_t *buf, int count) override;
+    int ReceiveHandShake(uint8_t *, int) override;
     // Data transmission handshake
-    int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
+    int SendHandShake(uint8_t *, int, int) override;
 
     // SEL signal event polling
     bool PollSelectEvent() override;
@@ -208,13 +206,13 @@ class GPIOBUS : public BUS
     virtual void DrvConfig(uint32_t drive) = 0;
 
     // Operation mode
-    mode_e actmode = mode_e::TARGET; // NOSONAR: This protected so derived classes can access it
+    mode_e actmode = mode_e::TARGET;
 
 #ifdef __linux__
     // SEL signal event request
-    struct gpioevent_request selevreq = {}; // NOSONAR: This protected so derived classes can access it
+    struct gpioevent_request selevreq = {};
     // epoll file descriptor
-    int epfd; // NOSONAR: This protected so derived classes can access it
+    int epfd = 0;
 
 #endif
 };

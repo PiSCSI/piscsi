@@ -1,39 +1,35 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2023 Contributors to the PiSCSI project
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2020-2023 Contributors to the PiSCSI project
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include "shared/config.h"
-#include "shared/log.h"
 #include "shared/piscsi_util.h"
-#include "shared/protobuf_serializer.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
-#include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
+#include "devices/device_logger.h"
 #include "devices/device_factory.h"
 #include "devices/storage_device.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "piscsi/piscsi_executor.h"
 #include "piscsi/piscsi_core.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
+#include <spdlog/spdlog.h>
 #include <netinet/in.h>
 #include <csignal>
-#include <string>
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <list>
-#include <filesystem>
+#include <vector>
 
 using namespace std;
 using namespace filesystem;
@@ -43,15 +39,15 @@ using namespace piscsi_util;
 using namespace protobuf_util;
 using namespace scsi_defs;
 
-void Piscsi::Banner(const vector<char *>& args) const
+void Piscsi::Banner(span<char *> args) const
 {
 	cout << piscsi_util::Banner("(Backend Service)");
 	cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
 		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
-		cout << " ID is SCSI device ID (0-7).\n";
-		cout << " LUN is the optional logical unit (0-31).\n";
+		cout << " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n";
+		cout << " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n";
 		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
 		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
 		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
@@ -69,59 +65,62 @@ void Piscsi::Banner(const vector<char *>& args) const
 	}
 }
 
-bool Piscsi::InitBus() const
+bool Piscsi::InitBus()
 {
 	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
 	if (bus == nullptr) {
 		return false;
 	}
 
-	auto b = bus;
-	controller_manager = make_shared<ControllerManager>(*b);
-	auto c = controller_manager;
-	executor = make_shared<PiscsiExecutor>(piscsi_image, *c);
+	executor = make_unique<PiscsiExecutor>(*bus, controller_manager);
 
 	return true;
 }
 
-void Piscsi::Cleanup()
+void Piscsi::CleanUp()
 {
-	executor->DetachAll();
-
-	service.Cleanup();
-
-	bus->Cleanup();
-}
-
-void Piscsi::ReadAccessToken(const string& filename) const
-{
-	struct stat st;
-	if (stat(filename.c_str(), &st) || !S_ISREG(st.st_mode)) {
-		throw parser_exception("Can't access token file '" + filename + "'");
+	if (service.IsRunning()) {
+		service.Stop();
 	}
 
-	if (st.st_uid || st.st_gid) {
-		throw parser_exception("Access token file '" + filename + "' must be owned by root");
+	executor->DetachAll();
+
+	// TODO Check why there are rare cases where bus is NULL on a remote interface shutdown
+	// even though it is never set to NULL anywhere
+	assert(bus);
+	if (bus) {
+		bus->Cleanup();
+	}
+}
+
+void Piscsi::ReadAccessToken(const path& filename)
+{
+	if (error_code error; !is_regular_file(filename, error)) {
+		throw parser_exception("Access token file '" + filename.string() + "' must be a regular file");
+	}
+
+	if (struct stat st; stat(filename.c_str(), &st) || st.st_uid || st.st_gid) {
+		throw parser_exception("Access token file '" + filename.string() + "' must be owned by root");
 	}
 
 	if (const auto perms = filesystem::status(filename).permissions();
 		(perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
 			(perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
-		throw parser_exception("Access token file '" + filename + "' must be readable by root only");
+		throw parser_exception("Access token file '" + filename.string() + "' must be readable by root only");
 	}
 
 	ifstream token_file(filename);
 	if (token_file.fail()) {
-		throw parser_exception("Can't open access token file '" + filename + "'");
+		throw parser_exception("Can't open access token file '" + filename.string() + "'");
 	}
 
 	getline(token_file, access_token);
 	if (token_file.fail()) {
-		throw parser_exception("Can't read access token file '" + filename + "'");
+		throw parser_exception("Can't read access token file '" + filename.string() + "'");
 	}
 
 	if (access_token.empty()) {
-		throw parser_exception("Access token file '" + filename + "' must not be empty");
+		throw parser_exception("Access token file '" + filename.string() + "' must not be empty");
 	}
 }
 
@@ -131,66 +130,74 @@ void Piscsi::LogDevices(string_view devices) const
 	string line;
 
 	while (getline(ss, line, '\n')) {
-		LOGINFO("%s", line.c_str())
+		spdlog::info(line);
 	}
-}
-
-PbDeviceType Piscsi::ParseDeviceType(const string& value) const
-{
-	string t = value;
-	PbDeviceType type;
-	transform(t.begin(), t.end(), t.begin(), ::toupper);
-	if (!PbDeviceType_Parse(t, &type)) {
-		throw parser_exception("Illegal device type '" + value + "'");
-	}
-
-	return type;
 }
 
 void Piscsi::TerminationHandler(int)
 {
-	Cleanup();
+	instance->CleanUp();
 
 	// Process will terminate automatically
 }
 
-Piscsi::optargs_type Piscsi::ParseArguments(const vector<char *>& args, int& port) const
+string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, string& reserved_ids)
 {
-	optargs_type optargs;
+	string log_level = "info";
+	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
+	string id_and_lun;
+
+	string locale = GetLocale();
+
+	// Avoid duplicate messages while parsing
+	set_level(level::off);
 
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
-			// The following options can not be processed until AFTER
-			// the 'bus' object is created and configured
+			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
+				continue;
+
 			case 'd':
 			case 'D':
-			case 'R':
-			case 'n':
-			case 'r':
-			case 't':
-			case 'F':
-			case 'z':
-			{
-				const string optarg_str = optarg == nullptr ? "" : optarg;
-				optargs.emplace_back(opt, optarg_str);
+				id_and_lun = optarg;
 				continue;
-			}
 
-			case 'b': {
+			case 'b':
 				if (!GetAsUnsignedInt(optarg, block_size)) {
 					throw parser_exception("Invalid block size " + string(optarg));
 				}
 				continue;
-			}
+
+			case 'z':
+				locale = optarg;
+				continue;
+
+			case 'F':
+				if (const string error = piscsi_image.SetDefaultFolder(optarg); !error.empty()) {
+					throw parser_exception(error);
+				}
+				continue;
 
 			case 'L':
-				current_log_level = optarg;
+				log_level = optarg;
+				continue;
+
+			case 'R':
+				int depth;
+				if (!GetAsUnsignedInt(optarg, depth)) {
+					throw parser_exception("Invalid image file scan depth " + string(optarg));
+				}
+				piscsi_image.SetDepth(depth);
+				continue;
+
+			case 'n':
+				name = optarg;
 				continue;
 
 			case 'p':
@@ -203,86 +210,12 @@ Piscsi::optargs_type Piscsi::ParseArguments(const vector<char *>& args, int& por
 				ReadAccessToken(optarg);
 				continue;
 
-			case 'v':
-				cout << piscsi_get_version_string() << endl;
-				exit(0);
-
-			case 1:
-			{
-				// Encountered filename
-				const string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				optargs.emplace_back(opt, optarg_str);
-				continue;
-			}
-
-			default:
-				throw parser_exception("Parser error");
-		}
-
-		if (optopt) {
-			throw parser_exception("Praser error");
-		}
-	}
-
-	return optargs;
-}
-
-void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
-{
-	PbCommand command;
-	PbDeviceType type = UNDEFINED;
-	int block_size = 0;
-	string name;
-	string log_level;
-	string id_and_lun;
-
-	const char *locale = setlocale(LC_MESSAGES, "");
-	if (locale == nullptr || !strcmp(locale, "C")) {
-		locale = "en";
-	}
-
-	opterr = 1;
-	for (const auto& [option, value] : optargs) {
-		switch (option) {
-			case 'i':
-			case 'I':
-				continue;
-
-			case 'd':
-			case 'D':
-				id_and_lun = value;
-				continue;
-
-			case 'z':
-				locale = value.c_str();
-				continue;
-
-			case 'F':
-				if (const string error = piscsi_image.SetDefaultFolder(value); !error.empty()) {
-					throw parser_exception(error);
-				}
-				continue;
-
-			case 'R':
-				int depth;
-				if (!GetAsUnsignedInt(value, depth)) {
-					throw parser_exception("Invalid image file scan depth " + value);
-				}
-				piscsi_image.SetDepth(depth);
-				continue;
-
-			case 'n':
-				name = value;
-				continue;
-
 			case 'r':
-				if (const string error = executor->SetReservedIds(value); !error.empty()) {
-					throw parser_exception(error);
-				}
+				reserved_ids = optarg;
 				continue;
 
 			case 't':
-				type = ParseDeviceType(value);
+				type = ParseDeviceType(optarg);
 				continue;
 
 			case 1:
@@ -293,10 +226,16 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
 				throw parser_exception("Parser error");
 		}
 
-		PbDeviceDefinition *device = command.add_devices();
+		if (optopt) {
+			throw parser_exception("Parser error");
+		}
+
+		// Set up the device data
+
+		auto device = command.add_devices();
 
 		if (!id_and_lun.empty()) {
-			if (const string error = SetIdAndLun(*device, id_and_lun, ScsiController::LUN_MAX); !error.empty()) {
+			if (const string error = SetIdAndLun(*device, id_and_lun); !error.empty()) {
 				throw parser_exception(error);
 			}
 		}
@@ -304,7 +243,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
 		device->set_type(type);
 		device->set_block_size(block_size);
 
-		ParseParameters(*device, value);
+		ParseParameters(*device, optarg);
 
 		SetProductData(*device, name);
 
@@ -314,194 +253,254 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
 		id_and_lun = "";
 	}
 
-	// Attach all specified devices
-	command.set_operation(ATTACH);
-
-	if (CommandContext context(locale); !executor->ProcessCmd(context, command)) {
-		throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
+	if (!SetLogLevel(log_level)) {
+		throw parser_exception("Invalid log level '" + log_level + "'");
 	}
 
-	// Display and log the device list
-	PbServerInfo server_info;
-	piscsi_response.GetDevices(controller_manager->GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
-	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
-	const string device_list = ListDevices(devices);
-	LogDevices(device_list);
-	cout << device_list << flush;
+	return locale;
 }
 
-bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& command)
+PbDeviceType Piscsi::ParseDeviceType(const string& value)
 {
+	string t;
+	ranges::transform(value, back_inserter(t), ::toupper);
+	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
+		return type;
+	}
+
+	throw parser_exception("Illegal device type '" + value + "'");
+}
+
+bool Piscsi::SetLogLevel(const string& log_level) const
+{
+	int id = -1;
+	int lun = -1;
+	string level = log_level;
+
+	if (const auto& components = Split(log_level, COMPONENT_SEPARATOR, 2); !components.empty()) {
+		level = components[0];
+
+		if (components.size() > 1) {
+			if (const string error = ProcessId(components[1], id, lun); !error.empty()) {
+				spdlog::warn("Error setting log level: " + error);
+				return false;
+			}
+		}
+	}
+
+	const level::level_enum l = level::from_str(level);
+	// Compensate for spdlog using 'off' for unknown levels
+	if (to_string_view(l) != level) {
+		spdlog::warn("Invalid log level '" + level + "'");
+		return false;
+	}
+
+	set_level(l);
+	DeviceLogger::SetLogIdAndLun(id, lun);
+
+	if (id != -1) {
+		if (lun == -1) {
+			spdlog::info("Set log level for device " + to_string(id) + " to '" + level + "'");
+		}
+		else {
+			spdlog::info("Set log level for device " + to_string(id) + ":" + to_string(lun) + " to '" + level + "'");
+		}
+	}
+	else {
+		spdlog::info("Set log level to '" + level + "'");
+	}
+
+	return true;
+}
+
+bool Piscsi::ExecuteCommand(const CommandContext& context)
+{
+	const PbCommand& command = context.GetCommand();
+	const PbOperation operation = command.operation();
+
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}
 
-	if (!PbOperation_IsValid(command.operation())) {
-		LOGERROR("Received unknown command with operation opcode %d", command.operation())
+	if (!PbOperation_IsValid(operation)) {
+		spdlog::trace("Ignored unknown command with operation opcode " + to_string(operation));
 
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION, to_string(operation));
 	}
 
-	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
+	spdlog::trace("Received " + PbOperation_Name(operation) + " command");
 
 	PbResult result;
-	ProtobufSerializer serializer;
 
-	switch(command.operation()) {
-		case LOG_LEVEL: {
-			const string log_level = GetParam(command, "level");
-			if (const bool status = executor->SetLogLevel(log_level); !status) {
+	switch(operation) {
+		case LOG_LEVEL:
+			if (const string log_level = GetParam(command, "level"); !SetLogLevel(log_level)) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
-				current_log_level = log_level;
-
-				context.ReturnStatus();
+				context.ReturnSuccessStatus();
 			}
 			break;
-		}
 
-		case DEFAULT_FOLDER: {
-			if (const string status = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
-				context.ReturnStatus(false, status);
+		case DEFAULT_FOLDER:
+			if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
+				context.ReturnErrorStatus(error);
 			}
 			else {
-				context.ReturnStatus();
+				context.ReturnSuccessStatus();
 			}
 			break;
-		}
 
-		case DEVICES_INFO: {
-			piscsi_response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
-					piscsi_image.GetDefaultFolder());
-			serializer.SerializeMessage(context.GetFd(), result);
+		case DEVICES_INFO:
+			response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+			context.WriteResult(result);
 			break;
-		}
 
-		case DEVICE_TYPES_INFO: {
-			result.set_allocated_device_types_info(piscsi_response.GetDeviceTypesInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+		case DEVICE_TYPES_INFO:
+			response.GetDeviceTypesInfo(*result.mutable_device_types_info());
+			return context.WriteSuccessResult(result);
+
+		case SERVER_INFO:
+			response.GetServerInfo(*result.mutable_server_info(), command, controller_manager.GetAllDevices(),
+					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
+			context.WriteSuccessResult(result);
 			break;
-		}
 
-		case SERVER_INFO: {
-			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager->GetAllDevices(),
-					result, executor->GetReservedIds(), current_log_level, piscsi_image.GetDefaultFolder(),
-					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
-					piscsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
-			break;
-		}
+		case VERSION_INFO:
+			response.GetVersionInfo(*result.mutable_version_info());
+			return context.WriteSuccessResult(result);
 
-		case VERSION_INFO: {
-			result.set_allocated_version_info(piscsi_response.GetVersionInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
-			break;
-		}
+		case LOG_LEVEL_INFO:
+			response.GetLogLevelInfo(*result.mutable_log_level_info());
+			return context.WriteSuccessResult(result);
 
-		case LOG_LEVEL_INFO: {
-			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result, current_log_level).release());
-			serializer.SerializeMessage(context.GetFd(), result);
-			break;
-		}
+		case DEFAULT_IMAGE_FILES_INFO:
+			response.GetImageFilesInfo(*result.mutable_image_files_info(), piscsi_image.GetDefaultFolder(),
+					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
+			return context.WriteSuccessResult(result);
 
-		case DEFAULT_IMAGE_FILES_INFO: {
-			result.set_allocated_image_files_info(piscsi_response.GetAvailableImages(result,
-					piscsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
-					GetParam(command, "file_pattern"), piscsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
-			break;
-		}
-
-		case IMAGE_FILE_INFO: {
+		case IMAGE_FILE_INFO:
 			if (string filename = GetParam(command, "file"); filename.empty()) {
 				context.ReturnLocalizedError( LocalizationKey::ERROR_MISSING_FILENAME);
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				const bool status = piscsi_response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(), filename);
+				const bool status = response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
+						filename);
 				if (status) {
-					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
-					serializer.SerializeMessage(context.GetFd(), result);
+					result.set_status(true);
+					context.WriteResult(result);
 				}
 				else {
 					context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
 				}
 			}
 			break;
-		}
 
-		case NETWORK_INTERFACES_INFO: {
-			result.set_allocated_network_interfaces_info(piscsi_response.GetNetworkInterfacesInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+		case NETWORK_INTERFACES_INFO:
+			response.GetNetworkInterfacesInfo(*result.mutable_network_interfaces_info());
+			return context.WriteSuccessResult(result);
+
+		case MAPPING_INFO:
+			response.GetMappingInfo(*result.mutable_mapping_info());
+			return context.WriteSuccessResult(result);
+
+		case STATISTICS_INFO:
+			response.GetStatisticsInfo(*result.mutable_statistics_info(), controller_manager.GetAllDevices());
+			context.WriteSuccessResult(result);
 			break;
-		}
 
-		case MAPPING_INFO: {
-			result.set_allocated_mapping_info(piscsi_response.GetMappingInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
-			break;
-		}
+		case OPERATION_INFO:
+			response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
+			return context.WriteSuccessResult(result);
 
-		case OPERATION_INFO: {
-			result.set_allocated_operation_info(piscsi_response.GetOperationInfo(result,
-					piscsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
-			break;
-		}
+		case RESERVED_IDS_INFO:
+			response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
+			return context.WriteSuccessResult(result);
 
-		case RESERVED_IDS_INFO: {
-			result.set_allocated_reserved_ids_info(piscsi_response.GetReservedIds(result,
-					executor->GetReservedIds()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
-			break;
-		}
+		case SHUT_DOWN:
+			return ShutDown(context, GetParam(command, "mode"));
 
-		case SHUT_DOWN: {
-			if (executor->ShutDown(context, GetParam(command, "mode"))) {
-				TerminationHandler(0);
+		case NO_OPERATION:
+			return context.ReturnSuccessStatus();
+
+		case CREATE_IMAGE:
+			return piscsi_image.CreateImage(context);
+
+		case DELETE_IMAGE:
+			return piscsi_image.DeleteImage(context);
+
+		case RENAME_IMAGE:
+			return piscsi_image.RenameImage(context);
+
+		case COPY_IMAGE:
+			return piscsi_image.CopyImage(context);
+
+		case PROTECT_IMAGE:
+		case UNPROTECT_IMAGE:
+			return piscsi_image.SetImagePermissions(context);
+
+		case RESERVE_IDS:
+			return executor->ProcessCmd(context);
+
+		default:
+			// The remaining commands may only be executed when the target is idle
+			if (!ExecuteWithLock(context)) {
+				return false;
 			}
-			break;
-		}
 
-		default: {
-			// Wait until we become idle
-			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
-			while (active) {
-				nanosleep(&ts, nullptr);
-			}
-
-			executor->ProcessCmd(context, command);
-			break;
-		}
+			return HandleDeviceListChange(context, operation);
 	}
 
 	return true;
 }
 
-int Piscsi::run(const vector<char *>& args)
+bool Piscsi::ExecuteWithLock(const CommandContext& context)
+{
+	scoped_lock<mutex> lock(execution_locker);
+	return executor->ProcessCmd(context);
+}
+
+bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation operation) const
+{
+	// ATTACH and DETACH return the resulting device list
+	if (operation == ATTACH || operation == DETACH) {
+		// A command with an empty device list is required here in order to return data for all devices
+		PbCommand command;
+		PbResult result;
+		response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+		context.WriteResult(result);
+		return result.status();
+	}
+
+	return true;
+}
+
+int Piscsi::run(span<char *> args)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	Banner(args);
 
+	// The -v option shall result in no other action except displaying the version
+	if (ranges::find_if(args, [] (const char *arg) { return !strcasecmp(arg, "-v"); } ) != args.end()) {
+		cout << piscsi_get_version_string() << '\n';
+		return EXIT_SUCCESS;
+	}
+
+	PbCommand command;
+	string locale;
+	string reserved_ids;
 	int port = DEFAULT_PORT;
-	optargs_type optargs;
 	try {
-		optargs = ParseArguments(args, port);
+		locale = ParseArguments(args, command, port, reserved_ids);
 	}
 	catch(const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;
 
 		return EXIT_FAILURE;
 	}
-
-	// current_log_level may have been updated by ParseArguments()
-	executor->SetLogLevel(current_log_level);
-
-	// Create a thread-safe stdout logger to process the log messages
-	const auto logger = stdout_color_mt("piscsi stdout logger");
 
 	if (!InitBus()) {
 		cerr << "Error: Can't initialize bus" << endl;
@@ -509,23 +508,47 @@ int Piscsi::run(const vector<char *>& args)
 		return EXIT_FAILURE;
 	}
 
-	// We need to wait to create the devices until after the bus/controller/etc objects have been created
-	// TODO Try to resolve dependencies so that this work-around can be removed
-	try {
-		CreateInitialDevices(optargs);
-	}
-	catch(const parser_exception& e) {
-		cerr << "Error: " << e.what() << endl;
+	if (const string error = service.Init([this] (CommandContext& context) {
+			context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
+			return ExecuteCommand(context);
+		}, port); !error.empty()) {
+		cerr << "Error: " << error << endl;
 
-		Cleanup();
+		CleanUp();
 
 		return EXIT_FAILURE;
 	}
 
-	if (!service.Init(&ExecuteCommand, port)) {
+	if (const string error = executor->SetReservedIds(reserved_ids); !error.empty()) {
+		cerr << "Error: " << error << endl;
+
+		CleanUp();
+
 		return EXIT_FAILURE;
 	}
 
+	if (command.devices_size()) {
+		// Attach all specified devices
+		command.set_operation(ATTACH);
+
+		if (const CommandContext context(command, piscsi_image.GetDefaultFolder(), locale); !executor->ProcessCmd(context)) {
+			cerr << "Error: Can't attach devices" << endl;
+
+			CleanUp();
+
+			return EXIT_FAILURE;
+		}
+	}
+
+	// Display and log the device list
+	PbServerInfo server_info;
+	response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
+	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
+	const string device_list = ListDevices(devices);
+	LogDevices(device_list);
+	cout << device_list << flush;
+
+	instance = this;
 	// Signal handler to detach all devices on a KILL or TERM signal
 	struct sigaction termination_handler;
 	termination_handler.sa_handler = TerminationHandler;
@@ -533,21 +556,29 @@ int Piscsi::run(const vector<char *>& args)
 	termination_handler.sa_flags = 0;
 	sigaction(SIGINT, &termination_handler, nullptr);
 	sigaction(SIGTERM, &termination_handler, nullptr);
+	signal(SIGPIPE, SIG_IGN);
 
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
-	sched_param schparam;
+	service.Start();
+
+	Process();
+
+	return EXIT_SUCCESS;
+}
+
+void Piscsi::Process()
+{
 #ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
+	// TODO Check whether this results in any performance gain
+	sched_param schparam;
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 #else
 	cout << "Note: No PiSCSI hardware support, only client interface calls are supported" << endl;
 #endif
-
-	// Start execution
-	service.SetRunning(true);
 
 	// Main Loop
 	while (service.IsRunning()) {
@@ -572,81 +603,89 @@ int Piscsi::run(const vector<char *>& args)
 		}
 #endif
 
-        // Wait until BSY is released as there is a possibility for the
-        // initiator to assert it while setting the ID (for up to 3 seconds)
-		WaitForNotBusy();
+		// Only process the SCSI command if the bus is not busy and no other device responded
+		if (IsNotBusy() && bus->GetSEL()) {
+			scoped_lock<mutex> lock(execution_locker);
 
-		// Stop because the bus is busy or another device responded
-		if (bus->GetBSY() || !bus->GetSEL()) {
-			continue;
-		}
-
-		int initiator_id = AbstractController::UNKNOWN_INITIATOR_ID;
-
-		// The initiator and target ID
-		const uint8_t id_data = bus->GetDAT();
-
-		phase_t phase = phase_t::busfree;
-
-		// Identify the responsible controller
-		auto controller = controller_manager->IdentifyController(id_data);
-		if (controller != nullptr) {
-			device_logger.SetIdAndLun(controller->GetTargetId(), -1);
-
-			initiator_id = controller->ExtractInitiatorId(id_data);
-
-			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-				device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
-			}
-			else {
-				device_logger.Trace("++++ Starting processing for unknown initiator ID");
-			}
-
-			if (controller->Process(initiator_id) == phase_t::selection) {
-				phase = phase_t::selection;
+			// Process command on the responsible controller based on the current initiator and target ID
+			if (const auto shutdown_mode = controller_manager.ProcessOnController(bus->GetDAT());
+				shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
+				// When the bus is free PiSCSI or the Pi may be shut down.
+				ShutDown(shutdown_mode);
 			}
 		}
-
-		// Return to bus monitoring if the selection phase has not started
-		if (phase != phase_t::selection) {
-			continue;
-		}
-
-		// Start target device
-		active = true;
-
-#if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
-		// Scheduling policy setting (highest priority)
-		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
-		sched_setscheduler(0, SCHED_FIFO, &schparam);
-#endif
-
-		// Loop until the bus is free
-		while (service.IsRunning()) {
-			// Target drive
-			phase = controller->Process(initiator_id);
-
-			// End when the bus is free
-			if (phase == phase_t::busfree) {
-				break;
-			}
-		}
-
-#if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
-		// Set the scheduling priority back to normal
-		schparam.sched_priority = 0;
-		sched_setscheduler(0, SCHED_OTHER, &schparam);
-#endif
-
-		// End the target travel
-		active = false;
 	}
-
-	return EXIT_SUCCESS;
 }
 
-void Piscsi::WaitForNotBusy() const
+// Shutdown on a remote interface command
+bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
+	if (m.empty()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
+	}
+
+	AbstractController::piscsi_shutdown_mode mode = AbstractController::piscsi_shutdown_mode::NONE;
+	if (m == "rascsi") {
+		mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
+	}
+	else if (m == "system") {
+		mode = AbstractController::piscsi_shutdown_mode::STOP_PI;
+	}
+	else if (m == "reboot") {
+		mode = AbstractController::piscsi_shutdown_mode::RESTART_PI;
+	}
+	else {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, m);
+	}
+
+	// Shutdown modes other than rascsi require root permissions
+	if (mode != AbstractController::piscsi_shutdown_mode::STOP_PISCSI && getuid()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
+	}
+
+	// Report success now because after a shutdown nothing can be reported anymore
+	PbResult result;
+	context.WriteSuccessResult(result);
+
+	return ShutDown(mode);
+}
+
+// Shutdown on a SCSI command
+bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
+	switch(shutdown_mode) {
+	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
+		spdlog::info("PiSCSI shutdown requested");
+		CleanUp();
+		return true;
+
+	case AbstractController::piscsi_shutdown_mode::STOP_PI:
+		spdlog::info("Raspberry Pi shutdown requested");
+		CleanUp();
+		if (system("init 0") == -1) {
+			spdlog::error("Raspberry Pi shutdown failed");
+		}
+		break;
+
+	case AbstractController::piscsi_shutdown_mode::RESTART_PI:
+		spdlog::info("Raspberry Pi restart requested");
+		CleanUp();
+		if (system("init 6") == -1) {
+			spdlog::error("Raspberry Pi restart failed");
+		}
+		break;
+
+	case AbstractController::piscsi_shutdown_mode::NONE:
+		assert(false);
+		break;
+	}
+
+	return false;
+}
+
+bool Piscsi::IsNotBusy() const
+{
+    // Wait until BSY is released as there is a possibility for the
+	// initiator to assert it while setting the ID (for up to 3 seconds)
 	if (bus->GetBSY()) {
 		const uint32_t now = SysTimer::GetTimerLow();
 
@@ -655,8 +694,12 @@ void Piscsi::WaitForNotBusy() const
 			bus->Acquire();
 
 			if (!bus->GetBSY()) {
-				break;
+				return true;
 			}
 		}
+
+		return false;
 	}
+
+	return true;
 }

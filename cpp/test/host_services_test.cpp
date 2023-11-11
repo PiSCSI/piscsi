@@ -9,7 +9,6 @@
 
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
-#include "controllers/controller_manager.h"
 #include "devices/host_services.h"
 
 using namespace std;
@@ -22,82 +21,70 @@ void HostServices_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(HostServicesTest, TestUnitReady)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto services = CreateDevice(SCHS, *controller);
+	auto [controller, services] = CreateDevice(SCHS);
 
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdTestUnitReady);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(HostServicesTest, Inquiry)
 {
-	TestInquiry(SCHS, device_type::PROCESSOR, scsi_level::SPC_3, "PiSCSI  Host Services   ", 0x1f, false);
+	TestInquiry::Inquiry(SCHS, device_type::processor, scsi_level::spc_3, "PiSCSI  Host Services   ", 0x1f, false);
 }
 
 TEST(HostServicesTest, StartStopUnit)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto services = CreateDevice(SCHS, *controller);
-
-    auto& cmd = controller->GetCmd();
+	auto [controller, services] = CreateDevice(SCHS);
+	// Required by the bullseye clang++ compiler
+	auto s = services;
 
     // STOP
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PISCSI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 
     // LOAD
-    cmd[4] = 0x02;
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PI));
+	controller->SetCmdByte(4, 0x02);
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 
     // UNLOAD
-    cmd[4] = 0x03;
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI));
+	controller->SetCmdByte(4, 0x03);
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 
     // START
-    cmd[4] = 0x01;
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))));
+	controller->SetCmdByte(4, 0x01);
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
 
 TEST(HostServicesTest, ModeSense6)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto services = CreateDevice(SCHS, *controller);
-	const unordered_map<string, string> params;
-	services->Init(params);
+	auto [controller, services] = CreateDevice(SCHS);
+	// Required by the bullseye clang++ compiler
+	auto s = services;
 
-    auto& cmd = controller->GetCmd();
+	EXPECT_TRUE(services->Init({}));
 
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Unsupported mode page was returned";
 
-    cmd[2] = 0x20;
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	controller->SetCmdByte(2, 0x20);
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Block descriptors are not supported";
 
-    cmd[1] = 0x08;
+	controller->SetCmdByte(1, 0x08);
     // ALLOCATION LENGTH
-    cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
     EXPECT_CALL(*controller, DataIn());
     services->Dispatch(scsi_command::eCmdModeSense6);
 	vector<uint8_t>& buffer = controller->GetBuffer();
@@ -111,7 +98,7 @@ TEST(HostServicesTest, ModeSense6)
 	EXPECT_NE(0x00, buffer[10]);
 
     // ALLOCATION LENGTH
-    cmd[4] = 2;
+	controller->SetCmdByte(4, 2);
     EXPECT_CALL(*controller, DataIn());
     services->Dispatch(scsi_command::eCmdModeSense6);
 	buffer = controller->GetBuffer();
@@ -120,29 +107,26 @@ TEST(HostServicesTest, ModeSense6)
 
 TEST(HostServicesTest, ModeSense10)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
-	auto services = CreateDevice(SCHS, *controller);
-	const unordered_map<string, string> params;
-	services->Init(params);
+	auto [controller, services] = CreateDevice(SCHS);
+	// Required by the bullseye clang++ compiler
+	auto s = services;
+	
+	EXPECT_TRUE(services->Init({}));
 
-    auto& cmd = controller->GetCmd();
-
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Unsupported mode page was returned";
 
-    cmd[2] = 0x20;
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+	controller->SetCmdByte(2, 0x20);
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Block descriptors are not supported";
 
-    cmd[1] = 0x08;
+	controller->SetCmdByte(1, 0x08);
     // ALLOCATION LENGTH
-    cmd[8] = 255;
+	controller->SetCmdByte(8, 255);
     EXPECT_CALL(*controller, DataIn());
     services->Dispatch(scsi_command::eCmdModeSense10);
 	vector<uint8_t>& buffer = controller->GetBuffer();
@@ -156,7 +140,7 @@ TEST(HostServicesTest, ModeSense10)
 	EXPECT_NE(0x00, buffer[14]);
 
     // ALLOCATION LENGTH
-    cmd[8] = 2;
+	controller->SetCmdByte(8, 2);
     EXPECT_CALL(*controller, DataIn());
     services->Dispatch(scsi_command::eCmdModeSense10);
 	buffer = controller->GetBuffer();

@@ -7,11 +7,12 @@
 //
 //---------------------------------------------------------------------------
 
+#include <spdlog/spdlog.h>
 #include "scsiloop/scsiloop_gpio.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/sbc_version.h"
 #include "scsiloop/scsiloop_cout.h"
-#include "shared/log.h"
+#include "hal/log.h"
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/connection_type/connection_standard.h"
@@ -27,8 +28,6 @@
 
 ScsiLoop_GPIO::ScsiLoop_GPIO()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
-
     bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
     if (bus == nullptr) {
         throw bus_exception("Unable to create bus");
@@ -116,91 +115,8 @@ ScsiLoop_GPIO::ScsiLoop_GPIO()
         local_pin_dt6 = PIN_DT6;
         local_pin_dt7 = PIN_DT7;
         local_pin_dp  = PIN_DP;
-
-    } else if (SBC_Version::GetSbcVersion() == SBC_Version::sbc_version_type::sbc_bananapi_m2_plus) {
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT0, .connected_pin = BPI_PIN_ACK, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT1, .connected_pin = BPI_PIN_SEL, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT2, .connected_pin = BPI_PIN_ATN, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT3, .connected_pin = BPI_PIN_RST, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT4, .connected_pin = BPI_PIN_CD, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT5, .connected_pin = BPI_PIN_IO, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT6, .connected_pin = BPI_PIN_MSG, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DT7, .connected_pin = BPI_PIN_REQ, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_DP, .connected_pin = BPI_PIN_BSY, .dir_ctrl_pin = BPI_PIN_DTD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_ATN, .connected_pin = BPI_PIN_DT2, .dir_ctrl_pin = BPI_PIN_IND});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_RST, .connected_pin = BPI_PIN_DT3, .dir_ctrl_pin = BPI_PIN_IND});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_ACK, .connected_pin = BPI_PIN_DT0, .dir_ctrl_pin = BPI_PIN_IND});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_REQ, .connected_pin = BPI_PIN_DT7, .dir_ctrl_pin = BPI_PIN_TAD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_MSG, .connected_pin = BPI_PIN_DT6, .dir_ctrl_pin = BPI_PIN_TAD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_CD, .connected_pin = BPI_PIN_DT4, .dir_ctrl_pin = BPI_PIN_TAD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_IO, .connected_pin = BPI_PIN_DT5, .dir_ctrl_pin = BPI_PIN_TAD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_BSY, .connected_pin = BPI_PIN_DP, .dir_ctrl_pin = BPI_PIN_TAD});
-        loopback_conn_table.push_back(
-            loopback_connection{.this_pin = BPI_PIN_SEL, .connected_pin = BPI_PIN_DT1, .dir_ctrl_pin = BPI_PIN_IND});
-
-        pin_name_lookup[BPI_PIN_DT0] = " d0";
-        pin_name_lookup[BPI_PIN_DT1] = " d1";
-        pin_name_lookup[BPI_PIN_DT2] = " d2";
-        pin_name_lookup[BPI_PIN_DT3] = " d3";
-        pin_name_lookup[BPI_PIN_DT4] = " d4";
-        pin_name_lookup[BPI_PIN_DT5] = " d5";
-        pin_name_lookup[BPI_PIN_DT6] = " d6";
-        pin_name_lookup[BPI_PIN_DT7] = " d7";
-        pin_name_lookup[BPI_PIN_DP]  = " dp";
-        pin_name_lookup[BPI_PIN_ATN] = "atn";
-        pin_name_lookup[BPI_PIN_RST] = "rst";
-        pin_name_lookup[BPI_PIN_ACK] = "ack";
-        pin_name_lookup[BPI_PIN_REQ] = "req";
-        pin_name_lookup[BPI_PIN_MSG] = "msg";
-        pin_name_lookup[BPI_PIN_CD]  = " cd";
-        pin_name_lookup[BPI_PIN_IO]  = " io";
-        pin_name_lookup[BPI_PIN_BSY] = "bsy";
-        pin_name_lookup[BPI_PIN_SEL] = "sel";
-        pin_name_lookup[BPI_PIN_IND] = "ind";
-        pin_name_lookup[BPI_PIN_TAD] = "tad";
-        pin_name_lookup[BPI_PIN_DTD] = "dtd";
-
-        local_pin_dtd = BPI_PIN_DTD;
-        local_pin_tad = BPI_PIN_TAD;
-        local_pin_ind = BPI_PIN_IND;
-        local_pin_ack = BPI_PIN_ACK;
-        local_pin_sel = BPI_PIN_SEL;
-        local_pin_atn = BPI_PIN_ATN;
-        local_pin_rst = BPI_PIN_RST;
-        local_pin_cd  = BPI_PIN_CD;
-        local_pin_io  = BPI_PIN_IO;
-        local_pin_msg = BPI_PIN_MSG;
-        local_pin_req = BPI_PIN_REQ;
-        local_pin_bsy = BPI_PIN_BSY;
-        local_pin_dt0 = BPI_PIN_DT0;
-        local_pin_dt1 = BPI_PIN_DT1;
-        local_pin_dt2 = BPI_PIN_DT2;
-        local_pin_dt3 = BPI_PIN_DT3;
-        local_pin_dt4 = BPI_PIN_DT4;
-        local_pin_dt5 = BPI_PIN_DT5;
-        local_pin_dt6 = BPI_PIN_DT6;
-        local_pin_dt7 = BPI_PIN_DT7;
-        local_pin_dp  = BPI_PIN_DP;
-
     } else {
-        LOGERROR("Unsupported board version: %s", SBC_Version::GetString()->c_str());
+        spdlog::error("Unsupported board version: " + SBC_Version::GetAsString());
     }
 }
 

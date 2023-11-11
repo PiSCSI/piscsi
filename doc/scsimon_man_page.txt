@@ -2,20 +2,22 @@
 !!   ------ The native file is scsimon.1. Re-run 'make docs' after updating
 
 
-scsimon(1)                                            General Commands Manual                                           scsimon(1)
+scsimon(1)                                       General Commands Manual                                      scsimon(1)
 
 NAME
-       scsimon - Acts as a data capture tool for all traffic on the SCSI bus. Data is stored in a Value Change Dump (VCD) file.
+       scsimon  -  Acts  as  a  data capture tool for all traffic on the SCSI bus. Data is stored in a Value Change Dump
+       (VCD) file.
 
 SYNOPSIS
        scsimon
 
 DESCRIPTION
-       scsimon  monitors all of the traffic on the SCSI bus, using a PiSCSI device. The data is cached in memory while the tool is
-       running. A circular buffer is used so that only the most recent 1,000,000 transactions are stored. The tool  will  continue
-       to run until the user presses CTRL-C, or the process receives a SIGINT signal.
+       scsimon monitors all of the traffic on the SCSI bus, using a PiSCSI device. The data is cached  in  memory  while
+       the  tool  is  running. A circular buffer is used so that only the most recent 1,000,000 transactions are stored.
+       The tool will continue to run until the user presses CTRL-C, or the process receives a SIGINT signal.
 
-       The logged data is stored in a file called "log.vcd" in the current working directory from where scsimon was launched.
+       The logged data is stored in a file called "log.vcd" in the current working  directory  from  where  scsimon  was
+       launched.
 
        Currently, scsimon doesn't accept any arguments.
 
@@ -25,12 +27,16 @@ OPTIONS
        None
 
 EXAMPLES
-       Launch scsimon to capture all SCSI traffic available to the PiSCSI hardware:
+       Make  sure  you've  stopped  the piscsi service. Then launch scsimon to capture all SCSI traffic available to the
+       PiSCSI hardware:
           scsimon
+
+       If you're trying to capture a specific scenario, you'll want to wait to start scsimon  until  immediately  before
+       the scenario.
 
 SEE ALSO
        scsictl(1), piscsi(1), scsidump(1)
 
        Full documentation is available at: <https://www.piscsi.com>
 
-                                                                                                                        scsimon(1)
+                                                                                                              scsimon(1)

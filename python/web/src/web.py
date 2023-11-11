@@ -8,11 +8,13 @@ import argparse
 from pathlib import Path, PurePath
 from functools import wraps
 from grp import getgrall
-
+from os import path
 import bjoern
+
 from piscsi.return_codes import ReturnCodes
 from simplepam import authenticate
 from flask_babel import Babel, Locale, refresh, _
+from werkzeug.utils import secure_filename
 
 from flask import (
     Flask,
@@ -25,6 +27,7 @@ from flask import (
     make_response,
     session,
     jsonify,
+    abort,
 )
 
 from piscsi.piscsi_cmds import PiscsiCmds
@@ -55,7 +58,6 @@ from web_utils import (
     auth_active,
     is_bridge_configured,
     is_safe_path,
-    upload_with_dropzonejs,
     browser_supports_modern_themes,
 )
 from settings import (
@@ -69,11 +71,30 @@ from settings import (
     TEMPLATE_THEMES,
     TEMPLATE_THEME_DEFAULT,
     TEMPLATE_THEME_LEGACY,
+    THROTTLE_NOTIFY_MODES,
+    THROTTLE_TEST_MODES,
 )
+
+
+def get_locale():
+    """
+    Uses the session language, or tries to detect based on accept-languages header
+    """
+    session_locale = session.get("language")
+    if session_locale:
+        return session_locale
+
+    client_locale = request.accept_languages.best_match(LANGUAGES)
+    if client_locale:
+        return client_locale
+
+    logging.info("The default locale could not be detected. Falling back to English.")
+    return "en"
 
 
 APP = Flask(__name__)
 BABEL = Babel(APP)
+BABEL.init_app(APP, locale_selector=get_locale)
 
 
 def get_env_info():
@@ -88,6 +109,8 @@ def get_env_info():
     else:
         username = None
 
+    throttled_statuses = sys_cmd.get_throttled(THROTTLE_NOTIFY_MODES, THROTTLE_TEST_MODES)
+
     return {
         "running_env": sys_cmd.running_env(),
         "username": username,
@@ -96,15 +119,18 @@ def get_env_info():
         "ip_addr": ip_addr,
         "host": host,
         "system_name": sys_cmd.get_pretty_host(),
-        "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
+        "free_disk_space": int(sys_cmd.disk_space(server_info["image_dir"])["free"] / 1024 / 1024),
         "locale": get_locale(),
         "version": server_info["version"],
         "image_dir": server_info["image_dir"],
-        "netatalk_configured": sys_cmd.running_proc("afpd"),
-        "macproxy_configured": sys_cmd.running_proc("macproxy"),
+        "image_root_dir": Path(server_info["image_dir"]).name,
+        "shared_root_dir": Path(FILE_SERVER_DIR).name,
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
+        "throttle_status": [
+            (s[0], ReturnCodeMapper.add_msg({"return_code": s[1]})) for s in throttled_statuses
+        ],
     }
 
 
@@ -174,30 +200,13 @@ def response(
     return redirect(url_for("index"))
 
 
-@BABEL.localeselector
-def get_locale():
-    """
-    Uses the session language, or tries to detect based on accept-languages header
-    """
-    session_locale = session.get("language")
-    if session_locale:
-        return session_locale
-
-    client_locale = request.accept_languages.best_match(LANGUAGES)
-    if client_locale:
-        return client_locale
-
-    logging.info("The default locale could not be detected. Falling back to English.")
-    return "en"
-
-
 def get_supported_locales():
     """
     Returns a list of languages supported by the web UI
     """
     locales = [
         {"language": x.language, "display_name": x.display_name}
-        for x in [*BABEL.list_translations(), Locale("en")]
+        for x in [*BABEL.list_translations()]
     ]
 
     return sorted(locales, key=lambda x: x["language"])
@@ -214,10 +223,11 @@ def index():
 
     devices = piscsi_cmd.list_devices()
     device_types = map_device_types_and_names(piscsi_cmd.get_device_types()["device_types"])
-    image_files = file_cmd.list_images()
+    image_files = piscsi_cmd.list_images()
     config_files = file_cmd.list_config_files()
-    ip_addr, host = sys_cmd.get_ip_and_host()
-    formatted_image_files = format_image_list(image_files["files"], device_types)
+    formatted_image_files = format_image_list(
+        image_files["files"], Path(server_info["image_dir"]).name, device_types
+    )
 
     attached_images = []
     units = 0
@@ -250,7 +260,7 @@ def index():
     return response(
         template="index.html",
         page_title=_("PiSCSI Control Page"),
-        locales=get_supported_locales(),
+        is_root_page=True,
         netinfo=piscsi_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
         devices=formatted_devices,
@@ -260,8 +270,6 @@ def index():
         config_files=config_files,
         device_types=device_types,
         scan_depth=server_info["scan_depth"],
-        log_levels=server_info["log_levels"],
-        current_log_level=server_info["current_log_level"],
         scsi_ids=scsi_ids,
         units=units,
         reserved_scsi_ids=reserved_scsi_ids,
@@ -302,8 +310,29 @@ def drive_list():
     return response(
         template="drives.html",
         page_title=_("PiSCSI Create Drive"),
-        files=file_cmd.list_images()["files"],
+        files=piscsi_cmd.list_images()["files"],
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
+    )
+
+
+@APP.route("/sys/admin", methods=["GET"])
+def admin():
+    """
+    Sets up the data structures and kicks off the rendering of the system admin page
+    """
+    server_info = piscsi_cmd.get_server_info()
+
+    return response(
+        template="admin.html",
+        page_title=_("PiSCSI System Administration"),
+        log_levels=server_info["log_levels"],
+        current_log_level=server_info["current_log_level"],
+        locales=get_supported_locales(),
+        netatalk_configured=sys_cmd.running_proc("afpd"),
+        samba_configured=sys_cmd.running_proc("smbd"),
+        ftp_configured=sys_cmd.running_proc("vsftpd"),
+        macproxy_configured=sys_cmd.running_proc("macproxy"),
+        webmin_configured=sys_cmd.running_proc("miniserv.pl"),
     )
 
 
@@ -318,6 +347,7 @@ def upload_page():
     return response(
         template="upload.html",
         page_title=_("PiSCSI File Upload"),
+        is_root_page=True,
         images_subdirs=file_cmd.list_subdirs(server_info["image_dir"]),
         shared_subdirs=file_cmd.list_subdirs(FILE_SERVER_DIR),
         file_server_dir_exists=Path(FILE_SERVER_DIR).exists(),
@@ -648,10 +678,12 @@ def attach_device():
             if param:
                 params.update({item.replace(PARAM_PREFIX, ""): param})
 
+    return_message = "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
     if "interface" in params.keys():
         bridge_status = is_bridge_configured(params["interface"])
         if not bridge_status["status"]:
             return response(error=True, message=bridge_status["msg"])
+        return_message = return_message + " - " + bridge_status["msg"]
 
     kwargs = {
         "unit": int(unit),
@@ -669,7 +701,7 @@ def attach_device():
     if process["status"]:
         return response(
             message=_(
-                "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+                return_message,
                 device_type=get_device_name(device_type),
                 id_number=scsi_id,
                 unit_number=unit,
@@ -963,20 +995,20 @@ def download_file():
     images_subdir = request.form.get("images_subdir")
     shared_subdir = request.form.get("shared_subdir")
     if destination == "disk_images":
-        safe_path = is_safe_path(Path("." + images_subdir))
+        safe_path = is_safe_path(Path(images_subdir))
         if not safe_path["status"]:
-            return make_response(safe_path["msg"], 403)
+            return response(error=True, message=safe_path["msg"])
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"] + images_subdir
+        destination_dir = Path(server_info["image_dir"]) / images_subdir
     elif destination == "shared_files":
-        safe_path = is_safe_path(Path("." + shared_subdir))
+        safe_path = is_safe_path(Path(shared_subdir))
         if not safe_path["status"]:
-            return make_response(safe_path["msg"], 403)
-        destination_dir = FILE_SERVER_DIR + shared_subdir
+            return response(error=True, message=safe_path["msg"])
+        destination_dir = Path(FILE_SERVER_DIR) / shared_subdir
     else:
         return response(error=True, message=_("Unknown destination"))
 
-    process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
+    process = file_cmd.download_to_dir(url, Path(destination_dir) / Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         return response(message=process["msg"])
@@ -1005,22 +1037,60 @@ def upload_file():
     images_subdir = request.form.get("images_subdir")
     shared_subdir = request.form.get("shared_subdir")
     if destination == "disk_images":
-        safe_path = is_safe_path(Path("." + images_subdir))
+        safe_path = is_safe_path(Path(images_subdir))
         if not safe_path["status"]:
             return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"] + images_subdir
+        destination_dir = Path(server_info["image_dir"]) / images_subdir
     elif destination == "shared_files":
-        safe_path = is_safe_path(Path("." + shared_subdir))
+        safe_path = is_safe_path(Path(shared_subdir))
         if not safe_path["status"]:
             return make_response(safe_path["msg"], 403)
-        destination_dir = FILE_SERVER_DIR + shared_subdir
+        destination_dir = Path(FILE_SERVER_DIR) / shared_subdir
     elif destination == "piscsi_config":
-        destination_dir = CFG_DIR
+        destination_dir = Path(CFG_DIR)
     else:
         return make_response(_("Unknown destination"), 403)
 
-    return upload_with_dropzonejs(destination_dir)
+    log = logging.getLogger("pydrop")
+    file_object = request.files["file"]
+    file_name = secure_filename(file_object.filename)
+    tmp_file_name = "__tmp_" + file_name
+
+    save_path = destination_dir / file_name
+    tmp_save_path = destination_dir / tmp_file_name
+    current_chunk = int(request.form["dzchunkindex"])
+
+    # Makes sure not to overwrite an existing file,
+    # but continues writing to a file transfer in progress
+    if path.exists(save_path) and current_chunk == 0:
+        return make_response(_("The file already exists!"), 400)
+
+    if path.exists(tmp_save_path) and current_chunk == 0:
+        log.info("Deleting existing temporary file before uploading...")
+        file_cmd.delete_file(tmp_save_path)
+
+    try:
+        with open(tmp_save_path, "ab") as save:
+            save.seek(int(request.form["dzchunkbyteoffset"]))
+            save.write(file_object.stream.read())
+    except OSError:
+        log.exception("Could not write to file")
+        return make_response(_("Unable to write the file to disk!"), 500)
+
+    total_chunks = int(request.form["dztotalchunkcount"])
+
+    if current_chunk + 1 == total_chunks:
+        # Validate the resulting file size after writing the last chunk
+        if path.getsize(tmp_save_path) != int(request.form["dztotalfilesize"]):
+            log.error("File size mismatch between the original file and transferred file.")
+            return make_response(_("Transferred file corrupted!"), 500)
+
+        process = file_cmd.rename_file(Path(tmp_save_path), Path(save_path))
+        if not process["status"]:
+            return make_response(_("Unable to rename temporary file!"), 500)
+
+    return make_response(_("File upload successful!"), 200)
 
 
 @APP.route("/files/create", methods=["POST"])
@@ -1369,13 +1439,15 @@ def healthcheck():
     return "", 200
 
 
-@APP.before_first_request
+@APP.before_request
 def detect_locale():
     """
     Get the detected locale to use for UI string translations.
-    This requires the Flask app to have started first.
+    Assign the language string to objects to be used for requests.
     """
-    session["language"] = get_locale()
+    if "language" not in session.keys():
+        session["language"] = get_locale()
+
     piscsi_cmd.locale = session["language"]
     file_cmd.locale = session["language"]
 
@@ -1394,6 +1466,16 @@ def log_http_request():
                 message += f" (payload: {request.get_data()})"
 
         logging.debug(message)
+
+
+@APP.before_request
+def check_backend_auth():
+    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
+        abort(
+            403,
+            "PiSCSI is password protected. "
+            "Start the Web Interface with the --password parameter.",
+        )
 
 
 if __name__ == "__main__":
@@ -1470,14 +1552,8 @@ if __name__ == "__main__":
 
     sock_cmd = SocketCmdsFlask(host=arguments.backend_host, port=arguments.backend_port)
     piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
-    file_cmd = FileCmds(sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"])
+    file_cmd = FileCmds(piscsi=piscsi_cmd)
     sys_cmd = SysCmds()
-
-    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
-        raise Exception(
-            "PiSCSI is password protected. "
-            "Start the Web Interface with the --password parameter."
-        )
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmd.read_config(DEFAULT_CONFIG)

@@ -92,8 +92,11 @@ TEST(ScsictlCommandsTest, Execute)
 	command.set_operation(OPERATION_INFO);
 	EXPECT_THROW(commands.Execute("", "", "", "", ""), io_exception);
 
-	command.set_operation(NO_OPERATION);
+	command.set_operation(DETACH_ALL);
 	EXPECT_THROW(commands.Execute("", "", "", "", ""), io_exception);
+
+	command.set_operation(NO_OPERATION);
+	EXPECT_FALSE(commands.Execute("", "", "", "", ""));
 }
 
 TEST(ScsictlCommandsTest, CommandDevicesInfo)

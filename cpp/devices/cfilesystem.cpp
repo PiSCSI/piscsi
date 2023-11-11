@@ -17,8 +17,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "cfilesystem.h"
+#include <sys/stat.h>
 #include <dirent.h>
 #include <iconv.h>
 #include <utime.h>
@@ -3507,18 +3507,18 @@ int CFileSys::GetDPB(uint32_t nUnit, Human68k::dpb_t* pDpb) const
 		// Acquire sector data
 		if (!m_cEntry.GetCapacityCache(nUnit, &cap)) {
 			// Carry out an extra media check here because it may be skipped when doing a manual eject
-			if (!m_cEntry.isEnable(nUnit))
-				goto none;
-
 			// Media check
-			if (m_cEntry.isMediaOffline(nUnit))
-				goto none;
-
-			// Get drive status
-			m_cEntry.GetCapacity(nUnit, &cap);
+			if (!m_cEntry.isEnable(nUnit) || m_cEntry.isMediaOffline(nUnit)) {
+				cap.clusters = 4;	// This is totally fine, right?
+				cap.sectors = 64;
+				cap.bytes = 512;
+			}
+			else {
+				// Get drive status
+				m_cEntry.GetCapacity(nUnit, &cap);
+			}
 		}
 	} else {
-	none:
 		cap.clusters = 4;	// This is totally fine, right?
 		cap.sectors = 64;
 		cap.bytes = 512;

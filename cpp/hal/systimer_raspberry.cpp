@@ -12,6 +12,7 @@
 //---------------------------------------------------------------------------
 
 #include "hal/systimer_raspberry.h"
+#include <spdlog/spdlog.h>
 #include <memory>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -19,13 +20,13 @@
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
 
-#include "shared/log.h"
-
 // System timer address
 volatile uint32_t *SysTimer_Raspberry::systaddr = nullptr;
 // ARM timer address
 volatile uint32_t *SysTimer_Raspberry::armtaddr = nullptr;
 volatile uint32_t SysTimer_Raspberry::corefreq  = 0;
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -35,19 +36,19 @@ volatile uint32_t SysTimer_Raspberry::corefreq  = 0;
 void SysTimer_Raspberry::Init()
 {
     // Get the base address
-    auto baseaddr = SBC_Version::GetPeripheralAddress();
+    const auto baseaddr = SBC_Version::GetPeripheralAddress();
 
     // Open /dev/mem
     int mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (mem_fd == -1) {
-        LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
+        spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
         return;
     }
 
     // Map peripheral region memory
     void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, baseaddr);
     if (map == MAP_FAILED) {
-        LOGERROR("Error: Unable to map memory")
+        spdlog::error("Error: Unable to map memory");
         close(mem_fd);
         return;
     }
@@ -64,7 +65,7 @@ void SysTimer_Raspberry::Init()
     //
     // Clock id
     //  0x000000004: CORE
-    std::array<uint32_t, 32> maxclock = {32, 0, 0x00030004, 8, 0, 4, 0, 0};
+    const array<uint32_t, 32> maxclock = {32, 0, 0x00030004, 8, 0, 4, 0, 0};
 
     // Save the base address
     systaddr = (uint32_t *)map + SYST_OFFSET / sizeof(uint32_t);
@@ -114,7 +115,7 @@ void SysTimer_Raspberry::SleepNsec(uint32_t nsec)
     }
 
     // Calculate the timer difference
-    uint32_t diff = corefreq * nsec / 1000;
+    const uint32_t diff = corefreq * nsec / 1000;
 
     // Return if the difference in time is too small
     if (diff == 0) {
@@ -122,7 +123,7 @@ void SysTimer_Raspberry::SleepNsec(uint32_t nsec)
     }
 
     // Start
-    uint32_t start = armtaddr[ARMT_FREERUN];
+    const uint32_t start = armtaddr[ARMT_FREERUN];
 
     // Loop until timer has elapsed
     while ((armtaddr[ARMT_FREERUN] - start) < diff)
@@ -141,7 +142,7 @@ void SysTimer_Raspberry::SleepUsec(uint32_t usec)
         return;
     }
 
-    uint32_t now = GetTimerLow();
+    const uint32_t now = GetTimerLow();
     while ((GetTimerLow() - now) < usec)
         ;
 }

@@ -3,22 +3,24 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_version.h"
 #include "device.h"
+#include <spdlog/spdlog.h>
 #include <cassert>
 #include <sstream>
 #include <iomanip>
+#include <stdexcept>
 
 using namespace std;
 
 Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 {
 	ostringstream os;
-	os << setw(2) << setfill('0') << piscsi_major_version << setw(2) << setfill('0') << piscsi_minor_version;
+	os << setfill('0') << setw(2) << piscsi_major_version << setw(2) << piscsi_minor_version;
 	revision = os.str();
 }
 
@@ -39,7 +41,7 @@ void Device::SetProtected(bool b)
 void Device::SetVendor(const string& v)
 {
 	if (v.empty() || v.length() > 8) {
-		throw invalid_argument("Vendor '" + v + "' must be between 1 and 8 characters");
+		throw invalid_argument("Vendor '" + v + "' must have between 1 and 8 characters");
 	}
 
 	vendor = v;
@@ -48,7 +50,7 @@ void Device::SetVendor(const string& v)
 void Device::SetProduct(const string& p, bool force)
 {
 	if (p.empty() || p.length() > 16) {
-		throw invalid_argument("Product '" + p + "' must be between 1 and 16 characters");
+		throw invalid_argument("Product '" + p + "' must have between 1 and 16 characters");
 	}
 
 	// Changing vital product data is not SCSI compliant
@@ -62,7 +64,7 @@ void Device::SetProduct(const string& p, bool force)
 void Device::SetRevision(const string& r)
 {
 	if (r.empty() || r.length() > 4) {
-		throw invalid_argument("Revision '" + r + "' must be between 1 and 4 characters");
+		throw invalid_argument("Revision '" + r + "' must have between 1 and 4 characters");
 	}
 
 	revision = r;
@@ -85,9 +87,9 @@ string Device::GetParam(const string& key) const
 	return it == params.end() ? "" : it->second;
 }
 
-void Device::SetParams(const unordered_map<string, string>& set_params)
+void Device::SetParams(const param_map& set_params)
 {
-	params = default_params;
+	params = GetDefaultParams();
 
 	// Devices with image file support implicitly support the "file" parameter
 	if (SupportsFile()) {
@@ -96,11 +98,11 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 
 	for (const auto& [key, value] : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
-		if (params.find(key) != params.end()) {
+		if (params.contains(key)) {
 			params[key] = value;
 		}
 		else {
-			LOGWARN("%s", string("Ignored unknown parameter '" + key + "'").c_str())
+			spdlog::warn("Ignored unknown parameter '" + key + "'");
 		}
 	}
 }

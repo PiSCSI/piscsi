@@ -1,11 +1,20 @@
-name: C++ Tests/Analysis
+name: C++ Tests; Full Static Analysis
 
 on:
   workflow_dispatch:
   push:
     paths:
       - 'cpp/**'
+      - 'python/**'
       - '.github/workflows/cpp.yml'
+  pull_request:
+    paths:
+      - 'cpp/**'
+      - 'python/**'
+      - '.github/workflows/cpp.yml'
+    branches:
+      - 'develop'
+      - 'main'
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
@@ -40,10 +49,10 @@ jobs:
     env:
       SOURCES: cpp
       BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed
-      SONAR_SCANNER_VERSION: 4.7.0.2747
+      SONAR_SCANNER_VERSION: 5.0.1.3006
       SONAR_SERVER_URL: "https://sonarcloud.io"
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_PROJECT_KEY: "akuker_PISCSI"
+      SONAR_PROJECT_KEY: "akuker-PISCSI"
       SONAR_ORGANIZATION: "piscsi"
     steps:
       - uses: actions/checkout@v3
@@ -106,4 +115,4 @@ jobs:
           --define sonar.coverage.exclusions="cpp/**/test/**"
           --define sonar.cpd.exclusions="cpp/**/test/**"
           --define sonar.inclusions="cpp/**,python/**"
-          --define sonar.python.version=3.7,3.9
+          --define sonar.python.version=3.9,3.11

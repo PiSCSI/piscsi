@@ -29,10 +29,11 @@
 
 #pragma once
 
-#include "interfaces/byte_writer.h"
 #include "primary_device.h"
 #include "ctapdriver.h"
+#include <net/ethernet.h>
 #include <string>
+#include <span>
 #include <unordered_map>
 #include <array>
 
@@ -41,21 +42,30 @@
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort : public PrimaryDevice, public ByteWriter
+class SCSIDaynaPort : public PrimaryDevice
 {
+	uint64_t byte_read_count = 0;
+	uint64_t byte_write_count = 0;
+
+	inline static const string BYTE_READ_COUNT = "byte_read_count";
+	inline static const string BYTE_WRITE_COUNT = "byte_write_count";
+
 public:
 
 	explicit SCSIDaynaPort(int);
 	~SCSIDaynaPort() override = default;
 
-	bool Init(const unordered_map<string, string>&) override;
+	bool Init(const param_map&) override;
+	void CleanUp() override;
+
+	param_map GetDefaultParams() const override { return tap.GetDefaultParams(); }
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<uint8_t>&, uint64_t);
-	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
+	int Read(cdb_t, vector<uint8_t>&, uint64_t);
+	bool Write(cdb_t, span<const uint8_t>);
 
-	int RetrieveStats(const vector<int>&, vector<uint8_t>&) const;
+	int RetrieveStats(cdb_t, vector<uint8_t>&) const;
 
 	void TestUnitReady() override;
 	void Read6();
@@ -63,7 +73,9 @@ public:
 	void RetrieveStatistics() const;
 	void SetInterfaceMode() const;
 	void SetMcastAddr() const;
-	void EnableInterface();
+	void EnableInterface() const;
+
+	vector<PbStatistics> GetStatistics() const override;
 
 	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
@@ -114,8 +126,7 @@ private:
 		.frames_lost = 0,
 	};
 
-	CTapDriver m_tap;
+	CTapDriver tap;
 
-	// TAP valid flag
-	bool m_bTapEnable = false;
+	bool tap_enabled = false;
 };

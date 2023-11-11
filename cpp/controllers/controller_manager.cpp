@@ -3,29 +3,37 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "scsi_controller.h"
 #include "controller_manager.h"
 
 using namespace std;
 
-bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice> device)
+shared_ptr<ScsiController> ControllerManager::CreateScsiController(BUS& bus, int id) const
 {
-	auto controller = FindController(id);
-	if (controller != nullptr) {
+	auto controller = make_shared<ScsiController>(bus, id);
+	controller->Init();
+
+	return controller;
+}
+
+bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryDevice> device)
+{
+	if (auto controller = FindController(id); controller != nullptr) {
+		if (controller->HasDeviceForLun(device->GetLun())) {
+			return false;
+		}
+
 		return controller->AddDevice(device);
 	}
 
-	// If there is no LUN yet the first LUN must be LUN 0
-	if (device->GetLun() == 0) {
-		controller = make_shared<ScsiController>(shared_from_this(), id);
-
-		if (controller->AddDevice(device)) {
+	// If this is LUN 0 create a new controller
+	if (!device->GetLun()) {
+		if (auto controller = CreateScsiController(bus, id); controller->AddDevice(device)) {
 			controllers[id] = controller;
 
 			return true;
@@ -35,20 +43,37 @@ bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice>
 	return false;
 }
 
-bool ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
+bool ControllerManager::DeleteController(const AbstractController& controller)
 {
-	return controllers.erase(controller->GetTargetId()) == 1;
-}
-
-shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
-{
-	for (const auto& [id, controller] : controllers) {
-		if (data & (1 << controller->GetTargetId())) {
-			return controller;
-		}
+	for (const auto& device : controller.GetDevices()) {
+		device->CleanUp();
 	}
 
-	return nullptr;
+	return controllers.erase(controller.GetTargetId()) == 1;
+}
+
+void ControllerManager::DeleteAllControllers()
+{
+	unordered_set<shared_ptr<AbstractController>> values;
+	ranges::transform(controllers, inserter(values, values.begin()), [] (const auto& controller) { return controller.second; } );
+
+	for (const auto& controller : values) {
+		DeleteController(*controller);
+	}
+
+	assert(controllers.empty());
+}
+
+AbstractController::piscsi_shutdown_mode ControllerManager::ProcessOnController(int id_data) const
+{
+	if (const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
+		it != controllers.end()) {
+		(*it).second->ProcessOnController(id_data);
+
+		return (*it).second->GetShutdownMode();
+	}
+
+	return AbstractController::piscsi_shutdown_mode::NONE;
 }
 
 shared_ptr<AbstractController> ControllerManager::FindController(int target_id) const
@@ -57,11 +82,15 @@ shared_ptr<AbstractController> ControllerManager::FindController(int target_id) 
 	return it == controllers.end() ? nullptr : it->second;
 }
 
+bool ControllerManager::HasController(int target_id) const {
+	return controllers.contains(target_id);
+}
+
 unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() const
 {
 	unordered_set<shared_ptr<PrimaryDevice>> devices;
 
-	for (const auto& [id, controller] : controllers) {
+	for (const auto& [_, controller] : controllers) {
 		const auto& d = controller->GetDevices();
 		devices.insert(d.begin(), d.end());
 	}
@@ -69,12 +98,12 @@ unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() cons
 	return devices;
 }
 
-void ControllerManager::DeleteAllControllers()
+bool ControllerManager::HasDeviceForIdAndLun(int id, int lun) const
 {
-	controllers.clear();
+	return GetDeviceForIdAndLun(id, lun) != nullptr;
 }
 
-shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
+shared_ptr<PrimaryDevice> ControllerManager::GetDeviceForIdAndLun(int id, int lun) const
 {
 	if (const auto& controller = FindController(id); controller != nullptr) {
 		return controller->GetDeviceForLun(lun);

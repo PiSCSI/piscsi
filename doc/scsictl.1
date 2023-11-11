@@ -7,30 +7,31 @@ scsictl \- Sends management commands to the piscsi process
 \fB\-l\fR |
 \fB\-m\fR |
 \fB\-o\fR |
-\fB\-s\fR |
 \fB\-v\fR |
 \fB\-D\fR |
 \fB\-I\fR |
 \fB\-L\fR |
 \fB\-O\fR |
 \fB\-P\fR |
+\fB\-S\fR |
 \fB\-T\fR |
 \fB\-V\fR |
 \fB\-X\fR |
-[\fB\-C\fR \fIFILENAME:FILESIZE\fR]
-[\fB\-E\fR \fIFILENAME\fR]
-[\fB\-F\fR \fIIMAGE_FOLDER\fR]
-[\fB\-R\fR \fICURRENT_NAME:NEW_NAME\fR]
-[\fB\-c\fR \fICMD\fR]
-[\fB\-f\fR \fIFILE|PARAM\fR]
-[\fB\-g\fR \fILOG_LEVEL\fR]
-[\fB\-h\fR \fIHOST\fR]
-[\fB\-i\fR \fIID[:LUN]\fR
-[\fB\-n\fR \fINAME\fR]
-[\fB\-p\fR \fIPORT\fR]
-[\fB\-r\fR \fIRESERVED_IDS\fR]
-[\fB\-t\fR \fITYPE\fR]
-[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
+[\fB\-C\fR \fIFILENAME:FILESIZE\fR] |
+[\fB\-E\fR \fIFILENAME\fR] |
+[\fB\-F\fR \fIIMAGE_FOLDER\fR] |
+[\fB\-R\fR \fICURRENT_NAME:NEW_NAME\fR] |
+[\fB\-c\fR \fICMD\fR] |
+[\fB\-f\fR \fIFILE|PARAM\fR] |
+[\fB\-g\fR \fILOG_LEVEL\fR] |
+[\fB\-h\fR \fIHOST\fR] |
+[\fB\-i\fR \fIID[:LUN]\fR] |
+[\fB\-n\fR \fINAME\fR] |
+[\fB\-p\fR \fIPORT\fR] |
+[\fB\-r\fR \fIRESERVED_IDS\fR] |
+[\fB\-s\fR \fI[FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]\fR] |
+[\fB\-t\fR \fITYPE\fR] |
+[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR] |
 [\fB\-z\fR \fILOCALE\fR]
 .SH DESCRIPTION
 .B scsictl
@@ -38,7 +39,7 @@ sends commands to the piscsi process to make configuration adjustments at runtim
 
 Either the -i or -l option should be specified at one time. Not both. 
 
-You do NOT need root privileges to use scsictl.
+You do NOT need root privileges to use scsictl. scsictl also runs on non-Pi Linux platforms.
 
 Note: The command and type arguments are case insensitive. Only the first letter of the command/type is evaluated by the tool.
 
@@ -60,7 +61,7 @@ Set the default image folder.
 Gets the list of reserved device IDs.
 .TP
 .BR \-L\fI " "\fILOG_LEVEL
-Set the piscsi log level (trace, debug, info, warn, err, off).
+Set the piscsi log level (trace, debug, info, warning, error, off).
 .TP
 .BR \-h\fI " " \fIHOST
 The piscsi host to connect to, default is 'localhost'.
@@ -95,8 +96,11 @@ The piscsi port to connect to, default is 6868.
 .BR \-r\fI " " \fIRESERVED_IDS
 Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
 .TP
-.BR \-s\fI
+.BR \-s\fI " " \fI[FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]
 Display server-side settings like available images or supported device types.
+.TP
+.BR \-S\fI
+Display statistics.
 .TP
 .BR \-T\fI
 Display all device types and their properties.

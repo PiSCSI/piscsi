@@ -3,13 +3,20 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/piscsi_exceptions.h"
 #include "devices/device.h"
+
+TEST(DeviceTest, GetDefaultParams)
+{
+	MockDevice device(0);
+
+	const auto params = device.GetDefaultParams();
+	EXPECT_TRUE(params.empty());
+}
 
 TEST(DeviceTest, Properties)
 {
@@ -118,28 +125,36 @@ TEST(DeviceTest, Properties)
 TEST(DeviceTest, GetTypeString)
 {
 	MockDevice schd(SCHD);
-	EXPECT_STREQ("SCHD", schd.GetTypeString());
+	EXPECT_EQ("SCHD", schd.GetTypeString());
 
 	MockDevice scrm(SCRM);
-	EXPECT_STREQ("SCRM", scrm.GetTypeString());
+	EXPECT_EQ("SCRM", scrm.GetTypeString());
 
 	MockDevice scmo(SCMO);
-	EXPECT_STREQ("SCMO", scmo.GetTypeString());
+	EXPECT_EQ("SCMO", scmo.GetTypeString());
 
 	MockDevice sccd(SCCD);
-	EXPECT_STREQ("SCCD", sccd.GetTypeString());
+	EXPECT_EQ("SCCD", sccd.GetTypeString());
 
 	MockDevice schs(SCHS);
-	EXPECT_STREQ("SCHS", schs.GetTypeString());
+	EXPECT_EQ("SCHS", schs.GetTypeString());
 
 	MockDevice scbr(SCBR);
-	EXPECT_STREQ("SCBR", scbr.GetTypeString());
+	EXPECT_EQ("SCBR", scbr.GetTypeString());
 
 	MockDevice scdp(SCDP);
-	EXPECT_STREQ("SCDP", scdp.GetTypeString());
+	EXPECT_EQ("SCDP", scdp.GetTypeString());
 
 	MockDevice sclp(SCLP);
-	EXPECT_STREQ("SCLP", sclp.GetTypeString());
+	EXPECT_EQ("SCLP", sclp.GetTypeString());
+}
+
+TEST(DeviceTest, GetIdentifier)
+{
+	MockDevice device(1);
+
+	EXPECT_CALL(device, GetId());
+	EXPECT_EQ("UNDEFINED 0:1", device.GetIdentifier());
 }
 
 TEST(DeviceTest, Vendor)
@@ -183,26 +198,6 @@ TEST(DeviceTest, GetPaddedName)
 	device.SetRevision("R");
 
 	EXPECT_EQ("V       P               R   ", device.GetPaddedName());
-}
-
-TEST(DeviceTest, Params)
-{
-	MockDevice device(0);
-	unordered_map<string, string> params;
-	params["key"] = "value";
-
-	EXPECT_EQ("", device.GetParam("key"));
-
-	device.SetParams(params);
-	EXPECT_EQ("", device.GetParam("key"));
-
-	unordered_map<string, string> default_params;
-	default_params["key"] = "value";
-	device.SetDefaultParams(default_params);
-	EXPECT_EQ("", device.GetParam("key"));
-
-	device.SetParams(params);
-	EXPECT_EQ("value", device.GetParam("key"));
 }
 
 TEST(DeviceTest, StatusCode)
