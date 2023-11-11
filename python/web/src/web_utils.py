@@ -8,7 +8,7 @@ from pathlib import Path
 from ua_parser import user_agent_parser
 from re import findall
 
-from flask import request, abort, make_response
+from flask import request, abort
 from flask_babel import _
 from werkzeug.utils import secure_filename
 
@@ -302,35 +302,25 @@ def is_bridge_configured(interface):
     return {"status": True, "msg": return_msg + ", ".join(to_configure)}
 
 
-def is_safe_path(file_name):
+def is_safe_path(path_name):
     """
-    Takes (Path) file_name with the path to a file on the file system
-    Returns True if the path is safe
-    Returns False if the path is either absolute, or tries to traverse the file system
+    Takes (Path) path_name with the relative path to a file on the file system.
+    Returns False if the path is either absolute, or tries to traverse the file system.
+    Returns True if neither of the above criteria are met.
     """
     error_message = ""
-    if file_name.is_absolute():
+    if path_name.is_absolute():
         error_message = _("Path must not be absolute")
-    elif "../" in str(file_name):
+    elif "../" in str(path_name):
         error_message = _("Path must not traverse the file system")
-    elif str(file_name)[0] == "~":
+    elif str(path_name)[0] == "~":
         error_message = _("Path must not start in the home directory")
 
     if error_message:
-        logging.error("Not an allowed path: %s", str(file_name))
+        logging.error("Not an allowed path: %s", str(path_name))
         return {"status": False, "msg": error_message}
 
     return {"status": True, "msg": ""}
-
-
-def validate_target_dir(target_dir):
-    """
-    Takes (Path) target_dir on the host and validates that it is a valid dir for uploading.
-    """
-    safe_path = is_safe_path(Path(".") / target_dir)
-    if not safe_path["status"]:
-        return make_response(safe_path["msg"], 403)
-    return True
 
 
 def browser_supports_modern_themes():

@@ -395,8 +395,8 @@
     <label for="download_url">{{ _("Download file from URL:") }}</label>
     <input name="url" id="download_url" required="" type="url">
     <label for="disk_images" class="hidden">{{ _("Disk Images") }}</label>
+    <label for="images_subdir">{{ _("To directory:") }}</label>
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
-    <label for="images_subdir" class="hidden">{{ _("Directory") }}</label>
     <select name="images_subdir" id="images_subdir">
     {% for dir in images_subdirs %}
     <option value="{{dir}}">{{env['image_root_dir']}}/{{dir}}</option>
@@ -406,7 +406,7 @@
     {% if file_server_dir_exists %}
     <label for="shared_files" class="hidden">{{ _("Shared Files") }}</label>
     <input type="radio" name="destination" id="shared_files" value="shared_files">
-    <label for="shared_subdir" class="hidden">{{ _("Directory") }}</label>
+    <label for="shared_subdir" class="hidden">{{ _("To directory:") }}</label>
     <select name="shared_subdir" id="shared_subdir">
     {% for dir in shared_subdirs %}
     <option value="{{dir}}">{{env['shared_root_dir']}}/{{dir}}</option>
