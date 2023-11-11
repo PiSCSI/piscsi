@@ -1066,6 +1066,10 @@ def upload_file():
     if path.exists(save_path) and current_chunk == 0:
         return make_response(_("The file already exists!"), 400)
 
+    if path.exists(tmp_save_path) and current_chunk == 0:
+        log.info("Temporary file found; deleting before downloading again...")
+        file_cmd.delete_file(tmp_save_path)
+
     try:
         with open(tmp_save_path, "ab") as save:
             save.seek(int(request.form["dzchunkbyteoffset"]))
