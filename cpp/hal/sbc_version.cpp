@@ -144,23 +144,6 @@ uint32_t SBC_Version::GetPeripheralAddress(void)
 
     return address;
 }
-#elif defined __NetBSD__
-uint32_t SBC_Version::GetPeripheralAddress(void)
-{
-    char buf[1024];
-    size_t len = sizeof(buf);
-    uint32_t address;
-
-    if (sysctlbyname("hw.model", buf, &len, NULL, 0) || strstr(buf, "ARM1176JZ-S") != buf) {
-        // Failed to get CPU model || Not BCM2835
-        // use the address of BCM283[67]
-        address = 0x3f000000;
-    } else {
-        // Use BCM2835 address
-        address = 0x20000000;
-    }
-    return address;
-}
 #else
 uint32_t SBC_Version::GetPeripheralAddress(void)
 {
