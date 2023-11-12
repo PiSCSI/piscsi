@@ -174,12 +174,6 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // Set Control Signal
     void SetMode(int pin, int mode) override;
     // Set SCSI I/O mode
-    int GetMode(int pin) override
-    {
-        // Not implemented (or needed for thist gpio bus type)
-        (void)pin;
-        return -1;
-    }
     bool GetSignal(int pin) const override;
     // Get SCSI input signal value
     void SetSignal(int pin, bool ast) override;
