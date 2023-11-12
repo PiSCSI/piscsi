@@ -97,8 +97,6 @@ class GPIOBUS_Virtual final : public GPIOBUS
     void SetREQ(bool ast) override;
     // Set REQ signal
 
-    bool GetDP() const override;
-
     bool WaitREQ(bool ast) override
     {
         return WaitSignal(PIN_REQ, ast);

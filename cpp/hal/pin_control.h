@@ -52,9 +52,6 @@ class PinControl
     // Set ENB signal
     virtual void SetENB(bool ast) = 0;
 
-    // Get parity signal
-    virtual bool GetDP() const = 0;
-
     // GPIO pin direction setting
     virtual void PinConfig(int pin, int mode) = 0;
     // GPIO pin pull up/down resistor setting

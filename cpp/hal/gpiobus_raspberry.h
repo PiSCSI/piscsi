@@ -137,8 +137,6 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // Set REQ signal
     void SetREQ(bool ast) override;
 
-    bool GetDP() const override;
-
     // Get DAT signal
     uint8_t GetDAT() override;
     // Set DAT signal
