@@ -410,32 +410,30 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
     // Set BSY signal
     SetSignal(PIN_BSY, ast);
 
-    if (actmode == mode_e::TARGET) {
-        if (ast) {
-            // Turn on ACTIVE signal
-            SetControl(PIN_ACT, ACT_ON);
+    if (ast) {
+        // Turn on ACTIVE signal
+        SetControl(PIN_ACT, ACT_ON);
 
-            // Set Target signal to output
-            SetControl(PIN_TAD, TAD_OUT);
+        // Set Target signal to output
+        SetControl(PIN_TAD, TAD_OUT);
 
-            SetMode(PIN_BSY, OUT);
-            SetMode(PIN_MSG, OUT);
-            SetMode(PIN_CD, OUT);
-            SetMode(PIN_REQ, OUT);
-            SetMode(PIN_IO, OUT);
-        } else {
-            // Turn off the ACTIVE signal
-            SetControl(PIN_ACT, ACT_OFF);
+    	SetMode(PIN_BSY, OUT);
+    	SetMode(PIN_MSG, OUT);
+    	SetMode(PIN_CD, OUT);
+    	SetMode(PIN_REQ, OUT);
+    	SetMode(PIN_IO, OUT);
+    } else {
+        // Turn off the ACTIVE signal
+        SetControl(PIN_ACT, ACT_OFF);
 
-            // Set the target signal to input
-            SetControl(PIN_TAD, TAD_IN);
+        // Set the target signal to input
+    	SetControl(PIN_TAD, TAD_IN);
 
-            SetMode(PIN_BSY, IN);
-            SetMode(PIN_MSG, IN);
-            SetMode(PIN_CD, IN);
-            SetMode(PIN_REQ, IN);
-            SetMode(PIN_IO, IN);
-        }
+    	SetMode(PIN_BSY, IN);
+    	SetMode(PIN_MSG, IN);
+    	SetMode(PIN_CD, IN);
+    	SetMode(PIN_REQ, IN);
+    	SetMode(PIN_IO, IN);
     }
 }
 
