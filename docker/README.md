@@ -40,10 +40,11 @@ The following environment variables are available when using Docker Compose:
 | `WEB_HTTP_PORT`      | 8080     |
 | `WEB_HTTPS_PORT`     | 8443     |
 | `WEB_LOG_LEVEL`      | info     |
-| `BACKEND_HOST`        | backend  |
-| `BACKEND_PORT`        | 6868     |
-| `BACKEND_PASSWORD`    | *[None]* |
-| `BACKEND_LOG_LEVEL`   | debug    |
+| `BACKEND_HOST`       | backend  |
+| `BACKEND_PORT`       | 6868     |
+| `BACKEND_PASSWORD`   | *[None]* |
+| `BACKEND_LOG_LEVEL`  | debug    |
+| `RESET_VENV`         | *[None]* |
 
 **Examples:**
 
@@ -55,6 +56,12 @@ OS_VERSION=bullseye docker compose up
 Start the web UI with the log level set to debug:
 ```
 WEB_LOG_LEVEL=debug docker compose up
+```
+
+Force resetting & reinstalling Python web `venv` directory:
+
+```
+RESET_VENV=1 docker compose up
 ```
 
 ## Volumes
