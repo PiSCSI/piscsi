@@ -35,7 +35,7 @@ jobs:
         run: make -j $(nproc) test
 
       - name: Run unit tests
-        run: (set -o pipefail && bin/fullspec/piscsi_test | tee piscsi_test_log.txt)
+        run: (set -o pipefail && bin/piscsi_test | tee piscsi_test_log.txt)
 
       - name: Upload logs
         uses: actions/upload-artifact@v3
