@@ -1,0 +1,5 @@
+The Eclipse code formatter configuration shall be used together with
+Eclipse CDT in order to unify the formatting of the C++ code. Ensure to keep
+your formatting rules up to date.
+
+This formatter can also be imported into Intellij IDEA.

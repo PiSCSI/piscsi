@@ -12,6 +12,3 @@ obj
 bin
 coverage
 generated
-.project
-.cproject
-.settings
