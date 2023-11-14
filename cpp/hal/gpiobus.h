@@ -182,8 +182,6 @@ class GPIOBUS : public BUS
 
     // SEL signal event polling
     bool PollSelectEvent() override;
-    // Clear SEL signal event
-    void ClearSelectEvent() override;
 
   protected:
     virtual void MakeTable() = 0;

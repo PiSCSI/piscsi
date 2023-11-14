@@ -1,10 +1,11 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@
 #ifdef __linux__
 #include <sys/epoll.h>
 #endif
+#include <chrono>
 
 using namespace std;
 
@@ -403,42 +405,23 @@ bool GPIOBUS::PollSelectEvent()
 #endif
 }
 
-//---------------------------------------------------------------------------
-//
-//	Cancel SEL signal event
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::ClearSelectEvent()
-{
-    GPIO_FUNCTION_TRACE
-}
-
-//---------------------------------------------------------------------------
-//
-//	Wait for signal change
-//
-//---------------------------------------------------------------------------
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
-    // Get current time
-    const uint32_t now = SysTimer::GetTimerLow();
+    const auto now = chrono::steady_clock::now();
 
-    // Calculate timeout (3000ms)
-    const uint32_t timeout = 3000 * 1000;
-
+    // Wait up to 3 s
     do {
-        // Immediately upon receiving a reset
         Acquire();
-        if (GetRST()) {
-            return false;
-        }
 
-        // Check for the signal edge
         if (GetSignal(pin) == ast) {
             return true;
         }
-    } while ((SysTimer::GetTimerLow() - now) < timeout);
 
-    // We timed out waiting for the signal
+        // Abort on a reset
+        if (GetRST()) {
+            return false;
+        }
+    } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
+
     return false;
 }

@@ -372,11 +372,6 @@ void GPIOBUS_Virtual::SetREQ(bool ast)
     SetSignal(PIN_REQ, ast);
 }
 
-bool GPIOBUS_Virtual::GetDP() const
-{
-    return GetSignal(PIN_DP);
-}
-
 //---------------------------------------------------------------------------
 //
 // Get data signals

@@ -644,17 +644,6 @@ void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
 #endif // SIGNAL_CONTROL_MODE
 }
 
-bool GPIOBUS_Raspberry::GetDP() const
-{
-    return GetSignal(PIN_DP);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Create work table
-//
-//---------------------------------------------------------------------------
-
 //---------------------------------------------------------------------------
 //
 //	Signal table
