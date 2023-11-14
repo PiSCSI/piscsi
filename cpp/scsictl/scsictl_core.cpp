@@ -70,7 +70,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 	PbCommand command;
 	PbDeviceDefinition* device = command.add_devices();
 	device->set_id(-1);
-	const char *hostname = "localhost";
+    string hostname = "localhost";
 	int port = 6868;
 	string param;
 	string log_level;
@@ -129,8 +129,12 @@ int ScsiCtl::run(const vector<char *>& args) const
             break;
 
         case 'E':
-            command.set_operation(IMAGE_FILE_INFO);
             filename = optarg;
+            if (filename.empty()) {
+                cerr << "Error: Missing filename" << endl;
+                exit(EXIT_FAILURE);
+            }
+            command.set_operation(IMAGE_FILE_INFO);
             break;
 
         case 'e':
@@ -151,15 +155,27 @@ int ScsiCtl::run(const vector<char *>& args) const
 
         case 'h':
             hostname = optarg;
+            if (hostname.empty()) {
+                cerr << "Error: Missing hostname" << endl;
+                exit(EXIT_FAILURE);
+            }
             break;
 
         case 'J':
             filename = optarg;
+            if (filename.empty()) {
+                cerr << "Error: Missing filename" << endl;
+                exit(EXIT_FAILURE);
+            }
             to_json = true;
             break;
 
         case 'B':
             filename = optarg;
+            if (filename.empty()) {
+                cerr << "Error: Missing filename" << endl;
+                exit(EXIT_FAILURE);
+            }
             to_binary = true;
             break;
 
