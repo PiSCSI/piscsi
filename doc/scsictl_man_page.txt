@@ -7,12 +7,12 @@ NAME
 
 SYNOPSIS
        scsictl  -e | -l | -m | -o | -v | -D | -I | -L | -O | -P | -S | -T | -V
-       | -X | [-d FILENAME] | [-j FILENAME] |  [-C  FILENAME:FILESIZE]  |  [-E
-       FILENAME] | [-F IMAGE_FOLDER] | [-R CURRENT_NAME:NEW_NAME] | [-c CMD] |
-       [-f FILE|PARAM] | [-g LOG_LEVEL] | [-h HOST]  |  [-i  ID[:LUN]]  |  [-n
-       NAME]  |  [-p PORT] | [-r RESERVED_IDS] | [-s [FOLDER_PATTERN:FILE_PAT‐
-       TERN:OPERATIONS]] | [-t TYPE] | [-x CURRENT_NAME:NEW_NAME]  |  [-z  LO‐
-       CALE]
+       | -X | [-d FILENAME] | [-B  FILENAME]  |  [-J  FILENAME]  |  [-C  FILE‐
+       NAME:FILESIZE]   |  [-E  FILENAME]  |  [-F  IMAGE_FOLDER]  |  [-R  CUR‐
+       RENT_NAME:NEW_NAME] | [-c CMD] | [-f FILE|PARAM] | [-g LOG_LEVEL] | [-h
+       HOST] | [-i ID[:LUN]] | [-n NAME] | [-p PORT] | [-r RESERVED_IDS] | [-s
+       [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]]  |  [-t  TYPE]  |  [-x   CUR‐
+       RENT_NAME:NEW_NAME] | [-z LOCALE]
 
 DESCRIPTION
        scsictl  sends commands to the piscsi process to make configuration ad‐
@@ -94,8 +94,13 @@ OPTIONS
        -d FILENAME
               Delete an image file in the default image folder.
 
-       -j FILENAME
-              Do not send command to piscsi but write it to a JSON file.
+       -B FILENAME
+              Do  not send command to piscsi but write it to a binary protobuf
+              file.
+
+       -J FILENAME
+              Do not send command to piscsi but write it to  a  JSON  protobuf
+              file.
 
        -x CURRENT_NAME:NEW_NAME
               Copy an image file in the default image folder.

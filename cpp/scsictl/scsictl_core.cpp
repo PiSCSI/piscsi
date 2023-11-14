@@ -81,13 +81,14 @@ int ScsiCtl::run(const vector<char *>& args) const
 	string token;
 	bool list = false;
     bool to_json = false;
+    bool to_binary = false;
 
 	string locale = GetLocale();
 
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(),
-        "e::lmos::vDINOSTVXa:b:c:d:f:h:i:j:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
+        "e::lmos::vDINOSTVXa:b:c:d:f:h:i:n:p:r:t:x:z:B:C:E:F:J:L:P::R:")) != -1) {
         switch (opt) {
         case 'i':
             if (const string error = SetIdAndLun(*device, optarg); !error.empty()) {
@@ -152,9 +153,14 @@ int ScsiCtl::run(const vector<char *>& args) const
             hostname = optarg;
             break;
 
-        case 'j':
+        case 'J':
             filename = optarg;
             to_json = true;
+            break;
+
+        case 'B':
+            filename = optarg;
+            to_binary = true;
             break;
 
         case 'I':
@@ -276,6 +282,9 @@ int ScsiCtl::run(const vector<char *>& args) const
     if (to_json) {
         return ExportAsJson(command, filename);
     }
+    if (to_binary) {
+        return ExportAsBinary(command, filename);
+    }
 
 	ScsictlCommands scsictl_commands(command, hostname, port);
 
@@ -314,6 +323,21 @@ int ScsiCtl::ExportAsJson(const PbCommand &command, const string &filename) cons
 
     ofstream out(filename);
     out << json << '\n';
+    if (out.fail()) {
+        cerr << "Error: Can't create JSON file '" << filename << "'" << endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int ScsiCtl::ExportAsBinary(const PbCommand &command, const string &filename) const
+{
+    const string binary = command.SerializeAsString();
+
+    ofstream out;
+    out.open(filename, ios::binary);
+    out << binary;
     if (out.fail()) {
         cerr << "Error: Can't create JSON file '" << filename << "'" << endl;
         return EXIT_FAILURE;
