@@ -16,7 +16,6 @@
 
 #include "shared/scsi.h"
 #include "shared/piscsi_util.h"
-#include "device_factory.h"
 #include "disk_track.h"
 #include "disk_cache.h"
 #include "interfaces/scsi_block_commands.h"
@@ -35,8 +34,7 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 
 	unique_ptr<DiskCache> cache;
 
-	// The supported configurable sector sizes, empty if not configurable
-	unordered_set<uint32_t> sector_sizes;
+	unordered_set<uint32_t> supported_sector_sizes;
 	uint32_t configured_sector_size = 0;
 
 	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
@@ -50,7 +48,9 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 
 public:
 
-	using StorageDevice::StorageDevice;
+	Disk(PbDeviceType type, int lun, const unordered_set<uint32_t>& s)
+		: StorageDevice(type, lun), supported_sector_sizes(s) {}
+	~Disk() override = default;
 
 	bool Init(const param_map&) override;
 	void CleanUp() override;
@@ -64,8 +64,9 @@ public:
 	virtual int Read(span<uint8_t> , uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
-	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }
-	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
+	bool IsSectorSizeConfigurable() const { return supported_sector_sizes.size() > 1; }
+	const auto& GetSupportedSectorSizes() const { return supported_sector_sizes; }
+	bool SetConfiguredSectorSize(uint32_t);
 	void FlushCache() override;
 
 	vector<PbStatistics> GetStatistics() const override;
@@ -119,7 +120,6 @@ protected:
 	void AddCachePage(map<int, vector<byte>>&, bool) const;
 
 	unordered_set<uint32_t> GetSectorSizes() const;
-	void SetSectorSizes(const unordered_set<uint32_t>& sizes) { sector_sizes = sizes; }
 	void SetSectorSizeInBytes(uint32_t);
 	uint32_t GetSectorSizeShiftCount() const { return size_shift_count; }
 	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }

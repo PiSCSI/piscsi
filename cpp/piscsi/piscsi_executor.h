@@ -11,6 +11,7 @@
 
 #include "hal/bus.h"
 #include "controllers/controller_manager.h"
+#include "devices/device_factory.h"
 #include <unordered_set>
 
 class DeviceFactory;
@@ -60,7 +61,7 @@ private:
 
 	ControllerManager& controller_manager;
 
-	const DeviceFactory device_factory;
+	[[no_unique_address]] const DeviceFactory device_factory;
 
 	unordered_set<int> reserved_ids;
 };

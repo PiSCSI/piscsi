@@ -24,26 +24,29 @@ using namespace piscsi_util;
 using namespace network_util;
 using namespace protobuf_util;
 
-void PiscsiResponse::GetDeviceProperties(const Device& device, PbDeviceProperties& properties) const
+void PiscsiResponse::GetDeviceProperties(shared_ptr<Device> device, PbDeviceProperties& properties) const
 {
 	properties.set_luns(ControllerManager::GetScsiLunMax());
-	properties.set_read_only(device.IsReadOnly());
-	properties.set_protectable(device.IsProtectable());
-	properties.set_stoppable(device.IsStoppable());
-	properties.set_removable(device.IsRemovable());
-	properties.set_lockable(device.IsLockable());
-	properties.set_supports_file(device.SupportsFile());
-	properties.set_supports_params(device.SupportsParams());
+	properties.set_read_only(device->IsReadOnly());
+	properties.set_protectable(device->IsProtectable());
+	properties.set_stoppable(device->IsStoppable());
+	properties.set_removable(device->IsRemovable());
+	properties.set_lockable(device->IsLockable());
+	properties.set_supports_file(device->SupportsFile());
+	properties.set_supports_params(device->SupportsParams());
 
-	if (device.SupportsParams()) {
-		for (const auto& [key, value] : device.GetDefaultParams()) {
+	if (device->SupportsParams()) {
+		for (const auto& [key, value] : device->GetDefaultParams()) {
 			auto& map = *properties.mutable_default_params();
 			map[key] = value;
 		}
 	}
 
-	for (const auto& block_size : device_factory.GetSectorSizes(device.GetType())) {
-		properties.add_block_sizes(block_size);
+	shared_ptr<Disk> disk = dynamic_pointer_cast<Disk>(device);
+	if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
+		for (const auto& sector_size : disk->GetSupportedSectorSizes()) {
+			properties.add_block_sizes(sector_size);
+		}
 	}
 }
 
@@ -52,7 +55,7 @@ void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	auto type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
 	const auto device = device_factory.CreateDevice(type, 0, "");
-	GetDeviceProperties(*device, *type_properties->mutable_properties());
+	GetDeviceProperties(device, *type_properties->mutable_properties());
 }
 
 void PiscsiResponse::GetDeviceTypesInfo(PbDeviceTypesInfo& device_types_info) const
@@ -67,37 +70,37 @@ void PiscsiResponse::GetDeviceTypesInfo(PbDeviceTypesInfo& device_types_info) co
 	}
 }
 
-void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const string& default_folder) const
+void PiscsiResponse::GetDevice(shared_ptr<Device> device, PbDevice& pb_device, const string& default_folder) const
 {
-	pb_device.set_id(device.GetId());
-	pb_device.set_unit(device.GetLun());
-	pb_device.set_vendor(device.GetVendor());
-	pb_device.set_product(device.GetProduct());
-	pb_device.set_revision(device.GetRevision());
-	pb_device.set_type(device.GetType());
+	pb_device.set_id(device->GetId());
+	pb_device.set_unit(device->GetLun());
+	pb_device.set_vendor(device->GetVendor());
+	pb_device.set_product(device->GetProduct());
+	pb_device.set_revision(device->GetRevision());
+	pb_device.set_type(device->GetType());
 
     GetDeviceProperties(device, *pb_device.mutable_properties());
 
     auto status = pb_device.mutable_status();
-	status->set_protected_(device.IsProtected());
-	status->set_stopped(device.IsStopped());
-	status->set_removed(device.IsRemoved());
-	status->set_locked(device.IsLocked());
+	status->set_protected_(device->IsProtected());
+	status->set_stopped(device->IsStopped());
+	status->set_removed(device->IsRemoved());
+	status->set_locked(device->IsLocked());
 
-	if (device.SupportsParams()) {
-		for (const auto& [key, value] : device.GetParams()) {
+	if (device->SupportsParams()) {
+		for (const auto& [key, value] : device->GetParams()) {
 			SetParam(pb_device, key, value);
 		}
 	}
 
-    if (const auto disk = dynamic_cast<const Disk*>(&device); disk) {
-    	pb_device.set_block_size(device.IsRemoved()? 0 : disk->GetSectorSizeInBytes());
-    	pb_device.set_block_count(device.IsRemoved() ? 0: disk->GetBlockCount());
+    if (const auto disk = dynamic_pointer_cast<const Disk>(device); disk) {
+    	pb_device.set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
+    	pb_device.set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
     }
 
-    const auto storage_device = dynamic_cast<const StorageDevice *>(&device);
+    const auto storage_device = dynamic_pointer_cast<const StorageDevice>(device);
 	if (storage_device != nullptr) {
-		GetImageFile(*pb_device.mutable_file(), default_folder, device.IsReady() ? storage_device->GetFilename() : "");
+		GetImageFile(*pb_device.mutable_file(), default_folder, device->IsReady() ? storage_device->GetFilename() : "");
 	}
 }
 
@@ -191,7 +194,7 @@ void PiscsiResponse::GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>& 
 {
 	for (const auto& device : devices) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
-		GetDevice(*device, *pb_device, default_folder);
+		GetDevice(device, *pb_device, default_folder);
 	}
 }
 
@@ -218,7 +221,7 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 	for (const auto& [id, lun] : id_sets) {
 		for (const auto& d : devices) {
 			if (d->GetId() == id && d->GetLun() == lun) {
-				GetDevice(*d, *devices_info->add_devices(), default_folder);
+				GetDevice(d, *devices_info->add_devices(), default_folder);
 				break;
 			}
 		}

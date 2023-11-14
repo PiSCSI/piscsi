@@ -352,7 +352,7 @@ public:
 	MOCK_METHOD(void, FlushCache, (), (override));
 	MOCK_METHOD(void, Open, (), (override));
 
-	MockDisk() : Disk(SCHD, 0) {}
+	MockDisk() : Disk(SCHD, 0, { 512, 1024, 2048, 4096 }) {}
 	~MockDisk() override = default;
 };
 
@@ -363,10 +363,15 @@ class MockSCSIHD : public SCSIHD //NOSONAR Ignore inheritance hierarchy depth in
 	FRIEND_TEST(ScsiHdTest, FinalizeSetup);
 	FRIEND_TEST(ScsiHdTest, GetProductData);
 	FRIEND_TEST(ScsiHdTest, SetUpModePages);
-	FRIEND_TEST(PiscsiExecutorTest, SetSectorSize);
+	FRIEND_TEST(ScsiHdTest, GetSectorSizes);
 	FRIEND_TEST(ScsiHdTest, ModeSelect);
+	FRIEND_TEST(PiscsiExecutorTest, SetSectorSize);
 
-	using SCSIHD::SCSIHD;
+public:
+
+	MockSCSIHD(int lun, bool removable) : SCSIHD(lun, removable, scsi_level::scsi_2) {}
+	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(0, false, scsi_level::scsi_2, sector_sizes) {}
+	~MockSCSIHD() override = default;
 };
 
 class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
@@ -382,6 +387,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy 
 
 class MockSCSICD : public SCSICD //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
+	FRIEND_TEST(ScsiCdTest, GetSectorSizes);
 	FRIEND_TEST(ScsiCdTest, SetUpModePages);
 	FRIEND_TEST(ScsiCdTest, ReadToc);
 
