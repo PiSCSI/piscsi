@@ -31,7 +31,6 @@ class DataSample
     virtual bool GetREQ() const    = 0;
     virtual bool GetACT() const    = 0;
     virtual uint8_t GetDAT() const = 0;
-    virtual bool GetDP() const     = 0;
 
     virtual uint32_t GetRawCapture() const = 0;
 

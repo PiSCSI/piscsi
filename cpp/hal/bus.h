@@ -68,8 +68,7 @@ class BUS : public PinControl
     // Operation modes definition
     enum class mode_e {
         TARGET    = 0,
-        INITIATOR = 1,
-        MONITOR   = 2,
+        INITIATOR = 1
     };
 
     static int GetCommandByteCount(uint8_t);
@@ -86,7 +85,6 @@ class BUS : public PinControl
 
     // Get the string phase name, based upon the raw data
     static const char *GetPhaseStrRaw(phase_t current_phase);
-    virtual int GetMode(int pin) = 0;
 
     virtual uint32_t Acquire()                                                = 0;
     virtual unique_ptr<DataSample> GetSample(uint64_t timestamp = 0)          = 0;
@@ -96,9 +94,6 @@ class BUS : public PinControl
 
     // SEL signal event polling
     virtual bool PollSelectEvent() = 0;
-
-    // Clear SEL signal event
-    virtual void ClearSelectEvent() = 0;
 
     virtual bool GetSignal(int pin) const = 0;
     // Get SCSI input signal value
