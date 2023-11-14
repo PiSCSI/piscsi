@@ -197,7 +197,7 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 	out.write((const char *)buf.data(), buf.size());
 
 	const bool status = out.fail();
-	if (!status) {
+	if (status) {
 		++print_error_count;
 	}
 
