@@ -14,7 +14,7 @@
 #include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <sys/time.h>
+#include <time.h>
 #ifdef __linux__
 #include <sys/epoll.h>
 #endif
@@ -276,10 +276,11 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " us after " +
+                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_NS) + " ns after " +
                 		to_string(delay_after_bytes) + " bytes");
                 EnableIRQ();
-                usleep(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+                const timespec ts = { .tv_sec = 0, .tv_nsec = SCSI_DELAY_SEND_DATA_DAYNAPORT_NS};
+                nanosleep(&ts, nullptr);
                 DisableIRQ();
             }
 
