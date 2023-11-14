@@ -30,14 +30,14 @@ TEST(ScsiHdTest, Inquiry)
 
 TEST(ScsiHdTest, SupportsSaveParameters)
 {
-	MockSCSIHD hd(0, {}, false);
+	MockSCSIHD hd(0, false);
 
 	EXPECT_TRUE(hd.SupportsSaveParameters());
 }
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
-	MockSCSIHD hd(0, {}, false);
+	MockSCSIHD hd(0, false);
 
 	hd.SetSectorSizeInBytes(1024);
 	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
@@ -45,9 +45,9 @@ TEST(ScsiHdTest, FinalizeSetup)
 
 TEST(ScsiHdTest, GetProductData)
 {
-	MockSCSIHD hd_kb(0, {}, false);
-	MockSCSIHD hd_mb(0, {}, false);
-	MockSCSIHD hd_gb(0, {}, false);
+	MockSCSIHD hd_kb(0, false);
+	MockSCSIHD hd_mb(0, false);
+	MockSCSIHD hd_gb(0, false);
 
 	const path filename = CreateTempFile(1);
 	hd_kb.SetFilename(string(filename));
@@ -73,10 +73,23 @@ TEST(ScsiHdTest, GetProductData)
 	remove(filename);
 }
 
+TEST(ScsiHdTest, GetSectorSizes)
+{
+	MockSCSIHD hd(0, false);
+
+	const auto& sector_sizes = hd.GetSupportedSectorSizes();
+	EXPECT_EQ(4, sector_sizes.size());
+
+	EXPECT_TRUE(sector_sizes.contains(512));
+	EXPECT_TRUE(sector_sizes.contains(1024));
+	EXPECT_TRUE(sector_sizes.contains(2048));
+	EXPECT_TRUE(sector_sizes.contains(4096));
+}
+
 TEST(ScsiHdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	MockSCSIHD hd(0, {}, false);
+	MockSCSIHD hd(0, false);
 
 	// Non changeable
 	hd.SetUpModePages(pages, 0x3f, false);
@@ -90,7 +103,7 @@ TEST(ScsiHdTest, SetUpModePages)
 
 TEST(ScsiHdTest, ModeSelect)
 {
-	MockSCSIHD hd(0, { 512 }, false);
+	MockSCSIHD hd({ 512 });
 	vector<int> cmd(10);
 	vector<uint8_t> buf(255);
 
