@@ -1,11 +1,12 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2023 Contributors to the PiSCSI project
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2020-2023 Contributors to the PiSCSI project
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -18,11 +19,14 @@
 #include "scsictl/scsictl_parser.h"
 #include "scsictl/scsictl_commands.h"
 #include "scsictl/scsictl_core.h"
+#include <google/protobuf/util/json_util.h>
 #include <unistd.h>
 #include <clocale>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
+using namespace google::protobuf::util;
 using namespace piscsi_interface;
 using namespace piscsi_util;
 using namespace protobuf_util;
@@ -33,7 +37,7 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 		cout << piscsi_util::Banner("(Controller App)")
 				<< "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] "
 				<< "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] "
-				<< "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] "
+            << "[-C FILENAME:FILESIZE] [-d FILENAME] [-j FILENAME] [-R CURRENT_NAME:NEW_NAME] "
 				<<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] "
 				<< "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-S] [-v] [-V] [-y] [-X]\n"
 				<< " where  ID[:LUN] ID := {0-" << (ControllerManager::GetScsiIdMax() - 1) << "},"
@@ -76,184 +80,190 @@ int ScsiCtl::run(const vector<char *>& args) const
 	string filename;
 	string token;
 	bool list = false;
+    bool to_json = false;
 
 	string locale = GetLocale();
 
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(),
-			"e::lmos::vDINOSTVXa:b:c:d:f:h:i:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
-		switch (opt) {
-			case 'i':
-				if (const string error = SetIdAndLun(*device, optarg); !error.empty()) {
-					cerr << "Error: " << error << endl;
-					exit(EXIT_FAILURE);
-				}
-				break;
+        "e::lmos::vDINOSTVXa:b:c:d:f:h:i:j:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
+        switch (opt) {
+        case 'i':
+            if (const string error = SetIdAndLun(*device, optarg); !error.empty()) {
+                cerr << "Error: " << error << endl;
+                exit(EXIT_FAILURE);
+            }
+            break;
 
-			case 'C':
-				command.set_operation(CREATE_IMAGE);
-				image_params = optarg;
-				break;
+        case 'C':
+            command.set_operation(CREATE_IMAGE);
+            image_params = optarg;
+            break;
 
-			case 'b':
-				int block_size;
-				if (!GetAsUnsignedInt(optarg, block_size)) {
-					cerr << "Error: Invalid block size " << optarg << endl;
-					exit(EXIT_FAILURE);
-				}
-				device->set_block_size(block_size);
-				break;
+        case 'b':
+            int block_size;
+            if (!GetAsUnsignedInt(optarg, block_size)) {
+                cerr << "Error: Invalid block size " << optarg << endl;
+                exit(EXIT_FAILURE);
+            }
+            device->set_block_size(block_size);
+            break;
 
-			case 'c':
-				command.set_operation(parser.ParseOperation(optarg));
-				if (command.operation() == NO_OPERATION) {
-					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
-					exit(EXIT_FAILURE);
-				}
-				break;
+        case 'c':
+            command.set_operation(parser.ParseOperation(optarg));
+            if (command.operation() == NO_OPERATION) {
+                cerr << "Error: Unknown operation '" << optarg << "'" << endl;
+                exit(EXIT_FAILURE);
+            }
+            break;
 
-			case 'D':
-				command.set_operation(DETACH_ALL);
-				break;
+        case 'D':
+            command.set_operation(DETACH_ALL);
+            break;
 
-			case 'd':
-				command.set_operation(DELETE_IMAGE);
-				image_params = optarg;
-				break;
+        case 'd':
+            command.set_operation(DELETE_IMAGE);
+            image_params = optarg;
+            break;
 
-			case 'E':
-				command.set_operation(IMAGE_FILE_INFO);
-				filename = optarg;
-				break;
+        case 'E':
+            command.set_operation(IMAGE_FILE_INFO);
+            filename = optarg;
+            break;
 
-			case 'e':
-				command.set_operation(DEFAULT_IMAGE_FILES_INFO);
-                if (optarg) {
-                	SetCommandParams(command, optarg);
+        case 'e':
+            command.set_operation(DEFAULT_IMAGE_FILES_INFO);
+            if (optarg) {
+                SetCommandParams(command, optarg);
+            }
+            break;
+
+        case 'F':
+            command.set_operation(DEFAULT_FOLDER);
+            default_folder = optarg;
+            break;
+
+        case 'f':
+            param = optarg;
+            break;
+
+        case 'h':
+            hostname = optarg;
+            break;
+
+        case 'j':
+            filename = optarg;
+            to_json = true;
+            break;
+
+        case 'I':
+            command.set_operation(RESERVED_IDS_INFO);
+            break;
+
+        case 'L':
+            command.set_operation(LOG_LEVEL);
+            log_level = optarg;
+            break;
+
+        case 'l':
+            list = true;
+            break;
+
+        case 'm':
+            command.set_operation(MAPPING_INFO);
+            break;
+
+        case 'N':
+            command.set_operation(NETWORK_INTERFACES_INFO);
+            break;
+
+        case 'O':
+            command.set_operation(LOG_LEVEL_INFO);
+            break;
+
+        case 'o':
+            command.set_operation(OPERATION_INFO);
+            break;
+
+        case 't':
+            device->set_type(parser.ParseType(optarg));
+            if (device->type() == UNDEFINED) {
+                cerr << "Error: Unknown device type '" << optarg << "'" << endl;
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'r':
+            command.set_operation(RESERVE_IDS);
+            reserved_ids = optarg;
+            break;
+
+        case 'R':
+            command.set_operation(RENAME_IMAGE);
+            image_params = optarg;
+            break;
+
+        case 'n':
+            SetProductData(*device, optarg);
+            break;
+
+        case 'p':
+            if (!GetAsUnsignedInt(optarg, port) || port <= 0 || port > 65535) {
+                cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 's':
+            command.set_operation(SERVER_INFO);
+            if (optarg) {
+                if (const string error = SetCommandParams(command, optarg); !error.empty()) {
+                    cerr << "Error: " << error << endl;
+                    exit(EXIT_FAILURE);
                 }
-                break;
+            }
+            break;
 
-			case 'F':
-				command.set_operation(DEFAULT_FOLDER);
-				default_folder = optarg;
-				break;
+        case 'S':
+            command.set_operation(STATISTICS_INFO);
+            break;
 
-			case 'f':
-				param = optarg;
-				break;
+        case 'v':
+            cout << "scsictl version: " << piscsi_get_version_string() << '\n';
+            exit(EXIT_SUCCESS);
+            break;
 
-			case 'h':
-				hostname = optarg;
-				break;
+        case 'P':
+            token = optarg ? optarg : getpass("Password: ");
+            break;
 
-			case 'I':
-				command.set_operation(RESERVED_IDS_INFO);
-				break;
+        case 'V':
+            command.set_operation(VERSION_INFO);
+            break;
 
-			case 'L':
-				command.set_operation(LOG_LEVEL);
-				log_level = optarg;
-				break;
+        case 'x':
+            command.set_operation(COPY_IMAGE);
+            image_params = optarg;
+            break;
 
-			case 'l':
-				list = true;
-				break;
+        case 'T':
+            command.set_operation(DEVICE_TYPES_INFO);
+            break;
 
-			case 'm':
-				command.set_operation(MAPPING_INFO);
-				break;
+        case 'X':
+            command.set_operation(SHUT_DOWN);
+            SetParam(command, "mode", "rascsi");
+            break;
 
-			case 'N':
-				command.set_operation(NETWORK_INTERFACES_INFO);
-				break;
+        case 'z':
+            locale = optarg;
+            break;
 
-			case 'O':
-				command.set_operation(LOG_LEVEL_INFO);
-				break;
-
-			case 'o':
-				command.set_operation(OPERATION_INFO);
-				break;
-
-			case 't':
-				device->set_type(parser.ParseType(optarg));
-				if (device->type() == UNDEFINED) {
-					cerr << "Error: Unknown device type '" << optarg << "'" << endl;
-					exit(EXIT_FAILURE);
-				}
-				break;
-
-			case 'r':
-				command.set_operation(RESERVE_IDS);
-				reserved_ids = optarg;
-				break;
-
-			case 'R':
-				command.set_operation(RENAME_IMAGE);
-				image_params = optarg;
-				break;
-
-			case 'n':
-				SetProductData(*device, optarg);
-				break;
-
-			case 'p':
-				if (!GetAsUnsignedInt(optarg, port) || port <= 0 || port > 65535) {
-					cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-					exit(EXIT_FAILURE);
-				}
-				break;
-
-			case 's':
-				command.set_operation(SERVER_INFO);
-				if (optarg) {
-					if (const string error = SetCommandParams(command, optarg); !error.empty()) {
-						cerr << "Error: " << error << endl;
-						exit(EXIT_FAILURE);
-					}
-                }
-                break;
-
-			case 'S':
-				command.set_operation(STATISTICS_INFO);
-				break;
-
-			case 'v':
-				cout << "scsictl version: " << piscsi_get_version_string() << '\n';
-				exit(EXIT_SUCCESS);
-				break;
-
-			case 'P':
-				token = optarg ? optarg : getpass("Password: ");
-				break;
-
-			case 'V':
-				command.set_operation(VERSION_INFO);
-				break;
-
-			case 'x':
-				command.set_operation(COPY_IMAGE);
-				image_params = optarg;
-				break;
-
-			case 'T':
-				command.set_operation(DEVICE_TYPES_INFO);
-				break;
-
-			case 'X':
-				command.set_operation(SHUT_DOWN);
-				SetParam(command, "mode", "rascsi");
-				break;
-
-			case 'z':
-				locale = optarg;
-				break;
-
-			default:
-				break;
-		}
-	}
+        default:
+            break;
+        }
+    }
 
 	// For macos only 'optind != argc' appears to work, but then non-argument options do not reject arguments
 	if (optopt) {
@@ -262,6 +272,10 @@ int ScsiCtl::run(const vector<char *>& args) const
 
 	SetParam(command, "token", token);
 	SetParam(command, "locale", locale);
+
+    if (to_json) {
+        return ExportAsJson(command, filename);
+    }
 
 	ScsictlCommands scsictl_commands(command, hostname, port);
 
@@ -277,7 +291,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 		else {
 			ParseParameters(*device, param);
 
-			status = scsictl_commands.Execute(log_level, default_folder, reserved_ids, image_params, filename);
+            status = scsictl_commands.Execute(log_level, default_folder, reserved_ids, image_params, filename);
 		}
 	}
     catch(const io_exception& e) {
@@ -289,4 +303,21 @@ int ScsiCtl::run(const vector<char *>& args) const
 	}
 
     return status ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+int ScsiCtl::ExportAsJson(const PbCommand &command, const string &filename) const
+{
+    string json;
+    JsonPrintOptions options;
+    options.add_whitespace = true;
+    MessageToJsonString(command, &json, options);
+
+    ofstream out(filename);
+    out << json << '\n';
+    if (out.fail()) {
+        cerr << "Error: Can't create JSON file '" << filename << "'" << endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

@@ -7,22 +7,23 @@ NAME
 
 SYNOPSIS
        scsictl  -e | -l | -m | -o | -v | -D | -I | -L | -O | -P | -S | -T | -V
-       | -X | [-C FILENAME:FILESIZE] | [-E FILENAME] | [-F IMAGE_FOLDER] | [-R
-       CURRENT_NAME:NEW_NAME]  | [-c CMD] | [-f FILE|PARAM] | [-g LOG_LEVEL] |
-       [-h HOST] | [-i ID[:LUN]] | [-n NAME] | [-p PORT] | [-r RESERVED_IDS] |
-       [-s  [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]]  |  [-t TYPE] | [-x CUR‐
-       RENT_NAME:NEW_NAME] | [-z LOCALE]
+       | -X | [-d FILENAME] | [-j FILENAME] |  [-C  FILENAME:FILESIZE]  |  [-E
+       FILENAME] | [-F IMAGE_FOLDER] | [-R CURRENT_NAME:NEW_NAME] | [-c CMD] |
+       [-f FILE|PARAM] | [-g LOG_LEVEL] | [-h HOST]  |  [-i  ID[:LUN]]  |  [-n
+       NAME]  |  [-p PORT] | [-r RESERVED_IDS] | [-s [FOLDER_PATTERN:FILE_PAT‐
+       TERN:OPERATIONS]] | [-t TYPE] | [-x CURRENT_NAME:NEW_NAME]  |  [-z  LO‐
+       CALE]
 
 DESCRIPTION
-       scsictl sends commands to the piscsi process to make configuration  ad‐
+       scsictl  sends commands to the piscsi process to make configuration ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
-       You  do  NOT  need root privileges to use scsictl. scsictl also runs on
+       You do NOT need root privileges to use scsictl. scsictl  also  runs  on
        non-Pi Linux platforms.
 
-       Note: The command and type arguments are  case  insensitive.  Only  the
+       Note:  The  command  and  type arguments are case insensitive. Only the
        first letter of the command/type is evaluated by the tool.
 
 OPTIONS
@@ -41,7 +42,7 @@ OPTIONS
        -I     Gets the list of reserved device IDs.
 
        -L LOG_LEVEL
-              Set the piscsi log level (trace, debug,  info,  warning,  error,
+              Set  the  piscsi  log level (trace, debug, info, warning, error,
               off).
 
        -h HOST
@@ -49,19 +50,19 @@ OPTIONS
 
        -e     List all images files in the default image folder.
 
-       -N     Lists  all  available  network interfaces provided that they are
+       -N     Lists all available network interfaces provided  that  they  are
               up.
 
-       -O     Display the available piscsi server log levels and  the  current
+       -O     Display  the  available piscsi server log levels and the current
               log level.
 
-       -P     Prompt  for the access token in case piscsi requires authentica‐
+       -P     Prompt for the access token in case piscsi requires  authentica‐
               tion.
 
-       -l     List all of the devices that are  currently  being  emulated  by
+       -l     List  all  of  the  devices that are currently being emulated by
               PiSCSI, as well as their current status.
 
-       -m     List  all  file  extensions  recognized by PiSCSI and the device
+       -m     List all file extensions recognized by  PiSCSI  and  the  device
               types they map to.
 
        -o     Display operation meta data information.
@@ -73,11 +74,11 @@ OPTIONS
               The piscsi port to connect to, default is 6868.
 
        -r RESERVED_IDS
-              Comma-separated list of IDs to reserve. Pass an  empty  list  in
+              Comma-separated  list  of  IDs to reserve. Pass an empty list in
               order to not reserve anything.
 
        -s [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]
-              Display  server-side settings like available images or supported
+              Display server-side settings like available images or  supported
               device types.
 
        -S     Display statistics.
@@ -92,6 +93,9 @@ OPTIONS
 
        -d FILENAME
               Delete an image file in the default image folder.
+
+       -j FILENAME
+              Do not send command to piscsi but write it to a JSON file.
 
        -x CURRENT_NAME:NEW_NAME
               Copy an image file in the default image folder.
@@ -108,7 +112,7 @@ OPTIONS
                  d(etach): Detach disk
                  i(nsert): Insert media (removable media devices only)
                  e(ject): Eject media (removable media devices only)
-                 p(rotect):  Write  protect the medium (not for CD-ROMs, which
+                 p(rotect): Write protect the medium (not for  CD-ROMs,  which
               are always read-only)
                  u(nprotect): Remove write protection from the medium (not for
               CD-ROMs, which are always read-only)
@@ -117,18 +121,18 @@ OPTIONS
               eject, protect and unprotect are idempotent.
 
        -b BLOCK_SIZE
-              The  optional  block size, either 512, 1024, 2048 or 4096 bytes.
+              The optional block size, either 512, 1024, 2048 or  4096  bytes.
               The default size is 512 bytes.
 
        -f FILE|PARAM
               Device-specific: Either a path to a disk image file, or a param‐
-              eter  for a non-disk device. See the piscsi(1) man page for per‐
+              eter for a non-disk device. See the piscsi(1) man page for  per‐
               mitted file types.
 
        -t TYPE
-              Specifies the device type. This type overrides the type  derived
+              Specifies  the device type. This type overrides the type derived
               from  the  file  extension  of  the  specified  image.  See  the
-              piscsi(1) man page for the  available  device  types.  For  some
+              piscsi(1)  man  page  for  the  available device types. For some
               types there are shortcuts (only the first letter is required):
                  hd: SCSI hard disk drive
                  rm: SCSI removable media drive
@@ -140,16 +144,16 @@ OPTIONS
                  services: Host services device
 
        -n VENDOR:PRODUCT:REVISION
-              The  vendor, product and revision for the device, to be returned
+              The vendor, product and revision for the device, to be  returned
               with the INQUIRY data. A complete set of name components must be
               provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
               to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically  applied.  Once  set  the name of a device cannot be
+              tomatically applied. Once set the name of  a  device  cannot  be
               changed.
 
        -u UNIT
-              Unit number (0-31). This will default to 0. This option is  only
-              used  when there are multiple SCSI devices on a shared SCSI con‐
+              Unit  number (0-31). This will default to 0. This option is only
+              used when there are multiple SCSI devices on a shared SCSI  con‐
               troller. (This is not common)
 
 EXAMPLES
