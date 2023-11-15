@@ -43,10 +43,10 @@ void ScsiExec::TerminationHandler(int)
 
 bool ScsiExec::Banner(span<char*> args) const
 {
-    cout << piscsi_util::Banner("(SCSI Action Execution Utility)");
+    cout << piscsi_util::Banner("(SCSI Action Execution Tool)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILENAME [-L log_level] [-b] \n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-L log_level] [-b] \n"
             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
             << " Default is 0.\n"

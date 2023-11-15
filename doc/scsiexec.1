@@ -1,0 +1,42 @@
+.TH scsidump 1
+.SH NAME
+scsidump \- SCSI action execution tool for PiSCSI
+.SH SYNOPSIS
+.B scsidump
+\fB\-t\fR \fIID[:LUN]\fR
+[\fB\-i\fR \fIBID\fR]
+\fB\-f\fR \fIFILENAME\fR
+[\fB\-b\fR]
+[\fB\-t\tR] ID[:LUN]
+[\fB\-L\fR \fILOG_LEVEL\fR]
+.SH DESCRIPTION
+.B scsiexec
+wraps JSON or binary input data in protobuf format into a custom PiSCSI SCSI command, has piscsi execute it and display the results in JSON format. The input data must be legal commands for the PiSCSi protobuf interface. See the file piscsi_interface.proto for details.
+scsiexec helps with advanced testing. It requires two connected PiSCSI boards.
+
+.SH NOTES
+
+.B scsidump
+requires either a direct connection (one without transceivers) or a FULLSPEC PiSCSI/RaSCSI board.
+
+.SH OPTIONS
+.TP
+.BR \-t\fI " "\fIID[:LUN]
+SCSI ID and optional LUN of the remote SCSI device. The remote SCSI device will be functioning as the "Target" device.
+.TP
+.BR \-i\fI " "\fIBID
+SCSI ID of the PiSCSI device. If not specified, the PiSCSI device will use ID 7. The PiSCSI host will be functioning as the "Initiator" device.
+.TP
+.BR \-f\fI " "\fIFILE
+Path to the input file with JSON or binary protobuf data.
+.TP
+.BR \-b\fI
+Signals that the inout file is a binary file and not a JSON file.
+.TP
+.BR \-L\fI " " \fILOG_LEVEL
+The scsiexec log level (trace, debug, info, warning, error, off). The default log level is 'info'.
+
+.SH SEE ALSO
+scsictl(1), piscsi(1), scsidump(1), scsimon(1)
+ 
+Full documentation is available at: <https://www.piscsi.com>
