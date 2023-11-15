@@ -45,12 +45,13 @@ bool ScsiExec::Banner(span<char*> args) const
     cout << piscsi_util::Banner("(SCSI Action Execution Tool)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-L log_level] [-b] \n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-L LOG_LEVEL] [-b]\n"
             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
             << " Default is 0.\n"
             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
             << " FILENAME is the protobuf input data path.\n"
+            << " LOG_LEVEL is the log level {trace|debug|info|warn|err|off}, default is 'info'.\n"
             << " -b signals that the input file is in binary protobuf format instead of JSON format.\n"
             << flush;
 
