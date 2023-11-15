@@ -144,7 +144,7 @@ EXAMPLES
           fallocate -l 104857600 /path/to/newimage.hda
 
 SEE ALSO
-       scsictl(1), scsimon(1), scsidump(1)
+       scsictl(1), scsimon(1), scsidump(1), scsiexec(1)
 
        Full documentation is available at: <https://www.piscsi.com>
 

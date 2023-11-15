@@ -168,7 +168,7 @@ EXAMPLES
           scsictl -i 0 -f HDIIMAGE0.HDS
 
 SEE ALSO
-       piscsi(1), scsimon(1), scsidump(1)
+       piscsi(1), scsimon(1), scsidump(1), scsiexec(1)
 
        Full documentation is available at: <https://www.piscsi.com>
 
