@@ -14,12 +14,15 @@
 #include "shared/piscsi_util.h"
 #include <spdlog/spdlog.h>
 #include <filesystem>
+#include <csignal>
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 
 using namespace std;
 using namespace filesystem;
 using namespace spdlog;
+using namespace scsi_defs;
 using namespace piscsi_util;
 
 void ScsiExec::CleanUp() const
@@ -27,6 +30,15 @@ void ScsiExec::CleanUp() const
     if (bus != nullptr) {
         bus->Cleanup();
     }
+}
+
+void ScsiExec::TerminationHandler(int)
+{
+    instance->bus->SetRST(true);
+
+    instance->CleanUp();
+
+    // Process will terminate automatically
 }
 
 bool ScsiExec::Banner(span<char*> args) const
@@ -50,6 +62,16 @@ bool ScsiExec::Banner(span<char*> args) const
 
 bool ScsiExec::Init(bool)
 {
+    instance = this;
+    // Signal handler for cleaning up
+    struct sigaction termination_handler;
+    termination_handler.sa_handler = TerminationHandler;
+    sigemptyset(&termination_handler.sa_mask);
+    termination_handler.sa_flags = 0;
+    sigaction(SIGINT, &termination_handler, nullptr);
+    sigaction(SIGTERM, &termination_handler, nullptr);
+    signal(SIGPIPE, SIG_IGN);
+
     bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR);
 
     if (bus != nullptr) {
