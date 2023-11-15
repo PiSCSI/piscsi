@@ -971,6 +971,10 @@ section#services li.disabled {
   background: url("icons/cloud-off.svg") no-repeat left center;
 }
 
+section#services li.extlink {
+  background: url("icons/external-link.svg") no-repeat left center;
+}
+
 /*
  ------------------------------------------------------------------------------
  Drives page
