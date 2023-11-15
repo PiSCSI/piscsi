@@ -430,7 +430,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 void ScsiController::Send()
 {
 	assert(!GetBus().GetREQ());
-	//assert(GetBus().GetIO());
+	assert(GetBus().GetIO());
 
 	if (HasValidLength()) {
 		LogTrace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
