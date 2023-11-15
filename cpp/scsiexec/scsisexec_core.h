@@ -10,7 +10,7 @@
 #pragma once
 
 #include "hal/bus.h"
-#include "scsisend/scsi_executor.h"
+#include "scsiexec/scsi_executor.h"
 #include <string>
 #include <span>
 #include <vector>
@@ -18,13 +18,13 @@
 
 using namespace std;
 
-class ScsiSend
+class ScsiExec
 {
 
 public:
 
-    ScsiSend() = default;
-    ~ScsiSend() = default;
+    ScsiExec() = default;
+    ~ScsiExec() = default;
 
     int run(span<char*>, bool = false);
 
@@ -59,5 +59,5 @@ private:
     string log_level = "info";
 
     // Required for the termination handler
-    static inline ScsiSend *instance;
+    static inline ScsiExec *instance;
 };

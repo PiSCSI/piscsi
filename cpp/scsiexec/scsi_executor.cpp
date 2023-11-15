@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/scsi.h"
-#include "scsisend/scsi_executor.h"
+#include "scsiexec/scsi_executor.h"
 #include "generated/piscsi_interface.pb.h"
 #include <google/protobuf/util/json_util.h>
 #include <spdlog/spdlog.h>
@@ -56,7 +56,7 @@ void ScsiExecutor::Execute(const string& filename, bool binary)
 
     if (!binary) {
         const string json((const char *)buffer.data(), length);
-        cerr << "json received:\n" << json << endl;
+        spdlog::info("json received:\n" + json);
     }
     else {
         PbResult result;
@@ -65,6 +65,6 @@ void ScsiExecutor::Execute(const string& filename, bool binary)
         }
         string json;
         google::protobuf::util::MessageToJsonString(result, &json);
-        cerr << "json (converted from binary) received:\n" << json << endl;
+        spdlog::info("json (converted from binary) received:\n" + json);
    }
 }

@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsisend/scsisend_core.h"
+#include "scsisexec_core.h"
 
 using namespace std;
 
@@ -15,5 +15,5 @@ int main(int argc, char *argv[])
 {
 	vector<char *> args(argv, argv + argc);
 
-	return ScsiSend().run(args);
+	return ScsiExec().run(args);
 }

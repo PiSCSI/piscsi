@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsisend/scsisend_core.h"
+#include "scsisexec_core.h"
 #include "hal/sbc_version.h"
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
@@ -25,14 +25,14 @@ using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
 
-void ScsiSend::CleanUp() const
+void ScsiExec::CleanUp() const
 {
     if (bus != nullptr) {
         bus->Cleanup();
     }
 }
 
-void ScsiSend::TerminationHandler(int)
+void ScsiExec::TerminationHandler(int)
 {
     instance->bus->SetRST(true);
 
@@ -41,9 +41,9 @@ void ScsiSend::TerminationHandler(int)
     // Process will terminate automatically
 }
 
-bool ScsiSend::Banner(span<char*> args) const
+bool ScsiExec::Banner(span<char*> args) const
 {
-    cout << piscsi_util::Banner("(SCSI Action Trigger Utility)");
+    cout << piscsi_util::Banner("(SCSI Action Execution Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
         cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILENAME [-L log_level] [-b] \n"
@@ -60,7 +60,7 @@ bool ScsiSend::Banner(span<char*> args) const
     return true;
 }
 
-bool ScsiSend::Init(bool)
+bool ScsiExec::Init(bool)
 {
     instance = this;
     // Signal handler for cleaning up
@@ -81,7 +81,7 @@ bool ScsiSend::Init(bool)
     return bus != nullptr;
 }
 
-void ScsiSend::ParseArguments(span<char*> args)
+void ScsiExec::ParseArguments(span<char*> args)
 {
     optind = 1;
     opterr = 0;
@@ -122,7 +122,7 @@ void ScsiSend::ParseArguments(span<char*> args)
     }
 }
 
-int ScsiSend::run(span<char*> args, bool in_process)
+int ScsiExec::run(span<char*> args, bool in_process)
 {
     if (!Banner(args)) {
         return EXIT_SUCCESS;
@@ -163,7 +163,7 @@ int ScsiSend::run(span<char*> args, bool in_process)
     return EXIT_SUCCESS;
 }
 
-bool ScsiSend::SetLogLevel() const
+bool ScsiExec::SetLogLevel() const
 {
     const level::level_enum l = level::from_str(log_level);
     // Compensate for spdlog using 'off' for unknown levels
