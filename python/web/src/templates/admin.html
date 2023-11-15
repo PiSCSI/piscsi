@@ -120,18 +120,20 @@
 <ul class="service_status">
     {% if netatalk_configured %}
     <li class="service-item enabled">
-        {{ _("Mac AFP file sharing is enabled.") }}
+      {{ _("Mac AFP file sharing is enabled.") }}
     {% else %}
     <li class="service-item disabled">
         {{ _("Mac AFP file sharing is disabled.") }}
     {% endif %}
     </li>
     {% if webmin_configured %}
-    <li>
-        <a href="https://{{ env["ip_addr"] }}:10000/netatalk2/" target=\"_blank\">
-        {{ _("Manage the AFP server") }}
-        </a>
-    </li>
+    <ul>
+        <li class="service-item extlink">
+            <a href="https://{{ env["ip_addr"] }}:10000/netatalk2/" target=\"_blank\">
+            {{ _("Manage the AFP server") }}
+            </a>
+        </li>
+    </ul>
     {% endif %}
     {% if samba_configured %}
     <li class="service-item enabled">
@@ -142,11 +144,13 @@
     {% endif %}
     </li>
     {% if webmin_configured %}
-    <li>
-        <a href="https://{{ env["ip_addr"] }}:10000/samba/" target=\"_blank\">
-        {{ _("Manage the SMB server") }}
-        </a>
-    </li>
+    <ul>
+        <li class="service-item extlink">
+            <a href="https://{{ env["ip_addr"] }}:10000/samba/" target=\"_blank\">
+            {{ _("Manage the SMB server") }}
+            </a>
+        </li>
+    </ul>
     {% endif %}
     {% if ftp_configured %}
     <li class="service-item enabled">
