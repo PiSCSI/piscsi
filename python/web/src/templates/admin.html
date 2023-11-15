@@ -126,15 +126,6 @@
         {{ _("Mac AFP file sharing is disabled.") }}
     {% endif %}
     </li>
-    {% if webmin_configured %}
-    <ul>
-        <li class="service-item extlink">
-            <a href="../webmin/netatalk2/" target=\"_blank\">
-            {{ _("Manage the AFP server") }}
-            </a>
-        </li>
-    </ul>
-    {% endif %}
     {% if samba_configured %}
     <li class="service-item enabled">
         {{ _("Windows SMB file sharing is enabled.") }}
@@ -143,15 +134,6 @@
         {{ _("Windows SMB file sharing is disabled.") }}
     {% endif %}
     </li>
-    {% if webmin_configured %}
-    <ul>
-        <li class="service-item extlink">
-            <a href="../webmin/samba/" target=\"_blank\">
-            {{ _("Manage the SMB server") }}
-            </a>
-        </li>
-    </ul>
-    {% endif %}
     {% if ftp_configured %}
     <li class="service-item enabled">
         {{ _("FTP file sharing is enabled.") }}
@@ -168,6 +150,11 @@
         {{ _("Vintage web proxy is disabled.") }}
     {% endif %}
     </li>
+    {% if webmin_configured %}
+    <li class="service-item extlink">
+	<a href="../webmin/" target=\"_blank\">{{ _("Manage PiSCSI services & Linux with Webmin") }}</a>
+    </li>
+    {% endif %}
 </ul>
 </section>
 
