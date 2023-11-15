@@ -23,14 +23,15 @@ using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_interface;
 
-string ScsiExecutor::Execute(const string& filename, bool binary)
+bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
 {
     int size = 0;
 
     if (!binary) {
         ifstream in(filename);
         if (in.fail()) {
-            return "Error opening JSON input file '" + filename + "'";
+            result = "Error opening JSON input file '" + filename + "'";
+            return false;
         }
 
         stringstream buf;
@@ -42,7 +43,8 @@ string ScsiExecutor::Execute(const string& filename, bool binary)
     else {
         ifstream in(filename, ios::binary);
         if (in.fail()) {
-            return "Error opening binary input file '" + filename + "'";
+            result = "Error opening binary input file '" + filename + "'";
+            return false;
         }
 
         vector<char> b(file_size(filename));
@@ -63,15 +65,16 @@ string ScsiExecutor::Execute(const string& filename, bool binary)
 
     if (!binary) {
         const string json((const char*) buffer.data(), length);
-        return json;
+        result = json;
     }
     else {
-        PbResult result;
-        if (!result.ParseFromArray(buffer.data(), length)) {
-            assert(false);
+        PbResult r;
+        if (!r.ParseFromArray(buffer.data(), length)) {
+            result = "Error parsing binary protobuf data";
+            return false;
         }
-        string json;
-        google::protobuf::util::MessageToJsonString(result, &json);
-        return json;
+        google::protobuf::util::MessageToJsonString(r, &result);
     }
+
+    return true;
 }

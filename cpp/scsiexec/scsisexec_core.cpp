@@ -156,11 +156,18 @@ int ScsiExec::run(span<char*> args, bool in_process)
         return EXIT_FAILURE;
     }
 
-    cout << scsi_executor->Execute(filename, binary) << "\n" << flush;
+    string result;
+    const bool status = scsi_executor->Execute(filename, binary, result);
+    if (status) {
+        cout << result << '\n' << flush;
+    }
+    else {
+        cerr << result << endl;
+    }
 
     CleanUp();
 
-    return EXIT_SUCCESS;
+    return status ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 bool ScsiExec::SetLogLevel() const
