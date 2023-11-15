@@ -9,10 +9,11 @@
 
 #pragma once
 
+#include "scsisend/phase_executor.h"
 #include <cstdint>
 #include <vector>
 #include <span>
-#include "scsisend/phase_executor.h"
+#include <string>
 
 using namespace std;
 
@@ -27,7 +28,7 @@ public:
     }
     ~ScsiExecutor() = default;
 
-    void Execute(bool);
+    void Execute(const string&, bool);
 
     void SetTarget(int id, int lun)
     {

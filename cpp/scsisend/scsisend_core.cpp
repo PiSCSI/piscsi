@@ -50,15 +50,12 @@ bool ScsiSend::Banner(span<char*> args) const
     cout << piscsi_util::Banner("(SCSI Action Trigger Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f FILE] [-a] [-r] [-b BUFFER_SIZE]"
-            << " [-L log_level] [-p] [-I] [-s]\n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILENAME [-L log_level] [-b] \n"
             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
             << " Default is 0.\n"
             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-            << " FILE is the protobuf input data path.\n"
-            << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
-            << " bytes. Default is 1 MiB.\n"
+            << " FILENAME is the protobuf input data path.\n"
             << flush;
 
         return false;
@@ -67,7 +64,7 @@ bool ScsiSend::Banner(span<char*> args) const
     return true;
 }
 
-bool ScsiSend::Init(bool in_process)
+bool ScsiSend::Init(bool)
 {
     instance = this;
     // Signal handler for cleaning up
@@ -93,7 +90,7 @@ void ScsiSend::ParseArguments(span<char*> args)
     optind = 1;
     opterr = 0;
     int opt;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:b:t:L:arspI")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:t:bL:")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -106,11 +103,7 @@ void ScsiSend::ParseArguments(span<char*> args)
             break;
 
         case 'b':
-//            if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
-//                throw parser_exception(
-//                    "Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
-//            }
-
+            binary = true;
             break;
 
         case 't':
@@ -131,8 +124,6 @@ void ScsiSend::ParseArguments(span<char*> args)
     if (target_lun == -1) {
         target_lun = 0;
     }
-
-    scsi_executor->Execute(false);
 }
 
 int ScsiSend::run(span<char*> args, bool in_process)
@@ -168,6 +159,8 @@ int ScsiSend::run(span<char*> args, bool in_process)
         cerr << "Error: Invalid log level '" + log_level + "'";
         return EXIT_FAILURE;
     }
+
+    scsi_executor->Execute(filename, binary);
 
     CleanUp();
 

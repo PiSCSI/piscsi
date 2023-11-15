@@ -23,13 +23,11 @@ using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_interface;
 
-void ScsiExecutor::Execute(bool binary)
+void ScsiExecutor::Execute(const string& filename, bool binary)
 {
-    const string file = binary ? "test.bin" : "test.json";
-
     int size = 0;
     if (!binary) {
-        ifstream in(file);
+        ifstream in(filename);
         assert(!in.fail());
         stringstream buf;
         buf << in.rdbuf();
@@ -38,9 +36,9 @@ void ScsiExecutor::Execute(bool binary)
         size = json.size();
     }
     else {
-        ifstream in(file, ios::binary);
+        ifstream in(filename, ios::binary);
         assert(!in.fail());
-        vector<char> b(file_size(file));
+        vector<char> b(file_size(filename));
         in.read(b.data(), b.size());
         memcpy(buffer.data(), b.data(), b.size());
         size = b.size();

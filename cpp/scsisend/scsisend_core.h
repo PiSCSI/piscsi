@@ -54,13 +54,10 @@ private:
 
     string filename;
 
-    string log_level = "info";
+    bool binary = false;
 
-    bool restore = false;
+    string log_level = "info";
 
     // Required for the termination handler
     static inline ScsiSend *instance;
-
-    static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
-    static const int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 };
