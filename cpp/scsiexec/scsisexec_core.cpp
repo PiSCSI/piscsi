@@ -97,9 +97,6 @@ void ScsiExec::ParseArguments(span<char*> args)
 
         case 'f':
             filename = optarg;
-            if (filename.empty()) {
-                throw parser_exception("Missing filename");
-            }
             break;
 
         case 'b':
@@ -119,6 +116,10 @@ void ScsiExec::ParseArguments(span<char*> args)
         default:
             break;
         }
+    }
+
+    if (filename.empty()) {
+        throw parser_exception("Missing filename");
     }
 
     if (target_lun == -1) {
