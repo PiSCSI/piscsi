@@ -23,12 +23,16 @@ using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_interface;
 
-void ScsiExecutor::Execute(const string& filename, bool binary)
+string ScsiExecutor::Execute(const string& filename, bool binary)
 {
     int size = 0;
+
     if (!binary) {
         ifstream in(filename);
-        assert(!in.fail());
+        if (in.fail()) {
+            return "Error opening JSON input file '" + filename + "'";
+        }
+
         stringstream buf;
         buf << in.rdbuf();
         const string json = buf.str();
@@ -37,7 +41,10 @@ void ScsiExecutor::Execute(const string& filename, bool binary)
     }
     else {
         ifstream in(filename, ios::binary);
-        assert(!in.fail());
+        if (in.fail()) {
+            return "Error opening binary input file '" + filename + "'";
+        }
+
         vector<char> b(file_size(filename));
         in.read(b.data(), b.size());
         memcpy(buffer.data(), b.data(), b.size());
@@ -48,15 +55,15 @@ void ScsiExecutor::Execute(const string& filename, bool binary)
     cdb[1] = binary ? 0x0a : 0x05;
     cdb[5] = static_cast<uint8_t>(size >> 8);
     cdb[6] = static_cast<uint8_t>(size);
-    cdb[7] = static_cast<uint8_t>(65535 >> 8);
-    cdb[8] = static_cast<uint8_t>(65535);
-    phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, 65535);
+    cdb[7] = static_cast<uint8_t>(buffer.size() >> 8);
+    cdb[8] = static_cast<uint8_t>(buffer.size());
+    phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, buffer.size());
 
     const int length = phase_executor->GetSize();
 
     if (!binary) {
-        const string json((const char *)buffer.data(), length);
-        spdlog::info("json received:\n" + json);
+        const string json((const char*) buffer.data(), length);
+        return json;
     }
     else {
         PbResult result;
@@ -65,6 +72,6 @@ void ScsiExecutor::Execute(const string& filename, bool binary)
         }
         string json;
         google::protobuf::util::MessageToJsonString(result, &json);
-        spdlog::info("json (converted from binary) received:\n" + json);
-   }
+        return json;
+    }
 }

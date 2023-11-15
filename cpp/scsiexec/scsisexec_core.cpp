@@ -156,7 +156,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
         return EXIT_FAILURE;
     }
 
-    scsi_executor->Execute(filename, binary);
+    cout << scsi_executor->Execute(filename, binary) << "\n" << flush;
 
     CleanUp();
 

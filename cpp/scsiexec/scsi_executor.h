@@ -28,7 +28,7 @@ public:
     }
     ~ScsiExecutor() = default;
 
-    void Execute(const string&, bool);
+    string Execute(const string&, bool);
 
     void SetTarget(int id, int lun)
     {
