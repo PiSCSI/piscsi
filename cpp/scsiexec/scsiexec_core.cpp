@@ -45,12 +45,15 @@ bool ScsiExec::Banner(span<char*> args) const
     cout << piscsi_util::Banner("(SCSI Action Execution Tool)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-L LOG_LEVEL] [-b] [-X]\n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f INPUT_FILE] [-o OUTPUT_FILE]"
+            << " -L LOG_LEVEL] [-b] [-X]\n"
             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
             << " Default is 0.\n"
             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-            << " FILENAME is the protobuf input data path.\n"
+            << " INPUT_FILE is the protobuf data input file.\n"
+            << " OUTPUT_FILE is the protobuf data output file. If not specified the output is always JSON"
+            << " and goes to stdout.\n"
             << " LOG_LEVEL is the log level {trace|debug|info|warn|err|off}, default is 'info'.\n"
             << " -b Signal that the input file is in binary protobuf format instead of JSON format.\n"
             << " -X Shut down piscsi.\n"
@@ -88,7 +91,7 @@ void ScsiExec::ParseArguments(span<char*> args)
     optind = 1;
     opterr = 0;
     int opt;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:t:bL:X")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:t:bo:L:X")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -96,13 +99,20 @@ void ScsiExec::ParseArguments(span<char*> args)
             }
             break;
 
-        case 'f':
-            filename = optarg;
-            break;
-
         case 'b':
             binary = true;
             break;
+
+        case 'f':
+            input_filename = optarg;
+            break;
+
+        case 'o':
+            output_filename = optarg;
+            if (output_filename.empty()) {
+                throw parser_exception("Missing output filename");
+            }
+           break;
 
         case 't':
             if (const string error = ProcessId(optarg, target_id, target_lun); !error.empty()) {
@@ -127,8 +137,8 @@ void ScsiExec::ParseArguments(span<char*> args)
         return;
     }
 
-    if (filename.empty()) {
-        throw parser_exception("Missing filename");
+    if (input_filename.empty()) {
+        throw parser_exception("Missing input filename");
     }
 
     if (target_id == -1) {
@@ -182,7 +192,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
     }
     else {
         string result;
-        status = scsi_executor->Execute(filename, binary, result);
+        status = scsi_executor->Execute(input_filename, output_filename, binary, result);
         if (status) {
             cout << result << '\n' << flush;
         }

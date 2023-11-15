@@ -46,7 +46,8 @@ private:
     int target_id = -1;
     int target_lun = 0;
 
-    string filename;
+    string input_filename;
+    string output_filename;
 
     bool binary = false;
 
