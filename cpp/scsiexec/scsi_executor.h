@@ -18,7 +18,7 @@ using namespace std;
 
 class ScsiExecutor
 {
-    // SCSI Execute command supports a byte cound of 65535 bytes
+    // The SCSI Execute command supports a byte count of up to 65535 bytes
     inline static const int BUFFER_SIZE = 65535;
 
 public:
