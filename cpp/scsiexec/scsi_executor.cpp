@@ -59,6 +59,7 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
     cdb[6] = static_cast<uint8_t>(input_length);
     cdb[7] = static_cast<uint8_t>(buffer.size() >> 8);
     cdb[8] = static_cast<uint8_t>(buffer.size());
+
     phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, input_length, buffer.size());
 
     const int length = phase_executor->GetByteCount();
@@ -75,6 +76,16 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
         const string json((const char*) buffer.data(), length);
         result = json;
     }
+
+    return true;
+}
+
+bool ScsiExecutor::ShutDown()
+{
+    vector<uint8_t> cdb(6);
+    cdb[4] = 0x02;
+
+    phase_executor->Execute(scsi_command::eCmdStartStop, cdb, buffer, 0, 0);
 
     return true;
 }

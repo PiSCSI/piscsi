@@ -45,14 +45,15 @@ bool ScsiExec::Banner(span<char*> args) const
     cout << piscsi_util::Banner("(SCSI Action Execution Tool)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-L LOG_LEVEL] [-b]\n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-L LOG_LEVEL] [-b] [-X]\n"
             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
             << " Default is 0.\n"
             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
             << " FILENAME is the protobuf input data path.\n"
             << " LOG_LEVEL is the log level {trace|debug|info|warn|err|off}, default is 'info'.\n"
-            << " -b signals that the input file is in binary protobuf format instead of JSON format.\n"
+            << " -b Signal that the input file is in binary protobuf format instead of JSON format.\n"
+            << " -X Shut down piscsi.\n"
             << flush;
 
         return false;
@@ -87,7 +88,7 @@ void ScsiExec::ParseArguments(span<char*> args)
     optind = 1;
     opterr = 0;
     int opt;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:t:bL:")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:t:bL:X")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -113,9 +114,17 @@ void ScsiExec::ParseArguments(span<char*> args)
             log_level = optarg;
             break;
 
+        case 'X':
+            shut_down = true;
+            break;
+
         default:
             break;
         }
+    }
+
+    if (shut_down) {
+        return;
     }
 
     if (filename.empty()) {
@@ -167,13 +176,19 @@ int ScsiExec::run(span<char*> args, bool in_process)
 
     scsi_executor->SetTarget(target_id, target_lun);
 
-    string result;
-    const bool status = scsi_executor->Execute(filename, binary, result);
-    if (status) {
-        cout << result << '\n' << flush;
+    bool status = false;
+    if (shut_down) {
+        status = scsi_executor->ShutDown();
     }
     else {
-        cerr << "Error: " << result << endl;
+        string result;
+        status = scsi_executor->Execute(filename, binary, result);
+        if (status) {
+            cout << result << '\n' << flush;
+        }
+        else {
+            cerr << "Error: " << result << endl;
+        }
     }
 
     CleanUp();

@@ -7,7 +7,7 @@ NAME
 
 SYNOPSIS
        scsidump  -t  ID[:LUN]  [-i  BID]  -f  FILENAME [-b] [-tR] ID[:LUN] [-L
-       LOG_LEVEL]
+       LOG_LEVEL] [-X]
 
 DESCRIPTION
        scsiexec wraps JSON or binary input data in protobuf format into a cus‐
@@ -39,6 +39,8 @@ OPTIONS
        -L LOG_LEVEL
               The scsiexec log level  (trace,  debug,  info,  warning,  error,
               off). The default log level is 'info'.
+
+       -X     Shut down piscsi.
 
 SEE ALSO
        scsictl(1), piscsi(1), scsidump(1), scsimon(1)

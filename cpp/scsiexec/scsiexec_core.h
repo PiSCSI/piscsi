@@ -50,6 +50,8 @@ private:
 
     bool binary = false;
 
+    bool shut_down = false;
+
     string log_level = "info";
 
     // Required for the termination handler

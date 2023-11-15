@@ -9,6 +9,7 @@ scsidump \- SCSI action execution tool for PiSCSI
 [\fB\-b\fR]
 [\fB\-t\tR] ID[:LUN]
 [\fB\-L\fR \fILOG_LEVEL\fR]
+[\fB\-X\fR]
 .SH DESCRIPTION
 .B scsiexec
 wraps JSON or binary input data in protobuf format into a custom PiSCSI SCSI command, has piscsi execute it and display the results in JSON format. The input data must be legal commands for the PiSCSi protobuf interface. See the file piscsi_interface.proto for details.
@@ -35,6 +36,9 @@ Signals that the inout file is a binary file and not a JSON file.
 .TP
 .BR \-L\fI " " \fILOG_LEVEL
 The scsiexec log level (trace, debug, info, warning, error, off). The default log level is 'info'.
+.TP
+.BR \-X\fI
+Shut down piscsi.
 
 .SH SEE ALSO
 scsictl(1), piscsi(1), scsidump(1), scsimon(1)
