@@ -10,6 +10,7 @@
 #pragma once
 
 #include "hal/bus.h"
+#include "generated/piscsi_interface.pb.h"
 #include <ctime>
 #include <stdexcept>
 #include <span>

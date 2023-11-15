@@ -9,28 +9,39 @@
 
 #include "shared/scsi.h"
 #include "scsiexec/scsi_executor.h"
-#include "generated/piscsi_interface.pb.h"
 #include <google/protobuf/util/json_util.h>
 #include <spdlog/spdlog.h>
 #include <array>
 #include <fstream>
-#include <iostream>
 #include <filesystem>
 
 using namespace std;
 using namespace filesystem;
+using namespace google::protobuf::util;
 using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_interface;
 
-bool ScsiExecutor::Execute(const string& input_filename, const string& output_filename, bool binary, string& result)
+bool ScsiExecutor::Execute(const string& filename, bool binary, PbResult& result, string& error)
 {
     int input_length = 0;
 
-    if (!binary) {
-        ifstream in(input_filename);
+    if (binary) {
+        ifstream in(filename, ios::binary);
         if (in.fail()) {
-            result = "Can't open JSON input file '" + input_filename + "': " + strerror(errno);
+            error = "Can't open binary input file '" + filename + "': " + strerror(errno);
+            return false;
+        }
+
+        input_length = file_size(filename);
+        vector<char> b(input_length);
+        in.read(b.data(), input_length);
+        memcpy(buffer.data(), b.data(), input_length);
+    }
+    else {
+        ifstream in(filename);
+        if (in.fail()) {
+            error = "Can't open JSON input file '" + filename + "': " + strerror(errno);
             return false;
         }
 
@@ -39,18 +50,6 @@ bool ScsiExecutor::Execute(const string& input_filename, const string& output_fi
         const string json = buf.str();
         input_length = json.size();
         memcpy(buffer.data(), json.data(), input_length);
-    }
-    else {
-        ifstream in(input_filename, ios::binary);
-        if (in.fail()) {
-            result = "Can't open binary input file '" + input_filename + "': " + strerror(errno);
-            return false;
-        }
-
-        input_length = file_size(input_filename);
-        vector<char> b(input_length);
-        in.read(b.data(), input_length);
-        memcpy(buffer.data(), b.data(), input_length);
     }
 
     array<uint8_t, 10> cdb = { };
@@ -65,41 +64,17 @@ bool ScsiExecutor::Execute(const string& input_filename, const string& output_fi
     const int length = phase_executor->GetByteCount();
 
     if (binary) {
-        PbResult r;
-        if (!r.ParseFromArray(buffer.data(), length)) {
-            result = "Can't parse received binary protobuf data";
+        if (!result.ParseFromArray(buffer.data(), length)) {
+            error = "Can't parse received binary protobuf data";
             return false;
-        }
-
-        if (output_filename.empty()) {
-            google::protobuf::util::MessageToJsonString(r, &result);
-        }
-        else {
-            if (binary) {
-                 ofstream out(output_filename, ios::binary);
-                 if (out.fail()) {
-                     result = "Can't open binary output file '" + output_filename + "'";
-                     return false;
-                 }
-            }
-            else {
-                ofstream out(output_filename);
-                if (out.fail()) {
-                    result = "Can't open JSON output file '" + output_filename + "'";
-                    return false;
-                }
-            }
         }
     }
     else {
         const string json((const char*) buffer.data(), length);
-
-        if (output_filename.empty()) {
-            result = json;
-        }
-        else {
-
-        }
+         if (!JsonStringToMessage(json, &result).ok()) {
+             error = "Can't parse received JSON protobuf data";
+             return false;
+         }
     }
 
     return true;

@@ -15,6 +15,7 @@
 #include <string>
 
 using namespace std;
+using namespace piscsi_interface;
 
 class ScsiExecutor
 {
@@ -29,7 +30,7 @@ public:
     }
     ~ScsiExecutor() = default;
 
-    bool Execute(const string&, const string&, bool, string&);
+    bool Execute(const string&, bool, PbResult&, string&);
     bool ShutDown();
 
     void SetTarget(int id, int lun)

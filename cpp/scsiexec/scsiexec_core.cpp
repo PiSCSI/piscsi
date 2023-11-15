@@ -189,17 +189,24 @@ int ScsiExec::run(span<char*> args, bool in_process)
     bool status = false;
     if (shut_down) {
         status = scsi_executor->ShutDown();
+
+        CleanUp();
+
+        return status ? EXIT_SUCCESS : EXIT_FAILURE;
     }
-    else {
-        string result;
-        status = scsi_executor->Execute(input_filename, output_filename, binary, result);
-        if (status) {
-            cout << result << '\n' << flush;
-        }
-        else {
-            cerr << "Error: " << result << endl;
-        }
+
+    PbResult result;
+    string error;
+    status = scsi_executor->Execute(input_filename, binary, result, error);
+    if (!status) {
+        cerr << "Error: " << error << endl;
+
+        CleanUp();
+
+        return status ? EXIT_SUCCESS : EXIT_FAILURE;
     }
+
+    // TODO File output
 
     CleanUp();
 
