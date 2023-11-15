@@ -19,7 +19,7 @@ using namespace std;
 class ScsiExecutor
 {
     // SCSI Execute command supports a byte cound of 65535 bytes
-    const int BUFFER_SIZE = 65535;
+    inline static const int BUFFER_SIZE = 65535;
 
 public:
 
