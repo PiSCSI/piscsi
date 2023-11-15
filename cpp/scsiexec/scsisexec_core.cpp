@@ -51,6 +51,7 @@ bool ScsiExec::Banner(span<char*> args) const
             << " Default is 0.\n"
             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
             << " FILENAME is the protobuf input data path.\n"
+            << " -b signals that the input file is in binary protobuf format instead of JSON format.\n"
             << flush;
 
         return false;
