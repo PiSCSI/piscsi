@@ -15,7 +15,6 @@
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <csignal>
-#include <cstddef>
 #include <cstring>
 #include <iostream>
 

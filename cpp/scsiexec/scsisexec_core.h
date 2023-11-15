@@ -14,7 +14,6 @@
 #include <string>
 #include <span>
 #include <vector>
-#include <unordered_map>
 
 using namespace std;
 
@@ -33,11 +32,8 @@ private:
     bool Banner(span<char*>) const;
     bool Init(bool);
     void ParseArguments(span<char*>);
-    long CalculateEffectiveSize(ostream&) const;
 
     bool SetLogLevel() const;
-
-    void Reset() const;
 
     void CleanUp() const;
     static void TerminationHandler(int);
@@ -45,8 +41,6 @@ private:
     unique_ptr<BUS> bus;
 
     unique_ptr<ScsiExecutor> scsi_executor;
-
-    vector<uint8_t> buffer;
 
     int initiator_id = 7;
     int target_id = -1;
