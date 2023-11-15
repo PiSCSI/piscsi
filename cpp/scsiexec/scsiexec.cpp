@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsisexec_core.h"
+#include "scsiexec_core.h"
 
 using namespace std;
 

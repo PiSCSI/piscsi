@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsisexec_core.h"
+#include "scsiexec_core.h"
 #include "hal/sbc_version.h"
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
@@ -120,6 +120,10 @@ void ScsiExec::ParseArguments(span<char*> args)
 
     if (filename.empty()) {
         throw parser_exception("Missing filename");
+    }
+
+    if (target_id == -1) {
+        throw parser_exception("Missing target ID");
     }
 
     if (target_lun == -1) {
