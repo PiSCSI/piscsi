@@ -210,7 +210,7 @@ lcov: test
 	lcov -q -c -d . --include '*/cpp/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/piscsi_interface.pb*'
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 
-docs: $(DOC_DIR)/piscsi_man_page.txt $(DOC_DIR)/scsictl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/scsidump_man_page.txt $(DOC_DIR)/scsiloop_man_page.txt
+docs: $(DOC_DIR)/piscsi_man_page.txt $(DOC_DIR)/scsictl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/scsidump_man_page.txt $(DOC_DIR)/scsiexec_man_page.txt $(DOC_DIR)/scsiloop_man_page.txt
 
 $(SRC_PISCSI_CORE) $(SRC_SCSICTL_CORE) $(SRC_SCSIEXEC): $(OBJ_GENERATED)
 

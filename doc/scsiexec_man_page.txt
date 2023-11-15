@@ -1,0 +1,48 @@
+!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
+!!   ------ The native file is scsiexec.1. Re-run 'make docs' after updating\n\n
+scsidump(1)                 General Commands Manual                scsidump(1)
+
+NAME
+       scsidump - SCSI action execution tool for PiSCSI
+
+SYNOPSIS
+       scsidump  -t  ID[:LUN]  [-i  BID]  -f  FILENAME [-b] [-tR] ID[:LUN] [-L
+       LOG_LEVEL]
+
+DESCRIPTION
+       scsiexec wraps JSON or binary input data in protobuf format into a cus‐
+       tom  PiSCSI SCSI command, has piscsi execute it and display the results
+       in JSON format. The input data must be legal commands  for  the  PiSCSi
+       protobuf  interface.  See  the file piscsi_interface.proto for details.
+       scsiexec helps with advanced testing. It requires two connected  PiSCSI
+       boards.
+
+NOTES
+       scsidump requires either a direct connection (one without transceivers)
+       or a FULLSPEC PiSCSI/RaSCSI board.
+
+OPTIONS
+       -t ID[:LUN]
+              SCSI ID and optional LUN of the remote SCSI device.  The  remote
+              SCSI device will be functioning as the "Target" device.
+
+       -i BID SCSI  ID  of the PiSCSI device. If not specified, the PiSCSI de‐
+              vice will use ID 7. The PiSCSI host will be functioning  as  the
+              "Initiator" device.
+
+       -f FILE
+              Path to the input file with JSON or binary protobuf data.
+
+       -b     Signals  that  the  inout  file  is a binary file and not a JSON
+              file.
+
+       -L LOG_LEVEL
+              The scsiexec log level  (trace,  debug,  info,  warning,  error,
+              off). The default log level is 'info'.
+
+SEE ALSO
+       scsictl(1), piscsi(1), scsidump(1), scsimon(1)
+
+       Full documentation is available at: <https://www.piscsi.com>
+
+                                                                   scsidump(1)
