@@ -32,16 +32,16 @@ public:
     ~PhaseExecutor() = default;
 
     void SetTarget(int, int);
-    bool Execute(scsi_command, span<uint8_t>, span<uint8_t>, size_t);
+    bool Execute(scsi_command, span<uint8_t>, span<uint8_t>, int, int);
 
-    int GetSize() const
+    int GetByteCount() const
     {
-        return size;
+        return byte_count;
     }
 
 private:
 
-    bool Dispatch(scsi_command, span<uint8_t>, span<uint8_t>, int);
+    bool Dispatch(scsi_command, span<uint8_t>, span<uint8_t>, int, int);
 
     void Reset() const;
 
@@ -76,7 +76,7 @@ private:
 
     int status = -1;
 
-    int size = 0;
+    int byte_count = 0;
 
     // Timeout values see bus.h
 

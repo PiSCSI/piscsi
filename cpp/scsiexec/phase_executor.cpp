@@ -26,10 +26,10 @@ void PhaseExecutor::Reset() const
     bus.SetATN(false);
 }
 
-bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, size_t length)
+bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length_out, int length_in)
 {
     status = 0;
-    size = 0;
+    byte_count = 0;
 
     spdlog::trace(
         fmt::format("Executing {0} for target {1}:{2}", command_mapping.find(cmd)->second.second, target_id,
@@ -52,7 +52,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
 
         if (bus.GetREQ()) {
             try {
-                if (Dispatch(cmd, cdb, buffer, static_cast<int>(length))) {
+                if (Dispatch(cmd, cdb, buffer, length_out, length_in)) {
                     now = chrono::steady_clock::now();
                 }
                 else {
@@ -71,7 +71,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
     return false;
 }
 
-bool PhaseExecutor::Dispatch(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
+bool PhaseExecutor::Dispatch(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length_out, int length_in)
 {
     const phase_t phase = bus.GetPhase();
 
@@ -87,11 +87,11 @@ bool PhaseExecutor::Dispatch(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> 
         break;
 
     case phase_t::datain:
-        DataIn(buffer, length);
+        DataIn(buffer, length_in);
         break;
 
     case phase_t::dataout:
-        DataOut(buffer, length);
+        DataOut(buffer, length_out);
         break;
 
     case phase_t::msgin:
@@ -196,15 +196,15 @@ void PhaseExecutor::Status()
 
 void PhaseExecutor::DataIn(span<uint8_t> buffer, int length)
 {
-    size = bus.ReceiveHandShake(buffer.data(), length);
-    if (!size) {
+    byte_count = bus.ReceiveHandShake(buffer.data(), length);
+    if (!byte_count) {
         throw phase_exception("DATA IN failed");
     }
 }
 
 void PhaseExecutor::DataOut(span<uint8_t> buffer, int length)
 {
-    if (!bus.SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
+    if (bus.SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY) != length) {
         throw phase_exception("DATA OUT failed");
     }
 }
@@ -213,7 +213,7 @@ void PhaseExecutor::MsgIn() const
 {
     array<uint8_t, 1> buf;
 
-    if (bus.ReceiveHandShake(buf.data(), 1) != 1) {
+    if (bus.ReceiveHandShake(buf.data(), buf.size()) != buf.size()) {
         throw phase_exception("MESSAGE IN failed");
     }
 
@@ -230,7 +230,7 @@ void PhaseExecutor::MsgOut() const
     buf[0] = static_cast<uint8_t>(target_lun | 0x80);
 
     if (bus.SendHandShake(buf.data(), buf.size(), BUS::SEND_NO_DELAY) != buf.size()) {
-        throw phase_exception("MESSAGE OUT failed");
+        throw phase_exception("MESSAGE OUT for IDENTIFY failed");
     }
 }
 

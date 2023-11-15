@@ -59,21 +59,21 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
     cdb[6] = static_cast<uint8_t>(size);
     cdb[7] = static_cast<uint8_t>(buffer.size() >> 8);
     cdb[8] = static_cast<uint8_t>(buffer.size());
-    phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, buffer.size());
+    phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, size, buffer.size());
 
-    const int length = phase_executor->GetSize();
+    const int length = phase_executor->GetByteCount();
 
-    if (!binary) {
-        const string json((const char*) buffer.data(), length);
-        result = json;
-    }
-    else {
+    if (binary) {
         PbResult r;
         if (!r.ParseFromArray(buffer.data(), length)) {
             result = "Can't parse received binary protobuf data";
             return false;
         }
         google::protobuf::util::MessageToJsonString(r, &result);
+    }
+    else {
+        const string json((const char*) buffer.data(), length);
+        result = json;
     }
 
     return true;
