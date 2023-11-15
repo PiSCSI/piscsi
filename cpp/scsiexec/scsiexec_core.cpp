@@ -12,6 +12,7 @@
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_util.h"
+#include <google/protobuf/util/json_util.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <csignal>
@@ -20,6 +21,7 @@
 
 using namespace std;
 using namespace filesystem;
+using namespace google::protobuf::util;
 using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
@@ -186,9 +188,8 @@ int ScsiExec::run(span<char*> args, bool in_process)
 
     scsi_executor->SetTarget(target_id, target_lun);
 
-    bool status = false;
     if (shut_down) {
-        status = scsi_executor->ShutDown();
+        const bool status = scsi_executor->ShutDown();
 
         CleanUp();
 
@@ -197,13 +198,24 @@ int ScsiExec::run(span<char*> args, bool in_process)
 
     PbResult result;
     string error;
-    status = scsi_executor->Execute(input_filename, binary, result, error);
+    const bool status = scsi_executor->Execute(input_filename, binary, result, error);
     if (!status) {
         cerr << "Error: " << error << endl;
 
         CleanUp();
 
-        return status ? EXIT_SUCCESS : EXIT_FAILURE;
+        return EXIT_FAILURE;
+    }
+
+    if (output_filename.empty()) {
+        string json;
+        MessageToJsonString(result, &json);
+
+        cout << json << '\n' << flush;
+
+        CleanUp();
+
+        return EXIT_SUCCESS;
     }
 
     // TODO File output
