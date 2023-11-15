@@ -30,7 +30,7 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
     if (!binary) {
         ifstream in(filename);
         if (in.fail()) {
-            result = "Can't open JSON input file '" + filename + "'";
+            result = "Can't open JSON input file '" + filename + "'" + strerror(errno);
             return false;
         }
 
@@ -43,7 +43,7 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
     else {
         ifstream in(filename, ios::binary);
         if (in.fail()) {
-            result = "Can't open binary input file '" + filename + "'";
+            result = "Can't open binary input file '" + filename + "': " + strerror(errno);
             return false;
         }
 
