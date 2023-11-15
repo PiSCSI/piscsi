@@ -40,7 +40,6 @@ private:
     void Reset() const;
 
     void CleanUp() const;
-    static void TerminationHandler(int);
 
     unique_ptr<BUS> bus;
 
