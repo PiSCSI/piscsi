@@ -165,6 +165,8 @@ int ScsiExec::run(span<char*> args, bool in_process)
         return EXIT_FAILURE;
     }
 
+    scsi_executor->SetTarget(target_id, target_lun);
+
     string result;
     const bool status = scsi_executor->Execute(filename, binary, result);
     if (status) {
