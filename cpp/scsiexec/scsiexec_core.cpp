@@ -199,8 +199,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
 
     PbResult result;
     string error;
-    const bool status = scsi_executor->Execute(input_filename, binary, result, error);
-    if (!status) {
+    if (scsi_executor->Execute(input_filename, binary, result, error)) {
         cerr << "Error: " << error << endl;
 
         CleanUp();
@@ -211,8 +210,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
     if (output_filename.empty()) {
         string json;
         MessageToJsonString(result, &json);
-
-        cout << json << '\n' << flush;
+        cout << json << '\n';
 
         CleanUp();
 
@@ -222,7 +220,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
     if (binary) {
         ofstream out(output_filename, ios::binary);
         if (out.fail()) {
-            cerr << "Error: " << "Can't open binary protobuf output file '" << output_filename << "'" << endl;
+            cerr << "Error: " << "Can't open binary output file '" << output_filename << "'" << endl;
         }
 
         const string data = result.SerializeAsString();
@@ -231,7 +229,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
     else {
         ofstream out(output_filename);
         if (out.fail()) {
-             cerr << "Error: " << "Can't open JSON protobuf output file '" << output_filename << "'" << endl;
+             cerr << "Error: " << "Can't open JSON output file '" << output_filename << "'" << endl;
         }
 
         string json;
@@ -241,7 +239,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
 
     CleanUp();
 
-    return status ? EXIT_SUCCESS : EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
 
 bool ScsiExec::SetLogLevel() const

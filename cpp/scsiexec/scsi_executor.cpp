@@ -83,7 +83,6 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, PbResult& result
 bool ScsiExecutor::ShutDown()
 {
     array<uint8_t, 6> cdb = { };
-    cdb[4] = 0x02;
 
     phase_executor->Execute(scsi_command::eCmdStartStop, cdb, buffer, 0, 0);
 
