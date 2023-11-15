@@ -12,7 +12,6 @@
 #include "scsiexec/phase_executor.h"
 #include <cstdint>
 #include <vector>
-#include <span>
 #include <string>
 
 using namespace std;
