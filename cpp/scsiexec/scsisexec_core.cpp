@@ -162,7 +162,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
         cout << result << '\n' << flush;
     }
     else {
-        cerr << result << endl;
+        cerr << "Error: " << result << endl;
     }
 
     CleanUp();

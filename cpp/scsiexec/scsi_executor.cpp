@@ -30,7 +30,7 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
     if (!binary) {
         ifstream in(filename);
         if (in.fail()) {
-            result = "Error opening JSON input file '" + filename + "'";
+            result = "Can't open JSON input file '" + filename + "'";
             return false;
         }
 
@@ -43,7 +43,7 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
     else {
         ifstream in(filename, ios::binary);
         if (in.fail()) {
-            result = "Error opening binary input file '" + filename + "'";
+            result = "Can't open binary input file '" + filename + "'";
             return false;
         }
 
@@ -70,7 +70,7 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
     else {
         PbResult r;
         if (!r.ParseFromArray(buffer.data(), length)) {
-            result = "Error parsing binary protobuf data";
+            result = "Can't parse received binary protobuf data";
             return false;
         }
         google::protobuf::util::MessageToJsonString(r, &result);
