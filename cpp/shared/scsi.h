@@ -107,7 +107,9 @@ enum class scsi_command {
     eCmdSynchronizeCache16         = 0x91,
     eCmdReadCapacity16_ReadLong16  = 0x9E,
     eCmdWriteLong16                = 0x9F,
-    eCmdReportLuns                 = 0xA0
+    eCmdReportLuns                 = 0xA0,
+    // Host services specific command
+    eCmdExecute = 0xC0
 };
 
 enum class status {
