@@ -11,17 +11,13 @@
 #include "hal/sbc_version.h"
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
-#include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
-#include <unistd.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
-#include <chrono>
 #include <csignal>
 #include <cstddef>
 #include <cstring>
 #include <iostream>
-#include <array>
 
 using namespace std;
 using namespace filesystem;
