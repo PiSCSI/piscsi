@@ -186,5 +186,6 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdSynchronizeCache16, make_pair(16, "SynchronizeCache16")},
     {scsi_command::eCmdReadCapacity16_ReadLong16, make_pair(16, "ReadCapacity16/ReadLong16")},
     {scsi_command::eCmdWriteLong16, make_pair(16, "WriteLong16")},
-    {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")}};
-}; // namespace scsi_defs
+    {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")},
+    { scsi_command::eCmdExecute, make_pair(10, "Execute") }};
+};

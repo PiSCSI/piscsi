@@ -15,5 +15,5 @@ int main(int argc, char *argv[])
 {
 	vector<char *> args(argv, argv + argc);
 
-	return ScsiDump().run(args);
+	return ScsiSend().run(args);
 }
