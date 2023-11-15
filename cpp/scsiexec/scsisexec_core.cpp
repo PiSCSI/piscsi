@@ -97,6 +97,9 @@ void ScsiExec::ParseArguments(span<char*> args)
 
         case 'f':
             filename = optarg;
+            if (filename.empty()) {
+                throw parser_exception("Missing filename");
+            }
             break;
 
         case 'b':
