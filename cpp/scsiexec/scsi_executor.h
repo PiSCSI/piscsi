@@ -11,7 +11,7 @@
 
 #include "scsiexec/phase_executor.h"
 #include <cstdint>
-#include <vector>
+#include <array>
 #include <string>
 
 using namespace std;
@@ -38,7 +38,7 @@ public:
 
 private:
 
-    vector<uint8_t> buffer = vector<uint8_t>(BUFFER_SIZE);
+    array<uint8_t, BUFFER_SIZE> buffer;
 
     unique_ptr<PhaseExecutor> phase_executor;
 };
