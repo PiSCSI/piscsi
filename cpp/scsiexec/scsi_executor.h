@@ -18,6 +18,8 @@ using namespace std;
 
 class ScsiExecutor
 {
+    // SCSI Execute command supports a byte cound of 65535 bytes
+    const int BUFFER_SIZE = 65535;
 
 public:
 
@@ -36,7 +38,7 @@ public:
 
 private:
 
-    vector<uint8_t> buffer = vector<uint8_t>(65536);
+    vector<uint8_t> buffer = vector<uint8_t>(BUFFER_SIZE);
 
     unique_ptr<PhaseExecutor> phase_executor;
 };

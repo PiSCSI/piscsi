@@ -25,7 +25,7 @@ using namespace piscsi_interface;
 
 bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
 {
-    int size = 0;
+    int input_length = 0;
 
     if (!binary) {
         ifstream in(filename);
@@ -37,8 +37,8 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
         stringstream buf;
         buf << in.rdbuf();
         const string json = buf.str();
-        memcpy(buffer.data(), json.data(), json.size());
-        size = json.size();
+        input_length = json.size();
+        memcpy(buffer.data(), json.data(), input_length);
     }
     else {
         ifstream in(filename, ios::binary);
@@ -47,19 +47,19 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, string& result)
             return false;
         }
 
-        vector<char> b(file_size(filename));
-        in.read(b.data(), b.size());
-        memcpy(buffer.data(), b.data(), b.size());
-        size = b.size();
+        input_length = file_size(filename);
+        vector<char> b(input_length);
+        in.read(b.data(), input_length);
+        memcpy(buffer.data(), b.data(), input_length);
     }
 
     vector<uint8_t> cdb(10);
     cdb[1] = binary ? 0x0a : 0x05;
-    cdb[5] = static_cast<uint8_t>(size >> 8);
-    cdb[6] = static_cast<uint8_t>(size);
+    cdb[5] = static_cast<uint8_t>(input_length >> 8);
+    cdb[6] = static_cast<uint8_t>(input_length);
     cdb[7] = static_cast<uint8_t>(buffer.size() >> 8);
     cdb[8] = static_cast<uint8_t>(buffer.size());
-    phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, size, buffer.size());
+    phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, input_length, buffer.size());
 
     const int length = phase_executor->GetByteCount();
 
