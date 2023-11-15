@@ -18,6 +18,7 @@
 #include <csignal>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace filesystem;
@@ -135,20 +136,20 @@ void ScsiExec::ParseArguments(span<char*> args)
         }
     }
 
-    if (shut_down) {
-        return;
-    }
-
-    if (input_filename.empty()) {
-        throw parser_exception("Missing input filename");
-    }
-
     if (target_id == -1) {
         throw parser_exception("Missing target ID");
     }
 
     if (target_lun == -1) {
         target_lun = 0;
+    }
+
+    if (shut_down) {
+        return;
+    }
+
+    if (input_filename.empty()) {
+        throw parser_exception("Missing input filename");
     }
 }
 
@@ -218,7 +219,25 @@ int ScsiExec::run(span<char*> args, bool in_process)
         return EXIT_SUCCESS;
     }
 
-    // TODO File output
+    if (binary) {
+        ofstream out(output_filename, ios::binary);
+        if (out.fail()) {
+            cerr << "Error: " << "Can't open binary protobuf output file '" << output_filename << "'" << endl;
+        }
+
+        const string data = result.SerializeAsString();
+        out.write(data.data(), data.size());
+    }
+    else {
+        ofstream out(output_filename);
+        if (out.fail()) {
+             cerr << "Error: " << "Can't open JSON protobuf output file '" << output_filename << "'" << endl;
+        }
+
+        string json;
+        MessageToJsonString(result, &json);
+        out << json << '\n';
+    }
 
     CleanUp();
 
