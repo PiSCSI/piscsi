@@ -42,7 +42,8 @@ string PiscsiService::Init(const callback& cb, int port)
 	server.sin_family = PF_INET;
 	server.sin_port = htons((uint16_t)port);
 	server.sin_addr.s_addr = INADDR_ANY;
-	if (bind(service_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bit_cast is not supported by the bullseye compiler
+    if (bind(service_socket, reinterpret_cast<const sockaddr*>(&server), //NOSONAR bit_cast is not supported by the bullseye compiler
+        static_cast<socklen_t>(sizeof(sockaddr_in))) < 0) {
 		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}

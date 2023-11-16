@@ -144,7 +144,7 @@ uint32_t SBC_Version::GetPeripheralAddress(void)
 
     return address;
 }
-#elif defined __NetBSD__
+#elif defined __NetBSD__ && (!defined(__x86_64__) || defined(__X86__))
 uint32_t SBC_Version::GetPeripheralAddress(void)
 {
     char buf[1024];
