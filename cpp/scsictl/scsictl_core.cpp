@@ -37,8 +37,8 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 		cout << piscsi_util::Banner("(Controller App)")
 				<< "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] "
 				<< "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] "
-            << "[-C FILENAME:FILESIZE] [-d FILENAME] [-j FILENAME] [-R CURRENT_NAME:NEW_NAME] "
-				<<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] "
+            << "[-C FILENAME:FILESIZE] [-d FILENAME] [-B FILENAME] [-J FILENAME] [-R CURRENT_NAME:NEW_NAME] "
+				<< "[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] "
 				<< "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-S] [-v] [-V] [-y] [-X]\n"
 				<< " where  ID[:LUN] ID := {0-" << (ControllerManager::GetScsiIdMax() - 1) << "},"
 				<< " LUN := {0-" << (ControllerManager::GetScsiLunMax() - 1) << "}, default is 0\n"
@@ -78,10 +78,10 @@ int ScsiCtl::run(const vector<char *>& args) const
 	string reserved_ids;
 	string image_params;
 	string filename;
-	string token;
+	string filename_json;
+    string filename_binary;
+ 	string token;
 	bool list = false;
-    bool to_json = false;
-    bool to_binary = false;
 
 	string locale = GetLocale();
 
@@ -162,21 +162,19 @@ int ScsiCtl::run(const vector<char *>& args) const
             break;
 
         case 'J':
-            filename = optarg;
-            if (filename.empty()) {
+            filename_json = optarg;
+            if (filename_json.empty()) {
                 cerr << "Error: Missing filename" << endl;
                 exit(EXIT_FAILURE);
             }
-            to_json = true;
             break;
 
         case 'B':
-            filename = optarg;
-            if (filename.empty()) {
+            filename_binary = optarg;
+            if (filename_binary.empty()) {
                 cerr << "Error: Missing filename" << endl;
                 exit(EXIT_FAILURE);
             }
-            to_binary = true;
             break;
 
         case 'I':
@@ -292,15 +290,15 @@ int ScsiCtl::run(const vector<char *>& args) const
 		exit(EXIT_FAILURE);
 	}
 
-	SetParam(command, "token", token);
-	SetParam(command, "locale", locale);
+    if (!filename_json.empty()) {
+        return ExportAsJson(command, filename_json);
+    }
+    if (!filename_binary.empty()) {
+        return ExportAsBinary(command, filename_binary);
+    }
 
-    if (to_json) {
-        return ExportAsJson(command, filename);
-    }
-    if (to_binary) {
-        return ExportAsBinary(command, filename);
-    }
+    SetParam(command, "token", token);
+    SetParam(command, "locale", locale);
 
 	ScsictlCommands scsictl_commands(command, hostname, port);
 
