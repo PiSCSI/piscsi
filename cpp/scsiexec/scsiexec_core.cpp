@@ -29,7 +29,7 @@ using namespace piscsi_util;
 
 void ScsiExec::CleanUp() const
 {
-    if (bus != nullptr) {
+    if (bus) {
         bus->Cleanup();
     }
 }
@@ -54,7 +54,7 @@ bool ScsiExec::Banner(span<char*> args) const
             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
             << " Default is 0.\n"
             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-            << " INPUT_FILE is the protobuf data input file.\n"
+            << " INPUT_FILE is the protobuf data input file, either in binary or in JSON protobuf format.\n"
             << " OUTPUT_FILE is the protobuf data output file. If not specified the output is always JSON"
             << " and goes to stdout.\n"
             << " LOG_LEVEL is the log level {trace|debug|info|warn|err|off}, default is 'info'.\n"
@@ -82,7 +82,7 @@ bool ScsiExec::Init(bool)
 
     bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR);
 
-    if (bus != nullptr) {
+    if (bus) {
         scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
     }
 
@@ -198,8 +198,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
     }
 
     PbResult result;
-    string error;
-    if (scsi_executor->Execute(input_filename, binary, result, error)) {
+    if (string error = scsi_executor->Execute(input_filename, binary, result); !error.empty()) {
         cerr << "Error: " << error << endl;
 
         CleanUp();

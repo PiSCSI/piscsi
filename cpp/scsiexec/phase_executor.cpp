@@ -237,7 +237,7 @@ void PhaseExecutor::MsgOut() const
 bool PhaseExecutor::WaitForFree() const
 {
     // Wait for up to 2 s
-    int count = 10000;
+    int count = 10'000;
     do {
         // Wait 20 ms
         Sleep( { .tv_sec = 0, .tv_nsec = 20'000 });
@@ -253,7 +253,7 @@ bool PhaseExecutor::WaitForFree() const
 bool PhaseExecutor::WaitForBusy() const
 {
     // Wait for up to 2 s
-    int count = 10000;
+    int count = 10'000;
     do {
         // Wait 20 ms
         Sleep( { .tv_sec = 0, .tv_nsec = 20'000 });

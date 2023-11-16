@@ -30,7 +30,7 @@ public:
     }
     ~ScsiExecutor() = default;
 
-    bool Execute(const string&, bool, PbResult&, string&);
+    string Execute(const string&, bool, PbResult&);
     bool ShutDown();
 
     void SetTarget(int id, int lun)
