@@ -26,7 +26,7 @@ void PhaseExecutor::Reset() const
     bus.SetATN(false);
 }
 
-bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length_out, int length_in)
+bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
 {
     status = 0;
     byte_count = 0;
@@ -52,7 +52,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
 
         if (bus.GetREQ()) {
             try {
-                if (Dispatch(cmd, cdb, buffer, length_out, length_in)) {
+                if (Dispatch(cmd, cdb, buffer, length)) {
                     now = chrono::steady_clock::now();
                 }
                 else {
@@ -71,7 +71,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
     return false;
 }
 
-bool PhaseExecutor::Dispatch(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length_out, int length_in)
+bool PhaseExecutor::Dispatch(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
 {
     const phase_t phase = bus.GetPhase();
 
@@ -87,11 +87,11 @@ bool PhaseExecutor::Dispatch(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> 
         break;
 
     case phase_t::datain:
-        DataIn(buffer, length_in);
+        DataIn(buffer, length);
         break;
 
     case phase_t::dataout:
-        DataOut(buffer, length_out);
+        DataOut(buffer, length);
         break;
 
     case phase_t::msgin:

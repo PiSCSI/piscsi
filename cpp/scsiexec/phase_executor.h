@@ -33,7 +33,7 @@ public:
     ~PhaseExecutor() = default;
 
     void SetTarget(int, int);
-    bool Execute(scsi_command, span<uint8_t>, span<uint8_t>, int, int);
+    bool Execute(scsi_command, span<uint8_t>, span<uint8_t>, int);
 
     int GetByteCount() const
     {
@@ -42,7 +42,7 @@ public:
 
 private:
 
-    bool Dispatch(scsi_command, span<uint8_t>, span<uint8_t>, int, int);
+    bool Dispatch(scsi_command, span<uint8_t>, span<uint8_t>, int);
 
     void Reset() const;
 

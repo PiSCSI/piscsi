@@ -24,7 +24,7 @@ using namespace piscsi_interface;
 
 bool ScsiExecutor::Execute(const string& filename, bool binary, PbResult& result, string& error)
 {
-    int input_length = 0;
+    int length = 0;
 
     if (binary) {
         ifstream in(filename, ios::binary);
@@ -33,10 +33,10 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, PbResult& result
             return false;
         }
 
-        input_length = file_size(filename);
-        vector<char> b(input_length);
-        in.read(b.data(), input_length);
-        memcpy(buffer.data(), b.data(), input_length);
+        length = file_size(filename);
+        vector<char> b(length);
+        in.read(b.data(), length);
+        memcpy(buffer.data(), b.data(), length);
     }
     else {
         ifstream in(filename);
@@ -48,20 +48,26 @@ bool ScsiExecutor::Execute(const string& filename, bool binary, PbResult& result
         stringstream buf;
         buf << in.rdbuf();
         const string json = buf.str();
-        input_length = json.size();
-        memcpy(buffer.data(), json.data(), input_length);
+        length = json.size();
+        memcpy(buffer.data(), json.data(), length);
     }
 
     array<uint8_t, 10> cdb = { };
-    cdb[1] = binary ? 0x0a : 0x05;
-    cdb[5] = static_cast<uint8_t>(input_length >> 8);
-    cdb[6] = static_cast<uint8_t>(input_length);
-    cdb[7] = static_cast<uint8_t>(buffer.size() >> 8);
-    cdb[8] = static_cast<uint8_t>(buffer.size());
+    cdb[1] = binary ? 0x00 : 0x01;
+    cdb[7] = static_cast<uint8_t>(length >> 8);
+    cdb[8] = static_cast<uint8_t>(length);
 
-    phase_executor->Execute(scsi_command::eCmdExecute, cdb, buffer, input_length, buffer.size());
+    if (!phase_executor->Execute(scsi_command::eCmdExecuteOperation, cdb, buffer, length)) {
+        error = "Can't execute operation";
+        return false;
+    }
 
-    const int length = phase_executor->GetByteCount();
+    if (!phase_executor->Execute(scsi_command::eCmdReadOperationResult, cdb, buffer, buffer.size())) {
+        error = "Can't read operation result";
+        return false;
+     }
+
+    length = phase_executor->GetByteCount();
 
     if (binary) {
         if (!result.ParseFromArray(buffer.data(), length)) {
@@ -84,7 +90,7 @@ bool ScsiExecutor::ShutDown()
 {
     array<uint8_t, 6> cdb = { };
 
-    phase_executor->Execute(scsi_command::eCmdStartStop, cdb, buffer, 0, 0);
+    phase_executor->Execute(scsi_command::eCmdStartStop, cdb, buffer, 0);
 
     return true;
 }
