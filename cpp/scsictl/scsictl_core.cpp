@@ -380,7 +380,7 @@ int ScsiCtl::ExportAsText(const PbCommand &command, const string &filename) cons
     ofstream out(filename);
     out << text;
     if (out.fail()) {
-        cerr << "Error: Can't create protobuf text file '" << filename << "'" << endl;
+        cerr << "Error: Can't create protobuf text format file '" << filename << "'" << endl;
         return EXIT_FAILURE;
     }
 
