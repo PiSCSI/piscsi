@@ -19,10 +19,15 @@ using namespace piscsi_interface;
 
 class ScsiExecutor
 {
+
     // The SCSI Execute command supports a byte count of up to 65535 bytes
     inline static const int BUFFER_SIZE = 65535;
 
 public:
+
+    enum class protobuf_format {
+        binary, json,text
+    };
 
     ScsiExecutor(BUS &bus, int id)
     {
@@ -30,7 +35,7 @@ public:
     }
     ~ScsiExecutor() = default;
 
-    string Execute(const string&, bool, PbResult&);
+    string Execute(const string&, protobuf_format, PbResult&);
     bool ShutDown();
 
     void SetTarget(int id, int lun)

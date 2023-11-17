@@ -13,6 +13,7 @@
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_util.h"
 #include <google/protobuf/util/json_util.h>
+#include <google/protobuf/text_format.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <csignal>
@@ -22,6 +23,7 @@
 
 using namespace std;
 using namespace filesystem;
+using namespace google::protobuf;
 using namespace google::protobuf::util;
 using namespace spdlog;
 using namespace scsi_defs;
@@ -45,20 +47,22 @@ void ScsiExec::TerminationHandler(int)
 
 bool ScsiExec::Banner(span<char*> args) const
 {
-    cout << piscsi_util::Banner("(SCSI Action Execution Tool)");
+    cout << piscsi_util::Banner("(SCSI Command Execution Tool)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
         cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f INPUT_FILE] [-o OUTPUT_FILE]"
-            << " -L LOG_LEVEL] [-b] [-X]\n"
+            << " [-L LOG_LEVEL] [-b] [-B] [-F] [-T] [-X]\n"
             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
             << " Default is 0.\n"
             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-            << " INPUT_FILE is the protobuf data input file, either in binary or in JSON protobuf format.\n"
-            << " OUTPUT_FILE is the protobuf data output file. If not specified the output is always JSON"
-            << " and goes to stdout.\n"
+            << " INPUT_FILE is the protobuf data input file, by default in JSON format.\n"
+            << " OUTPUT_FILE is the protobuf data output file, by default in JSON format.\n"
             << " LOG_LEVEL is the log level {trace|debug|info|warn|err|off}, default is 'info'.\n"
-            << " -b Signal that the input file is in binary protobuf format instead of JSON format.\n"
+            << " -b Signals that the input file is in protobuf binary format.\n"
+            << " -F Signals that the input file is in protobuf text format.\n"
+            << " -B Generate a protobuf binary format file.\n"
+            << " -T Generate a protobuf text format file.\n"
             << " -X Shut down piscsi.\n"
             << flush;
 
@@ -94,7 +98,7 @@ void ScsiExec::ParseArguments(span<char*> args)
     optind = 1;
     opterr = 0;
     int opt;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:t:bo:L:X")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:t:bo:L:BFTX")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -103,7 +107,19 @@ void ScsiExec::ParseArguments(span<char*> args)
             break;
 
         case 'b':
-            binary = true;
+            input_format = ScsiExecutor::protobuf_format::binary;
+            break;
+
+        case 'F':
+            input_format = ScsiExecutor::protobuf_format::text;
+            break;
+
+        case 'B':
+            output_format = ScsiExecutor::protobuf_format::binary;
+            break;
+
+        case 'T':
+            output_format = ScsiExecutor::protobuf_format::text;
             break;
 
         case 'f':
@@ -198,7 +214,7 @@ int ScsiExec::run(span<char*> args, bool in_process)
     }
 
     PbResult result;
-    if (string error = scsi_executor->Execute(input_filename, binary, result); !error.empty()) {
+    if (string error = scsi_executor->Execute(input_filename, input_format, result); !error.empty()) {
         cerr << "Error: " << error << endl;
 
         CleanUp();
@@ -216,24 +232,45 @@ int ScsiExec::run(span<char*> args, bool in_process)
         return EXIT_SUCCESS;
     }
 
-    if (binary) {
+    switch (output_format) {
+    case ScsiExecutor::protobuf_format::binary: {
         ofstream out(output_filename, ios::binary);
         if (out.fail()) {
-            cerr << "Error: " << "Can't open binary output file '" << output_filename << "'" << endl;
+            cerr << "Error: " << "Can't open protobuf binary output file '" << output_filename << "'" << endl;
         }
 
         const string data = result.SerializeAsString();
         out.write(data.data(), data.size());
+        break;
     }
-    else {
+
+    case ScsiExecutor::protobuf_format::json: {
         ofstream out(output_filename);
         if (out.fail()) {
-             cerr << "Error: " << "Can't open JSON output file '" << output_filename << "'" << endl;
+            cerr << "Error: " << "Can't open protobuf JSON output file '" << output_filename << "'" << endl;
         }
 
         string json;
         MessageToJsonString(result, &json);
         out << json << '\n';
+        break;
+    }
+
+    case ScsiExecutor::protobuf_format::text: {
+        ofstream out(output_filename);
+        if (out.fail()) {
+            cerr << "Error: " << "Can't open protobuf text format output file '" << output_filename << "'" << endl;
+        }
+
+        string text;
+        TextFormat::PrintToString(result, &text);
+        out << text << '\n';
+        break;
+    }
+
+    default:
+        assert(false);
+        break;
     }
 
     CleanUp();

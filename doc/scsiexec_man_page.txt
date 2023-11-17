@@ -6,8 +6,8 @@ NAME
        scsidump - SCSI action execution tool for PiSCSI
 
 SYNOPSIS
-       scsidump  -t  ID[:LUN]  [-i  BID]  -f  FILENAME [-b] [-tR] ID[:LUN] [-L
-       LOG_LEVEL] [-X]
+       scsidump  -t  ID[:LUN]  [-i  BID] -f FILENAME [-b] [-F] [-B] [-T] [-tR]
+       ID[:LUN] [-L LOG_LEVEL] [-X]
 
 DESCRIPTION
        scsiexec wraps JSON or binary input data in protobuf format into a cus‐
@@ -31,13 +31,18 @@ OPTIONS
               "Initiator" device.
 
        -f FILE
-              Path to the input file with JSON or binary protobuf data.
+              The protobuf data input file, by default in JSON format.
 
-       -b     Signals  that  the  inout  file  is a binary file and not a JSON
-              file.
+       -b     Signals that the input file is in protobuf binary format.
+
+       -F     Signals that the input file is in protobuf text format.
+
+       -B     Generate a protobuf binary format file.
+
+       -T     Generate a protobuf text format file.
 
        -L LOG_LEVEL
-              The scsiexec log level  (trace,  debug,  info,  warning,  error,
+              The  scsiexec  log  level  (trace,  debug, info, warning, error,
               off). The default log level is 'info'.
 
        -X     Shut down piscsi.

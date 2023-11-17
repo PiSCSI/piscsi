@@ -1,44 +1,55 @@
-.TH scsidump 1
+.TH scsiexec 1
 .SH NAME
-scsidump \- SCSI action execution tool for PiSCSI
+scsiexec \- SCSI command execution tool for PiSCSI
 .SH SYNOPSIS
-.B scsidump
+.B scsiexec
 \fB\-t\fR \fIID[:LUN]\fR
 [\fB\-i\fR \fIBID\fR]
 \fB\-f\fR \fIFILENAME\fR
 [\fB\-b\fR]
+[\fB\-F\fR]
+[\fB\-B\fR]
+[\fB\-T\fR]
 [\fB\-t\tR] ID[:LUN]
 [\fB\-L\fR \fILOG_LEVEL\fR]
 [\fB\-X\fR]
 .SH DESCRIPTION
 .B scsiexec
-wraps JSON or binary input data in protobuf format into a custom PiSCSI SCSI command, has piscsi execute it and display the results in JSON format. The input data must be legal commands for the PiSCSi protobuf interface. See the file piscsi_interface.proto for details.
-scsiexec helps with advanced testing. It requires two connected PiSCSI boards.
+wraps protobuf input data into a custom PiSCSI SCSI command, has piscsi execute it and display the results. The input data must be a legal command for the PiSCSi protobuf interface. See the file piscsi_interface.proto for details.
 
 .SH NOTES
 
-.B scsidump
-requires either a direct connection (one without transceivers) or a FULLSPEC PiSCSI/RaSCSI board.
+.B scsiexec
+helps with advanced testing. It requires two connected PiSCSI boards. The board scsiexec is running on must be a FULLSPEC board because scsiexec requires SCSI initiator mode support.
 
 .SH OPTIONS
 .TP
 .BR \-t\fI " "\fIID[:LUN]
-SCSI ID and optional LUN of the remote SCSI device. The remote SCSI device will be functioning as the "Target" device.
+SCSI ID and optional LUN of the second PiSCSI board. The remote SCSI device will be functioning as the "Target" device.
 .TP
 .BR \-i\fI " "\fIBID
 SCSI ID of the PiSCSI device. If not specified, the PiSCSI device will use ID 7. The PiSCSI host will be functioning as the "Initiator" device.
 .TP
 .BR \-f\fI " "\fIFILE
-Path to the input file with JSON or binary protobuf data.
+The protobuf data input file, by default in JSON format.
 .TP
 .BR \-b\fI
-Signals that the inout file is a binary file and not a JSON file.
+Signals that the input file is in protobuf binary format.
+.TP
+.BR \-F\fI
+Signals that the input file is in protobuf text format.
+.TP
+.BR \-B\fI
+Generate a protobuf binary format file.
+.TP
+.BR \-T\fI
+Generate a protobuf text format file.
 .TP
 .BR \-L\fI " " \fILOG_LEVEL
-The scsiexec log level (trace, debug, info, warning, error, off). The default log level is 'info'.
+Set the log level (trace, debug, info, warning, error, off). The default log level is 'info'.
 .TP
 .BR \-X\fI
-Shut down piscsi.
+Shut down piscsi with a SCSI command.
 
 .SH SEE ALSO
 scsictl(1), piscsi(1), scsidump(1), scsimon(1)

@@ -49,7 +49,8 @@ private:
     string input_filename;
     string output_filename;
 
-    bool binary = false;
+    ScsiExecutor::protobuf_format input_format = ScsiExecutor::protobuf_format::json;
+    ScsiExecutor::protobuf_format output_format = ScsiExecutor::protobuf_format::json;
 
     bool shut_down = false;
 
