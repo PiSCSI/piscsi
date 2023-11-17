@@ -29,6 +29,7 @@ private:
 
 	void Banner(const vector<char *>&) const;
 
-    int ExportAsJson(const PbCommand&, const string&) const;
     int ExportAsBinary(const PbCommand&, const string&) const;
+    int ExportAsJson(const PbCommand&, const string&) const;
+    int ExportAsText(const PbCommand&, const string&) const;
 };

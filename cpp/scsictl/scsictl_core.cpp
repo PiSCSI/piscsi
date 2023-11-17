@@ -20,12 +20,14 @@
 #include "scsictl/scsictl_commands.h"
 #include "scsictl/scsictl_core.h"
 #include <google/protobuf/util/json_util.h>
+#include <google/protobuf/text_format.h>
 #include <unistd.h>
 #include <clocale>
 #include <iostream>
 #include <fstream>
 
 using namespace std;
+using namespace google::protobuf;
 using namespace google::protobuf::util;
 using namespace piscsi_interface;
 using namespace piscsi_util;
@@ -37,7 +39,7 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 		cout << piscsi_util::Banner("(Controller App)")
 				<< "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] "
 				<< "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] "
-            << "[-C FILENAME:FILESIZE] [-d FILENAME] [-B FILENAME] [-J FILENAME] [-R CURRENT_NAME:NEW_NAME] "
+            << "[-C FILENAME:FILESIZE] [-d FILENAME] [-B FILENAME] [-J FILENAME] [-T FILENAME] [-R CURRENT_NAME:NEW_NAME] "
 				<< "[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] "
 				<< "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-S] [-v] [-V] [-y] [-X]\n"
 				<< " where  ID[:LUN] ID := {0-" << (ControllerManager::GetScsiIdMax() - 1) << "},"
@@ -80,6 +82,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 	string filename;
 	string filename_json;
     string filename_binary;
+    string filename_text;
  	string token;
 	bool list = false;
 
@@ -88,7 +91,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(),
-        "e::lmos::vDINOSTVXa:b:c:d:f:h:i:n:p:r:t:x:z:B:C:E:F:J:L:P::R:")) != -1) {
+        "e::lmos::vDINOSTVXa:b:c:d:f:h:i:n:p:r:t:x:z:B:C:E:F:J:L:P::R:Z:")) != -1) {
         switch (opt) {
         case 'i':
             if (const string error = SetIdAndLun(*device, optarg); !error.empty()) {
@@ -161,6 +164,14 @@ int ScsiCtl::run(const vector<char *>& args) const
             }
             break;
 
+        case 'B':
+            filename_binary = optarg;
+            if (filename_binary.empty()) {
+                cerr << "Error: Missing filename" << endl;
+                exit(EXIT_FAILURE);
+            }
+            break;
+
         case 'J':
             filename_json = optarg;
             if (filename_json.empty()) {
@@ -169,9 +180,9 @@ int ScsiCtl::run(const vector<char *>& args) const
             }
             break;
 
-        case 'B':
-            filename_binary = optarg;
-            if (filename_binary.empty()) {
+        case 'Z':
+            filename_text = optarg;
+            if (filename_text.empty()) {
                 cerr << "Error: Missing filename" << endl;
                 exit(EXIT_FAILURE);
             }
@@ -296,6 +307,9 @@ int ScsiCtl::run(const vector<char *>& args) const
     if (!filename_binary.empty()) {
         return ExportAsBinary(command, filename_binary);
     }
+    if (!filename_text.empty()) {
+        return ExportAsText(command, filename_text);
+    }
 
     SetParam(command, "token", token);
     SetParam(command, "locale", locale);
@@ -328,6 +342,21 @@ int ScsiCtl::run(const vector<char *>& args) const
     return status ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
+int ScsiCtl::ExportAsBinary(const PbCommand &command, const string &filename) const
+{
+    const string binary = command.SerializeAsString();
+
+    ofstream out;
+    out.open(filename, ios::binary);
+    out << binary;
+    if (out.fail()) {
+        cerr << "Error: Can't create protobuf binary file '" << filename << "'" << endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
 int ScsiCtl::ExportAsJson(const PbCommand &command, const string &filename) const
 {
     string json;
@@ -338,22 +367,22 @@ int ScsiCtl::ExportAsJson(const PbCommand &command, const string &filename) cons
     ofstream out(filename);
     out << json << '\n';
     if (out.fail()) {
-        cerr << "Error: Can't create JSON file '" << filename << "'" << endl;
+        cerr << "Error: Can't create protobuf JSON file '" << filename << "'" << endl;
         return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
 }
 
-int ScsiCtl::ExportAsBinary(const PbCommand &command, const string &filename) const
+int ScsiCtl::ExportAsText(const PbCommand &command, const string &filename) const
 {
-    const string binary = command.SerializeAsString();
+    string text;
+    TextFormat::PrintToString(command, &text);
 
-    ofstream out;
-    out.open(filename, ios::binary);
-    out << binary;
+    ofstream out(filename);
+    out << text << '\n';
     if (out.fail()) {
-        cerr << "Error: Can't create JSON file '" << filename << "'" << endl;
+        cerr << "Error: Can't create protobuf text file '" << filename << "'" << endl;
         return EXIT_FAILURE;
     }
 

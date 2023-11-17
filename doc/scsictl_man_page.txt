@@ -7,7 +7,7 @@ NAME
 
 SYNOPSIS
        scsictl  -e | -l | -m | -o | -v | -D | -I | -L | -O | -P | -S | -T | -V
-       | -X | [-d FILENAME] | [-B  FILENAME]  |  [-J  FILENAME]  |  [-C  FILE‐
+       | -X | -Z | [-d FILENAME] | [-B FILENAME] | [-J FILENAME] |  [-C  FILE‐
        NAME:FILESIZE]   |  [-E  FILENAME]  |  [-F  IMAGE_FOLDER]  |  [-R  CUR‐
        RENT_NAME:NEW_NAME] | [-c CMD] | [-f FILE|PARAM] | [-g LOG_LEVEL] | [-h
        HOST] | [-i ID[:LUN]] | [-n NAME] | [-p PORT] | [-r RESERVED_IDS] | [-s
@@ -95,12 +95,16 @@ OPTIONS
               Delete an image file in the default image folder.
 
        -B FILENAME
-              Do  not send command to piscsi but write it to a binary protobuf
+              Do  not send command to piscsi but write it to a protobuf binary
               file.
 
        -J FILENAME
-              Do not send command to piscsi but write it to  a  JSON  protobuf
+              Do not send command to piscsi but write it to  a  protobuf  JSON
               file.
+
+       -Z FILENAME
+              Do  not  send  command to piscsi but write it to a protobuf text
+              format file.
 
        -x CURRENT_NAME:NEW_NAME
               Copy an image file in the default image folder.
@@ -117,7 +121,7 @@ OPTIONS
                  d(etach): Detach disk
                  i(nsert): Insert media (removable media devices only)
                  e(ject): Eject media (removable media devices only)
-                 p(rotect): Write protect the medium (not for  CD-ROMs,  which
+                 p(rotect):  Write  protect the medium (not for CD-ROMs, which
               are always read-only)
                  u(nprotect): Remove write protection from the medium (not for
               CD-ROMs, which are always read-only)
@@ -126,18 +130,18 @@ OPTIONS
               eject, protect and unprotect are idempotent.
 
        -b BLOCK_SIZE
-              The optional block size, either 512, 1024, 2048 or  4096  bytes.
+              The  optional  block size, either 512, 1024, 2048 or 4096 bytes.
               The default size is 512 bytes.
 
        -f FILE|PARAM
               Device-specific: Either a path to a disk image file, or a param‐
-              eter for a non-disk device. See the piscsi(1) man page for  per‐
+              eter  for a non-disk device. See the piscsi(1) man page for per‐
               mitted file types.
 
        -t TYPE
-              Specifies  the device type. This type overrides the type derived
+              Specifies the device type. This type overrides the type  derived
               from  the  file  extension  of  the  specified  image.  See  the
-              piscsi(1)  man  page  for  the  available device types. For some
+              piscsi(1) man page for the  available  device  types.  For  some
               types there are shortcuts (only the first letter is required):
                  hd: SCSI hard disk drive
                  rm: SCSI removable media drive
@@ -149,16 +153,16 @@ OPTIONS
                  services: Host services device
 
        -n VENDOR:PRODUCT:REVISION
-              The vendor, product and revision for the device, to be  returned
+              The  vendor, product and revision for the device, to be returned
               with the INQUIRY data. A complete set of name components must be
               provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
               to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically applied. Once set the name of  a  device  cannot  be
+              tomatically  applied.  Once  set  the name of a device cannot be
               changed.
 
        -u UNIT
-              Unit  number (0-31). This will default to 0. This option is only
-              used when there are multiple SCSI devices on a shared SCSI  con‐
+              Unit number (0-31). This will default to 0. This option is  only
+              used  when there are multiple SCSI devices on a shared SCSI con‐
               troller. (This is not common)
 
 EXAMPLES
