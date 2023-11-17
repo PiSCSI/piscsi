@@ -61,9 +61,7 @@ string ScsiExecutor::Execute(const string& filename, protobuf_format input_forma
     }
 
     array<uint8_t, 10> cdb = { };
-    cdb[1] = input_format == protobuf_format::binary ? 0x00 : 0x01;
-    cdb[1] |= input_format == protobuf_format::json ? 0x00 : 0x02;
-    cdb[1] |= input_format == protobuf_format::text ? 0x00 : 0x04;
+    cdb[1] = static_cast<uint8_t>(input_format);
     cdb[7] = static_cast<uint8_t>(length >> 8);
     cdb[8] = static_cast<uint8_t>(length);
 

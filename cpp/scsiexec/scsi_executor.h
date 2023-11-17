@@ -26,7 +26,9 @@ class ScsiExecutor
 public:
 
     enum class protobuf_format {
-        binary, json,text
+        binary = 0b001,
+        json = 0b010,
+        text = 0b100
     };
 
     ScsiExecutor(BUS &bus, int id)
