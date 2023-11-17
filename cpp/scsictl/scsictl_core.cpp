@@ -360,9 +360,7 @@ int ScsiCtl::ExportAsBinary(const PbCommand &command, const string &filename) co
 int ScsiCtl::ExportAsJson(const PbCommand &command, const string &filename) const
 {
     string json;
-    JsonPrintOptions options;
-    options.add_whitespace = true;
-    MessageToJsonString(command, &json, options);
+    MessageToJsonString(command, &json);
 
     ofstream out(filename);
     out << json;
