@@ -365,7 +365,7 @@ int ScsiCtl::ExportAsJson(const PbCommand &command, const string &filename) cons
     MessageToJsonString(command, &json, options);
 
     ofstream out(filename);
-    out << json << '\n';
+    out << json;
     if (out.fail()) {
         cerr << "Error: Can't create protobuf JSON file '" << filename << "'" << endl;
         return EXIT_FAILURE;
@@ -380,7 +380,7 @@ int ScsiCtl::ExportAsText(const PbCommand &command, const string &filename) cons
     TextFormat::PrintToString(command, &text);
 
     ofstream out(filename);
-    out << text << '\n';
+    out << text;
     if (out.fail()) {
         cerr << "Error: Can't create protobuf text file '" << filename << "'" << endl;
         return EXIT_FAILURE;
