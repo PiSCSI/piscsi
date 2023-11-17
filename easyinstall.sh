@@ -1507,8 +1507,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "17" ]) ; do
-       echo -n "Enter your choice (0-17) or CTRL-C to exit: "
+   until [ $choice -ge "1" ] && ([ $choice -eq "99" ] || [ $choice -le "17" ]) ; do
+       echo -n "Enter your choice (1-17) or CTRL-C to exit: "
        read -r choice
    done
 
