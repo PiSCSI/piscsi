@@ -129,7 +129,7 @@
     {% if webmin_configured %}
     <ul>
       <li class="service-item extlink">
-        <a href="../webmin/netatalk2/" target=\"_blank\">{{ _("Manage the AFP server") }}</a>
+        <a href="https://{{ env["ip_addr"] }}:10000/netatalk2/" target=\"_blank\">{{ _("Manage the AFP server") }}</a>
       </li>
     </ul>
     {% endif %}
@@ -144,7 +144,7 @@
     {% if webmin_configured %}
     <ul>
       <li class="service-item extlink">
-        <a href="../webmin/samba/" target=\"_blank\">{{ _("Manage the SMB server") }}</a>
+        <a href="https://{{ env["ip_addr"] }}:10000/webmin/samba/" target=\"_blank\">{{ _("Manage the SMB server") }}</a>
       </li>
     </ul>
     {% endif %}
@@ -166,7 +166,7 @@
     </li>
     {% if webmin_configured %}
     <li class="service-item extlink">
-	<a href="../webmin/" target=\"_blank\">{{ _("Manage PiSCSI services & Linux with Webmin") }}</a>
+      <a href="https://{{ env["ip_addr"] }}:10000/" target=\"_blank\">{{ _("Manage PiSCSI services & Linux with Webmin") }}</a>
     </li>
     {% endif %}
 </ul>

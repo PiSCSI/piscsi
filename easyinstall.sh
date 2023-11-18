@@ -986,10 +986,6 @@ function installWebmin() {
         sudo sed -i 's@/usr/sbin@/usr/local/sbin@' "$WEBMIN_MODULE_CONFIG"
     fi
     rm netatalk2-wbm.tgz || true
-
-    # Configure Webmin to be accessible from a '/webmin' URL path
-    echo "webprefix=/webmin" | sudo tee -a /etc/webmin/config
-    echo "webprefixnoredir=1" | sudo tee -a /etc/webmin/config
 }
 
 # updates configuration files and installs packages needed for the OLED screen script
