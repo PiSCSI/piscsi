@@ -940,8 +940,10 @@ def download_to_iso():
     local_file = request.form.get("file")
 
     if iso_type == "HFS":
-        # The file was downloaded into this location during installation, see fetchGenisoimageHfsResourceForkMapFile() in easyinstall.sh
-        genisoimage_hfs_resource_fork_map_file_path = Path(f"{WEB_DIR}/../../../genisoimage_hfs_resource_fork_map/genisoimage_hfs_resource_fork_map.txt")
+        # The file was downloaded into this location during installation,
+        # see fetchGenisoimageHfsResourceForkMapFile() in easyinstall.sh
+        genisoimage_hfs_resource_fork_map_file_path = Path(
+            f"{WEB_DIR}/../../../genisoimage_hfs_resource_fork_map/genisoimage_hfs_resource_fork_map.txt")
         if genisoimage_hfs_resource_fork_map_file_path.exists():
             # genisoimage will look up the file extension in the map file to derive the file's CREATOR and TYPE
             # resource fork attributes, see more at https://linux.die.net/man/1/genisoimage
@@ -951,7 +953,8 @@ def download_to_iso():
                 str(genisoimage_hfs_resource_fork_map_file_path))
         else:
             logging.warning(
-                "Genisoimage hfs map file %s is not present at %s. Will not set resource fork attributes of files in the iso image!",
+                "Genisoimage hfs map file %s is not present at %s. "
+                "Will not set resource fork attributes of files in the iso image!",
                 str(genisoimage_hfs_resource_fork_map_file_path),
             )
             iso_args = ["-hfs"]
