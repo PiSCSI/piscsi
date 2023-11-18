@@ -582,6 +582,23 @@ function fetchHardDiskDrivers() {
     fi
 }
 
+# Fetch file genisoimage_hfs_resource_fork_map.txt file.
+# It is used when creating ISO images of type HFS.
+function fetchGenisoimageHfsResourceForkMapFile() {
+    GENISOIMAGE_MAP_FOLDER="genisoimage_hfs_resource_fork_map"
+    GENISOIMAGE_MAP_FILE="genisoimage_hfs_resource_fork_map.txt"
+    if [ ! -d "$BASE/$GENISOIMAGE_MAP_FOLDER" ]; then
+        mkdir -p "$BASE/$GENISOIMAGE_MAP_FOLDER"
+        # Do not overwrite the file if it already exists locally:
+        if [ ! -f "$BASE/$GENISOIMAGE_MAP_FOLDER/$GENISOIMAGE_MAP_FILE" ]; then
+            cd "$BASE/$GENISOIMAGE_MAP_FOLDER" || exit 1
+            # Currently the file is in Google Drive, but ideally it should be hosted on Dropbox,
+            # similar to the hard disk drivers above, see fetchHardDiskDrivers()
+            wget "https://drive.google.com/uc?export=download&id=1fUHyY8puxw3cWa9mH17G-f5--JiqplAR" -O "$GENISOIMAGE_MAP_FILE"
+        fi
+    fi
+}
+
 # Modifies system configurations for a wired network bridge
 function setupWiredNetworking() {
     echo "Setting up wired network..."
@@ -1249,6 +1266,7 @@ function runChoice() {
               installPackages
               installHfdisk
               fetchHardDiskDrivers
+              fetchGenisoimageHfsResourceForkMapFile
               stopService "piscsi-ctrlboard"
               stopService "piscsi-oled"
               stopService "piscsi"
@@ -1432,6 +1450,7 @@ function runChoice() {
               installPackagesWeb
               installHfdisk
               fetchHardDiskDrivers
+              fetchGenisoimageHfsResourceForkMapFile
               preparePythonCommon
               cachePipPackages
               installPiscsiWebInterface
@@ -1484,6 +1503,7 @@ function runChoice() {
               installPackages
               installHfdisk
               fetchHardDiskDrivers
+              fetchGenisoimageHfsResourceForkMapFile
               compilePiscsi
               installPiscsi
               configurePiscsiService
