@@ -949,11 +949,11 @@ def download_to_iso():
             # resource fork attributes, see more at https://linux.die.net/man/1/genisoimage
             iso_args = ["-hfs", "-map", str(genisoimage_hfs_resource_fork_map_file_path)]
             logging.info(
-                "Found and using genisoimage hfs map file at %s  .",
+                "Found and using the genisoimage hfs map file at %s  .",
                 str(genisoimage_hfs_resource_fork_map_file_path))
         else:
             logging.warning(
-                "Genisoimage hfs map file %s is not present at %s. "
+                "The genisoimage hfs map file is not present at %s. "
                 "Will not set resource fork attributes of files in the iso image!",
                 str(genisoimage_hfs_resource_fork_map_file_path),
             )
