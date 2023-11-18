@@ -865,6 +865,10 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			LogTrace("Done with DaynaPort Set Multicast Address");
 			break;
 
+		case scsi_command::eCmdSetIfaceMode:
+            LogTrace("Done with setting DaynaPort MAC address (ignore)");
+            break;
+
 		default:
 			stringstream s;
 			s << "Received an unexpected command ($" << setfill('0') << setw(2) << hex
