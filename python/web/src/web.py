@@ -940,7 +940,27 @@ def download_to_iso():
     local_file = request.form.get("file")
 
     if iso_type == "HFS":
-        iso_args = ["-hfs"]
+        # The file genisoimage_hfs_resource_fork_map.txt is part of the piscsi
+        # repository tree, so it should be present in the parent folder; trust but verify:
+        genisoimage_hfs_resource_fork_map_file_path = Path(
+            f"{WEB_DIR}/../genisoimage_hfs_resource_fork_map.txt"
+        )
+        if genisoimage_hfs_resource_fork_map_file_path.exists():
+            # genisoimage will look up the file extension in this map file to
+            # derive the file's CREATOR and TYPE resource fork attributes.
+            # See more at https://linux.die.net/man/1/genisoimage
+            iso_args = ["-hfs", "-map", str(genisoimage_hfs_resource_fork_map_file_path)]
+            logging.info(
+                "Found and using the genisoimage hfs map file at %s",
+                str(genisoimage_hfs_resource_fork_map_file_path),
+            )
+        else:
+            logging.warning(
+                "The genisoimage hfs map file is not present at %s. "
+                "Will not set resource fork attributes of files in the iso image!",
+                str(genisoimage_hfs_resource_fork_map_file_path),
+            )
+            iso_args = ["-hfs"]
     elif iso_type == "ISO-9660 Level 1":
         iso_args = ["-iso-level", "1"]
     elif iso_type == "ISO-9660 Level 2":
