@@ -940,10 +940,10 @@ def download_to_iso():
     local_file = request.form.get("file")
 
     if iso_type == "HFS":
-        # The file was downloaded into this location during installation,
-        # see fetchGenisoimageHfsResourceForkMapFile() in easyinstall.sh
+        # The file genisoimage_hfs_resource_fork_map.txt is part of the piscsi repository tree,
+        # so it should be present in the parent folder; trust but verify:
         genisoimage_hfs_resource_fork_map_file_path = Path(
-            f"{WEB_DIR}/../../../genisoimage_hfs_resource_fork_map/genisoimage_hfs_resource_fork_map.txt")
+            f"{WEB_DIR}/../genisoimage_hfs_resource_fork_map.txt")
         if genisoimage_hfs_resource_fork_map_file_path.exists():
             # genisoimage will look up the file extension in the map file to derive the file's CREATOR and TYPE
             # resource fork attributes, see more at https://linux.die.net/man/1/genisoimage
