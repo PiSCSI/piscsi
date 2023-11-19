@@ -6,42 +6,42 @@
 
 function showPiSCSILogo(){
 logo="""
-    .~~.   .~~.\n
-  '. \ ' ' / .'\n
-   .╔═══════╗.\n
-  : ║|¯¯¯¯¯|║ :\n
- ~ (║|_____|║) ~\n
-( : ║ .  __ ║ : )\n
- ~ .╚╦═════╦╝. ~\n
-  (  ¯¯¯¯¯¯¯  ) PiSCSI Assistant\n
-   '~ .~~~. ~'\n
-       '~'\n
+    .~~.   .~~.\n
+  '. \ ' ' / .'\n
+   .╔═══════╗.\n
+  : ║|¯¯¯¯¯|║ :\n
+ ~ (║|_____|║) ~\n
+( : ║ .  __ ║ : )\n
+ ~ .╚╦═════╦╝. ~\n
+  (  ¯¯¯¯¯¯¯  ) PiSCSI Assistant\n
+   '~ .~~~. ~'\n
+       '~'\n
 """
 echo -e $logo
 }
 
 function showMacNetworkWired(){
 logo="""
-                              .-~-.-~~~-.~-.\n
- ╔═══════╗                  .(              )\n
- ║|¯¯¯¯¯|║                 /               \`.\n
- ║|_____|║>--------------<~               .   )\n
- ║ .  __ ║                 (              :'-'\n
- ╚╦═════╦╝                  ~-.________.:'\n
-  ¯¯¯¯¯¯¯\n
+                              .-~-.-~~~-.~-.\n
+ ╔═══════╗                  .(              )\n
+ ║|¯¯¯¯¯|║                 /               \`.\n
+ ║|_____|║>--------------<~               .   )\n
+ ║ .  __ ║                 (              :'-'\n
+ ╚╦═════╦╝                  ~-.________.:'\n
+  ¯¯¯¯¯¯¯\n
 """
 echo -e $logo
 }
 
 function showMacNetworkWireless(){
 logo="""
-                              .-~-.-~~~-.~-.\n
- ╔═══════╗        .(       .(              )\n
- ║|¯¯¯¯¯|║  .(  .(        /               \`.\n
- ║|_____|║ .o    o       ~               .   )\n
- ║ .  __ ║  '(  '(        (              :'-'\n
- ╚╦═════╦╝        '(       ~-.________.:'\n
-  ¯¯¯¯¯¯¯\n
+                              .-~-.-~~~-.~-.\n
+ ╔═══════╗        .(       .(              )\n
+ ║|¯¯¯¯¯|║  .(  .(        /               \`.\n
+ ║|_____|║ .o    o       ~               .   )\n
+ ║ .  __ ║  '(  '(        (              :'-'\n
+ ╚╦═════╦╝        '(       ~-.________.:'\n
+  ¯¯¯¯¯¯¯\n
 """
 echo -e $logo
 }
@@ -1527,7 +1527,7 @@ function showMenu() {
     echo "  4) Install or update PiSCSI Control Board UI (requires hardware)"
     echo "NETWORK BRIDGE ASSISTANT"
     echo "  5) Configure network bridge for Ethernet (DHCP)"
-    echo "  6) Configure network bridge for WiFi (static IP + NAT)"
+    echo "  6) Configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
     echo "  7) Install AppleShare File Server (Netatalk)"
     echo "  8) Install FTP File Server (vsftpd)"
