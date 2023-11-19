@@ -17,8 +17,7 @@
 #
 # The mapping entries below are derived from 
 # https://github.com/Netatalk/netatalk/blob/branch-netatalk-2-3/config/AppleVolumes.system 
-# , which is under a GNU GPL license.
-# Some entries, e.g the one for ".img" were modifed; few more (e.g. ".dc42") were added.
+# Few entries, e.g the one for ".img" were modified; few more (e.g. ".dc42") were added.
 #
 # EXTN   XLate CREATOR TYPE  Application - Description (mime type)
 .1st     Ascii 'ttxt' 'TEXT' "SimpleText - Text Readme (application/text)"

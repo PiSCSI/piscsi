@@ -951,7 +951,7 @@ def download_to_iso():
             # See more at https://linux.die.net/man/1/genisoimage
             iso_args = ["-hfs", "-map", str(genisoimage_hfs_resource_fork_map_file_path)]
             logging.info(
-                "Found and using the genisoimage hfs map file at %s  .",
+                "Found and using the genisoimage hfs map file at %s",
                 str(genisoimage_hfs_resource_fork_map_file_path),
             )
         else:
