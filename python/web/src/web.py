@@ -309,7 +309,7 @@ def drive_list():
 
     return response(
         template="drives.html",
-        page_title=_("PiSCSI Create Drive"),
+        page_title=_("PiSCSI Create Drive foo"),
         files=piscsi_cmd.list_images()["files"],
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
     )
