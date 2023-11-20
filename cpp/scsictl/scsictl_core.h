@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -28,4 +28,8 @@ class ScsiCtl
 private:
 
 	void Banner(const vector<char *>&) const;
+
+    int ExportAsBinary(const PbCommand&, const string&) const;
+    int ExportAsJson(const PbCommand&, const string&) const;
+    int ExportAsText(const PbCommand&, const string&) const;
 };

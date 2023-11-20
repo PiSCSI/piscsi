@@ -7,22 +7,23 @@ NAME
 
 SYNOPSIS
        scsictl  -e | -l | -m | -o | -v | -D | -I | -L | -O | -P | -S | -T | -V
-       | -X | [-C FILENAME:FILESIZE] | [-E FILENAME] | [-F IMAGE_FOLDER] | [-R
-       CURRENT_NAME:NEW_NAME]  | [-c CMD] | [-f FILE|PARAM] | [-g LOG_LEVEL] |
-       [-h HOST] | [-i ID[:LUN]] | [-n NAME] | [-p PORT] | [-r RESERVED_IDS] |
-       [-s  [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]]  |  [-t TYPE] | [-x CUR‐
+       | -X | -Z | [-d FILENAME] | [-B FILENAME] | [-J FILENAME] |  [-C  FILE‐
+       NAME:FILESIZE]   |  [-E  FILENAME]  |  [-F  IMAGE_FOLDER]  |  [-R  CUR‐
+       RENT_NAME:NEW_NAME] | [-c CMD] | [-f FILE|PARAM] | [-g LOG_LEVEL] | [-h
+       HOST] | [-i ID[:LUN]] | [-n NAME] | [-p PORT] | [-r RESERVED_IDS] | [-s
+       [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]]  |  [-t  TYPE]  |  [-x   CUR‐
        RENT_NAME:NEW_NAME] | [-z LOCALE]
 
 DESCRIPTION
-       scsictl sends commands to the piscsi process to make configuration  ad‐
+       scsictl  sends commands to the piscsi process to make configuration ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
-       You  do  NOT  need root privileges to use scsictl. scsictl also runs on
+       You do NOT need root privileges to use scsictl. scsictl  also  runs  on
        non-Pi Linux platforms.
 
-       Note: The command and type arguments are  case  insensitive.  Only  the
+       Note:  The  command  and  type arguments are case insensitive. Only the
        first letter of the command/type is evaluated by the tool.
 
 OPTIONS
@@ -41,7 +42,7 @@ OPTIONS
        -I     Gets the list of reserved device IDs.
 
        -L LOG_LEVEL
-              Set the piscsi log level (trace, debug,  info,  warning,  error,
+              Set  the  piscsi  log level (trace, debug, info, warning, error,
               off).
 
        -h HOST
@@ -49,19 +50,19 @@ OPTIONS
 
        -e     List all images files in the default image folder.
 
-       -N     Lists  all  available  network interfaces provided that they are
+       -N     Lists all available network interfaces provided  that  they  are
               up.
 
-       -O     Display the available piscsi server log levels and  the  current
+       -O     Display  the  available piscsi server log levels and the current
               log level.
 
-       -P     Prompt  for the access token in case piscsi requires authentica‐
+       -P     Prompt for the access token in case piscsi requires  authentica‐
               tion.
 
-       -l     List all of the devices that are  currently  being  emulated  by
+       -l     List  all  of  the  devices that are currently being emulated by
               PiSCSI, as well as their current status.
 
-       -m     List  all  file  extensions  recognized by PiSCSI and the device
+       -m     List all file extensions recognized by  PiSCSI  and  the  device
               types they map to.
 
        -o     Display operation meta data information.
@@ -73,11 +74,11 @@ OPTIONS
               The piscsi port to connect to, default is 6868.
 
        -r RESERVED_IDS
-              Comma-separated list of IDs to reserve. Pass an  empty  list  in
+              Comma-separated  list  of  IDs to reserve. Pass an empty list in
               order to not reserve anything.
 
        -s [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]
-              Display  server-side settings like available images or supported
+              Display server-side settings like available images or  supported
               device types.
 
        -S     Display statistics.
@@ -92,6 +93,18 @@ OPTIONS
 
        -d FILENAME
               Delete an image file in the default image folder.
+
+       -B FILENAME
+              Do  not send command to piscsi but write it to a protobuf binary
+              file.
+
+       -J FILENAME
+              Do not send command to piscsi but write it to  a  protobuf  JSON
+              file.
+
+       -Z FILENAME
+              Do  not  send  command to piscsi but write it to a protobuf text
+              format file.
 
        -x CURRENT_NAME:NEW_NAME
               Copy an image file in the default image folder.
