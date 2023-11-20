@@ -603,7 +603,7 @@ void Piscsi::Process()
 #endif
 
 		// Only process the SCSI command if the bus is not busy and no other device responded
-		if (IsNotBusy() && bus->GetSEL()) {
+		if (WaitForNotBusy() && bus->GetSEL()) {
 			scoped_lock<mutex> lock(execution_locker);
 
 			// Process command on the responsible controller based on the current initiator and target ID
@@ -681,15 +681,13 @@ bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 	return false;
 }
 
-bool Piscsi::IsNotBusy() const
+bool Piscsi::WaitForNotBusy() const
 {
-    // Wait until BSY is released as there is a possibility for the
-    // initiator to assert it while setting the ID (for up to 3 seconds)
+    // Wait 3 s for BSY to be released, signalling the end of the ARBITRATION phase
     if (bus->GetBSY()) {
         const auto now = chrono::steady_clock::now();
         while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
             bus->Acquire();
-
             if (!bus->GetBSY()) {
                 return true;
             }

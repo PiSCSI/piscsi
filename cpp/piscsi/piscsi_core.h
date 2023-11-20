@@ -46,7 +46,7 @@ private:
 	static void TerminationHandler(int);
 	string ParseArguments(span<char *>, PbCommand&, int&, string&);
 	void Process();
-	bool IsNotBusy() const;
+	bool WaitForNotBusy() const;
 
 	bool ShutDown(AbstractController::piscsi_shutdown_mode);
 	bool ShutDown(const CommandContext&, const string&);
