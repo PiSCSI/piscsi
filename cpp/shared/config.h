@@ -22,5 +22,6 @@
 #undef USE_SEL_EVENT_ENABLE
 #endif
 
-// Use improved SCSI compliant handshake which does not require the system timer and provides a small performance benefit
-#define SCSI_COMPLIANT_HANDSHAKE
+// Disable improved SCSI compliant handshake. The improved handshake does not require the system timer and
+// provides a small performance benefit.
+//#define NO_SCSI_COMPLIANT_HANDSHAKE

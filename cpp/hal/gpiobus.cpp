@@ -40,7 +40,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
     bool ack = WaitACK(true);
 
-#ifndef SCSI_COMPLIANT_HANDSHAKE
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
 
@@ -68,7 +68,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
         ack = WaitACK(true);
 
-#ifndef SCSI_COMPLIANT_HANDSHAKE
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
 
@@ -102,7 +102,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
         ack = WaitACK(true);
 
-#ifndef SCSI_COMPLIANT_HANDSHAKE
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
 
@@ -134,7 +134,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
             const bool ack = WaitACK(true);
 
-#ifndef SCSI_COMPLIANT_HANDSHAKE
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
 
@@ -165,7 +165,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
-#ifndef SCSI_COMPLIANT_HANDSHAKE
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
 
