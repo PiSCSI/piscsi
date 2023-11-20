@@ -21,3 +21,6 @@
 #if defined(__x86_64__) || defined(__X86__) || !defined(__linux__)
 #undef USE_SEL_EVENT_ENABLE
 #endif
+
+// Use improved SCSI compliant handshake which does not require the system timer and provides a small performance benefit
+#define SCSI_COMPLIANT_HANDSHAKE
