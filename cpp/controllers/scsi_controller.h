@@ -76,8 +76,10 @@ public:
 
 private:
 
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 	// Execution start time
 	uint32_t execstart = 0;
+#endif
 
 	// The initiator ID may be unavailable, e.g. with Atari ACSI and old host adapters
 	int initiator_id = UNKNOWN_INITIATOR_ID;
@@ -103,7 +105,9 @@ private:
 	void ParseMessage();
 	void ProcessMessage();
 
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 	void Sleep();
+#endif
 
 	scsi_t scsi = {};
 };

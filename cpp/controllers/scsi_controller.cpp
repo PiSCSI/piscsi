@@ -15,7 +15,9 @@
 
 #include "shared/piscsi_exceptions.h"
 #include "hal/gpiobus.h"
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 #include "hal/systimer.h"
+#endif
 #include "controllers/controller_manager.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
@@ -41,7 +43,10 @@ void ScsiController::Reset()
 {
 	AbstractController::Reset();
 
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 	execstart = 0;
+#endif
+
 	identified_lun = -1;
 	initiator_id = UNKNOWN_INITIATOR_ID;
 
@@ -191,7 +196,10 @@ void ScsiController::Execute()
 	// Initialization for data transfer
 	ResetOffset();
 	SetBlocks(1);
+
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 	execstart = SysTimer::GetTimerLow();
+#endif
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
@@ -245,6 +253,7 @@ void ScsiController::Execute()
 void ScsiController::Status()
 {
 	if (!IsStatus()) {
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 		// Minimum execution time
 		// TODO Why is a delay needed? Is this covered by the SCSI specification?
 		if (execstart > 0) {
@@ -252,6 +261,7 @@ void ScsiController::Status()
 		} else {
 			SysTimer::SleepUsec(5);
 		}
+#endif
 
 		stringstream s;
 		s << "Status phase, status is $" << setfill('0') << setw(2) << hex << static_cast<int>(GetStatus());
@@ -323,10 +333,12 @@ void ScsiController::MsgOut()
 void ScsiController::DataIn()
 {
 	if (!IsDataIn()) {
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
 		}
+#endif
 
 		// If the length is 0, go to the status phase
 		if (!HasValidLength()) {
@@ -352,10 +364,12 @@ void ScsiController::DataIn()
 void ScsiController::DataOut()
 {
 	if (!IsDataOut()) {
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
 		}
+#endif
 
 		// If the length is 0, go to the status phase
 		if (!HasValidLength()) {
@@ -984,6 +998,7 @@ int ScsiController::GetEffectiveLun() const
 	return identified_lun != -1 ? identified_lun : GetLun();
 }
 
+#ifdef NO_SCSI_COMPLIANT_HANDSHAKE
 void ScsiController::Sleep()
 {
 	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
@@ -991,3 +1006,4 @@ void ScsiController::Sleep()
 	}
 	execstart = 0;
 }
+#endif
