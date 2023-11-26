@@ -17,10 +17,6 @@ scsictl \- Sends management commands to the piscsi process
 \fB\-T\fR |
 \fB\-V\fR |
 \fB\-X\fR |
-\fB\-Z\fR |
-[\fB\-d\fR \fIFILENAME\fR] |
-[\fB\-B\fR \fIFILENAME\fR] |
-[\fB\-J\fR \fIFILENAME\fR] |
 [\fB\-C\fR \fIFILENAME:FILESIZE\fR] |
 [\fB\-E\fR \fIFILENAME\fR] |
 [\fB\-F\fR \fIIMAGE_FOLDER\fR] |
@@ -120,15 +116,6 @@ Shut down the piscsi process.
 .TP
 .BR \-d\fI " "\fIFILENAME
 Delete an image file in the default image folder.
-.TP
-.BR \-B\fI " "\fIFILENAME
-Do not send command to piscsi but write it to a protobuf binary file.
-.TP
-.BR \-J\fI " "\fIFILENAME
-Do not send command to piscsi but write it to a protobuf JSON file.
-.TP
-.BR \-Z\fI " "\fIFILENAME
-Do not send command to piscsi but write it to a protobuf text format file.
 .TP
 .BR \-x\fI " "\fICURRENT_NAME:NEW_NAME
 Copy an image file in the default image folder.
