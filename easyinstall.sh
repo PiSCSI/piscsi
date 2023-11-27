@@ -92,7 +92,7 @@ function initialChecks() {
 }
 
 # Only to be used for pi-gen automated install
-function cacheSudo() {
+function sudoCache() {
     echo "Caching sudo password"
     echo raspberry | sudo -v -S
 }
