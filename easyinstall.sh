@@ -969,7 +969,7 @@ function installWebmin() {
     curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
     sudo sh setup-repos.sh -f
     rm setup-repos.sh
-    sudo apt-get install webmin --install-recommends --assume-yes </dev/null
+    sudo apt-get install webmin --no-install-recommends --assume-yes </dev/null
     echo
     echo "Downloading and installing Webmin module..."
     if [[ -f "$WEBMIN_MODULE_CONFIG" ]]; then
