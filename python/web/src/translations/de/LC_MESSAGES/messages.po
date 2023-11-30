@@ -1309,7 +1309,7 @@ msgstr ""
 
 #: src/templates/index.html:594
 msgid "Key"
-msgstr "Taste"
+msgstr "Kürzel"
 
 #: src/templates/index.html:595
 msgid "Parameters and Actions"
