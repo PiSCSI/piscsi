@@ -350,7 +350,7 @@
     </ul>
 </details>
 
-{% if not env["image_dir_exists"] %}
+{% if env["image_dir_exists"] %}
 {% if files|length %}
 <div>
 {% for subdir, group in formatted_image_files.items() %}
