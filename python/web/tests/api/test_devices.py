@@ -2,20 +2,18 @@ import pytest
 
 from conftest import (
     SCSI_ID,
-    FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
 )
 
 
-# route("/scsi/attach", methods=["POST"])
-def test_attach_image(http_client, create_test_image, detach_devices):
+# route("/scsi/attach_device", methods=["POST"])
+def test_attach_device_with_image(http_client, create_test_image, detach_devices):
     test_image = create_test_image()
 
     response = http_client.post(
-        "/scsi/attach",
+        "/scsi/attach_device",
         data={
             "file_name": test_image,
-            "file_size": FILE_SIZE_1_MIB,
             "scsi_id": SCSI_ID,
             "unit": 0,
             "type": "SCHD",
@@ -26,7 +24,7 @@ def test_attach_image(http_client, create_test_image, detach_devices):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == (
-        f"Attached {test_image} as Hard Disk Drive to SCSI ID {SCSI_ID} LUN 0"
+        f"Attached Hard Disk Drive to SCSI ID {SCSI_ID} LUN 0"
     )
 
     # Cleanup
@@ -110,10 +108,9 @@ def test_detach_device(http_client, create_test_image):
     test_image = create_test_image()
 
     http_client.post(
-        "/scsi/attach",
+        "/scsi/attach_device",
         data={
             "file_name": test_image,
-            "file_size": FILE_SIZE_1_MIB,
             "scsi_id": SCSI_ID,
             "unit": 0,
             "type": "SCHD",
@@ -145,10 +142,9 @@ def test_detach_all_devices(http_client, create_test_image, list_attached_images
         test_images.append(test_image)
 
         http_client.post(
-            "/scsi/attach",
+            "/scsi/attach_device",
             data={
                 "file_name": test_image,
-                "file_size": FILE_SIZE_1_MIB,
                 "scsi_id": scsi_id,
                 "unit": 0,
                 "type": "SCHD",
@@ -170,10 +166,9 @@ def test_eject_device(http_client, create_test_image, detach_devices):
     test_image = create_test_image()
 
     http_client.post(
-        "/scsi/attach",
+        "/scsi/attach_device",
         data={
             "file_name": test_image,
-            "file_size": FILE_SIZE_1_MIB,
             "scsi_id": SCSI_ID,
             "unit": 0,
             "type": "SCCD",  # CD-ROM
@@ -203,10 +198,9 @@ def test_show_device_info(http_client, create_test_image, detach_devices):
     test_image = create_test_image()
 
     http_client.post(
-        "/scsi/attach",
+        "/scsi/attach_device",
         data={
             "file_name": test_image,
-            "file_size": FILE_SIZE_1_MIB,
             "scsi_id": SCSI_ID,
             "unit": 0,
             "type": "SCHD",

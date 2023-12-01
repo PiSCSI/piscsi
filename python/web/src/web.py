@@ -125,6 +125,7 @@ def get_env_info():
         "image_dir": server_info["image_dir"],
         "image_root_dir": Path(server_info["image_dir"]).name,
         "shared_root_dir": Path(FILE_SERVER_DIR).name,
+        "hd_suffixes": tuple(server_info["schd"]),
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
@@ -651,12 +652,13 @@ def log_level():
 @login_required
 def attach_device():
     """
-    Attaches a peripheral device that doesn't take an image file as argument
+    Attaches device of any type
     """
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
     device_type = request.form.get("type")
     drive_name = request.form.get("drive_name")
+    file_name = request.form.get("file_name")
 
     if not scsi_id:
         return response(error=True, message=_("No SCSI ID specified"))
@@ -690,11 +692,29 @@ def attach_device():
         "device_type": device_type,
         "params": params,
     }
+
+    if file_name:
+        kwargs["params"]["file"] = file_name
+
+    # If drive_props is defined use properies from this dict,
+    # otherwise fall back to the properties file if it exists
     if drive_props:
         kwargs["vendor"] = drive_props["vendor"]
         kwargs["product"] = drive_props["product"]
         kwargs["revision"] = drive_props["revision"]
         kwargs["block_size"] = drive_props["block_size"]
+    else:
+        drive_properties = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+        if drive_properties.is_file():
+            process = file_cmd.read_drive_properties(drive_properties)
+            process = ReturnCodeMapper.add_msg(process)
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+            conf = process["conf"]
+            kwargs["vendor"] = conf["vendor"]
+            kwargs["product"] = conf["product"]
+            kwargs["revision"] = conf["revision"]
+            kwargs["block_size"] = conf["block_size"]
 
     process = piscsi_cmd.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
@@ -702,70 +722,6 @@ def attach_device():
         return response(
             message=_(
                 return_message,
-                device_type=get_device_name(device_type),
-                id_number=scsi_id,
-                unit_number=unit,
-            )
-        )
-
-    return response(error=True, message=process["msg"])
-
-
-@APP.route("/scsi/attach", methods=["POST"])
-@login_required
-def attach_image():
-    """
-    Attaches a file image as a device
-    """
-    file_name = request.form.get("file_name")
-    file_size = request.form.get("file_size")
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
-    device_type = request.form.get("type")
-
-    if not scsi_id:
-        return response(error=True, message=_("No SCSI ID specified"))
-    if not file_name:
-        return response(error=True, message=_("No image file to insert"))
-
-    kwargs = {"unit": int(unit), "params": {"file": file_name}}
-
-    if device_type:
-        kwargs["device_type"] = device_type
-        device_types = piscsi_cmd.get_device_types()
-        expected_block_size = min(device_types["device_types"][device_type]["block_sizes"])
-
-    # Attempt to load the device properties file:
-    # same file name with PROPERTIES_SUFFIX appended
-    drive_properties = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
-    if drive_properties.is_file():
-        process = file_cmd.read_drive_properties(drive_properties)
-        process = ReturnCodeMapper.add_msg(process)
-        if not process["status"]:
-            return response(error=True, message=process["msg"])
-        conf = process["conf"]
-        kwargs["vendor"] = conf["vendor"]
-        kwargs["product"] = conf["product"]
-        kwargs["revision"] = conf["revision"]
-        kwargs["block_size"] = conf["block_size"]
-        expected_block_size = conf["block_size"]
-
-    process = piscsi_cmd.attach_device(scsi_id, **kwargs)
-    process = ReturnCodeMapper.add_msg(process)
-    if process["status"]:
-        if int(file_size) % int(expected_block_size):
-            logging.warning(
-                "The image file size %s bytes is not a multiple of %s. "
-                "PiSCSI will ignore the trailing data. "
-                "The image may be corrupted, so proceed with caution.",
-                file_size,
-                expected_block_size,
-            )
-        return response(
-            message=_(
-                "Attached %(file_name)s as %(device_type)s to "
-                "SCSI ID %(id_number)s LUN %(unit_number)s",
-                file_name=file_name,
                 device_type=get_device_name(device_type),
                 id_number=scsi_id,
                 unit_number=unit,
