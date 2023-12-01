@@ -304,6 +304,8 @@
                 {% if f["name"].lower().endswith(env['mo_suffixes']) %}
                 <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                 {% endif %}
+                {% else %}
+                <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                 {% endif %}
                 {% endfor %}
                 </select>
