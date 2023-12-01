@@ -305,8 +305,6 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    server_info = piscsi_cmd.get_server_info()
-
     return response(
         template="drives.html",
         page_title=_("PiSCSI Create Drive"),

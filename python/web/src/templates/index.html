@@ -513,16 +513,18 @@
     {{ _("The images directory is currently empty.") }}
 </div>
 {% endif %}
-<p><small>{{ _("%(disk_space)s MiB disk space remaining for images", disk_space=env["free_disk_space"]) }}</small></p>
-</section>
+<p>
+    <small>{{ _("%(disk_space)s MiB disk space remaining for images", disk_space=env["free_disk_space"]) }}</small>
+</p>
 
 {% else %}
 
 <div class="notice">
-{{ _("Please create the PiSCSI images dir to work with disk images:")}} {{ env["image_dir"] }}
+    {{ _("Please create the PiSCSI images dir to work with disk images:")}} {{ env["image_dir"] }}
 </div>
 
 {% endif %}
+</section>
 
 <hr/>
 
