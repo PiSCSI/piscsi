@@ -24,6 +24,7 @@
     </ul>
 </details>
 
+{% if env["cfg_dir_exists"] %}
 <p>
 <form action="/config/action" method="post" id="config-actions">
     <label for="config_load_name">{{ _("File Name:") }}</label>
@@ -54,6 +55,13 @@
     <input type="submit" value="{{ _("Save") }}">
 </form>
 </p>
+{% else %}
+
+<div class="notice">
+{{ _("Please create the PiSCSI configuration dir to use configurations:")}} {{ CFG_DIR }}
+</div>
+
+{% endif %}
 
 <table id="attached-devices" border="black" cellpadding="3" summary="List of attached devices">
     <tbody>
@@ -342,12 +350,8 @@
     </ul>
 </details>
 
-{% if not files|length: %}
-<div class="notice">
-    {{ _("The images directory is currently empty.") }}
-</div>
-{% else %}
-
+{% if not env["image_dir_exists"] %}
+{% if files|length %}
 <div>
 {% for subdir, group in formatted_image_files.items() %}
 
@@ -502,9 +506,23 @@
 </details>
 {% endfor %}
 </div>
+
+{% else %}
+
+<div class="notice">
+    {{ _("The images directory is currently empty.") }}
+</div>
 {% endif %}
 <p><small>{{ _("%(disk_space)s MiB disk space remaining for images", disk_space=env["free_disk_space"]) }}</small></p>
 </section>
+
+{% else %}
+
+<div class="notice">
+{{ _("Please create the PiSCSI images dir to work with disk images:")}} {{ env["image_dir"] }}
+</div>
+
+{% endif %}
 
 <hr/>
 

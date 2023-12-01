@@ -46,7 +46,6 @@ from return_code_mapper import ReturnCodeMapper
 from socket_cmds_flask import SocketCmdsFlask
 
 from web_utils import (
-    working_dirs_exist,
     sort_and_format_devices,
     get_valid_scsi_ids,
     map_device_types_and_names,
@@ -125,6 +124,8 @@ def get_env_info():
         "image_dir": server_info["image_dir"],
         "image_root_dir": Path(server_info["image_dir"]).name,
         "shared_root_dir": Path(FILE_SERVER_DIR).name,
+        "image_dir_exists": Path(server_info["image_dir"]).exists(),
+        "cfg_dir_exists": Path(CFG_DIR).exists(),
         "hd_suffixes": tuple(server_info["schd"]),
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
@@ -220,7 +221,6 @@ def index():
     Sets up data structures for and renders the index page
     """
     server_info = piscsi_cmd.get_server_info()
-    working_dirs_exist((server_info["image_dir"], CFG_DIR))
 
     devices = piscsi_cmd.list_devices()
     device_types = map_device_types_and_names(piscsi_cmd.get_device_types()["device_types"])
@@ -306,7 +306,6 @@ def drive_list():
     Sets up the data structures and kicks off the rendering of the drive list page
     """
     server_info = piscsi_cmd.get_server_info()
-    working_dirs_exist((server_info["image_dir"], CFG_DIR))
 
     return response(
         template="drives.html",
@@ -343,7 +342,6 @@ def upload_page():
     Sets up the data structures and kicks off the rendering of the file uploading page
     """
     server_info = piscsi_cmd.get_server_info()
-    working_dirs_exist((server_info["image_dir"], CFG_DIR))
 
     return response(
         template="upload.html",
@@ -545,7 +543,6 @@ def show_diskinfo():
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
-    working_dirs_exist((server_info["image_dir"], CFG_DIR))
     returncode, diskinfo = sys_cmd.get_diskinfo(Path(server_info["image_dir"]) / file_name)
     if returncode == 0:
         return response(
