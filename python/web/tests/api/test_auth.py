@@ -1,11 +1,10 @@
-from conftest import STATUS_SUCCESS, STATUS_ERROR
+from conftest import STATUS_SUCCESS, STATUS_ERROR, LOGIN_ENDPOINT, LOGOUT_ENDPOINT
 
 
-# route("/login", methods=["POST"])
 def test_login_with_valid_credentials(pytestconfig, http_client_unauthenticated):
     # Note: This test depends on the piscsi group existing and 'username' a member the group
     response = http_client_unauthenticated.post(
-        "/login",
+        LOGIN_ENDPOINT,
         data={
             "username": pytestconfig.getoption("piscsi_username"),
             "password": pytestconfig.getoption("piscsi_password"),
@@ -19,10 +18,9 @@ def test_login_with_valid_credentials(pytestconfig, http_client_unauthenticated)
     assert "env" in response_data["data"]
 
 
-# route("/login", methods=["POST"])
 def test_login_with_invalid_credentials(http_client_unauthenticated):
     response = http_client_unauthenticated.post(
-        "/login",
+        LOGIN_ENDPOINT,
         data={
             "username": "__INVALID_USER__",
             "password": "__INVALID_PASS__",
@@ -38,7 +36,6 @@ def test_login_with_invalid_credentials(http_client_unauthenticated):
     )
 
 
-# route("/logout")
 def test_logout(http_client):
-    response = http_client.get("/logout")
+    response = http_client.get(LOGOUT_ENDPOINT)
     assert response.status_code == 200

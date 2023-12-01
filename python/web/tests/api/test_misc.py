@@ -3,10 +3,16 @@ import uuid
 from conftest import (
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
+    ENV_ENDPOINT,
+    PWA_FAVICON_ENDPOINT,
+    HEALTHCHECK_ENDPOINT,
+    DRIVE_LIST_ENDPOINT,
+    DRIVE_CREATE_ENDPOINT,
+    DRIVE_CDROM_ENDPOINT,
+    MANPAGE_ENDPOINT,
 )
 
 
-# route("/")
 def test_index(http_client):
     response = http_client.get("/")
     response_data = response.json()
@@ -16,9 +22,8 @@ def test_index(http_client):
     assert "devices" in response_data["data"]
 
 
-# route("/env")
 def test_get_env_info(http_client):
-    response = http_client.get("/env")
+    response = http_client.get(ENV_ENDPOINT)
     response_data = response.json()
 
     assert response.status_code == 200
@@ -26,17 +31,15 @@ def test_get_env_info(http_client):
     assert "running_env" in response_data["data"]
 
 
-# route("/pwa/<path:pwa_path>")
 def test_pwa_route(http_client):
-    response = http_client.get("/pwa/favicon.ico")
+    response = http_client.get(PWA_FAVICON_ENDPOINT)
 
     assert response.status_code == 200
     assert response.headers["content-disposition"] == "inline; filename=favicon.ico"
 
 
-# route("/drive/list", methods=["GET"])
 def test_show_named_drive_presets(http_client):
-    response = http_client.get("/drive/list")
+    response = http_client.get(DRIVE_LIST_ENDPOINT)
     response_data = response.json()
 
     prev_drive = {"name": ""}
@@ -57,12 +60,11 @@ def test_show_named_drive_presets(http_client):
     assert "files" in response_data["data"]
 
 
-# route("/drive/cdrom", methods=["POST"])
 def test_create_cdrom_properties_file(env, http_client):
     file_name = f"{uuid.uuid4()}.iso"
 
     response = http_client.post(
-        "/drive/cdrom",
+        DRIVE_CDROM_ENDPOINT,
         data={
             "drive_name": "Sony CDU-8012",
             "file_name": file_name,
@@ -78,13 +80,12 @@ def test_create_cdrom_properties_file(env, http_client):
     )
 
 
-# route("/drive/create", methods=["POST"])
 def test_create_image_with_properties_file(http_client, delete_file):
     file_prefix = str(uuid.uuid4())
     file_name = f"{file_prefix}.hds"
 
     response = http_client.post(
-        "/drive/create",
+        DRIVE_CREATE_ENDPOINT,
         data={
             "drive_name": "Miniscribe M8425",
             "size": FILE_SIZE_1_MIB,
@@ -105,16 +106,14 @@ def test_create_image_with_properties_file(http_client, delete_file):
     delete_file(file_name)
 
 
-# route("/sys/manpage", methods=["POST"])
 def test_show_manpage(http_client):
-    response = http_client.get("/sys/manpage?app=piscsi")
+    response = http_client.get(MANPAGE_ENDPOINT)
     response_data = response.json()
 
     assert response.status_code == 200
     assert "piscsi" in response_data["data"]["manpage"]
 
 
-# route("/healthcheck", methods=["GET"])
 def test_healthcheck(http_client):
-    response = http_client.get("/healthcheck")
+    response = http_client.get(HEALTHCHECK_ENDPOINT)
     assert response.status_code == 200

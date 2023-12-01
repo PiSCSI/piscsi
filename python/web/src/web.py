@@ -643,7 +643,7 @@ def log_level():
     return response(error=True, message=process["msg"])
 
 
-@APP.route("/scsi/attach_device", methods=["POST"])
+@APP.route("/scsi/attach", methods=["POST"])
 @login_required
 def attach_device():
     """

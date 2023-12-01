@@ -91,7 +91,7 @@
             <td class="name" align="center">{{ device.device_name }}</td>
             <td class="parameters">
                 {% if "No Media" in device.status %}
-                <form action="/scsi/attach_device" method="post">
+                <form action="/scsi/attach" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input name="type" type="hidden" value="{{ device.device_type }}">
@@ -227,7 +227,7 @@
             <div>{{ type }}</div>
         </td>
         <td>
-            <form action="/scsi/attach_device" method="post" class="device-attach">
+            <form action="/scsi/attach" method="post" class="device-attach">
                 <input name="type" type="hidden" value="{{ type }}">
                 {% for key, value in device_types[type]["params"] | dictsort %}
                 <label for="param_{{ type }}_{{ key }}">{{ key }}:</label>
@@ -444,7 +444,7 @@
                     <input type="submit" value="{{ _("Extract") }}" title="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting all files...") }}')">
                 </form>
                 {% else %}
-                <form action="/scsi/attach_device" method="post" class="file-attach">
+                <form action="/scsi/attach" method="post" class="file-attach">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <label for="image_list_scsi_id_{{ file["name"] }}">{{ _("ID") }}</label>
                     <select name="scsi_id" id="image_list_scsi_id_{{ file["name"] }}">
