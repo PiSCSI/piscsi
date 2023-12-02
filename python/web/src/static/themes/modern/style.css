@@ -763,6 +763,10 @@ section#files p {
   margin-top: 1rem;
 }
 
+section#files details.subdir {
+  padding-left: 2rem;
+}
+
 section#files details.subdir summary.dirname {
   text-decoration: underline;
   font-family: monospace;
