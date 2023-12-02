@@ -95,7 +95,7 @@
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input name="type" type="hidden" value="{{ device.device_type }}">
-                    <label for="device_list_file_name_{{ device.id }}_{{ device.unit }}">{{ _("File name") }}</label>
+                    <label for="device_list_file_name_{{ device.id }}_{{ device.unit }}">{{ _("Image file:") }}</label>
                     <select type="select" name="file_name" id="device_list_file_name_{{ device.id }}_{{ device.unit }}">
                     {% for f in files|sort(attribute='name') %}
                     {% if device.device_type == "SCCD" %}
