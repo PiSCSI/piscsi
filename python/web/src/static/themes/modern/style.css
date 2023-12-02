@@ -282,18 +282,6 @@ div.header div.login-form-title {
   display: none;
 }
 
-div.header div.authentication-disabled span.separator {
-  display: none;
-}
-
-div.header div.authentication-disabled span.wiki-help-text {
-  display: block;
-}
-
-div.header div.authentication-disabled a {
-  color: #fff;
-}
-
 @media (max-width: 900px) {
   div.header {
     flex-wrap: wrap;
