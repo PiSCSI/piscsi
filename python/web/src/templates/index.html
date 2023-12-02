@@ -443,10 +443,10 @@
                 {% endif %}
                 {% endfor %}
                 {% if type in DISK_DEVICE_TYPES %}
-                <label for="{{ type }}_drive_name">{{ _("Masquerade as:") }}</label>
+                <label for="{{ type }}_drive_name">{{ _("Identify as:") }}</label>
                 <select name="drive_name" id="{{ type }}_drive_name">
                 <option value="">
-                {{ _("None") }}
+                {{ _("Generic device") }}
                 </option>
                 {% if type == "SCHD" %}
                 {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
@@ -480,7 +480,7 @@
                 <label for="{{ type }}_image_file_name">{{ _("Image file:") }}</label>
                 <select name="file_name" id="{{ type }}_image_file_name">
                 <option value="">
-                {{ _("None") }}
+                {{ _("Choose an image file...") }}
                 </option>
                 {% for f in files|sort(attribute='name') %}
                 {% if type == "SCHD" %}
