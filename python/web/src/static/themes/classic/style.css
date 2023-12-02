@@ -58,6 +58,15 @@ div.footer div.theme-change-hint {
   margin-bottom: 15px;
 }
 
+div.login-status {
+  text-align: right;
+}
+
+div.login-status a {
+  color: white;
+  text-decoration: underline;
+}
+
 div.logged-in {
   background-color: green;
 }
