@@ -193,6 +193,7 @@
 </section>
 
 <hr/>
+
 <section id="files">
 <details>
     <summary class="heading">
@@ -220,7 +221,7 @@
 <div>
 {% for subdir, group in formatted_image_files.items() %}
 
-<details class="subdir">
+<details class="subdir"{% if subdir == env["image_root_dir"] + "/" %} open{% endif %}>
     <summary class="dirname">
         {{ subdir }}
     </summary>

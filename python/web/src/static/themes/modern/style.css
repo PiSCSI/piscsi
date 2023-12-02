@@ -764,7 +764,8 @@ section#files p {
 }
 
 section#files details.subdir {
-  padding-left: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 section#files details.subdir summary.dirname {
