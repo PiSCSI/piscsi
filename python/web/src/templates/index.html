@@ -479,11 +479,9 @@
                 </select>
                 <label for="{{ type }}_image_file_name">{{ _("Image file:") }}</label>
                 <select name="file_name" id="{{ type }}_image_file_name">
-                {% if type != "SCHD" %}
                 <option value="">
                 {{ _("None") }}
                 </option>
-                {% endif %}
                 {% for f in files|sort(attribute='name') %}
                 {% if type == "SCHD" %}
                 {% if f["name"].lower().endswith(env['hd_suffixes']) %}
