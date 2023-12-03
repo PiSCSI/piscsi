@@ -90,12 +90,11 @@
             {% endif %}
             <td class="name" align="center">{{ device.device_name }}</td>
             <td class="parameters">
-                {% if "No Media" in device.status %}
+            {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input name="type" type="hidden" value="{{ device.device_type }}">
-                    <label for="device_list_file_name_{{ device.id }}_{{ device.unit }}">{{ _("Image file:") }}</label>
                     <select type="select" name="file_name" id="device_list_file_name_{{ device.id }}_{{ device.unit }}">
                     {% for f in files|sort(attribute='name') %}
                     {% if device.device_type == "SCCD" %}
@@ -113,7 +112,7 @@
                     {% endif %}
                     {% endfor %}
                     </select>
-                    <input type="submit" value="{{ _("Attach") }}">
+                    <input type="submit" value="{{ _("Insert") }}">
                 </form>
             {% else %}
                 {% if device.params %}
@@ -127,7 +126,14 @@
                         {% endif %}
                     {% endfor %}
                 {% elif device.file %}
-                    <span class="filename">{{ device.file }}</span>
+                <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
+                    <label>{{ device.file }}</label>
+                    {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="unit" type="hidden" value="{{ device.unit }}">
+                    <input type="submit" value="{{ _("Eject") }}">
+                    {% endif %}
+                </form>
                 {% endif %}
             {% endif %}
             </td>
@@ -142,13 +148,6 @@
             </td>
             <td class="actions" align="center">
                 {% if device.id in scsi_ids["occupied_ids"] %}
-                {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
-                <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="unit" type="hidden" value="{{ device.unit }}">
-                    <input type="submit" value="{{ _("Eject") }}">
-                </form>
-                {% endif %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('{{ _("Detach Device?") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
@@ -414,7 +413,7 @@
     <tr>
         <th scope="col">{{ _("Device") }}</th>
         <th scope="col">{{ _("Key") }}</th>
-        <th scope="col">{{ _("Parameters and Actions") }}</th>
+        <th scope="col">{{ _("Actions") }}</th>
     </tr>
     {% for type in device_types.keys() %}
     <tr>
@@ -479,9 +478,13 @@
                 {% endif %}
                 </select>
                 <label for="{{ type }}_image_file_name">{{ _("Image file:") }}</label>
-                <select name="file_name" id="{{ type }}_image_file_name">
-                <option value="">
-                {{ _("Choose an image file...") }}
+                <select name="file_name" id="{{ type }}_image_file_name" {% if type not in REMOVABLE_DEVICE_TYPES %}required{% endif %}>
+                <option value="" selected {% if type not in REMOVABLE_DEVICE_TYPES %}disabled{% endif %}>
+                {% if type in REMOVABLE_DEVICE_TYPES %}
+                {{ _("None") }}
+                {% else %}
+                {{ _("Choose a file...") }}
+                {% endif %}
                 </option>
                 {% for f in files|sort(attribute='name') %}
                 {% if type == "SCHD" %}
@@ -606,10 +609,10 @@
     </select>
     <label for="image_create_size">{{ _("Size:") }}</label>
     <input name="size" id="image_create_size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
-    <label for="image_create_drive_name">{{ _("Masquerade as:") }}</label>
+    <label for="image_create_drive_name">{{ _("Identify as:") }}</label>
     <select name="drive_name" id="image_create_drive_name">
     <option value="">
-    {{ _("None") }}
+    {{ _("Generic device") }}
     </option>
     {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
     <option value="{{ drive.name }}">
@@ -620,7 +623,7 @@
     <label for="drive_format">{{ _("Format as:") }}</label>
     <select name="drive_format" id="drive_format">
     <option value="">
-    {{ _("None") }}
+    {{ _("Unformatted") }}
     </option>
     <option value="Lido 7.56">
     HFS + Lido

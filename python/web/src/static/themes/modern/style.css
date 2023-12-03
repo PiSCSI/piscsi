@@ -654,7 +654,7 @@ table#attached-devices td.parameters form {
 }
 
 table#attached-devices td.parameters form label {
-  display: none;
+  padding: 0 0.5rem 0 0;
 }
 
 table#attached-devices td.parameters form select {
