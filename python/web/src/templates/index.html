@@ -418,7 +418,17 @@
     {% for type in device_types.keys() %}
     <tr>
         <td>
+            {% if device_types[type]["name"] == type %}
+            {% if type in REMOVABLE_DEVICE_TYPES %}
+            <div>{{ _("Unknown Removable Disk Drive") }}</div>
+            {% elif type in DISK_DEVICE_TYPES %}
+            <div>{{ _("Unknown Fixed Disk Drive") }}</div>
+            {% else %}
+            <div>{{ _("Unknown Device") }}</div>
+            {% endif %}
+            {% else %}
             <div>{{ device_types[type]["name"] }}</div>
+            {% endif %}
         </td>
         <td>
             <div>{{ type }}</div>
