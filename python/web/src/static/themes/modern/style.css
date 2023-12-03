@@ -651,6 +651,7 @@ table#attached-devices td.actions {
 
 table#attached-devices td.parameters form {
   display: flex;
+  align-items: center;
 }
 
 table#attached-devices td.parameters form label {
