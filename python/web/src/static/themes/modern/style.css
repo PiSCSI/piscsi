@@ -858,7 +858,7 @@ section#upload a p {
 
 /*
  ------------------------------------------------------------------------------
- Index > Section: Attach peripheral devices
+ Index > Section: Attach devices
  ------------------------------------------------------------------------------
  */
 section#attach-devices table th:last-child,
@@ -868,6 +868,10 @@ section#attach-devices table td:last-child {
 
 section#attach-devices form {
   display: block;
+}
+
+section#attach-devices table form select.table-dropdown {
+  width: 16rem;
 }
 
 @media (max-width: 900px) {

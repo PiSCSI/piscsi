@@ -455,7 +455,7 @@
                 {% endfor %}
                 {% if type in DISK_DEVICE_TYPES %}
                 <label for="{{ type }}_drive_name">{{ _("Identify as:") }}</label>
-                <select name="drive_name" id="{{ type }}_drive_name">
+                <select name="drive_name" id="{{ type }}_drive_name" class="table-dropdown">
                 <option value="">
                 {{ _("Generic device") }}
                 </option>
@@ -489,7 +489,7 @@
                 {% endif %}
                 </select>
                 <label for="{{ type }}_image_file_name">{{ _("Image file:") }}</label>
-                <select name="file_name" id="{{ type }}_image_file_name" {% if type not in REMOVABLE_DEVICE_TYPES %}required{% endif %}>
+                <select name="file_name" id="{{ type }}_image_file_name" class="table-dropdown" {% if type not in REMOVABLE_DEVICE_TYPES %}required{% endif %}>
                 <option value="" selected {% if type not in REMOVABLE_DEVICE_TYPES %}disabled{% endif %}>
                 {% if type in REMOVABLE_DEVICE_TYPES %}
                 {{ _("None") }}
