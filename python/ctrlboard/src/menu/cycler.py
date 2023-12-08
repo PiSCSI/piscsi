@@ -23,7 +23,7 @@ class Cycler:
         self._menu_controller = menu_controller
         self.sock_cmd = sock_cmd
         self.piscsi_cmd = piscsi_cmd
-        self.file_cmd = FileCmds(sock_cmd=self.sock_cmd, piscsi=self.piscsi_cmd)
+        self.file_cmd = FileCmds(piscsi=self.piscsi_cmd)
         self.cycle_entries = self.populate_cycle_entries()
         self.return_string = return_string
         self.return_entry = return_entry

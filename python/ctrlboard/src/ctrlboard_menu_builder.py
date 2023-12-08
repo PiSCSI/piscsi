@@ -28,12 +28,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def __init__(self, piscsi_cmd: PiscsiCmds):
         super().__init__()
         self._piscsi_client = piscsi_cmd
-        self.file_cmd = FileCmds(
-            sock_cmd=piscsi_cmd.sock_cmd,
-            piscsi=piscsi_cmd,
-            token=piscsi_cmd.token,
-            locale=piscsi_cmd.locale,
-        )
+        self.file_cmd = FileCmds(piscsi=piscsi_cmd)
 
     def build(self, name: str, context_object=None) -> Menu:
         if name == CtrlBoardMenuBuilder.SCSI_ID_MENU:
