@@ -282,18 +282,6 @@ div.header div.login-form-title {
   display: none;
 }
 
-div.header div.authentication-disabled span.separator {
-  display: none;
-}
-
-div.header div.authentication-disabled span.wiki-help-text {
-  display: block;
-}
-
-div.header div.authentication-disabled a {
-  color: #fff;
-}
-
 @media (max-width: 900px) {
   div.header {
     flex-wrap: wrap;
@@ -663,10 +651,11 @@ table#attached-devices td.actions {
 
 table#attached-devices td.parameters form {
   display: flex;
+  align-items: center;
 }
 
 table#attached-devices td.parameters form label {
-  display: none;
+  padding: 0 0.5rem 0 0;
 }
 
 table#attached-devices td.parameters form select {
@@ -775,6 +764,11 @@ section#files p {
   margin-top: 1rem;
 }
 
+section#files details.subdir {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 section#files details.subdir summary.dirname {
   text-decoration: underline;
   font-family: monospace;
@@ -864,7 +858,7 @@ section#upload a p {
 
 /*
  ------------------------------------------------------------------------------
- Index > Section: Attach peripheral devices
+ Index > Section: Attach devices
  ------------------------------------------------------------------------------
  */
 section#attach-devices table th:last-child,
@@ -874,6 +868,10 @@ section#attach-devices table td:last-child {
 
 section#attach-devices form {
   display: block;
+}
+
+section#attach-devices table form select.table-dropdown {
+  width: 16rem;
 }
 
 @media (max-width: 900px) {

@@ -27,37 +27,31 @@
 
 <body class="{{ body_classes|join(' ') }}">
     <div class="header">
-        {% if env["auth_active"] %}
+        {% if env["logged_in"] or not env["auth_active"] %}
+        <div align="center" class="login-status logged-in">
             {% if env["logged_in"] %}
-                <div align="center" class="login-status logged-in">
-                    <span class="logged-in-as-text">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }}</span>
-                    <span class="separator">-</span>
-                    <span class="log-out-button"><a href="/logout">{{ _("Log Out") }}</a></span>
-                    <span class="separator">-</span>
-                    <span class="admin-button"><a href="/sys/admin">{{ _("Settings") }}</a></span>
-                </div>
-            {% else %}
-                <div align="center" class="login-status logged-out">
-                    <form method="POST" action="/login">
-                        <div class="login-form-title">{{ _("Log in to use Web Interface") }}</div>
-                        <span>
-                            <label for="username">{{ _("Username:") }}</label>
-                            <input type="text" name="username" id="username">
-                        </span>
-                        <span>
-                            <label for="password">{{ _("Password:") }}</label>
-                            <input type="password" name="password" id="password">
-                        </span>
-                        <input type="submit" value="Login">
-                    </form>
-                </div>
+            <span class="logged-in-as-text">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }}</span>
+            <span class="separator">-</span>
+            <span class="log-out-button"><a href="/logout">{{ _("Log Out") }}</a></span>
+            <span class="separator">-</span>
             {% endif %}
+            <span class="admin-button"><a href="/sys/admin">{{ _("Settings") }}</a></span>
+        </div>
         {% else %}
-            <div align="center" class="login-status authentication-disabled">
-                <span class="authentication-disabled-text">{{ _("Web Interface Authentication Disabled") }}</span>
-                <span class="separator">-</span>
-                <span class="wiki-help-text">{{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/PiSCSI/piscsi/wiki/Web-Interface#enable-authentication") }}</span>
-            </div>
+        <div align="center" class="login-status logged-out">
+            <form method="POST" action="/login">
+                <div class="login-form-title">{{ _("Log in to use Web Interface") }}</div>
+                <span>
+                    <label for="username">{{ _("Username:") }}</label>
+                    <input type="text" name="username" id="username">
+                </span>
+                <span>
+                    <label for="password">{{ _("Password:") }}</label>
+                    <input type="password" name="password" id="password">
+                </span>
+                <input type="submit" value="Login">
+            </form>
+        </div>
         {% endif %}
 
         <div align="center" class="title">
