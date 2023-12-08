@@ -43,7 +43,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             return self.create_device_info_menu(context_object)
 
         log = logging.getLogger(__name__)
-        log.error("Provided menu name cannot be built!")
+        log.debug("Provided menu name [%s] cannot be built!", name)
 
         return self.create_scsi_id_list_menu(context_object)
 
