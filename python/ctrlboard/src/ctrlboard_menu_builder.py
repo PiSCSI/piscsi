@@ -137,7 +137,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def create_images_menu(self, context_object=None):
         """Creates a sub menu showing all the available images"""
         menu = Menu(CtrlBoardMenuBuilder.IMAGES_MENU)
-        images_info = self.piscsi_cmd.list_images()
+        images_info = self._piscsi_client.list_images()
         menu.add_entry("Return", {"context": self.IMAGES_MENU, "action": self.ACTION_RETURN})
         images = images_info["files"]
         sorted_images = sorted(images, key=lambda d: d["name"])
