@@ -146,7 +146,7 @@
     {% if webmin_configured %}
     <ul>
       <li class="service-item extlink">
-        <a href="https://{{ env["ip_addr"] }}:10000/webmin/samba/" target=\"_blank\">{{ _("Manage the SMB server") }}</a>
+        <a href="https://{{ env["ip_addr"] }}:10000/samba/" target=\"_blank\">{{ _("Manage the SMB server") }}</a>
       </li>
     </ul>
     {% endif %}
@@ -158,6 +158,13 @@
         {{ _("FTP file sharing is disabled.") }}
     {% endif %}
     </li>
+    {% if webmin_configured %}
+    <ul>
+      <li class="service-item extlink">
+        <a href="https://{{ env["ip_addr"] }}:10000/vsftpd/" target=\"_blank\">{{ _("Manage the FTP server") }}</a>
+      </li>
+    </ul>
+    {% endif %}
     {% if macproxy_configured %}
     <li class="service-item enabled">
         {{ _("Vintage web proxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
