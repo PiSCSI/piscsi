@@ -1117,7 +1117,7 @@ function installPiscsiCtrlBoard() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config python3-rpi.gpio --assume-yes --no-install-recommends </dev/null
         # install python packages through apt that need compilation
         sudo apt-get install python3-cbor2 --assume-yes --no-install-recommends </dev/null
     fi
