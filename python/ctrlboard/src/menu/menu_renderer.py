@@ -30,7 +30,7 @@ class MenuRenderer(ABC):
         self.draw = ImageDraw.Draw(self.image)
         self.font = ImageFont.truetype(config.font_path, size=config.font_size)
         # just a sample text to work with the font height
-        _, self.font_height = self.font.getsize("ABCabc")
+        self.font_height = self.font.getbbox("ABCabc")[3]
         self.cursor_position = 0
         self.frame_start_row = 0
         self.render_timestamp = None
@@ -153,7 +153,8 @@ class MenuRenderer(ABC):
 
     def draw_fullsceen_message(self, text: str):
         """Draws a fullscreen message, i.e., a full-screen message."""
-        font_width, font_height = self.font.getsize(text)
+        font_width = self.font.getlength(text)
+        font_height = self.font.getbbox(text)[3]
         centered_width = (self.disp.width - font_width) / 2
         centered_height = (self.disp.height - font_height) / 2
 
@@ -171,7 +172,7 @@ class MenuRenderer(ABC):
     def draw_mini_message(self, text: str):
         """Draws a fullscreen message, i.e., a message covering only the center portion of
         the screen. The remaining areas stay visible."""
-        font_width, _ = self.font.getsize(text)
+        font_width = self.font.getlength(text)
         centered_width = (self.disp.width - font_width) / 2
         centered_height = (self.disp.height - self.font_height) / 2
 
@@ -270,7 +271,7 @@ class MenuRenderer(ABC):
 
     def setup_horizontal_scrolling(self, text):
         """Configure horizontal scrolling based on the configured screen dimensions."""
-        font_width, _ = self.font.getsize(text)
+        font_width = self.font.getlength(text)
         self._current_line_horizontal_overlap = font_width - self.disp.width
 
     def update(self):
