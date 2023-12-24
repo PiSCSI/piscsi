@@ -40,7 +40,8 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 	}
 	length -= offset;
 
-	bool has_valid_page_code = false;
+	// treat zero length as valid
+	bool has_valid_page_code = (length == 0);
 
 	// Parse the pages
 	while (length > 0) {
