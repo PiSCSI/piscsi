@@ -76,7 +76,7 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 		// Advance to the next page
 		const int size = buf[offset + 1] + 2;
 
-		length -= size;
+		length -= size + 1;
 		offset += size;
 	}
 
