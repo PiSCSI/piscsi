@@ -66,6 +66,16 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Not enough command parameters";
+
+	// check length computation
+	buf[3] = 8;
+	buf[10] = 2;
+	buf[12] = 1;
+	buf[13] = 10;
+	buf[14] = 0x24;
+	buf[24] = 0;
+	EXPECT_NO_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512))
+		<< "Multi-page length computation";
 }
 
 TEST(ScsiCommandUtilTest, ModeSelect10)
