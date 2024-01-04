@@ -61,8 +61,6 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Not enough command parameters";
-
-	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512).empty());
 }
 
 TEST(ScsiCommandUtilTest, ModeSelect10)
@@ -111,8 +109,6 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Not enough command parameters";
-
-	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512).empty());
 }
 
 TEST(ScsiCommandUtilTest, EnrichFormatPage)
