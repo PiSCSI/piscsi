@@ -46,6 +46,11 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Unsupported page 0 was not rejected";
 
+	// Page 1
+	buf[12] = 0x01;
+	EXPECT_NO_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512))
+		<< "Page 1 is supported";
+
 	// Page 3 (Format Device Page)
 	buf[12] = 0x03;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
