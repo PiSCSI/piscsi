@@ -387,6 +387,7 @@ class MockSCSICD : public SCSICD //NOSONAR Ignore inheritance hierarchy depth in
 	FRIEND_TEST(ScsiCdTest, GetSectorSizes);
 	FRIEND_TEST(ScsiCdTest, SetUpModePages);
 	FRIEND_TEST(ScsiCdTest, ReadToc);
+	FRIEND_TEST(ScsiCdTest, ModeSelect);
 
 	using SCSICD::SCSICD;
 };
