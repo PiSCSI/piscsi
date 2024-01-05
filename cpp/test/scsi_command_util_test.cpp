@@ -76,6 +76,16 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	buf[24] = 0;
 	EXPECT_NO_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512))
 		<< "Multi-page length computation";
+
+	// check length computation
+	buf[3] = 8;
+	buf[10] = 12;
+	buf[12] = 0;
+	buf[13] = 0;
+	buf[14] = 0;
+	buf[24] = 0;
+	EXPECT_NO_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, 12, 512))
+		<< "Empty ModeSelect6";
 }
 
 TEST(ScsiCommandUtilTest, ModeSelect10)
