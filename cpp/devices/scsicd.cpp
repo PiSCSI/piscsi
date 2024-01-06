@@ -176,6 +176,8 @@ void SCSICD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, in
 	if (wanted_sector_size != sector_size) {
 		LogDebug("Changing sector size from " + to_string(sector_size) + " to " + to_string(wanted_sector_size));
 		SetSectorSizeInBytes(wanted_sector_size);
+		ClearTrack();
+		CreateDataTrack();
 	}
 
 	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, sector_size);
