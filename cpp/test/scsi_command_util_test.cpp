@@ -46,6 +46,11 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Unsupported page 0 was not rejected";
 
+	// Page 1
+	buf[12] = 0x01;
+	EXPECT_NO_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512))
+		<< "Page 1 is supported";
+
 	// Page 3 (Format Device Page)
 	buf[12] = 0x03;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
@@ -62,7 +67,25 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Not enough command parameters";
 
-	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512).empty());
+	// check length computation
+	buf[3] = 8;
+	buf[10] = 2;
+	buf[12] = 1;
+	buf[13] = 10;
+	buf[14] = 0x24;
+	buf[24] = 0;
+	EXPECT_NO_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512))
+		<< "Multi-page length computation";
+
+	// check length computation
+	buf[3] = 8;
+	buf[10] = 12;
+	buf[12] = 0;
+	buf[13] = 0;
+	buf[14] = 0;
+	buf[24] = 0;
+	EXPECT_NO_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, 12, 512))
+		<< "Empty ModeSelect6";
 }
 
 TEST(ScsiCommandUtilTest, ModeSelect10)
@@ -111,8 +134,6 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
 		<< "Not enough command parameters";
-
-	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512).empty());
 }
 
 TEST(ScsiCommandUtilTest, EnrichFormatPage)
