@@ -8,24 +8,11 @@ from pathlib import Path
 from ua_parser import user_agent_parser
 from re import findall
 
-from flask import request, abort
+from flask import request
 from flask_babel import _
 from werkzeug.utils import secure_filename
 
 from piscsi.sys_cmds import SysCmds
-
-
-def working_dirs_exist(working_dirs):
-    """
-    Method for validating that working dirs exist.
-    Takes (tuple) of (str) working_dirs with paths to required dirs.
-    """
-    for dir_path in working_dirs:
-        if not Path(dir_path).exists():
-            abort(
-                503,
-                _(f"Please create directory: {dir_path}"),
-            )
 
 
 def get_valid_scsi_ids(devices, reserved_ids):

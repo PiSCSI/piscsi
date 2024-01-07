@@ -219,16 +219,3 @@ TEST(GpiobusRaspberry, GetREQ)
     bus.Acquire();
     EXPECT_EQ(false, bus.GetREQ());
 }
-
-TEST(GpiobusRaspberry, GetDP)
-{
-    SetableGpiobusRaspberry bus;
-
-    bus.TestSetGpios(0x00);
-    bus.TestSetGpioPin(PIN_DP, true);
-    bus.Acquire();
-    EXPECT_EQ(true, bus.GetDP());
-    bus.TestSetGpioPin(PIN_DP, false);
-    bus.Acquire();
-    EXPECT_EQ(false, bus.GetDP());
-}

@@ -92,7 +92,7 @@ function initialChecks() {
 }
 
 # Only to be used for pi-gen automated install
-function cacheSudo() {
+function sudoCache() {
     echo "Caching sudo password"
     echo raspberry | sudo -v -S
 }
@@ -948,8 +948,9 @@ function installSamba() {
 # Installs and configures Webmin
 function installWebmin() {
     WEBMIN_PATH="/usr/share/webmin"
-    WEBMIN_MODULE_CONFIG="/etc/webmin/netatalk2/config"
-    WEBMIN_MODULE_VERSION="1.0"
+    WEBMIN_NETATALK_MODULE_CONFIG="/etc/webmin/netatalk2/config"
+    WEBMIN_NETATALK_MODULE_VERSION="1.0"
+    WEBMIN_VSFTPD_MODULE_VERSION="2023-12-10"
 
     if [ -d "$WEBMIN_PATH" ]; then
         echo
@@ -967,25 +968,30 @@ function installWebmin() {
     echo "Installing packages..."
     sudo apt-get install curl libcgi-session-perl --no-install-recommends --assume-yes </dev/null
     curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
-    sudo sh setup-repos.sh
+    sudo sh setup-repos.sh -f
     rm setup-repos.sh
-    sudo apt-get install webmin --install-recommends </dev/null
+    sudo apt-get install webmin --no-install-recommends --assume-yes </dev/null
     echo
-    echo "Downloading and installing Webmin module..."
-    if [[ -f "$WEBMIN_MODULE_CONFIG" ]]; then
-        echo "$WEBMIN_MODULE_CONFIG already exists; will not modify..."
-	WEBMIN_MODULE_FLAG=1
+    echo "Downloading and installing Webmin modules..."
+    if [[ -f "$WEBMIN_NETATALK_MODULE_CONFIG" ]]; then
+        echo "$WEBMIN_NETATALK_MODULE_CONFIG already exists; will not modify..."
+        WEBMIN_MODULE_FLAG=1
     fi
 
     rm netatalk2-wbm.tgz 2> /dev/null || true
-    wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_MODULE_VERSION/netatalk2-wbm-$WEBMIN_MODULE_VERSION.tgz" </dev/null
+    wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_NETATALK_MODULE_VERSION/netatalk2-wbm-$WEBMIN_NETATALK_MODULE_VERSION.tgz" </dev/null
     sudo "$WEBMIN_PATH/install-module.pl" netatalk2-wbm.tgz
 
     if [[ ! $WEBMIN_MODULE_FLAG ]]; then
-        echo "Modifying $WEBMIN_MODULE_CONFIG..."
-        sudo sed -i 's@/usr/sbin@/usr/local/sbin@' "$WEBMIN_MODULE_CONFIG"
+        echo "Modifying $WEBMIN_NETATALK_MODULE_CONFIG..."
+        sudo sed -i 's@/usr/sbin@/usr/local/sbin@' "$WEBMIN_NETATALK_MODULE_CONFIG"
     fi
     rm netatalk2-wbm.tgz || true
+
+    rm vsftpd.wbm.gz 2> /dev/null || true
+    wget -O vsftpd.wbm.tgz "https://github.com/rdmark/vsftpd-webmin/releases/download/$WEBMIN_VSFTPD_MODULE_VERSION/vsftpd-$WEBMIN_VSFTPD_MODULE_VERSION.wbm.gz" </dev/null
+    sudo "$WEBMIN_PATH/install-module.pl" vsftpd.wbm.tgz
+    rm vsftpd.wbm.tgz || true
 }
 
 # updates configuration files and installs packages needed for the OLED screen script
@@ -1111,7 +1117,7 @@ function installPiscsiCtrlBoard() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config python3-rpi.gpio --assume-yes --no-install-recommends </dev/null
         # install python packages through apt that need compilation
         sudo apt-get install python3-cbor2 --assume-yes --no-install-recommends </dev/null
     fi
@@ -1465,7 +1471,8 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Add a 3rd party apt repository"
               echo "- Install and start the Webmin webapp"
-	      echo "- Install the netatalk2 Webmin module"
+              echo "- Install the netatalk2 Webmin module"
+              echo "- Install the vsftpd Webmin module"
               installWebmin
               echo "Install Webmin - Complete!"
 	      echo "The Webmin webapp should now be listening to port 10000 on this system"
@@ -1503,8 +1510,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "17" ]) ; do
-       echo -n "Enter your choice (0-17) or CTRL-C to exit: "
+   until [ $choice -ge "1" ] && ([ $choice -eq "99" ] || [ $choice -le "17" ]) ; do
+       echo -n "Enter your choice (1-17) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1537,7 +1544,7 @@ function showMenu() {
     echo "EXPERIMENTAL FEATURES"
     echo " 15) Share the images dir over AppleShare (requires Netatalk)"
     echo " 16) Compile PiSCSI binaries"
-    echo " 17) Install Webmin to manage Netatalk and Samba"
+    echo " 17) Install Webmin to manage the system and companion apps"
 }
 
 # parse arguments passed to the script

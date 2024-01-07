@@ -36,6 +36,7 @@ services:
       - "127.0.0.1:${WEB_HTTPS_PORT:-8443}:443"
     environment:
      - BACKEND_PASSWORD=${BACKEND_PASSWORD:-}
+     - RESET_VENV=${RESET_VENV:-}
     init: true
     command: [
       "--backend-host=${BACKEND_HOST:-backend}",

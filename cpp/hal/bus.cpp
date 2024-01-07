@@ -60,23 +60,28 @@ const char* BUS::GetPhaseStrRaw(phase_t current_phase) {
 	return it != phase_str_mapping.end() ? it->second : "INVALID";
 }
 
-//---------------------------------------------------------------------------
+// Phase Table
+// Reference Table 8: https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
+// This determines the phase based upon the Msg, C/D and I/O signals.
 //
-//	Phase Table
-//    Reference Table 8: https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
-//  This determines the phase based upon the Msg, C/D and I/O signals.
-//
-//---------------------------------------------------------------------------
+// |MSG|C/D|I/O| Phase
+// | 0 | 0 | 0 | DATA OUT
+// | 0 | 0 | 1 | DATA IN
+// | 0 | 1 | 0 | COMMAND
+// | 0 | 1 | 1 | STATUS
+// | 1 | 0 | 0 | RESERVED
+// | 1 | 0 | 1 | RESERVED
+// | 1 | 1 | 0 | MESSAGE OUT
+// | 1 | 1 | 1 | MESSAGE IN
 const array<phase_t, 8> BUS::phase_table = {
-						// | MSG|C/D|I/O |
-	phase_t::dataout,	// |  0 | 0 | 0  |
-	phase_t::datain,	// |  0 | 0 | 1  |
-	phase_t::command,	// |  0 | 1 | 0  |
-	phase_t::status,	// |  0 | 1 | 1  |
-	phase_t::reserved,	// |  1 | 0 | 0  |
-	phase_t::reserved,	// |  1 | 0 | 1  |
-	phase_t::msgout,	// |  1 | 1 | 0  |
-	phase_t::msgin		// |  1 | 1 | 1  |
+    phase_t::dataout,
+    phase_t::datain,
+    phase_t::command,
+    phase_t::status,
+    phase_t::reserved,
+    phase_t::reserved,
+    phase_t::msgout,
+    phase_t::msgin
 };
 
 //---------------------------------------------------------------------------

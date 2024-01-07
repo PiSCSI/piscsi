@@ -28,12 +28,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def __init__(self, piscsi_cmd: PiscsiCmds):
         super().__init__()
         self._piscsi_client = piscsi_cmd
-        self.file_cmd = FileCmds(
-            sock_cmd=piscsi_cmd.sock_cmd,
-            piscsi=piscsi_cmd,
-            token=piscsi_cmd.token,
-            locale=piscsi_cmd.locale,
-        )
+        self.file_cmd = FileCmds(piscsi=piscsi_cmd)
 
     def build(self, name: str, context_object=None) -> Menu:
         if name == CtrlBoardMenuBuilder.SCSI_ID_MENU:
@@ -48,7 +43,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             return self.create_device_info_menu(context_object)
 
         log = logging.getLogger(__name__)
-        log.error("Provided menu name cannot be built!")
+        log.debug("Provided menu name [%s] cannot be built!", name)
 
         return self.create_scsi_id_list_menu(context_object)
 
@@ -142,7 +137,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def create_images_menu(self, context_object=None):
         """Creates a sub menu showing all the available images"""
         menu = Menu(CtrlBoardMenuBuilder.IMAGES_MENU)
-        images_info = self.piscsi_cmd.list_images()
+        images_info = self._piscsi_client.list_images()
         menu.add_entry("Return", {"context": self.IMAGES_MENU, "action": self.ACTION_RETURN})
         images = images_info["files"]
         sorted_images = sorted(images, key=lambda d: d["name"])

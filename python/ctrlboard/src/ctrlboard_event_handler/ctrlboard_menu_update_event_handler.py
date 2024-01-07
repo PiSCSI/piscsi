@@ -106,8 +106,9 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 handler_function(info_object)
         except AttributeError:
             log = logging.getLogger(__name__)
-            log.error(
-                "Handler function not found or returned an error. Skipping.",
+            log.debug(
+                "Handler function [%s] not found or returned an error. Skipping.",
+                str(handler_function_name),
             )
 
     # noinspection PyUnusedLocal
@@ -194,7 +195,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         """Method handles the rotary button press in the profile selection menu
         for selecting a profile to load."""
         if info_object is not None and "name" in info_object:
-            file_cmd = FileCmds(sock_cmd=self.sock_cmd, piscsi=self.piscsi_cmd)
+            file_cmd = FileCmds(piscsi=self.piscsi_cmd)
             result = file_cmd.read_config(file_name=info_object["name"])
             if result["status"] is True:
                 self._menu_controller.show_message("Profile loaded!")

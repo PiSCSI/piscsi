@@ -24,6 +24,7 @@
     </ul>
 </details>
 
+{% if env["cfg_dir_exists"] %}
 <p>
 <form action="/config/action" method="post" id="config-actions">
     <label for="config_load_name">{{ _("File Name:") }}</label>
@@ -54,6 +55,13 @@
     <input type="submit" value="{{ _("Save") }}">
 </form>
 </p>
+{% else %}
+
+<div class="notice">
+{{ _("Please create the PiSCSI configuration dir to use configurations:")}} {{ CFG_DIR }}
+</div>
+
+{% endif %}
 
 <table id="attached-devices" border="black" cellpadding="3" summary="List of attached devices">
     <tbody>
@@ -82,13 +90,12 @@
             {% endif %}
             <td class="name" align="center">{{ device.device_name }}</td>
             <td class="parameters">
-                {% if "No Media" in device.status %}
+            {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
+                    <label for="device_list_file_name_{{ device.id }}_{{ device.unit }}">{{ _("File:") }}</label>
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input name="type" type="hidden" value="{{ device.device_type }}">
-                    <input name="file_size" type="hidden" value="{{ device.size }}">
-                    <label for="device_list_file_name_{{ device.id }}_{{ device.unit }}">{{ _("File name") }}</label>
                     <select type="select" name="file_name" id="device_list_file_name_{{ device.id }}_{{ device.unit }}">
                     {% for f in files|sort(attribute='name') %}
                     {% if device.device_type == "SCCD" %}
@@ -106,7 +113,7 @@
                     {% endif %}
                     {% endfor %}
                     </select>
-                    <input type="submit" value="{{ _("Attach") }}">
+                    <input type="submit" value="{{ _("Insert") }}">
                 </form>
             {% else %}
                 {% if device.params %}
@@ -120,7 +127,14 @@
                         {% endif %}
                     {% endfor %}
                 {% elif device.file %}
-                    <span class="filename">{{ device.file }}</span>
+                <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
+                    <label>{{ device.file }}</label>
+                    {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="unit" type="hidden" value="{{ device.unit }}">
+                    <input type="submit" value="{{ _("Eject") }}">
+                    {% endif %}
+                </form>
                 {% endif %}
             {% endif %}
             </td>
@@ -135,13 +149,6 @@
             </td>
             <td class="actions" align="center">
                 {% if device.id in scsi_ids["occupied_ids"] %}
-                {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
-                <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="unit" type="hidden" value="{{ device.unit }}">
-                    <input type="submit" value="{{ _("Eject") }}">
-                </form>
-                {% endif %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('{{ _("Detach Device?") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
@@ -209,12 +216,8 @@
     </ul>
 </details>
 
-{% if not files|length: %}
-<div class="notice">
-    {{ _("The images directory is currently empty.") }}
-</div>
-{% else %}
-
+{% if env["image_dir_exists"] %}
+{% if files|length %}
 <div>
 {% for subdir, group in formatted_image_files.items() %}
 
@@ -309,7 +312,6 @@
                 {% else %}
                 <form action="/scsi/attach" method="post" class="file-attach">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
-                    <input name="file_size" type="hidden" value="{{ file['size'] }}">
                     <label for="image_list_scsi_id_{{ file["name"] }}">{{ _("ID") }}</label>
                     <select name="scsi_id" id="image_list_scsi_id_{{ file["name"] }}">
                         {% for id in scsi_ids["valid_ids"] %}
@@ -370,8 +372,170 @@
 </details>
 {% endfor %}
 </div>
+
+{% else %}
+
+<div class="notice">
+    {{ _("The images directory is currently empty.") }}
+</div>
 {% endif %}
-<p><small>{{ _("%(disk_space)s MiB disk space remaining for images", disk_space=env["free_disk_space"]) }}</small></p>
+<p>
+    <small>{{ _("%(disk_space)s MiB disk space remaining for images", disk_space=env["free_disk_space"]) }}</small>
+</p>
+
+{% else %}
+
+<div class="notice">
+    {{ _("Please create the PiSCSI images dir to work with disk images:")}} {{ env["image_dir"] }}
+</div>
+
+{% endif %}
+</section>
+
+<hr/>
+
+<section id="attach-devices">
+<details>
+    <summary class="heading">
+        {{ _("Attach Device") }}
+    </summary>
+    <ul>
+        </li>
+        {% if bridge_configured %}
+        <li>{{ _("The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
+        {% else %}
+        <li>{{ _("Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
+        {% endif %}
+        <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types") }}
+        </li>
+    </ul>
+</details>
+<table border="black" cellpadding="3" summary="List of peripheral devices">
+    <tr>
+        <th scope="col">{{ _("Device") }}</th>
+        <th scope="col">{{ _("Key") }}</th>
+        <th scope="col">{{ _("Actions") }}</th>
+    </tr>
+    {% for type in device_types.keys() %}
+    <tr>
+        <td>
+            {% if device_types[type]["name"] == type %}
+            {% if type in REMOVABLE_DEVICE_TYPES %}
+            <div>{{ _("Unknown Removable Disk Drive") }}</div>
+            {% elif type in DISK_DEVICE_TYPES %}
+            <div>{{ _("Unknown Fixed Disk Drive") }}</div>
+            {% else %}
+            <div>{{ _("Unknown Device") }}</div>
+            {% endif %}
+            {% else %}
+            <div>{{ device_types[type]["name"] }}</div>
+            {% endif %}
+        </td>
+        <td>
+            <div>{{ type }}</div>
+        </td>
+        <td>
+            <form action="/scsi/attach" method="post" class="device-attach">
+                <input name="type" type="hidden" value="{{ type }}">
+                {% for key, value in device_types[type]["params"] | dictsort %}
+                <label for="param_{{ type }}_{{ key }}">{{ key }}:</label>
+                {% if value.isnumeric() %}
+                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="number" value="{{ value }}">
+                {% elif key == "interface" %}
+                <select name="param_{{ key }}" id="param_{{ type }}_{{ key }}">
+                {% for if in netinfo["ifs"] %}
+                    <option value="{{ if }}">
+                        {{ if }}
+                    </option>
+                {% endfor %}
+                </select>
+                {% else %}
+                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
+                {% endif %}
+                {% endfor %}
+                {% if type in DISK_DEVICE_TYPES %}
+                <label for="{{ type }}_drive_name">{{ _("Identify as:") }}</label>
+                <select name="drive_name" id="{{ type }}_drive_name" class="table-dropdown">
+                <option value="">
+                {{ _("Generic device") }}
+                </option>
+                {% if type == "SCHD" %}
+                {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCCD" %}
+                {% for drive in drive_properties["cd_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCRM" %}
+                {% for drive in drive_properties["rm_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCMO" %}
+                {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                </select>
+                <label for="{{ type }}_image_file_name">{{ _("Image file:") }}</label>
+                <select name="file_name" id="{{ type }}_image_file_name" class="table-dropdown" {% if type not in REMOVABLE_DEVICE_TYPES %}required{% endif %}>
+                <option value="" selected {% if type not in REMOVABLE_DEVICE_TYPES %}disabled{% endif %}>
+                {% if type in REMOVABLE_DEVICE_TYPES %}
+                {{ _("None") }}
+                {% else %}
+                {{ _("Choose a file...") }}
+                {% endif %}
+                </option>
+                {% for f in files|sort(attribute='name') %}
+                {% if type == "SCHD" %}
+                {% if f["name"].lower().endswith(env['hd_suffixes']) %}
+                <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+                {% endif %}
+                {% elif type == "SCCD" %}
+                {% if f["name"].lower().endswith(env['cd_suffixes']) %}
+                <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+                {% endif %}
+                {% elif type == "SCRM" %}
+                {% if f["name"].lower().endswith(env['rm_suffixes']) %}
+                <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+                {% endif %}
+                {% elif type == "SCMO" %}
+                {% if f["name"].lower().endswith(env['mo_suffixes']) %}
+                <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+                {% endif %}
+                {% else %}
+                <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+                {% endif %}
+                {% endfor %}
+                </select>
+                {% endif %}
+                <label for="{{ type }}_scsi_id">{{ _("ID") }}</label>
+                <select name="scsi_id" id="{{ type }}_scsi_id">
+                {% for id in scsi_ids["valid_ids"] %}
+                    <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
+                        {{ id }}
+                    </option>
+                {% endfor %}
+                </select>
+                <label for="{{ type }}_unit">{{ _("LUN") }}</label>
+                <input class="lun" name="unit" id="{{ type }}_unit" type="number" value="0" min="0" max="31" step="1" size="3">
+                <input type="submit" value="{{ _("Attach") }}" title="{{ _("Attach") }}">
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 </section>
 
 <hr/>
@@ -429,6 +593,69 @@
         {{ _("The file uploading functionality requires JavaScript.") }}
     </div>
 </noscript>
+
+<hr/>
+
+<section id="create-image">
+<details>
+    <summary class="heading">
+        {{ _("Create Empty Disk Image") }}
+    </summary>
+    <ul>
+        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types#image-types") }}</li>
+        <li>{{ _("It is not recommended to use the Lido hard disk driver with the Macintosh Plus.") }}</li>
+    </ul>
+</details>
+
+<form action="/files/create" method="post">
+    <label for="image_create_file_name">{{ _("File Name:") }}</label>
+    <input name="file_name" id="image_create_file_name" required="" type="text">
+    <label for="image_create_type">{{ _("Type:") }}</label>
+    <select name="type" id="image_create_type">
+        {% for key, value in image_suffixes_to_create.items() %}
+        <option value="{{ key }}">
+        {{ value }} [.{{ key }}]
+        </option>
+        {% endfor %}
+    </select>
+    <label for="image_create_size">{{ _("Size:") }}</label>
+    <input name="size" id="image_create_size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
+    <label for="image_create_drive_name">{{ _("Identify as:") }}</label>
+    <select name="drive_name" id="image_create_drive_name">
+    <option value="">
+    {{ _("Generic device") }}
+    </option>
+    {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
+    <option value="{{ drive.name }}">
+    {{ drive.name }}
+    </option>
+    {% endfor %}
+    </select>
+    <label for="drive_format">{{ _("Format as:") }}</label>
+    <select name="drive_format" id="drive_format">
+    <option value="">
+    {{ _("Unformatted") }}
+    </option>
+    <option value="Lido 7.56">
+    HFS + Lido
+    </option>
+    <option value="SpeedTools 3.6">
+    HFS + SpeedTools
+    </option>
+    <option value="FAT16">
+    FAT16
+    </option>
+    <option value="FAT32">
+    FAT32
+    </option>
+    </select>
+    <input type="submit" value="{{ _("Create") }}">
+</form>
+</section>
+
+<section id="create-drive">
+    <a href="/drive/list"><p>{{ _("Create Disk Image With Properties") }}</p></a>
+</section>
 
 <hr/>
 
@@ -507,166 +734,4 @@
 
 <hr/>
 
-<section id="create-image">
-<details>
-    <summary class="heading">
-        {{ _("Create Empty Disk Image") }}
-    </summary>
-    <ul>
-        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types#image-types") }}</li>
-        <li>{{ _("It is not recommended to use the Lido hard disk driver with the Macintosh Plus.") }}</li>
-    </ul>
-</details>
-
-<form action="/files/create" method="post">
-    <label for="image_create_file_name">{{ _("File Name:") }}</label>
-    <input name="file_name" id="image_create_file_name" required="" type="text">
-    <label for="image_create_type">{{ _("Type:") }}</label>
-    <select name="type" id="image_create_type">
-        {% for key, value in image_suffixes_to_create.items() %}
-        <option value="{{ key }}">
-        {{ value }} [.{{ key }}]
-        </option>
-        {% endfor %}
-    </select>
-    <label for="image_create_size">{{ _("Size:") }}</label>
-    <input name="size" id="image_create_size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
-    <label for="image_create_drive_name">{{ _("Masquerade as:") }}</label>
-    <select name="drive_name" id="image_create_drive_name">
-    <option value="">
-    {{ _("None") }}
-    </option>
-    {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
-    <option value="{{ drive.name }}">
-    {{ drive.name }}
-    </option>
-    {% endfor %}
-    </select>
-    <label for="drive_format">{{ _("Format as:") }}</label>
-    <select name="drive_format" id="drive_format">
-    <option value="">
-    {{ _("None") }}
-    </option>
-    <option value="Lido 7.56">
-    HFS + Lido
-    </option>
-    <option value="SpeedTools 3.6">
-    HFS + SpeedTools
-    </option>
-    <option value="FAT16">
-    FAT16
-    </option>
-    <option value="FAT32">
-    FAT32
-    </option>
-    </select>
-    <input type="submit" value="{{ _("Create") }}">
-</form>
-</section>
-
-<section id="create-drive">
-    <a href="/drive/list"><p>{{ _("Create Disk Image With Properties") }}</p></a>
-</section>
-
-<hr/>
-
-<section id="attach-devices">
-<details>
-    <summary class="heading">
-        {{ _("Attach Peripheral Device") }}
-    </summary>
-    <ul>
-        </li>
-        {% if bridge_configured %}
-        <li>{{ _("The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
-        {% else %}
-        <li>{{ _("Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
-        {% endif %}
-        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/PiSCSI/piscsi/wiki/Vintage-Web-Proxy#macproxy") }}</li>
-        </li>
-        <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types") }}
-        </li>
-    </ul>
-</details>
-<table border="black" cellpadding="3" summary="List of peripheral devices">
-    <tr>
-        <th scope="col">{{ _("Device") }}</th>
-        <th scope="col">{{ _("Key") }}</th>
-        <th scope="col">{{ _("Parameters and Actions") }}</th>
-    </tr>
-    {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
-    <tr>
-        <td>
-            <div>{{ device_types[type]["name"] }}</div>
-        </td>
-        <td>
-            <div>{{ type }}</div>
-        </td>
-        <td>
-            <form action="/scsi/attach_device" method="post" class="device-attach">
-                <input name="type" type="hidden" value="{{ type }}">
-                {% for key, value in device_types[type]["params"] | dictsort %}
-                <label for="param_{{ type }}_{{ key }}">{{ key }}:</label>
-                {% if value.isnumeric() %}
-                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="number" value="{{ value }}">
-                {% elif key == "interface" %}
-                <select name="param_{{ key }}" id="param_{{ type }}_{{ key }}">
-                {% for if in netinfo["ifs"] %}
-                    <option value="{{ if }}">
-                        {{ if }}
-                    </option>
-                {% endfor %}
-                </select>
-                {% else %}
-                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
-                {% endif %}
-                {% endfor %}
-                {% if type in REMOVABLE_DEVICE_TYPES %}
-                <label for="{{ type }}_drive_name">{{ _("Masquerade as:") }}</label>
-                <select name="drive_name" id="{{ type }}_drive_name">
-                <option value="">
-                {{ _("None") }}
-                </option>
-                {% if type == "SCCD" %}
-                {% for drive in drive_properties["cd_conf"] | sort(attribute='name') %}
-                <option value="{{ drive.name }}">
-                {{ drive.name }}
-                </option>
-                {% endfor %}
-                {% endif %}
-                {% if type == "SCRM" %}
-                {% for drive in drive_properties["rm_conf"] | sort(attribute='name') %}
-                <option value="{{ drive.name }}">
-                {{ drive.name }}
-                </option>
-                {% endfor %}
-                {% endif %}
-                {% if type == "SCMO" %}
-                {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
-                <option value="{{ drive.name }}">
-                {{ drive.name }}
-                </option>
-                {% endfor %}
-                {% endif %}
-                </select>
-                {% endif %}
-                <label for="{{ type }}_scsi_id">{{ _("ID") }}</label>
-                <select name="scsi_id" id="{{ type }}_scsi_id">
-                {% for id in scsi_ids["valid_ids"] %}
-                    <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
-                        {{ id }}
-                    </option>
-                {% endfor %}
-                </select>
-                <label for="{{ type }}_unit">{{ _("LUN") }}</label>
-                <input class="lun" name="unit" id="{{ type }}_unit" type="number" value="0" min="0" max="31" step="1" size="3">
-                <input type="submit" value="{{ _("Attach") }}" title="{{ _("Attach") }}">
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-</section>
-
-<hr/>
 {% endblock content %}

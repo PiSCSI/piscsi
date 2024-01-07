@@ -1,10 +1,11 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -14,10 +15,11 @@
 #include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <sys/time.h>
+#include <time.h>
 #ifdef __linux__
 #include <sys/epoll.h>
 #endif
+#include <chrono>
 
 using namespace std;
 
@@ -276,9 +278,12 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " us after " +
+                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_NS) + " ns after " +
                 		to_string(delay_after_bytes) + " bytes");
-                SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+                EnableIRQ();
+                const timespec ts = { .tv_sec = 0, .tv_nsec = SCSI_DELAY_SEND_DATA_DAYNAPORT_NS};
+                nanosleep(&ts, nullptr);
+                DisableIRQ();
             }
 
             // Set the DATA signals
@@ -403,42 +408,23 @@ bool GPIOBUS::PollSelectEvent()
 #endif
 }
 
-//---------------------------------------------------------------------------
-//
-//	Cancel SEL signal event
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::ClearSelectEvent()
-{
-    GPIO_FUNCTION_TRACE
-}
-
-//---------------------------------------------------------------------------
-//
-//	Wait for signal change
-//
-//---------------------------------------------------------------------------
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
-    // Get current time
-    const uint32_t now = SysTimer::GetTimerLow();
+    const auto now = chrono::steady_clock::now();
 
-    // Calculate timeout (3000ms)
-    const uint32_t timeout = 3000 * 1000;
-
+    // Wait up to 3 s
     do {
-        // Immediately upon receiving a reset
         Acquire();
-        if (GetRST()) {
-            return false;
-        }
 
-        // Check for the signal edge
         if (GetSignal(pin) == ast) {
             return true;
         }
-    } while ((SysTimer::GetTimerLow() - now) < timeout);
 
-    // We timed out waiting for the signal
+        // Abort on a reset
+        if (GetRST()) {
+            return false;
+        }
+    } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
+
     return false;
 }

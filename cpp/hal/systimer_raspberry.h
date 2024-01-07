@@ -32,8 +32,6 @@ class SysTimer_Raspberry : public PlatformSpecificTimer
     void Init() override;
     // Get system timer low byte
     uint32_t GetTimerLow() override;
-    // Get system timer high byte
-    uint32_t GetTimerHigh() override;
     // Sleep for N nanoseconds
     void SleepNsec(uint32_t nsec) override;
     // Sleep for N microseconds

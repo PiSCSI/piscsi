@@ -53,7 +53,6 @@ public:
 	MOCK_METHOD(void, SetENB, (bool), (override));
 	MOCK_METHOD(uint8_t, GetDAT, (), (override));
 	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
-	MOCK_METHOD(bool, GetDP, (), (const override));
 	MOCK_METHOD(uint32_t, Acquire, (), (override));
 	MOCK_METHOD(int, CommandHandShake, (vector<uint8_t>&), (override));
 	MOCK_METHOD(int, ReceiveHandShake, (uint8_t *, int), (override));
@@ -61,13 +60,11 @@ public:
 	MOCK_METHOD(bool, GetSignal, (int), (const override));
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
 	MOCK_METHOD(bool, PollSelectEvent, (), (override));
-	MOCK_METHOD(void, ClearSelectEvent, (), (override));
 	MOCK_METHOD(unique_ptr<DataSample>, GetSample, (uint64_t), (override));
 	MOCK_METHOD(void, PinConfig, (int, int), (override));
     MOCK_METHOD(void, PullConfig, (int , int ), (override));
     MOCK_METHOD(void, SetControl, (int , bool ), (override));
     MOCK_METHOD(void, SetMode, (int , int ), (override));
-    MOCK_METHOD(int, GetMode, (int ), (override));
 
 	MockBus() = default;
 	~MockBus() override = default;
@@ -352,7 +349,7 @@ public:
 	MOCK_METHOD(void, FlushCache, (), (override));
 	MOCK_METHOD(void, Open, (), (override));
 
-	MockDisk() : Disk(SCHD, 0) {}
+	MockDisk() : Disk(SCHD, 0, { 512, 1024, 2048, 4096 }) {}
 	~MockDisk() override = default;
 };
 
@@ -363,10 +360,15 @@ class MockSCSIHD : public SCSIHD //NOSONAR Ignore inheritance hierarchy depth in
 	FRIEND_TEST(ScsiHdTest, FinalizeSetup);
 	FRIEND_TEST(ScsiHdTest, GetProductData);
 	FRIEND_TEST(ScsiHdTest, SetUpModePages);
-	FRIEND_TEST(PiscsiExecutorTest, SetSectorSize);
+	FRIEND_TEST(ScsiHdTest, GetSectorSizes);
 	FRIEND_TEST(ScsiHdTest, ModeSelect);
+	FRIEND_TEST(PiscsiExecutorTest, SetSectorSize);
 
-	using SCSIHD::SCSIHD;
+public:
+
+	MockSCSIHD(int lun, bool removable) : SCSIHD(lun, removable, scsi_level::scsi_2) {}
+	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(0, false, scsi_level::scsi_2, sector_sizes) {}
+	~MockSCSIHD() override = default;
 };
 
 class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
@@ -382,6 +384,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy 
 
 class MockSCSICD : public SCSICD //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
+	FRIEND_TEST(ScsiCdTest, GetSectorSizes);
 	FRIEND_TEST(ScsiCdTest, SetUpModePages);
 	FRIEND_TEST(ScsiCdTest, ReadToc);
 

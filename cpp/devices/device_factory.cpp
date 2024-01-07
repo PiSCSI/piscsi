@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/network_util.h"
+#include "shared/piscsi_util.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
 #include "scsimo.h"
@@ -20,39 +20,14 @@
 
 using namespace std;
 using namespace piscsi_util;
-using namespace network_util;
-
-DeviceFactory::DeviceFactory()
-{
-	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
-	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
-	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
-	sector_sizes[SCCD] = { 512, 2048};
-
-	extension_mapping["hd1"] = SCHD;
-	extension_mapping["hds"] = SCHD;
-	extension_mapping["hda"] = SCHD;
-	extension_mapping["hdn"] = SCHD;
-	extension_mapping["hdi"] = SCHD;
-	extension_mapping["nhd"] = SCHD;
-	extension_mapping["hdr"] = SCRM;
-	extension_mapping["mos"] = SCMO;
-	extension_mapping["iso"] = SCCD;
-	extension_mapping["is1"] = SCCD;
-
-	device_mapping["bridge"] = SCBR;
-	device_mapping["daynaport"] = SCDP;
-	device_mapping["printer"] = SCLP;
-	device_mapping["services"] = SCHS;
-}
 
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
-	if (const auto& it = extension_mapping.find(GetExtensionLowerCase(filename)); it != extension_mapping.end()) {
+	if (const auto& it = EXTENSION_MAPPING.find(GetExtensionLowerCase(filename)); it != EXTENSION_MAPPING.end()) {
 		return it->second;
 	}
 
-	if (const auto& it = device_mapping.find(filename); it != device_mapping.end()) {
+	if (const auto& it = DEVICE_MAPPING.find(filename); it != DEVICE_MAPPING.end()) {
 		return it->second;
 	}
 
@@ -75,8 +50,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
-			device = make_shared<SCSIHD>(lun, sector_sizes.find(type)->second, false,
-					ext == "hd1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
+			device = make_shared<SCSIHD>(lun, false, ext == "hd1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {
@@ -88,17 +62,17 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	}
 
 	case SCRM:
-		device = make_shared<SCSIHD>(lun, sector_sizes.find(type)->second, true);
+		device = make_shared<SCSIHD>(lun, true, scsi_level::scsi_2);
 		device->SetProduct("SCSI HD (REM.)");
 		break;
 
 	case SCMO:
-		device = make_shared<SCSIMO>(lun, sector_sizes.find(type)->second);
+		device = make_shared<SCSIMO>(lun);
 		device->SetProduct("SCSI MO");
 		break;
 
 	case SCCD:
-		device = make_shared<SCSICD>(lun, sector_sizes.find(type)->second,
+		device = make_shared<SCSICD>(lun,
             GetExtensionLowerCase(filename) == "is1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
 		device->SetProduct("SCSI CD-ROM");
 		break;
@@ -134,16 +108,4 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	}
 
 	return device;
-}
-
-// TODO Move to respective device, which may require changes in the SCSI_HD/SCSIHD_NEC inheritance hierarchy
-unordered_set<uint32_t> DeviceFactory::GetSectorSizes(PbDeviceType type) const
-{
-	const auto& it = sector_sizes.find(type);
-	if (it != sector_sizes.end()) {
-		return it->second;
-	}
-	else {
-		return {};
-	}
 }

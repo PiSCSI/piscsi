@@ -36,6 +36,12 @@ if [ $ERROR = 1 ] ; then
     exit 1
 fi
 
+# Force rebuild the venv if RESET_VENV is set to any non-empty value
+if [[ "$RESET_VENV" ]]; then
+    echo "Force-removing old venv"
+    sudo rm -rf venv
+fi 
+
 # Test for two known broken venv states
 if test -e venv; then
     GOOD_VENV=true

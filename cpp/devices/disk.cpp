@@ -695,7 +695,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 
 void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 {
-	if (DeviceFactory device_factory; !device_factory.GetSectorSizes(GetType()).contains(size_in_bytes)) {
+	if (!GetSupportedSectorSizes().contains(size_in_bytes)) {
     	throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
 	}
 
@@ -708,9 +708,9 @@ uint32_t Disk::GetConfiguredSectorSize() const
 	return configured_sector_size;
 }
 
-bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t configured_size)
+bool Disk::SetConfiguredSectorSize(uint32_t configured_size)
 {
-	if (!device_factory.GetSectorSizes(GetType()).contains(configured_size)) {
+	if (!supported_sector_sizes.contains(configured_size)) {
 		return false;
 	}
 

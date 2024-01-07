@@ -19,10 +19,8 @@
 
 using namespace scsi_command_util;
 
-SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCMO, lun)
+SCSIMO::SCSIMO(int lun) : Disk(SCMO, lun, { 512, 1024, 2048, 4096 })
 {
-	SetSectorSizes(sector_sizes);
-
 	// 128 MB, 512 bytes per sector, 248826 sectors
 	geometries[512 * 248826] = { 512, 248826 };
 	// 230 MB, 512 bytes per block, 446325 sectors

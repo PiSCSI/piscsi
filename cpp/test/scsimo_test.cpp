@@ -28,15 +28,28 @@ TEST(ScsiMoTest, Inquiry)
 TEST(ScsiMoTest, SupportsSaveParameters)
 {
 	map<int, vector<byte>> pages;
-	MockSCSIMO mo(0, {});
+	MockSCSIMO mo(0);
 
 	EXPECT_TRUE(mo.SupportsSaveParameters());
+}
+
+TEST(ScsiMoTest, GetSectorSizes)
+{
+	MockSCSIMO mo(0);
+
+	const auto& sector_sizes = mo.GetSupportedSectorSizes();
+	EXPECT_EQ(4, sector_sizes.size());
+
+	EXPECT_TRUE(sector_sizes.contains(512));
+	EXPECT_TRUE(sector_sizes.contains(1024));
+	EXPECT_TRUE(sector_sizes.contains(2048));
+	EXPECT_TRUE(sector_sizes.contains(4096));
 }
 
 TEST(ScsiMoTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	MockSCSIMO mo(0, {});
+	MockSCSIMO mo(0);
 
 	// Non changeable
 	mo.SetUpModePages(pages, 0x3f, false);
@@ -51,7 +64,7 @@ TEST(ScsiMoTest, SetUpModePages)
 TEST(ScsiMoTest, TestAddVendorPage)
 {
 	map<int, vector<byte>> pages;
-	MockSCSIMO mo(0, {});
+	MockSCSIMO mo(0);
 
 	mo.SetReady(true);
 	mo.SetUpModePages(pages, 0x21, false);
@@ -122,7 +135,7 @@ TEST(ScsiMoTest, TestAddVendorPage)
 
 TEST(ScsiMoTest, ModeSelect)
 {
-	MockSCSIMO mo(0, { 1024, 2048 });
+	MockSCSIMO mo(0);
 	vector<int> cmd(10);
 	vector<uint8_t> buf(255);
 

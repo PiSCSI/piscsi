@@ -29,8 +29,6 @@ class PlatformSpecificTimer
     virtual void Init() = 0;
     // Get system timer low byte
     virtual uint32_t GetTimerLow() = 0;
-    // Get system timer high byte
-    virtual uint32_t GetTimerHigh() = 0;
     // Sleep for N nanoseconds
     virtual void SleepNsec(uint32_t nsec) = 0;
     // Sleep for N microseconds
@@ -48,8 +46,6 @@ class SysTimer
     static void Init();
     // Get system timer low byte
     static uint32_t GetTimerLow();
-    // Get system timer high byte
-    static uint32_t GetTimerHigh();
     // Sleep for N nanoseconds
     static void SleepNsec(uint32_t nsec);
     // Sleep for N microseconds
@@ -57,7 +53,6 @@ class SysTimer
 
   private:
     static bool initialized;
-    static bool is_allwinnner;
     static bool is_raspberry;
 
     static std::unique_ptr<PlatformSpecificTimer> systimer_ptr;
