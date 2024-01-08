@@ -51,7 +51,7 @@ public:
 	~DiskCache() = default;
 
 	void SetRawMode(bool b) { cd_raw = b; }		// CD-ROM raw mode setting
-	bool GetRawMode() { return cd_raw; }
+	bool GetRawMode() const { return cd_raw; }
 
 	bool Save();							// Save and release all
 	bool ReadSector(span<uint8_t>, uint32_t);			// Sector Read
