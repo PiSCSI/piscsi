@@ -1271,7 +1271,6 @@ function runChoice() {
                   echo "Detected piscsi control board service; will run the installation steps for the control board ui."
                   installPiscsiCtrlBoard
               fi
-              cachePipPackages
               installPiscsiWebInterface
               installWebInterfaceService
               showServiceStatus "piscsi-oled"
