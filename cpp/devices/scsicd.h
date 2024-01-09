@@ -34,6 +34,7 @@ public:
 
 	vector<uint8_t> InquiryInternal() const override;
 	int Read(span<uint8_t>, uint64_t) override;
+	void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) override;
 
 protected:
 

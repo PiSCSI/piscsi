@@ -165,6 +165,29 @@ vector<uint8_t> SCSICD::InquiryInternal() const
 	return HandleInquiry(device_type::cd_rom, scsi_level, true);
 }
 
+void SCSICD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length)
+{
+	int sector_size = 1 << GetSectorSizeShiftCount();
+	int wanted_sector_size;
+	// skip Block Descriptor
+	int offset = 4;
+	// evaluate Mode Parameter Block Descriptor, sector size
+	wanted_sector_size = scsi_command_util::GetInt16(buf, offset + 6);
+	if (wanted_sector_size != sector_size) {
+		LogDebug("Changing sector size from " + to_string(sector_size) + " to " + to_string(wanted_sector_size));
+		SetSectorSizeInBytes(wanted_sector_size);
+		ClearTrack();
+		CreateDataTrack();
+		FlushCache();
+		ResizeCache(GetFilename(), GetRawMode());
+	}
+
+	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, sector_size);
+		!result.empty()) {
+		LogWarn(result);
+	}
+}
+
 void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	Disk::SetUpModePages(pages, page, changeable);

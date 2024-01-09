@@ -133,3 +133,26 @@ TEST(ScsiCdTest, ReadToc)
 
 	// Further testing requires filesystem access
 }
+
+TEST(ScsiCdTest, ModeSelect)
+{
+	MockSCSICD cd(0);
+	vector<int> cmd(6);
+	vector<uint8_t> buf(255);
+
+	cd.SetSectorSizeInBytes(2048);
+
+	// PF
+	cmd[1] = 0x10;
+	// Length
+	buf[3] = 0x08;
+	// 2048 bytes per sector
+	buf[10] = 0x08;
+	// Page 3 (Device Format Page)
+	buf[12] = 0x01;
+	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 2048 is supported";
+
+	// 512 bytes per sector
+	buf[10] = 0x02;
+	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 512 is supported";
+}
