@@ -76,7 +76,7 @@ SECRET_FILE="$HOME/.config/piscsi/secret"
 FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
 
-APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils ca-certificates"
+APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils ca-certificates rsyslog"
 APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang"
 APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
 APT_PACKAGES_WEB="nginx-light genisoimage man2html hfsutils dosfstools kpartx unzip unar disktype gettext"
@@ -1267,7 +1267,6 @@ function runChoice() {
                   echo "Detected piscsi control board service; will run the installation steps for the control board ui."
                   installPiscsiCtrlBoard
               fi
-              cachePipPackages
               installPiscsiWebInterface
               installWebInterfaceService
               showServiceStatus "piscsi-oled"
@@ -1497,9 +1496,6 @@ function runChoice() {
               installWebInterfaceService
               echo "Automated install of the PiSCSI Service $(CONNECT_TYPE) complete!"
           ;;
-          -h|--help|h|help)
-              showMenu
-          ;;
           *)
               echo "${1} is not a valid option, exiting..."
               exit 1
@@ -1520,7 +1516,13 @@ function readChoice() {
 
 # Shows the interactive main menu of the script
 function showMenu() {
+    echo "For command line options, rerun with ./easyinstall.sh --help"
     echo "Board Type: $CONNECT_TYPE | Compiler: $COMPILER | Compiler Cores: $CORES"
+    if [[ $SKIP_MAKE_CLEAN ]]; then
+        echo "Skip 'make clean': YES"
+    else
+        echo "Skip 'make clean': NO (will compile from scratch every time!)"
+    fi
     echo ""
     echo "Choose among the following options:"
     echo "INSTALL/UPDATE PISCSI"
@@ -1591,6 +1593,19 @@ while [ "$1" != "" ]; do
             ;;
         -l | --skip_make_clean)
             SKIP_MAKE_CLEAN=1
+            ;;
+        --help)
+            echo "Usage: ./easyinstall.sh [options]"
+            echo
+            echo "-c=TYPE, --connect_type=TYPE          Connect type (FULLSPEC, STANDARD, AIBOM, GAMERNIUM)"
+            echo "-r=CHOICE, --run_choice=CHOICE        Choose a menu option (1 to 16)"
+            echo "-j=CORES, --cores=CORES               Compile on this many cores in parallel"
+            echo "-t=TOKEN, --token=TOKEN               Token password for protecting PiSCSI"
+            echo "-h, --headless                        Don't ask questions (use with -r=CHOICE)"
+            echo "-g, --with_gcc                        Compile with g++ instead of clang++"
+            echo "-s, --skip_packages                   Don't install Debian packages"
+            echo "-l, --skip_make_clean                 Don't recompile from scratch every time"
+            exit
             ;;
         *)
             echo "ERROR: Unknown parameter \"$PARAM\""
