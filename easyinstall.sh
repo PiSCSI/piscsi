@@ -162,11 +162,7 @@ function installPackagesWeb() {
 # cache the pip packages
 function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
-    # TODO --break-system-packages can break installation of other packages with
-    # `apt install python3-...` and updating python packages with `apt upgrade`.
-    # We should really use a venv here, or people might have problems using
-    # their Pi for more than just PiSCSI.
-    sudo pip3 install -r ./requirements.txt --break-system-packages
+    sudo pip3 install -r ./requirements.txt
     popd
 }
 
