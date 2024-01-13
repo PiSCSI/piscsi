@@ -33,7 +33,7 @@ class SCSIHD_NEC : public SCSIHD //NOSONAR The inheritance hierarchy depth is ac
 {
 public:
 
-	explicit SCSIHD_NEC(int lun) : SCSIHD(lun, { 512 }, false) {}
+	explicit SCSIHD_NEC(int lun) : SCSIHD(lun, false, scsi_level::scsi_1_ccs, { 512 }) {}
 	~SCSIHD_NEC() override = default;
 
 	void Open() override;

@@ -1,10 +1,20 @@
 import pytest
 import uuid
 
-from conftest import STATUS_SUCCESS
+from conftest import (
+    STATUS_SUCCESS,
+    ENV_ENDPOINT,
+    LANGUAGE_ENDPOINT,
+    LOG_LEVEL_ENDPOINT,
+    LOG_SHOW_ENDPOINT,
+    CONFIG_SAVE_ENDPOINT,
+    CONFIG_ACTION_ENDPOINT,
+    THEME_ENDPOINT,
+    SYS_RENAME_ENDPOINT,
+    RESERVE_ENDPOINT,
+)
 
 
-# route("/language", methods=["POST"])
 @pytest.mark.parametrize(
     "locale,confirm_message",
     [
@@ -18,7 +28,7 @@ from conftest import STATUS_SUCCESS
 )
 def test_set_language(http_client, locale, confirm_message):
     response = http_client.post(
-        "/language",
+        LANGUAGE_ENDPOINT,
         data={
             "locale": locale,
         },
@@ -31,11 +41,10 @@ def test_set_language(http_client, locale, confirm_message):
     assert response_data["messages"][0]["message"] == confirm_message
 
 
-# route("/logs/level", methods=["POST"])
 @pytest.mark.parametrize("level", ["trace", "debug", "info", "warn", "err", "off"])
 def test_set_log_level(http_client, level):
     response = http_client.post(
-        "/logs/level",
+        LOG_LEVEL_ENDPOINT,
         data={
             "level": level,
         },
@@ -49,17 +58,16 @@ def test_set_log_level(http_client, level):
 
     # Cleanup
     http_client.post(
-        "/logs/level",
+        LOG_LEVEL_ENDPOINT,
         data={
             "level": "debug",
         },
     )
 
 
-# route("/logs/show", methods=["POST"])
 def test_show_logs(http_client):
     response = http_client.post(
-        "/logs/show",
+        LOG_SHOW_ENDPOINT,
         data={
             "lines": 100,
             "scope": "piscsi",
@@ -73,8 +81,6 @@ def test_show_logs(http_client):
     assert response_data["data"]["scope"] == "piscsi"
 
 
-# route("/config/save", methods=["POST"])
-# route("/config/action", methods=["POST"])
 def test_save_load_and_delete_configs(env, http_client):
     config_name = str(uuid.uuid4())
     config_json_file = f"{config_name}.json"
@@ -86,7 +92,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Save the initial state to a config
     response = http_client.post(
-        "/config/save",
+        CONFIG_SAVE_ENDPOINT,
         data={
             "name": config_name,
         },
@@ -104,7 +110,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Modify the state
     http_client.post(
-        "/scsi/reserve",
+        RESERVE_ENDPOINT,
         data={
             "scsi_id": reserved_scsi_id,
             "memo": reservation_memo,
@@ -115,7 +121,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Load the saved config
     response = http_client.post(
-        "/config/action",
+        CONFIG_ACTION_ENDPOINT,
         data={
             "name": config_json_file,
             "load": True,
@@ -135,7 +141,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Delete the saved config
     response = http_client.post(
-        "/config/action",
+        CONFIG_ACTION_ENDPOINT,
         data={
             "name": config_json_file,
             "delete": True,
@@ -153,15 +159,13 @@ def test_save_load_and_delete_configs(env, http_client):
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
 
 
-# route("/config/save", methods=["POST"])
-# route("/config/action", methods=["POST"])
-def test_download_configs(env, http_client, delete_file):
+def test_download_configs(env, http_client):
     config_name = str(uuid.uuid4())
     config_json_file = f"{config_name}.json"
 
     # Save the initial state to a config
     response = http_client.post(
-        "/config/save",
+        CONFIG_SAVE_ENDPOINT,
         data={
             "name": config_name,
         },
@@ -172,7 +176,7 @@ def test_download_configs(env, http_client, delete_file):
 
     # Download the saved config
     response = http_client.post(
-        "/config/action",
+        CONFIG_ACTION_ENDPOINT,
         data={
             "name": config_json_file,
             "send": True,
@@ -185,7 +189,7 @@ def test_download_configs(env, http_client, delete_file):
 
     # Delete the saved config
     response = http_client.post(
-        "/config/action",
+        CONFIG_ACTION_ENDPOINT,
         data={
             "name": config_json_file,
             "delete": True,
@@ -196,7 +200,6 @@ def test_download_configs(env, http_client, delete_file):
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
 
 
-# route("/theme", methods=["POST"])
 @pytest.mark.parametrize(
     "theme",
     [
@@ -206,7 +209,7 @@ def test_download_configs(env, http_client, delete_file):
 )
 def test_set_theme(http_client, theme):
     response = http_client.post(
-        "/theme",
+        THEME_ENDPOINT,
         data={
             "name": theme,
         },
@@ -219,7 +222,6 @@ def test_set_theme(http_client, theme):
     assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."
 
 
-# route("/theme", methods=["GET"])
 @pytest.mark.parametrize(
     "theme",
     [
@@ -229,7 +231,7 @@ def test_set_theme(http_client, theme):
 )
 def test_set_theme_via_query_string(http_client, theme):
     response = http_client.get(
-        "/theme",
+        THEME_ENDPOINT,
         params={
             "name": theme,
         },
@@ -242,17 +244,16 @@ def test_set_theme_via_query_string(http_client, theme):
     assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."
 
 
-# route("/sys/rename", methods=["POST"])
 def test_rename_system(env, http_client):
     new_name = "SYSTEM NAME TEST"
 
-    response = http_client.get("/env")
+    response = http_client.get(ENV_ENDPOINT)
     response_data = response.json()
 
     old_name = response_data["data"]["system_name"]
 
     response = http_client.post(
-        "/sys/rename",
+        SYS_RENAME_ENDPOINT,
         data={
             "system_name": new_name,
         },
@@ -264,13 +265,13 @@ def test_rename_system(env, http_client):
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"System name changed to '{new_name}'."
 
-    response = http_client.get("/env")
+    response = http_client.get(ENV_ENDPOINT)
     response_data = response.json()
 
     assert response_data["data"]["system_name"] == new_name
 
     response = http_client.post(
-        "/sys/rename",
+        SYS_RENAME_ENDPOINT,
         data={
             "system_name": old_name,
         },
@@ -282,7 +283,7 @@ def test_rename_system(env, http_client):
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"System name changed to '{old_name}'."
 
-    response = http_client.get("/env")
+    response = http_client.get(ENV_ENDPOINT)
     response_data = response.json()
 
     assert response_data["data"]["system_name"] == old_name

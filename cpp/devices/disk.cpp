@@ -695,12 +695,18 @@ uint32_t Disk::GetSectorSizeInBytes() const
 
 void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 {
-	if (DeviceFactory device_factory; !device_factory.GetSectorSizes(GetType()).contains(size_in_bytes)) {
-    	throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
+	if (!GetSupportedSectorSizes().contains(size_in_bytes)) {
+		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
 	}
+	uint64_t current_blocks = GetBlockCount();
+	uint32_t current_size_shift_count = size_shift_count;
+	uint64_t current_size = current_blocks << current_size_shift_count;
 
 	size_shift_count = CalculateShiftCount(size_in_bytes);
 	assert(size_shift_count);
+	if ((current_blocks > 0) && (current_size_shift_count > 0)) {
+		SetBlockCount(current_size >> size_shift_count);
+	}
 }
 
 uint32_t Disk::GetConfiguredSectorSize() const
@@ -708,13 +714,13 @@ uint32_t Disk::GetConfiguredSectorSize() const
 	return configured_sector_size;
 }
 
-bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t configured_size)
+bool Disk::SetConfiguredSectorSize(uint32_t configured_size)
 {
-	if (!device_factory.GetSectorSizes(GetType()).contains(configured_size)) {
+	if (!supported_sector_sizes.contains(configured_size)) {
 		return false;
 	}
 
-    configured_sector_size = configured_size;
+	configured_sector_size = configured_size;
 
 	return true;
 }

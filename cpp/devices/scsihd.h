@@ -28,7 +28,7 @@ class SCSIHD : public Disk
 
 public:
 
-	SCSIHD(int, const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::scsi_2);
+	SCSIHD(int, bool, scsi_defs::scsi_level, const unordered_set<uint32_t>& = { 512, 1024, 2048, 4096 });
 	~SCSIHD() override = default;
 
 	void FinalizeSetup(off_t);
@@ -37,7 +37,7 @@ public:
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) const override;
+	void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;

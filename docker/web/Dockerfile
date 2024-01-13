@@ -4,7 +4,7 @@ ARG OS_VERSION=bullseye
 FROM "debian:${OS_VERSION}-slim"
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends sudo systemd rsyslog procps man-db wget git \
+    && apt-get install -y --no-install-recommends sudo systemd rsyslog procps man-db wget git gcc \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

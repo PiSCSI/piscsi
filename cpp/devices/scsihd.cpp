@@ -19,11 +19,9 @@
 
 using namespace scsi_command_util;
 
-SCSIHD::SCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
-	: Disk(removable ? SCRM : SCHD, lun), scsi_level(level)
+SCSIHD::SCSIHD(int lun, bool removable, scsi_defs::scsi_level level, const unordered_set<uint32_t>& sector_sizes)
+	: Disk(removable ? SCRM : SCHD, lun, sector_sizes), scsi_level(level)
 {
-	SetSectorSizes(sector_sizes);
-
 	SetProtectable(true);
 	SetRemovable(removable);
 	SetLockable(removable);
@@ -84,7 +82,7 @@ vector<uint8_t> SCSIHD::InquiryInternal() const
 	return HandleInquiry(device_type::direct_access, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length) const
+void SCSIHD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length)
 {
 	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 		!result.empty()) {

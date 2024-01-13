@@ -410,32 +410,30 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
     // Set BSY signal
     SetSignal(PIN_BSY, ast);
 
-    if (actmode == mode_e::TARGET) {
-        if (ast) {
-            // Turn on ACTIVE signal
-            SetControl(PIN_ACT, ACT_ON);
+    if (ast) {
+        // Turn on ACTIVE signal
+        SetControl(PIN_ACT, ACT_ON);
 
-            // Set Target signal to output
-            SetControl(PIN_TAD, TAD_OUT);
+        // Set Target signal to output
+        SetControl(PIN_TAD, TAD_OUT);
 
-            SetMode(PIN_BSY, OUT);
-            SetMode(PIN_MSG, OUT);
-            SetMode(PIN_CD, OUT);
-            SetMode(PIN_REQ, OUT);
-            SetMode(PIN_IO, OUT);
-        } else {
-            // Turn off the ACTIVE signal
-            SetControl(PIN_ACT, ACT_OFF);
+    	SetMode(PIN_BSY, OUT);
+    	SetMode(PIN_MSG, OUT);
+    	SetMode(PIN_CD, OUT);
+    	SetMode(PIN_REQ, OUT);
+    	SetMode(PIN_IO, OUT);
+    } else {
+        // Turn off the ACTIVE signal
+        SetControl(PIN_ACT, ACT_OFF);
 
-            // Set the target signal to input
-            SetControl(PIN_TAD, TAD_IN);
+        // Set the target signal to input
+    	SetControl(PIN_TAD, TAD_IN);
 
-            SetMode(PIN_BSY, IN);
-            SetMode(PIN_MSG, IN);
-            SetMode(PIN_CD, IN);
-            SetMode(PIN_REQ, IN);
-            SetMode(PIN_IO, IN);
-        }
+    	SetMode(PIN_BSY, IN);
+    	SetMode(PIN_MSG, IN);
+    	SetMode(PIN_CD, IN);
+    	SetMode(PIN_REQ, IN);
+    	SetMode(PIN_IO, IN);
     }
 }
 
@@ -608,54 +606,32 @@ uint8_t GPIOBUS_Raspberry::GetDAT()
     return (uint8_t)data;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set data signals
-//
-//---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
 {
-    // Write to port
+    // Write to ports
 #if SIGNAL_CONTROL_MODE == 0
     uint32_t fsel = gpfsel[0];
     fsel &= tblDatMsk[0][dat];
     fsel |= tblDatSet[0][dat];
-    if (fsel != gpfsel[0]) {
-        gpfsel[0]         = fsel;
-        gpio[GPIO_FSEL_0] = fsel;
-    }
+    gpfsel[0] = fsel;
+    gpio[GPIO_FSEL_0] = fsel;
 
     fsel = gpfsel[1];
     fsel &= tblDatMsk[1][dat];
     fsel |= tblDatSet[1][dat];
-    if (fsel != gpfsel[1]) {
-        gpfsel[1]         = fsel;
-        gpio[GPIO_FSEL_1] = fsel;
-    }
+    gpfsel[1] = fsel;
+    gpio[GPIO_FSEL_1] = fsel;
 
     fsel = gpfsel[2];
     fsel &= tblDatMsk[2][dat];
     fsel |= tblDatSet[2][dat];
-    if (fsel != gpfsel[2]) {
-        gpfsel[2]         = fsel;
-        gpio[GPIO_FSEL_2] = fsel;
-    }
+    gpfsel[2] = fsel;
+    gpio[GPIO_FSEL_2] = fsel;
 #else
     gpio[GPIO_CLR_0] = tblDatMsk[dat];
     gpio[GPIO_SET_0] = tblDatSet[dat];
-#endif // SIGNAL_CONTROL_MODE
+#endif
 }
-
-bool GPIOBUS_Raspberry::GetDP() const
-{
-    return GetSignal(PIN_DP);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Create work table
-//
-//---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //

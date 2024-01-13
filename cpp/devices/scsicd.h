@@ -25,7 +25,7 @@ class SCSICD : public Disk, private ScsiMmcCommands
 {
 public:
 
-	SCSICD(int, const unordered_set<uint32_t>&, scsi_defs::scsi_level = scsi_level::scsi_2);
+	SCSICD(int, scsi_defs::scsi_level = scsi_level::scsi_2);
 	~SCSICD() override = default;
 
 	bool Init(const param_map&) override;
@@ -34,6 +34,7 @@ public:
 
 	vector<uint8_t> InquiryInternal() const override;
 	int Read(span<uint8_t>, uint64_t) override;
+	void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) override;
 
 protected:
 

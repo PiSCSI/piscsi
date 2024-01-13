@@ -18,7 +18,7 @@ FROM debian:bullseye-slim AS runner
 USER root
 WORKDIR /home/pi
 
-COPY --from=build /home/pi/piscsi/cpp/bin/fullspec/* /usr/local/bin/
+COPY --from=build /home/pi/piscsi/cpp/bin/* /usr/local/bin/
 COPY docker/backend/piscsi_wrapper.sh /usr/local/bin/piscsi_wrapper.sh
 RUN chmod +x /usr/local/bin/*
 RUN mkdir -p /home/pi/images

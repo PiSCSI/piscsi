@@ -34,10 +34,21 @@ TEST(ScsiCdTest, Inquiry)
 	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_1_ccs, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
 }
 
+TEST(ScsiCdTest, GetSectorSizes)
+{
+	MockSCSICD cd(0);
+
+	const auto& sector_sizes = cd.GetSupportedSectorSizes();
+	EXPECT_EQ(2, sector_sizes.size());
+
+	EXPECT_TRUE(sector_sizes.contains(512));
+	EXPECT_TRUE(sector_sizes.contains(2048));
+}
+
 TEST(ScsiCdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	MockSCSICD cd(0, {});
+	MockSCSICD cd(0);
 
 	// Non changeable
 	cd.SetUpModePages(pages, 0x3f, false);
@@ -51,10 +62,10 @@ TEST(ScsiCdTest, SetUpModePages)
 
 TEST(ScsiCdTest, Open)
 {
-	MockSCSICD cd_iso(0, {});
-	MockSCSICD cd_cue(0, {});
-	MockSCSICD cd_raw(0, {});
-	MockSCSICD cd_physical(0, {});
+	MockSCSICD cd_iso(0);
+	MockSCSICD cd_cue(0);
+	MockSCSICD cd_raw(0);
+	MockSCSICD cd_physical(0);
 
 	EXPECT_THROW(cd_iso.Open(), io_exception) << "Missing filename";
 
@@ -111,8 +122,7 @@ TEST(ScsiCdTest, Open)
 TEST(ScsiCdTest, ReadToc)
 {
 	auto controller = make_shared<MockAbstractController>();
-	const unordered_set<uint32_t> sector_sizes;
-	auto cd = make_shared<MockSCSICD>(0, sector_sizes);
+	auto cd = make_shared<MockSCSICD>(0);
 	EXPECT_TRUE(cd->Init({}));
 
 	controller->AddDevice(cd);
@@ -122,4 +132,27 @@ TEST(ScsiCdTest, ReadToc)
 			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	// Further testing requires filesystem access
+}
+
+TEST(ScsiCdTest, ModeSelect)
+{
+	MockSCSICD cd(0);
+	vector<int> cmd(6);
+	vector<uint8_t> buf(255);
+
+	cd.SetSectorSizeInBytes(2048);
+
+	// PF
+	cmd[1] = 0x10;
+	// Length
+	buf[3] = 0x08;
+	// 2048 bytes per sector
+	buf[10] = 0x08;
+	// Page 3 (Device Format Page)
+	buf[12] = 0x01;
+	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 2048 is supported";
+
+	// 512 bytes per sector
+	buf[10] = 0x02;
+	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 512 is supported";
 }

@@ -40,7 +40,8 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 	}
 	length -= offset;
 
-	bool has_valid_page_code = false;
+	// treat zero length as valid
+	bool has_valid_page_code = (length == 0);
 
 	// Parse the pages
 	while (length > 0) {
@@ -62,6 +63,10 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 
 			has_valid_page_code = true;
 		}
+		else if (page == 0x01) {
+			// OpenVMS Alpha 7.3 uses this
+			has_valid_page_code = true;
+		}
 		else {
 			stringstream s;
 			s << "Unknown MODE SELECT page code: $" << setfill('0') << setw(2) << hex << page;
@@ -71,7 +76,7 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 		// Advance to the next page
 		const int size = buf[offset + 1] + 2;
 
-		length -= size;
+		length -= size + 1;
 		offset += size;
 	}
 

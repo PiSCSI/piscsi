@@ -39,41 +39,6 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
 }
 
-TEST(DeviceFactoryTest, GetSectorSizes)
-{
-	DeviceFactory device_factory;
-
-	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(SCHD);
-	EXPECT_EQ(4, sector_sizes.size());
-
-	EXPECT_TRUE(sector_sizes.contains(512));
-	EXPECT_TRUE(sector_sizes.contains(1024));
-	EXPECT_TRUE(sector_sizes.contains(2048));
-	EXPECT_TRUE(sector_sizes.contains(4096));
-
-	sector_sizes = device_factory.GetSectorSizes(SCRM);
-	EXPECT_EQ(4, sector_sizes.size());
-
-	EXPECT_TRUE(sector_sizes.contains(512));
-	EXPECT_TRUE(sector_sizes.contains(1024));
-	EXPECT_TRUE(sector_sizes.contains(2048));
-	EXPECT_TRUE(sector_sizes.contains(4096));
-
-	sector_sizes = device_factory.GetSectorSizes(SCMO);
-	EXPECT_EQ(4, sector_sizes.size());
-
-	EXPECT_TRUE(sector_sizes.contains(512));
-	EXPECT_TRUE(sector_sizes.contains(1024));
-	EXPECT_TRUE(sector_sizes.contains(2048));
-	EXPECT_TRUE(sector_sizes.contains(4096));
-
-	sector_sizes = device_factory.GetSectorSizes(SCCD);
-	EXPECT_EQ(2, sector_sizes.size());
-
-	EXPECT_TRUE(sector_sizes.contains(512));
-	EXPECT_TRUE(sector_sizes.contains(2048));
-}
-
 TEST(DeviceFactoryTest, GetExtensionMapping)
 {
 	DeviceFactory device_factory;
