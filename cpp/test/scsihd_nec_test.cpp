@@ -18,11 +18,12 @@ using namespace filesystem;
 
 void ScsiHdNecTest_SetUpModePages(map<int, vector<byte>>& pages)
 {
-	EXPECT_EQ(5, pages.size()) << "Unexpected number of mode pages";
+	EXPECT_EQ(6, pages.size()) << "Unexpected number of mode pages";
 	EXPECT_EQ(12, pages[1].size());
 	EXPECT_EQ(24, pages[3].size());
 	EXPECT_EQ(20, pages[4].size());
 	EXPECT_EQ(12, pages[8].size());
+	EXPECT_EQ(25, pages[37].size());
 	EXPECT_EQ(30, pages[48].size());
 }
 
