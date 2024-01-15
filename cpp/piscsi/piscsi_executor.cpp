@@ -126,7 +126,8 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 		return false;
 	}
 
-	return context.ReturnSuccessStatus();
+            // ATTACH and DETACH are special cases because they return the current device list
+    return command.operation() == ATTACH || command.operation() == DETACH ? true : context.ReturnSuccessStatus();
 }
 
 bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
