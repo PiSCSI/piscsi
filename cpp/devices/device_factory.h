@@ -44,7 +44,9 @@ private:
 			{ "hdr", SCRM },
 			{ "mos", SCMO },
 			{ "is1", SCCD },
-			{ "iso", SCCD }
+			{ "iso", SCCD },
+			{ "cdr", SCCD },
+			{ "toast", SCCD }
 	};
 
 	const inline static unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> DEVICE_MAPPING = {
