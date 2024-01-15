@@ -30,6 +30,8 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.mos"), SCMO);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.is1"), SCCD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.cdr"), SCCD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.toast"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.suffix.iso"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("bridge"), SCBR);
 	EXPECT_EQ(device_factory.GetTypeForFile("daynaport"), SCDP);
