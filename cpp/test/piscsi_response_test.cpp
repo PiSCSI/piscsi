@@ -254,5 +254,5 @@ TEST(PiscsiResponseTest, GetMappingInfo)
 
 	PbMappingInfo info;
 	response.GetMappingInfo(info);
-	EXPECT_EQ(10, info.mapping().size());
+	EXPECT_EQ(12, info.mapping().size());
 }
