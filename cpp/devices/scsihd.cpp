@@ -97,9 +97,9 @@ void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 	EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
-// Page code 37 (25h) - DEC Unique Page
+// Page code 37 (25h) - DEC Special Function Control page
 
-void SCSIHD::AddDECUniquePage(map<int, vector<byte>>& pages, bool changeable) const
+void SCSIHD::AddDECSpecialFunctionControlPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	vector<byte> buf(25);
 
@@ -119,9 +119,9 @@ void SCSIHD::AddDECUniquePage(map<int, vector<byte>>& pages, bool changeable) co
 
 void SCSIHD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	// Page code 0x25: DEC unique
+	// Page code 0x25: DEC Special Function Control page
 	if (page == 0x25 || page == 0x3f) {
-		AddDECUniquePage(pages, changeable);
+		AddDECSpecialFunctionControlPage(pages, changeable);
 	}
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {

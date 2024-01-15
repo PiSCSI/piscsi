@@ -40,7 +40,7 @@ public:
 	void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
-	void AddDECUniquePage(map<int, vector<byte>>&, bool) const;
+	void AddDECSpecialFunctionControlPage(map<int, vector<byte>>&, bool) const;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:

@@ -102,7 +102,7 @@ TEST(ScsiHdTest, SetUpModePages)
 	ScsiHdTest_SetUpModePages(pages);
 }
 
-TEST(ScsiHdTest, DECUniquePage)
+TEST(ScsiHdTest, DECSpecialFunctionControlPage)
 {
 	map<int, vector<byte>> pages;
 	vector<byte> buf;
