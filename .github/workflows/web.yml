@@ -8,15 +8,6 @@ on:
       - 'python/common/**'
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
-  pull_request:
-    paths:
-      - 'python/web/**'
-      - 'python/common/**'
-      - '.github/workflows/web.yml'
-      - 'easyinstall.sh'
-    branches:
-      - 'develop'
-      - 'main'
 
 jobs:
   backend_checks:
