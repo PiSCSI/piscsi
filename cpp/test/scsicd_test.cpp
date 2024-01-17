@@ -140,6 +140,11 @@ TEST(ScsiCdTest, ModeSelect)
 	vector<int> cmd(6);
 	vector<uint8_t> buf(255);
 
+	path filename = CreateTempFile(2* 2048);
+	cd.SetFilename(string(filename));
+	cd.Open();
+	EXPECT_EQ(2, cd.GetBlockCount());
+
 	cd.SetSectorSizeInBytes(2048);
 
 	// PF
