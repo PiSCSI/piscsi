@@ -41,7 +41,7 @@ using namespace scsi_defs;
 void Piscsi::Banner(span<char *> args) const
 {
 	cout << piscsi_util::Banner("(Backend Service)");
-	cout << "Connection ttype: " << CONNECT_DESC << '\n' << flush;
+	cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
 		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
