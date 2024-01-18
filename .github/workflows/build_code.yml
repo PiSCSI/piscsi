@@ -7,16 +7,17 @@ on:
       - 'cpp/**'
       - '.github/workflows/build_code.yml'
       - '.github/workflows/arm_cross_compile.yml'
+    branches:
+      - 'develop'
+      - 'main'
   pull_request:
     paths:
       - 'cpp/**'
       - '.github/workflows/build_code.yml'
       - '.github/workflows/arm_cross_compile.yml'
     types:
-      - assigned
       - opened
       - synchronize
-      - reopened
     branches:
       - 'develop'
       - 'main'

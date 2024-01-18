@@ -7,11 +7,17 @@ on:
       - 'cpp/**'
       - 'python/**'
       - '.github/workflows/cpp.yml'
+    branches:
+      - 'develop'
+      - 'main'
   pull_request:
     paths:
       - 'cpp/**'
       - 'python/**'
       - '.github/workflows/cpp.yml'
+    types:
+      - opened
+      - synchronize
     branches:
       - 'develop'
       - 'main'
@@ -32,7 +38,7 @@ jobs:
         run: sudo apt-get install ${{ env.APT_PACKAGES }}
 
       - name: Build unit tests
-        run: make -j $(nproc) test
+        run: DEBUG=1 make -j $(nproc) test
 
       - name: Run unit tests
         run: (set -o pipefail && bin/piscsi_test | tee piscsi_test_log.txt)

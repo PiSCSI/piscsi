@@ -14,6 +14,9 @@ on:
       - 'python/common/**'
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
+    types:
+      - opened
+      - synchronize
     branches:
       - 'develop'
       - 'main'
