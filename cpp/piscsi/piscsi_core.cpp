@@ -46,7 +46,7 @@ void Piscsi::Banner(span<char *> args) const
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
 		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
 		cout << " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n";
-		cout << " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n";
+		cout << " LUN iis the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n";
 		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
 		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
 		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
