@@ -97,8 +97,32 @@ void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 	EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
+// Page code 37 (25h) - DEC Special Function Control page
+
+void SCSIHD::AddDECSpecialFunctionControlPage(map<int, vector<byte>>& pages, bool changeable) const
+{
+	vector<byte> buf(25);
+
+	// No changeable area
+	if (changeable) {
+		pages[0x25] = buf;
+
+		return;
+	}
+
+	buf[0] = static_cast<byte> (0x25 | 0x80); // page code, high bit set
+	buf[1] = static_cast<byte> (sizeof(buf) - 1);
+	buf[2] = static_cast<byte> (0x01); // drive does not auto-start
+
+	pages[0x25] = buf;
+}
+
 void SCSIHD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
+	// Page code 0x25: DEC Special Function Control page
+	if (page == 0x25 || page == 0x3f) {
+		AddDECSpecialFunctionControlPage(pages, changeable);
+	}
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
 		AddAppleVendorModePage(pages, changeable);
