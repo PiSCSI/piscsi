@@ -6,7 +6,7 @@ adafruit-circuitpython-ssd1306==2.12.11
 adafruit-circuitpython-typing==1.9.5
 Adafruit-PlatformDetect==3.53.0
 Adafruit-PureIO==1.1.11
-Pillow==10.0.1
+Pillow==10.2.0
 protobuf==3.20.2
 pyftdi==0.55.0
 pyserial==3.5
