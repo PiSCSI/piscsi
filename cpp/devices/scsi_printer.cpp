@@ -79,7 +79,9 @@ void SCSIPrinter::CleanUp()
 
 	if (out.is_open()) {
 		out.close();
+	}
 
+	if (!filename.empty()) {
 		error_code error;
 		remove(path(filename), error);
 
@@ -135,6 +137,8 @@ void SCSIPrinter::SynchronizeBuffer()
 
 		throw scsi_exception(sense_key::aborted_command);
 	}
+
+	out.close();
 
 	string cmd = GetParam("cmd");
 	const size_t file_position = cmd.find("%f");
