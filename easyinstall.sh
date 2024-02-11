@@ -951,8 +951,8 @@ function installSamba() {
 function installWebmin() {
     WEBMIN_PATH="/usr/share/webmin"
     WEBMIN_NETATALK_MODULE_CONFIG="/etc/webmin/netatalk2/config"
-    WEBMIN_NETATALK_MODULE_VERSION="1.0"
-    WEBMIN_VSFTPD_MODULE_VERSION="2023-12-10"
+    WEBMIN_NETATALK_MODULE_VERSION="1.2"
+    WEBMIN_VSFTPD_MODULE_VERSION="2024-01-26"
 
     if [ -d "$WEBMIN_PATH" ]; then
         echo
