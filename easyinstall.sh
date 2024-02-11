@@ -772,9 +772,9 @@ function createFileSharingDir() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="230701"
+    NETATALK_VERSION="2.3.1"
     NETATALK_CONFIG_PATH="/etc/netatalk"
-    NETATALK_OPTIONS="--cores=$CORES --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
+    NETATALK_OPTIONS="--base-dir=$BASE/tmp/netatalk-$NETATALK_VERSION --cores=$CORES --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
         echo
@@ -790,13 +790,15 @@ function installNetatalk() {
     fi
 
     echo
-    echo "Downloading tarball to $HOME..."
-    cd $HOME || exit 1
-    wget -O "netatalk-2.$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/netatalk-2.x/releases/download/netatalk-2-$NETATALK_VERSION/netatalk-2.$NETATALK_VERSION.tar.gz" </dev/null
+    echo "Downloading tarball to $BASE/tmp..."
+    mkdir -p "$BASE/tmp"
+    cd "$BASE/tmp" || exit 1
+    wget -O "netatalk-$NETATALK_VERSION.tar.gz" \
+    "https://github.com/Netatalk/netatalk/releases/download/netatalk-`echo $NETATALK_VERSION | sed 's/\./-/g'`/netatalk-$NETATALK_VERSION.tar.xz" </dev/null
 
     echo "Unpacking tarball..."
-    tar -xzf "netatalk-2.$NETATALK_VERSION.tar.gz"
-    rm "netatalk-2.$NETATALK_VERSION.tar.gz"
+    tar -xf "netatalk-$NETATALK_VERSION.tar.gz"
+    rm "netatalk-$NETATALK_VERSION.tar.gz"
 
     if [ -f "/etc/network/interfaces.d/piscsi_bridge" ]; then
         echo "PiSCSI network bridge detected. Using 'piscsi_bridge' interface for AppleTalk."
@@ -807,8 +809,8 @@ function installNetatalk() {
     [[ $SKIP_PACKAGES ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-packages"
     [[ $SKIP_MAKE_CLEAN ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-make-clean"
 
-    cd "$HOME/netatalk-2.$NETATALK_VERSION/contrib/shell_utils" || exit 1
-    bash -c "./debian_install.sh $NETATALK_OPTIONS" || exit 1
+    bash -c "$BASE/shell_scripts/netatalk_install.sh $NETATALK_OPTIONS" || exit 1
+    rm -rf "$BASE/tmp"
 }
 
 # Appends the images dir as a shared Netatalk volume
@@ -1532,7 +1534,7 @@ function showMenu() {
     echo "  4) Install or update PiSCSI Control Board UI (requires hardware)"
     echo "NETWORK BRIDGE ASSISTANT"
     echo "  5) Configure network bridge for Ethernet (DHCP)"
-    echo "  6) Configure network bridge for WiFi (static IP + NAT)" 
+    echo "  6) Configure network bridge for WiFi (static IP + NAT)"
     echo "INSTALL COMPANION APPS"
     echo "  7) Install AppleShare File Server (Netatalk)"
     echo "  8) Install FTP File Server (vsftpd)"
