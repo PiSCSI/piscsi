@@ -29,9 +29,10 @@ using namespace std;
 using namespace piscsi_util;
 using namespace network_util;
 
-const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
+// const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
-static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
+//static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
+static string br_setif(int br_socket_fd, const string& ifname, bool add) {
 #ifndef __linux__
 	return "if_nametoindex: Linux is required";
 #else
@@ -40,10 +41,12 @@ static string br_setif(int br_socket_fd, const string& bridgename, const string&
 	if (ifr.ifr_ifindex == 0) {
 		return "Can't if_nametoindex " + ifname;
 	}
+#if 0
 	strncpy(ifr.ifr_name, bridgename.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		return "Can't ioctl " + string(add ? "SIOCBRADDIF" : "SIOCBRDELIF");
 	}
+#endif
 	return "";
 #endif
 }
@@ -173,11 +176,13 @@ bool CTapDriver::Init(const param_map& const_params)
 		return cleanUp(error);
 	}
 
+#if 0
 	spdlog::trace(">brctl addif " + BRIDGE_NAME + " piscsi0");
 
 	if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", true); !error.empty()) {
 		return cleanUp(error);
 	}
+#endif
 
 	spdlog::trace("Getting the MAC address");
 
@@ -251,6 +256,7 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 
 string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 {
+#if 0
 #ifdef __linux__
 	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
@@ -263,6 +269,7 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 	if (const string error = br_setif(socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
 		return error;
 	}
+#endif
 #endif
 
 	return "";
