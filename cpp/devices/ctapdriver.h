@@ -56,7 +56,7 @@ public:
 
 private:
 
-	static string SetUpEth0(int, const string&);
+	//static string SetUpEth0(int, const string&);
 	static string SetUpNonEth0(int, int, const string&);
 	static pair<string, string> ExtractAddressAndMask(const string&);
 

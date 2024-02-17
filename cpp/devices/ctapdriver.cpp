@@ -32,7 +32,7 @@ using namespace network_util;
 // const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
 //static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
-static string br_setif(int br_socket_fd, const string& ifname, bool add) {
+static string br_setif(const string& ifname) {
 #ifndef __linux__
 	return "if_nametoindex: Linux is required";
 #else
@@ -195,7 +195,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	memcpy(m_MacAddr.data(), ifr.ifr_hwaddr.sa_data, m_MacAddr.size());
 
 	close(ip_fd);
-	close(br_socket_fd);
+	// close(br_socket_fd);
 
 	spdlog::info("Tap device " + string(ifr.ifr_name) + " created");
 
@@ -254,9 +254,9 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 	return { address, netmask };
 }
 
+#if 0
 string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 {
-#if 0
 #ifdef __linux__
 	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
@@ -270,11 +270,12 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 		return error;
 	}
 #endif
-#endif
 
 	return "";
 }
+#endif
 
+#if 0
 string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 {
 #ifdef __linux__
@@ -283,13 +284,11 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 		return "Error extracting inet address and netmask";
 	}
 
-#if 0
 	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
 	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
 		return "Can't ioctl SIOCBRADDBR";
 	}
-#endif
 
 	ifreq ifr_a;
 	ifr_a.ifr_addr.sa_family = AF_INET;
@@ -316,6 +315,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 
 	return "";
 }
+#endif
 
 string CTapDriver::IpLink(bool enable) const
 {
