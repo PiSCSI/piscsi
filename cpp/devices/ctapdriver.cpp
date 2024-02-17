@@ -113,6 +113,7 @@ bool CTapDriver::Init(const param_map& const_params)
 		return false;
 	}
 
+#if 0
 	const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 	if (br_socket_fd < 0) {
 		LogErrno("Can't open bridge socket");
@@ -121,15 +122,17 @@ bool CTapDriver::Init(const param_map& const_params)
 		close(ip_fd);
 		return false;
 	}
+#endif
 
 	auto cleanUp = [&] (const string& error) {
 		LogErrno(error);
 		close(m_hTAP);
 		close(ip_fd);
-		close(br_socket_fd);
+		// close(br_socket_fd);
 		return false;
 	};
 
+#if 0
 	// Check if the bridge has already been created
 	// TODO Find an alternative to accessing a file, there is most likely a system call/ioctl
 	if (access(string("/sys/class/net/" + BRIDGE_NAME).c_str(), F_OK)) {
@@ -162,6 +165,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	else {
 		spdlog::info(BRIDGE_NAME + " is already available");
 	}
+#endif
 
 	spdlog::trace(">ip link set piscsi0 up");
 
@@ -197,6 +201,7 @@ bool CTapDriver::Init(const param_map& const_params)
 void CTapDriver::CleanUp() const
 {
 	if (m_hTAP != -1) {
+#if 0
 		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
 			LogErrno("Can't open bridge socket");
 		} else {
@@ -207,6 +212,7 @@ void CTapDriver::CleanUp() const
 			}
 			close(br_socket_fd);
 		}
+#endif
 
 		// Release TAP device
 		close(m_hTAP);
@@ -270,11 +276,13 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 		return "Error extracting inet address and netmask";
 	}
 
+#if 0
 	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
 	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
 		return "Can't ioctl SIOCBRADDBR";
 	}
+#endif
 
 	ifreq ifr_a;
 	ifr_a.ifr_addr.sa_family = AF_INET;

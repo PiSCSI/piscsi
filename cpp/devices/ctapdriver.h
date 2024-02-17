@@ -29,7 +29,7 @@ using namespace std;
 
 class CTapDriver
 {
-	static const string BRIDGE_NAME;
+//	static const string BRIDGE_NAME;
 
 	const inline static string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hardcoded IP address is safe
 
