@@ -31,8 +31,8 @@ using namespace network_util;
 
 // const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
-//static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
-static string br_setif(const string& ifname) {
+#if 0
+static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
 #ifndef __linux__
 	return "if_nametoindex: Linux is required";
 #else
@@ -41,15 +41,14 @@ static string br_setif(const string& ifname) {
 	if (ifr.ifr_ifindex == 0) {
 		return "Can't if_nametoindex " + ifname;
 	}
-#if 0
 	strncpy(ifr.ifr_name, bridgename.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		return "Can't ioctl " + string(add ? "SIOCBRADDIF" : "SIOCBRDELIF");
 	}
-#endif
 	return "";
 #endif
 }
+#endif
 
 string ip_link(int fd, const char* ifname, bool up) {
 #ifndef __linux__
