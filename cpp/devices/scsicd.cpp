@@ -112,8 +112,8 @@ void SCSICD::OpenIso()
 	}
 
 	if (rawfile) {
-		if (size % 2536) {
-			LogWarn("Raw ISO CD-ROM file size is not a multiple of 2536 bytes but is "
+		if (size % 2352) {
+			LogWarn("Raw ISO CD-ROM file size is not a multiple of 2352 bytes but is "
 					+ to_string(size) + " bytes");
 		}
 
