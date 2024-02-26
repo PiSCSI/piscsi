@@ -157,7 +157,23 @@ TEST(ScsiCdTest, ModeSelect)
 	buf[12] = 0x01;
 	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 2048 is supported";
 
-	// 512 bytes per sector
+	// 512 bytes per sector - ModeSelect6
 	buf[10] = 0x02;
 	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 512 is supported";
+
+	// 2048 bytes per sector - ModeSelect6
+	buf[10] = 0x08;
+	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 2045 is supported";
+
+	// 512 bytes per sector - ModeSelect10
+	buf[10] = 0x02;
+	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 255)) << "MODE SELECT(10) with sector size 512 is supported";
+
+	// unsupported sector size - ModeSelect6
+	buf[10] = 0x04;
+	EXPECT_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255), io_exception) << "MODE SELECT(6) with sector size 1024 is unsupported";
+
+	// sector size not multiple of 512 - ModeSelect6
+	buf[10] = 0x03;
+	EXPECT_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255), io_exception) << "MODE SELECT(6) with sector size 768 is unsupported";
 }
