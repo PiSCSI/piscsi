@@ -137,9 +137,11 @@ TEST(ScsiCdTest, ReadToc)
 TEST(ScsiCdTest, ModeSelect)
 {
 	MockSCSICD cd(0);
+	MockSCSICD cd1(0);
 	vector<int> cmd(6);
 	vector<uint8_t> buf(255);
 
+        // dummy file for DiskCache resize after sector size change
 	path filename = CreateTempFile(2* 2048);
 	cd.SetFilename(string(filename));
 	cd.Open();
@@ -163,7 +165,7 @@ TEST(ScsiCdTest, ModeSelect)
 
 	// 2048 bytes per sector - ModeSelect6
 	buf[10] = 0x08;
-	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 2045 is supported";
+	EXPECT_NO_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) with sector size 2048 is supported";
 
 	// 512 bytes per sector - ModeSelect10
 	buf[10] = 0x02;
@@ -176,4 +178,11 @@ TEST(ScsiCdTest, ModeSelect)
 	// sector size not multiple of 512 - ModeSelect6
 	buf[10] = 0x03;
 	EXPECT_THROW(cd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255), io_exception) << "MODE SELECT(6) with sector size 768 is unsupported";
+
+        // cd1 has no dummy file attached, simulating an empty CD drive
+	cd1.SetSectorSizeInBytes(2048);
+
+	// 512 bytes per sector - ModeSelect6
+	buf[10] = 0x02;
+	EXPECT_NO_THROW(cd1.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6), emtpy drive, with sector size 512 is supported";
 }
