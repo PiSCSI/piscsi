@@ -179,7 +179,11 @@ void SCSICD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, in
 		ClearTrack();
 		CreateDataTrack();
 		FlushCache();
-		ResizeCache(GetFilename(), GetRawMode());
+                string filename;
+                if ((filename = GetFilename()) != "") {
+                    // DiskCache fails without a file to compute the cache size
+                    ResizeCache(filename, GetRawMode());
+                }
 	}
 
 	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, sector_size);
