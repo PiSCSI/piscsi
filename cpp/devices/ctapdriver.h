@@ -29,7 +29,7 @@ using namespace std;
 
 class CTapDriver
 {
-	static const string BRIDGE_NAME;
+//	static const string BRIDGE_NAME;
 
 	const inline static string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hardcoded IP address is safe
 
@@ -56,7 +56,7 @@ public:
 
 private:
 
-	static string SetUpEth0(int, const string&);
+	//static string SetUpEth0(int, const string&);
 	static string SetUpNonEth0(int, int, const string&);
 	static pair<string, string> ExtractAddressAndMask(const string&);
 

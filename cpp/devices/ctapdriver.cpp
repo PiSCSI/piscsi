@@ -29,8 +29,9 @@ using namespace std;
 using namespace piscsi_util;
 using namespace network_util;
 
-const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
+// const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
+#if 0
 static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
 #ifndef __linux__
 	return "if_nametoindex: Linux is required";
@@ -47,6 +48,7 @@ static string br_setif(int br_socket_fd, const string& bridgename, const string&
 	return "";
 #endif
 }
+#endif
 
 string ip_link(int fd, const char* ifname, bool up) {
 #ifndef __linux__
@@ -113,6 +115,7 @@ bool CTapDriver::Init(const param_map& const_params)
 		return false;
 	}
 
+#if 0
 	const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 	if (br_socket_fd < 0) {
 		LogErrno("Can't open bridge socket");
@@ -121,15 +124,17 @@ bool CTapDriver::Init(const param_map& const_params)
 		close(ip_fd);
 		return false;
 	}
+#endif
 
 	auto cleanUp = [&] (const string& error) {
 		LogErrno(error);
 		close(m_hTAP);
 		close(ip_fd);
-		close(br_socket_fd);
+		// close(br_socket_fd);
 		return false;
 	};
 
+#if 0
 	// Check if the bridge has already been created
 	// TODO Find an alternative to accessing a file, there is most likely a system call/ioctl
 	if (access(string("/sys/class/net/" + BRIDGE_NAME).c_str(), F_OK)) {
@@ -162,6 +167,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	else {
 		spdlog::info(BRIDGE_NAME + " is already available");
 	}
+#endif
 
 	spdlog::trace(">ip link set piscsi0 up");
 
@@ -169,11 +175,13 @@ bool CTapDriver::Init(const param_map& const_params)
 		return cleanUp(error);
 	}
 
+#if 0
 	spdlog::trace(">brctl addif " + BRIDGE_NAME + " piscsi0");
 
 	if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", true); !error.empty()) {
 		return cleanUp(error);
 	}
+#endif
 
 	spdlog::trace("Getting the MAC address");
 
@@ -186,7 +194,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	memcpy(m_MacAddr.data(), ifr.ifr_hwaddr.sa_data, m_MacAddr.size());
 
 	close(ip_fd);
-	close(br_socket_fd);
+	// close(br_socket_fd);
 
 	spdlog::info("Tap device " + string(ifr.ifr_name) + " created");
 
@@ -197,6 +205,7 @@ bool CTapDriver::Init(const param_map& const_params)
 void CTapDriver::CleanUp() const
 {
 	if (m_hTAP != -1) {
+#if 0
 		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
 			LogErrno("Can't open bridge socket");
 		} else {
@@ -207,6 +216,7 @@ void CTapDriver::CleanUp() const
 			}
 			close(br_socket_fd);
 		}
+#endif
 
 		// Release TAP device
 		close(m_hTAP);
@@ -243,6 +253,7 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 	return { address, netmask };
 }
 
+#if 0
 string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 {
 #ifdef __linux__
@@ -261,7 +272,9 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 
 	return "";
 }
+#endif
 
+#if 0
 string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 {
 #ifdef __linux__
@@ -301,6 +314,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 
 	return "";
 }
+#endif
 
 string CTapDriver::IpLink(bool enable) const
 {
