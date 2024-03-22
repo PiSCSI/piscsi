@@ -1,4 +1,5 @@
 """Module implementing a blank screensaver"""
+
 from menu.screensaver import ScreenSaver
 
 

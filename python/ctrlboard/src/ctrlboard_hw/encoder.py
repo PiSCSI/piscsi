@@ -1,5 +1,6 @@
 """Module containing an implementation for reading the rotary encoder directions through
 the i2c multiplexer + interrupt"""
+
 from ctrlboard_hw.hardware_button import HardwareButton
 
 

@@ -1,4 +1,5 @@
 """Module providing the shutdown cycler for the PiSCSI Control Board UI """
+
 from menu.cycler import Cycler
 
 

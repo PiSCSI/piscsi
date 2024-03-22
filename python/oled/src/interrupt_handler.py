@@ -1,6 +1,7 @@
 """
 Linux interrupt handling module
 """
+
 import signal
 
 

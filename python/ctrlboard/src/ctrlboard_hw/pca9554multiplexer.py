@@ -1,6 +1,7 @@
 """
 Module for interfacting with the pca9554 multiplexer
 """
+
 # pylint: disable=c-extension-no-member
 import logging
 import smbus

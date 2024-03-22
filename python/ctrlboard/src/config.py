@@ -1,6 +1,7 @@
 """
 Module for central PiSCSI control board configuration parameters
 """
+
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 
 

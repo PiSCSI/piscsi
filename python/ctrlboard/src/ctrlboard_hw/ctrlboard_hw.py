@@ -1,4 +1,5 @@
 """Module providing the interface to the PiSCSI Control Board hardware"""
+
 # noinspection PyUnresolvedReferences
 import logging
 import time

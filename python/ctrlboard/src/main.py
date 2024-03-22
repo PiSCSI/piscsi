@@ -1,4 +1,5 @@
 """Module is the entry point for the PiSCSI Control Board UI"""
+
 import argparse
 import sys
 import logging

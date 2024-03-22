@@ -1,4 +1,5 @@
 """Module that implements a button cycling functionality"""
+
 from abc import abstractmethod
 from menu.timer import Timer
 from piscsi.file_cmds import FileCmds

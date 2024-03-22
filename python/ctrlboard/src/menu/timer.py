@@ -1,4 +1,5 @@
 """Module providing a timer class"""
+
 import time
 
 

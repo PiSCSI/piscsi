@@ -1,4 +1,5 @@
 """Module for Observable part of the Observer pattern functionality"""
+
 from typing import List
 from observer import Observer
 

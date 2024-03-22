@@ -1,6 +1,7 @@
 """
 Module with methods that interact with the Pi system
 """
+
 import subprocess
 import logging
 import sys

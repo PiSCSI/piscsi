@@ -1,4 +1,5 @@
 """Module providing the menu screensaver class"""
+
 from abc import abstractmethod
 from menu.timer import Timer
 

@@ -1,4 +1,5 @@
 """Module for creating a menu"""
+
 from typing import List
 
 

@@ -1,4 +1,5 @@
 """Module providing the Adafruit SSD1306 menu renderer class"""
+
 # pylint: disable=import-error
 from board import SCL, SDA
 import busio

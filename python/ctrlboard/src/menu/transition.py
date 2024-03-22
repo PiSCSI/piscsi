@@ -1,4 +1,5 @@
 """Module providing implementations for menu transitions."""
+
 from abc import abstractmethod
 from PIL import Image
 

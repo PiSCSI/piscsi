@@ -1,4 +1,5 @@
 """Module providing the profile cycler class for the PiSCSI Control Board UI"""
+
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.cycler import Cycler
 

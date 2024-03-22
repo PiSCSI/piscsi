@@ -1,4 +1,5 @@
 """Module providing the menu controller."""
+
 import time
 import importlib
 from typing import Dict, Optional
