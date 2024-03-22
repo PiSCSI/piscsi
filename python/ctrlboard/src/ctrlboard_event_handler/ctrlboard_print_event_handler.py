@@ -1,4 +1,5 @@
 """Module for test printing events when buttons from the PiSCSI Control Board are pressed"""
+
 import observer
 from ctrlboard_hw.hardware_button import HardwareButton
 from ctrlboard_hw.encoder import Encoder

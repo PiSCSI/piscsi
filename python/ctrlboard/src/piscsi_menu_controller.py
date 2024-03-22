@@ -1,4 +1,5 @@
 """Module implementing the PiSCSI Control Board UI specific menu controller"""
+
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_builder import MenuBuilder
 from menu.menu_controller import MenuController

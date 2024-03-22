@@ -1,4 +1,5 @@
 """Module for building the control board UI specific menus"""
+
 import logging
 
 from menu.menu import Menu

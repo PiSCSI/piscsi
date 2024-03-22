@@ -85,9 +85,9 @@ class PiscsiCmds:
                         if PurePath(member["path"]).suffix.lower()[1:] == PROPERTIES_SUFFIX:
                             member["is_properties_file"] = True
                         elif f"{member['path']}.{PROPERTIES_SUFFIX}" in properties_files:
-                            member[
-                                "related_properties_file"
-                            ] = f"{member['path']}.{PROPERTIES_SUFFIX}"
+                            member["related_properties_file"] = (
+                                f"{member['path']}.{PROPERTIES_SUFFIX}"
+                            )
 
                         archive_contents.append(member)
                 except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):

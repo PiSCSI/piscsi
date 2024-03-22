@@ -1,4 +1,5 @@
 """Module implementing the Observer part of the Observer pattern"""
+
 from abc import ABC, abstractmethod
 
 

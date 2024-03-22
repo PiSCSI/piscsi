@@ -1,4 +1,5 @@
 """Module for interfacing between the menu controller and the PiSCSI Control Board hardware"""
+
 import logging
 from typing import Optional
 

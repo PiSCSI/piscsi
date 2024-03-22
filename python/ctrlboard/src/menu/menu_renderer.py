@@ -1,4 +1,5 @@
 """Module provides the abstract menu renderer class"""
+
 import time
 import math
 import itertools

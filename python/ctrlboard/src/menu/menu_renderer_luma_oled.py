@@ -1,4 +1,5 @@
 """Module providing the luma oled menu renderer class"""
+
 from luma.core.interface.serial import i2c
 from menu.menu_renderer import MenuRenderer
 

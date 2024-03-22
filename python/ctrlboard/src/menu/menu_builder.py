@@ -1,4 +1,5 @@
 """Module for creating menus"""
+
 from abc import ABC, abstractmethod
 from menu.menu import Menu
 
