@@ -1,9 +1,8 @@
-attrs==23.2.0
 black==24.3.0
 certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
-flake8==5.0.4
+flake8==7.0.0
 idna==3.6
 iniconfig==2.0.0
 MarkupSafe==2.1.5
@@ -13,13 +12,11 @@ packaging==24.0
 pathspec==0.12.1
 platformdirs==4.2.0
 pluggy==1.4.0
-py==1.11.0
-pycodestyle==2.9.1
-pyflakes==2.5.0
+pycodestyle==2.11.1
+pyflakes==3.2.0
 pytest==8.1.1
 pytest_httpserver==1.0.10
 requests==2.31.0
-tomli==2.0.1
 urllib3==2.2.1
 vcgencmd==0.1.1
 watchdog==4.0.0
