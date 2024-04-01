@@ -434,6 +434,7 @@ void ScsiController::Send()
 
 	if (HasValidLength()) {
 		LogTrace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
+                uint8_t *data = GetBuffer().data() + GetOffset();
 
 		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
@@ -444,6 +445,16 @@ void ScsiController::Send()
 			Error(sense_key::aborted_command);
 			return;
 		}
+                else {
+                    if ((GetLength() > 0) && (GetLength() < 512) && (spdlog::get_level() == spdlog::level::trace)) {
+                        stringstream s;
+                        s << "Sent data $" << setfill('0') << hex;
+                        for (uint32_t i = 0; i < GetLength(); i++) {
+                            s << setw(2) << (int)(*data++);
+                        }
+                        LogTrace(s.str());
+                    }
+                }
 
 		UpdateOffsetAndLength();
 
@@ -510,7 +521,7 @@ void ScsiController::Receive()
 
 	if (HasValidLength()) {
 		LogTrace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
-
+                uint8_t *data = GetBuffer().data() + GetOffset();
 		// If not able to receive all, move to status phase
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
 			LogError("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
@@ -518,6 +529,16 @@ void ScsiController::Receive()
 			Error(sense_key::aborted_command);
 			return;
 		}
+                else {
+                    if ((GetLength() > 0) && (GetLength() < 512) && (spdlog::get_level() == spdlog::level::trace)) {
+                        stringstream s;
+                        s << "Received data $" << setfill('0') << hex;
+                        for (uint32_t i = 0; i < GetLength(); i++) {
+                            s << setw(2) << (int)(*data++);
+                        }
+                        LogTrace(s.str());
+                    }
+                }
 	}
 
 	if (IsByteTransfer()) {
