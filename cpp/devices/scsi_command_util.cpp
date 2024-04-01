@@ -44,7 +44,8 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 	bool has_valid_page_code = (length == 0);
 
 	// Parse the pages
-	while (length > 0) {
+        // expect (remaining) length > 1 because we access buf[offset+1] below
+	while (length > 1) {
 		// Format device page
 		if (const int page = buf[offset]; page == 0x03) {
 			if (length < 14) {
@@ -76,7 +77,7 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 		// Advance to the next page
 		const int size = buf[offset + 1] + 2;
 
-		length -= size + 1;
+		length -= size;
 		offset += size;
 	}
 
