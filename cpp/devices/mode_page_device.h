@@ -23,7 +23,7 @@ public:
 
 	bool Init(const param_map&) override;
 
-	virtual void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int);
+	virtual void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) const;
 
 protected:
 

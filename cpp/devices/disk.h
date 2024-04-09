@@ -112,7 +112,7 @@ protected:
 
 	void SetUpCache(off_t, bool = false);
 	void ResizeCache(const string&, bool);
-        bool GetRawMode() const { return (cache?cache->GetRawMode():false); }
+
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	void AddErrorPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;
