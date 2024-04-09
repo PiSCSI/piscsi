@@ -13,12 +13,11 @@
 
 void ScsiHdTest_SetUpModePages(map<int, vector<byte>>& pages)
 {
-	EXPECT_EQ(6, pages.size()) << "Unexpected number of mode pages";
+	EXPECT_EQ(5, pages.size()) << "Unexpected number of mode pages";
 	EXPECT_EQ(12, pages[1].size());
 	EXPECT_EQ(24, pages[3].size());
 	EXPECT_EQ(24, pages[4].size());
 	EXPECT_EQ(12, pages[8].size());
-	EXPECT_EQ(25, pages[37].size());
 	EXPECT_EQ(30, pages[48].size());
 }
 
@@ -100,20 +99,6 @@ TEST(ScsiHdTest, SetUpModePages)
 	pages.clear();
 	hd.SetUpModePages(pages, 0x3f, true);
 	ScsiHdTest_SetUpModePages(pages);
-}
-
-TEST(ScsiHdTest, DECSpecialFunctionControlPage)
-{
-	map<int, vector<byte>> pages;
-	vector<byte> buf;
-	MockSCSIHD hd(0, false);
-
-	EXPECT_NO_THROW(hd.SetUpModePages(pages, 0x25, false)) << "MODE SENSE(6) DEC unique page is supported";
-	EXPECT_NE(pages.end(), pages.find(0x25));
-	buf = pages[0x25];
-	EXPECT_EQ(static_cast<byte> (0x25 | 0x80), buf[0]);
-	EXPECT_EQ(static_cast<byte> (0x17), buf[1]);
-	EXPECT_EQ(static_cast<byte> (0x01), buf[2]);
 }
 
 TEST(ScsiHdTest, ModeSelect)
