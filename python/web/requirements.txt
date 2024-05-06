@@ -14,4 +14,4 @@ requests==2.31.0
 simplepam==0.1.5
 ua-parser==0.16.1
 vcgencmd==0.1.1
-Werkzeug==3.0.1
+Werkzeug==3.0.3
