@@ -16,6 +16,8 @@
 #include <sstream>
 #include <unistd.h>
 #include <vector>
+#include <string>
+#include <random>
 
 using namespace std;
 using namespace filesystem;
@@ -26,40 +28,43 @@ const path test_data_temp_path(temp_directory_path() /
                                path(fmt::format("piscsi-test-{}",
                                                 getpid()))); // NOSONAR Publicly writable directory is fine here
 
-pair<shared_ptr<MockAbstractController>, shared_ptr<PrimaryDevice>> CreateDevice(PbDeviceType type, const string& extension)
+pair<shared_ptr<MockAbstractController>, shared_ptr<PrimaryDevice>> CreateDevice(PbDeviceType type, const string &extension)
 {
     DeviceFactory device_factory;
 
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
+    auto controller = make_shared<NiceMock<MockAbstractController>>(0);
     auto device = device_factory.CreateDevice(type, 0, extension);
     device->Init({});
 
     EXPECT_TRUE(controller->AddDevice(device));
 
-    return { controller, device };
+    return {controller, device};
 }
 
-void TestInquiry::Inquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
-		bool removable, const string& extension)
+void TestInquiry::Inquiry(PbDeviceType type, device_type t, scsi_level l, const string &ident, int additional_length,
+                          bool removable, const string &extension)
 {
     auto [controller, device] = CreateDevice(type, extension);
 
     // ALLOCATION LENGTH
-	controller->SetCmdByte(4, 255);
+    controller->SetCmdByte(4, 255);
     EXPECT_CALL(*controller, DataIn());
     device->Dispatch(scsi_command::eCmdInquiry);
-    const vector<uint8_t>& buffer = controller->GetBuffer();
+    const vector<uint8_t> &buffer = controller->GetBuffer();
     EXPECT_EQ(t, static_cast<device_type>(buffer[0]));
     EXPECT_EQ(removable ? 0x80 : 0x00, buffer[1]);
     EXPECT_EQ(l, static_cast<scsi_level>(buffer[2]));
     EXPECT_EQ(l > scsi_level::scsi_2 ? scsi_level::scsi_2 : l, static_cast<scsi_level>(buffer[3]));
     EXPECT_EQ(additional_length, buffer[4]);
     string product_data;
-    if (ident.size() == 24) {
+    if (ident.size() == 24)
+    {
         ostringstream s;
         s << ident << setw(2) << setfill('0') << piscsi_major_version << setw(2) << piscsi_minor_version;
         product_data = s.str();
-    } else {
+    }
+    else
+    {
         product_data = ident;
     }
     EXPECT_TRUE(!memcmp(product_data.c_str(), &buffer[8], 28));
@@ -82,8 +87,8 @@ pair<int, path> OpenTempFile()
 
 path CreateTempFile(int size)
 {
-	const auto data = vector<byte>(size);
-	return CreateTempFileWithData(data);
+    const auto data = vector<byte>(size);
+    return CreateTempFileWithData(data);
 }
 
 path CreateTempFileWithData(const span<const byte> data)
@@ -99,36 +104,52 @@ path CreateTempFileWithData(const span<const byte> data)
 
 // TODO Replace old-fashinoned C I/O by C++ streams I/O.
 // This also avoids potential issues with data type sizes and there is no need for c_str().
-void CreateTempFileWithData(const string& filename, vector<uint8_t>& data)
+void CreateTempFileWithData(const string &filename, vector<uint8_t> &data)
 {
     path new_filename = test_data_temp_path;
     new_filename += path(filename);
 
     create_directories(new_filename.parent_path());
 
-    FILE* fp = fopen(new_filename.c_str(), "wb");
-    if (fp == nullptr) {
+    FILE *fp = fopen(new_filename.c_str(), "wb");
+    if (fp == nullptr)
+    {
         cerr << "ERROR: Unable to open file '" << new_filename << "'";
         return;
     }
 
     if (const size_t size_written = fwrite(&data[0], sizeof(uint8_t), data.size(), fp);
-        size_written != sizeof(vector<uint8_t>::value_type) * data.size()) {
-    	cerr << "ERROR: Expected to write " << sizeof(vector<uint8_t>::value_type) * data.size() << " bytes"
-    			<< ", but only wrote " << data.size() << " to '" << filename << "'";
+        size_written != sizeof(vector<uint8_t>::value_type) * data.size())
+    {
+        cerr << "ERROR: Expected to write " << sizeof(vector<uint8_t>::value_type) * data.size() << " bytes"
+             << ", but only wrote " << data.size() << " to '" << filename << "'";
     }
     fclose(fp);
 }
 
-// TODO Move this code, it is not shared
-void DeleteTempFile(const string& filename)
+path CreateTempFileWithString(const string &filename, const string &data)
 {
-	path temp_file = test_data_temp_path;
-	temp_file += path(filename);
-	remove(temp_file);
+    path new_filename = test_data_temp_path;
+    new_filename += path(filename);
+
+    // printf("XXXXXXX Creating file '%s' with \n'%s'\n", new_filename.c_str(), data.c_str());
+    create_directories(new_filename.parent_path());
+
+    std::ofstream out(new_filename);
+    out << data;
+    out.close();
+    return path(new_filename);
 }
 
-string ReadTempFileToString(const string& filename)
+// TODO Move this code, it is not shared
+void DeleteTempFile(const string &filename)
+{
+    path temp_file = test_data_temp_path;
+    temp_file += path(filename);
+    remove(temp_file);
+}
+
+string ReadTempFileToString(const string &filename)
 {
     const path temp_file = test_data_temp_path / path(filename);
     ifstream in(temp_file);
@@ -138,17 +159,33 @@ string ReadTempFileToString(const string& filename)
     return buffer.str();
 }
 
-int GetInt16(const vector<byte>& buf, int offset)
+int GetInt16(const vector<byte> &buf, int offset)
 {
     assert(buf.size() > static_cast<size_t>(offset) + 1);
 
     return (to_integer<int>(buf[offset]) << 8) | to_integer<int>(buf[offset + 1]);
 }
 
-uint32_t GetInt32(const vector<byte>& buf, int offset)
+uint32_t GetInt32(const vector<byte> &buf, int offset)
 {
     assert(buf.size() > static_cast<size_t>(offset) + 3);
 
     return (to_integer<uint32_t>(buf[offset]) << 24) | (to_integer<uint32_t>(buf[offset + 1]) << 16) |
            (to_integer<uint32_t>(buf[offset + 2]) << 8) | to_integer<uint32_t>(buf[offset + 3]);
+}
+
+std::string GenerateRandomString(int length)
+{
+    static const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, static_cast<int>(characters.size() - 1));
+
+    std::string result;
+    result.reserve(length);
+    for (int i = 0; i < length; ++i)
+    {
+        result += characters[dis(gen)];
+    }
+    return result;
 }
