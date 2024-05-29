@@ -11,7 +11,8 @@
 #include <memory>
 
 #include "hal/gpiobus_factory.h"
-#include "hal/gpiobus_raspberry.h"
+#include "hal/gpiobus_rpi_rp1.h"
+#include "hal/gpiobus_rpi_bcm.h"
 #include "hal/gpiobus_virtual.h"
 #include "hal/sbc_version.h"
 #include <unistd.h>
@@ -31,7 +32,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         		return nullptr;
         	}
 
-            bus = make_unique<GPIOBUS_Raspberry>();
+            bus = make_unique<GPIOBUS_RPi_bcm>();
         } else {
             bus = make_unique<GPIOBUS_Virtual>();
         }

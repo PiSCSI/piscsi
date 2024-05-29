@@ -16,7 +16,7 @@
 //---------------------------------------------------------------------------
 
 #include <spdlog/spdlog.h>
-#include "hal/gpiobus_raspberry.h"
+#include "hal/gpiobus_rpi_bcm.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include <map>
@@ -33,7 +33,7 @@
 //	imported from bcm_host.c
 //
 //---------------------------------------------------------------------------
-uint32_t GPIOBUS_Raspberry::get_dt_ranges(const char *filename, uint32_t offset)
+uint32_t GPIOBUS_RPi_bcm::get_dt_ranges(const char *filename, uint32_t offset)
 {
     GPIO_FUNCTION_TRACE
     uint32_t address = ~0;
@@ -47,7 +47,7 @@ uint32_t GPIOBUS_Raspberry::get_dt_ranges(const char *filename, uint32_t offset)
     return address;
 }
 
-uint32_t GPIOBUS_Raspberry::bcm_host_get_peripheral_address()
+uint32_t GPIOBUS_RPi_bcm::bcm_host_get_peripheral_address()
 {
     GPIO_FUNCTION_TRACE
 #ifdef __linux__
@@ -62,7 +62,7 @@ uint32_t GPIOBUS_Raspberry::bcm_host_get_peripheral_address()
 #endif
 }
 
-bool GPIOBUS_Raspberry::Init(mode_e mode)
+bool GPIOBUS_RPi_bcm::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
 
@@ -275,7 +275,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 #endif // ifdef __x86_64__ || __X86__
 }
 
-void GPIOBUS_Raspberry::Cleanup()
+void GPIOBUS_RPi_bcm::Cleanup()
 {
 #if defined(__x86_64__) || defined(__X86__)
     return;
@@ -309,7 +309,7 @@ void GPIOBUS_Raspberry::Cleanup()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-void GPIOBUS_Raspberry::Reset()
+void GPIOBUS_RPi_bcm::Reset()
 {
 #if defined(__x86_64__) || defined(__X86__)
     return;
@@ -395,17 +395,17 @@ void GPIOBUS_Raspberry::Reset()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-void GPIOBUS_Raspberry::SetENB(bool ast)
+void GPIOBUS_RPi_bcm::SetENB(bool ast)
 {
     PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
 }
 
-bool GPIOBUS_Raspberry::GetBSY() const
+bool GPIOBUS_RPi_bcm::GetBSY() const
 {
     return GetSignal(PIN_BSY);
 }
 
-void GPIOBUS_Raspberry::SetBSY(bool ast)
+void GPIOBUS_RPi_bcm::SetBSY(bool ast)
 {
     // Set BSY signal
     SetSignal(PIN_BSY, ast);
@@ -437,12 +437,12 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
     }
 }
 
-bool GPIOBUS_Raspberry::GetSEL() const
+bool GPIOBUS_RPi_bcm::GetSEL() const
 {
     return GetSignal(PIN_SEL);
 }
 
-void GPIOBUS_Raspberry::SetSEL(bool ast)
+void GPIOBUS_RPi_bcm::SetSEL(bool ast)
 {
     if (actmode == mode_e::INITIATOR && ast) {
         // Turn on ACTIVE signal
@@ -453,67 +453,67 @@ void GPIOBUS_Raspberry::SetSEL(bool ast)
     SetSignal(PIN_SEL, ast);
 }
 
-bool GPIOBUS_Raspberry::GetATN() const
+bool GPIOBUS_RPi_bcm::GetATN() const
 {
     return GetSignal(PIN_ATN);
 }
 
-void GPIOBUS_Raspberry::SetATN(bool ast)
+void GPIOBUS_RPi_bcm::SetATN(bool ast)
 {
     SetSignal(PIN_ATN, ast);
 }
 
-bool GPIOBUS_Raspberry::GetACK() const
+bool GPIOBUS_RPi_bcm::GetACK() const
 {
     return GetSignal(PIN_ACK);
 }
 
-void GPIOBUS_Raspberry::SetACK(bool ast)
+void GPIOBUS_RPi_bcm::SetACK(bool ast)
 {
     SetSignal(PIN_ACK, ast);
 }
 
-bool GPIOBUS_Raspberry::GetACT() const
+bool GPIOBUS_RPi_bcm::GetACT() const
 {
     return GetSignal(PIN_ACT);
 }
 
-void GPIOBUS_Raspberry::SetACT(bool ast)
+void GPIOBUS_RPi_bcm::SetACT(bool ast)
 {
     SetSignal(PIN_ACT, ast);
 }
 
-bool GPIOBUS_Raspberry::GetRST() const
+bool GPIOBUS_RPi_bcm::GetRST() const
 {
     return GetSignal(PIN_RST);
 }
 
-void GPIOBUS_Raspberry::SetRST(bool ast)
+void GPIOBUS_RPi_bcm::SetRST(bool ast)
 {
     SetSignal(PIN_RST, ast);
 }
 
-bool GPIOBUS_Raspberry::GetMSG() const
+bool GPIOBUS_RPi_bcm::GetMSG() const
 {
     return GetSignal(PIN_MSG);
 }
 
-void GPIOBUS_Raspberry::SetMSG(bool ast)
+void GPIOBUS_RPi_bcm::SetMSG(bool ast)
 {
     SetSignal(PIN_MSG, ast);
 }
 
-bool GPIOBUS_Raspberry::GetCD() const
+bool GPIOBUS_RPi_bcm::GetCD() const
 {
     return GetSignal(PIN_CD);
 }
 
-void GPIOBUS_Raspberry::SetCD(bool ast)
+void GPIOBUS_RPi_bcm::SetCD(bool ast)
 {
     SetSignal(PIN_CD, ast);
 }
 
-bool GPIOBUS_Raspberry::GetIO()
+bool GPIOBUS_RPi_bcm::GetIO()
 {
     bool ast = GetSignal(PIN_IO);
 
@@ -547,7 +547,7 @@ bool GPIOBUS_Raspberry::GetIO()
     return ast;
 }
 
-void GPIOBUS_Raspberry::SetIO(bool ast)
+void GPIOBUS_RPi_bcm::SetIO(bool ast)
 {
     SetSignal(PIN_IO, ast);
 
@@ -580,12 +580,12 @@ void GPIOBUS_Raspberry::SetIO(bool ast)
     }
 }
 
-bool GPIOBUS_Raspberry::GetREQ() const
+bool GPIOBUS_RPi_bcm::GetREQ() const
 {
     return GetSignal(PIN_REQ);
 }
 
-void GPIOBUS_Raspberry::SetREQ(bool ast)
+void GPIOBUS_RPi_bcm::SetREQ(bool ast)
 {
     SetSignal(PIN_REQ, ast);
 }
@@ -595,7 +595,7 @@ void GPIOBUS_Raspberry::SetREQ(bool ast)
 // Get data signals
 //
 //---------------------------------------------------------------------------
-uint8_t GPIOBUS_Raspberry::GetDAT()
+uint8_t GPIOBUS_RPi_bcm::GetDAT()
 {
     uint32_t data = Acquire();
     data          = ((data >> (PIN_DT0 - 0)) & (1 << 0)) | ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
@@ -606,7 +606,7 @@ uint8_t GPIOBUS_Raspberry::GetDAT()
     return (uint8_t)data;
 }
 
-void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
+void GPIOBUS_RPi_bcm::SetDAT(uint8_t dat)
 {
     // Write to ports
 #if SIGNAL_CONTROL_MODE == 0
@@ -638,7 +638,7 @@ void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const array<int, 19> GPIOBUS_Raspberry::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6,
+const array<int, 19> GPIOBUS_RPi_bcm::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6,
                                                        PIN_DT7, PIN_DP,  PIN_SEL, PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY,
                                                        PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1};
 
@@ -647,7 +647,7 @@ const array<int, 19> GPIOBUS_Raspberry::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2
 //	Create work table
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::MakeTable(void)
+void GPIOBUS_RPi_bcm::MakeTable(void)
 {
     const array<int, 9> pintbl = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP};
 
@@ -738,7 +738,7 @@ void GPIOBUS_Raspberry::MakeTable(void)
 //	Control signal setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::SetControl(int pin, bool ast)
+void GPIOBUS_RPi_bcm::SetControl(int pin, bool ast)
 {
     PinSetSignal(pin, ast);
 }
@@ -751,7 +751,7 @@ void GPIOBUS_Raspberry::SetControl(int pin, bool ast)
 //   Used with: TAD, BSY, MSG, CD, REQ, O, SEL, IND, ATN, ACK, RST, DT*
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::SetMode(int pin, int mode)
+void GPIOBUS_RPi_bcm::SetMode(int pin, int mode)
 {
 #if SIGNAL_CONTROL_MODE == 0
     if (mode == OUT) {
@@ -775,7 +775,7 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
 //	Get input signal value
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS_Raspberry::GetSignal(int pin) const
+bool GPIOBUS_RPi_bcm::GetSignal(int pin) const
 {
     return (signals >> pin) & 1;
 }
@@ -788,7 +788,7 @@ bool GPIOBUS_Raspberry::GetSignal(int pin) const
 //     PIN_ENB, ACT, TAD, IND, DTD, BSY, SignalTable
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
+void GPIOBUS_RPi_bcm::SetSignal(int pin, bool ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
     int index     = pin / 10;
@@ -816,7 +816,7 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 #endif // SIGNAL_CONTROL_MODE
 }
 
-void GPIOBUS_Raspberry::DisableIRQ()
+void GPIOBUS_RPi_bcm::DisableIRQ()
 {
 #ifdef __linux__
     if (rpitype == 4) {
@@ -838,7 +838,7 @@ void GPIOBUS_Raspberry::DisableIRQ()
 #endif
 }
 
-void GPIOBUS_Raspberry::EnableIRQ()
+void GPIOBUS_RPi_bcm::EnableIRQ()
 {
     if (rpitype == 4) {
         // RPI4 enables interrupts via the GICC
@@ -860,7 +860,7 @@ void GPIOBUS_Raspberry::EnableIRQ()
 // Also used on SignalTable
 // Only used in Init and Cleanup. Reset uses SetMode
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
+void GPIOBUS_RPi_bcm::PinConfig(int pin, int mode)
 {
     // Check for invalid pin
     if (pin < 0) {
@@ -877,7 +877,7 @@ void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
 //	Pin pull-up/pull-down setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
+void GPIOBUS_RPi_bcm::PullConfig(int pin, int mode)
 {
     uint32_t pull;
 
@@ -923,7 +923,7 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
 //	Set output pin
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::PinSetSignal(int pin, bool ast)
+void GPIOBUS_RPi_bcm::PinSetSignal(int pin, bool ast)
 {
     // Check for invalid pin
     if (pin < 0) {
@@ -942,7 +942,7 @@ void GPIOBUS_Raspberry::PinSetSignal(int pin, bool ast)
 //	Set the signal drive strength
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::DrvConfig(uint32_t drive)
+void GPIOBUS_RPi_bcm::DrvConfig(uint32_t drive)
 {
     uint32_t data  = pads[PAD_0_27];
     pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
@@ -953,7 +953,7 @@ void GPIOBUS_Raspberry::DrvConfig(uint32_t drive)
 //	Bus signal acquisition
 //
 //---------------------------------------------------------------------------
-uint32_t GPIOBUS_Raspberry::Acquire()
+uint32_t GPIOBUS_RPi_bcm::Acquire()
 {
     signals = *level;
 
