@@ -174,7 +174,7 @@ void gpio_set(unsigned gpio)
 
     if (gpio_get_interface(gpio, &iface, &priv, &gpio_offset) == 0)
     {
-        iface->gpio_set_drive(priv, gpio_offset, 1);
+        iface->gpio_set_drive(priv, gpio_offset, DRIVE_HIGH);
         iface->gpio_set_dir(priv, gpio_offset, DIR_OUTPUT);
     }
 }
@@ -187,7 +187,7 @@ void gpio_clear(unsigned gpio)
 
     if (gpio_get_interface(gpio, &iface, &priv, &gpio_offset) == 0)
     {
-        iface->gpio_set_drive(priv, gpio_offset, 0);
+        iface->gpio_set_drive(priv, gpio_offset, DRIVE_LOW);
         iface->gpio_set_dir(priv, gpio_offset, DIR_OUTPUT);
     }
 }
@@ -692,7 +692,7 @@ int gpiolib_mmap(void)
             return errno;
 
         new_priv = chip->interface->gpio_probe_instance(inst->priv,
-                                                        (void *)((char *)gpio_map + align));
+                                                        (uint32_t *)((char *)gpio_map + align));
         if (!new_priv)
             return -1;
         inst->priv = new_priv;

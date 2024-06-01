@@ -41,7 +41,7 @@ struct bcm2712_inst
 };
 
 static unsigned num_instances;
-static struct bcm2712_inst bcm2712_instances[BCM2712_MAX_INSTANCES] = { 0 };
+static struct bcm2712_inst bcm2712_instances[BCM2712_MAX_INSTANCES] = { {0,0,0,0,0,0,0} };
 static unsigned shared_flags;
 
 static const char *bcm2712_c0_gpio_alt_names[][BCM2712_FSEL_COUNT - 1] =
@@ -328,7 +328,7 @@ static volatile uint32_t *bcm2712_pad_base(struct bcm2712_inst *inst,
 
 static int bcm2712_gpio_get_level(void *priv, unsigned gpio)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int bit;
     volatile uint32_t *gpio_base = bcm2712_gpio_base(inst, gpio, &bit);
 
@@ -340,7 +340,7 @@ static int bcm2712_gpio_get_level(void *priv, unsigned gpio)
 
 static void bcm2712_gpio_set_drive(void *priv, unsigned gpio, GPIO_DRIVE_T drv)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int bit;
     volatile uint32_t *gpio_base = bcm2712_gpio_base(inst, gpio, &bit);
     uint32_t gpio_val;
@@ -355,7 +355,7 @@ static void bcm2712_gpio_set_drive(void *priv, unsigned gpio, GPIO_DRIVE_T drv)
 
 static GPIO_DRIVE_T bcm2712_gpio_get_drive(void *priv, unsigned gpio)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int bit;
     volatile uint32_t *gpio_base = bcm2712_gpio_base(inst, gpio, &bit);
     uint32_t gpio_val;
@@ -369,7 +369,7 @@ static GPIO_DRIVE_T bcm2712_gpio_get_drive(void *priv, unsigned gpio)
 
 static void bcm2712_gpio_set_dir(void *priv, unsigned gpio, GPIO_DIR_T dir)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int bit;
     volatile uint32_t *gpio_base = bcm2712_gpio_base(inst, gpio, &bit);
     uint32_t gpio_val;
@@ -385,7 +385,7 @@ static void bcm2712_gpio_set_dir(void *priv, unsigned gpio, GPIO_DIR_T dir)
 
 static GPIO_DIR_T bcm2712_gpio_get_dir(void *priv, unsigned gpio)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int bit;
     volatile uint32_t *gpio_base = bcm2712_gpio_base(inst, gpio, &bit);
     uint32_t gpio_val;
@@ -399,30 +399,30 @@ static GPIO_DIR_T bcm2712_gpio_get_dir(void *priv, unsigned gpio)
 
 static GPIO_FSEL_T bcm2712_pinctrl_get_fsel(void *priv, unsigned gpio)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int pinmux_bit;
     volatile uint32_t *pinmux_base = bcm2712_pinmux_base(inst, gpio, &pinmux_bit);
     int fsel;
 
     if (!pinmux_base)
-        return -1;
+        return (GPIO_FSEL_T)-1;
 
     fsel = ((*pinmux_base >> pinmux_bit) & 0xf);
 
     if (fsel == 0)
         return GPIO_FSEL_GPIO;
     else if (fsel < BCM2712_FSEL_COUNT)
-        return GPIO_FSEL_FUNC1 + (fsel - 1);
+        return (GPIO_FSEL_T)(GPIO_FSEL_FUNC1 + (fsel - 1));
     else if (fsel == 0xf) // Choose one value as a considered NONE
         return GPIO_FSEL_NONE;
 
     /* Unknown FSEL */
-    return -1;
+    return (GPIO_FSEL_T)-1;
 }
 
 static void bcm2712_pinctrl_set_fsel(void *priv, unsigned gpio, const GPIO_FSEL_T func)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int pinmux_bit;
     volatile uint32_t *pinmux_base = bcm2712_pinmux_base(inst, gpio, &pinmux_bit);
     uint32_t pinmux_val;
@@ -458,7 +458,7 @@ static void bcm2712_pinctrl_set_fsel(void *priv, unsigned gpio, const GPIO_FSEL_
 
 static GPIO_PULL_T bcm2712_pinctrl_get_pull(void *priv, unsigned gpio)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int bit;
     volatile uint32_t *pad_base = bcm2712_pad_base(inst, gpio, &bit);
     uint32_t pad_val;
@@ -482,7 +482,7 @@ static GPIO_PULL_T bcm2712_pinctrl_get_pull(void *priv, unsigned gpio)
 
 static void bcm2712_pinctrl_set_pull(void *priv, unsigned gpio, GPIO_PULL_T pull)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned int bit = 0;
     volatile uint32_t *pad_base = bcm2712_pad_base(inst, gpio, &bit);
     uint32_t padval;
@@ -589,14 +589,14 @@ static void *bcm2712_gpio_create_instance(const GPIO_CHIP_T *chip,
 
 static int bcm2712_gpio_count(void *priv)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
 
     return inst->num_gpios;
 }
 
 static void *bcm2712_gpio_probe_instance(void *priv, volatile uint32_t *base)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
 
     inst->gpio_base = base;
 
@@ -672,7 +672,7 @@ static void *bcm2712_pinctrl_create_instance(const GPIO_CHIP_T *chip,
 
 static int bcm2712_pinctrl_count(void *priv)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
 
     if (inst->flags & FLAGS_GPIO)
         return 0;  /* Don't occupy any GPIO space */
@@ -702,7 +702,7 @@ static int bcm2712_pinctrl_count(void *priv)
 
 static void *bcm2712_pinctrl_probe_instance(void *priv, volatile uint32_t *base)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     unsigned pad_offset;
 
     inst->pinmux_base = base;
@@ -731,7 +731,7 @@ static void *bcm2712_pinctrl_probe_instance(void *priv, volatile uint32_t *base)
 
 static const char *bcm2712_pinctrl_get_fsel_name(void *priv, unsigned gpio, GPIO_FSEL_T fsel)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     const char *name = NULL;
 
     switch (fsel)
@@ -788,7 +788,7 @@ static const char *bcm2712_pinctrl_get_fsel_name(void *priv, unsigned gpio, GPIO
 
 static const char *bcm2712_gpio_get_name(void *priv, unsigned gpio)
 {
-    struct bcm2712_inst *inst = priv;
+    struct bcm2712_inst *inst = (struct bcm2712_inst*)priv;
     const char *fsel_name;
     static char name_buf[16];
     unsigned gpio_offset;

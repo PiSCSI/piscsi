@@ -1,4 +1,6 @@
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -48,7 +50,7 @@ static void print_gpio_alts_info(unsigned gpio)
         printf(", %s", name);
     for (fsel = GPIO_FSEL_FUNC0; ; fsel++)
     {
-        name = gpio_get_gpio_fsel_name(gpio, fsel);
+        name = gpio_get_gpio_fsel_name(gpio, (GPIO_FSEL_T)fsel);
         if (!name)
             break;
         printf(", %s", name);
@@ -149,7 +151,7 @@ static int do_gpio_get(unsigned int gpio)
         return 1;
 
     fsel = gpio_get_fsel(gpio);
-    printf("%2d: %2s ", num, gpio_get_fsel_name(fsel));
+    printf("%2d: %2s ", num, gpio_get_fsel_name((GPIO_FSEL_T)fsel));
     if (fsel == GPIO_FSEL_OUTPUT)
         printf("%s", gpio_get_drive_name(gpio_get_drive(gpio)));
     else
@@ -166,7 +168,7 @@ static int do_gpio_get(unsigned int gpio)
            (level == 1) ? "hi" : (level == 0) ? "lo" : "--",
            name ? name : "",
            name ? " = " : "",
-           gpio_get_gpio_fsel_name(gpio, fsel));
+           gpio_get_gpio_fsel_name(gpio, (GPIO_FSEL_T)fsel));
 
     return 0;
 }
@@ -189,7 +191,7 @@ static int do_gpio_set(unsigned int gpio, int fsparam, int drive, int pull)
         return 1;
 
     if (fsparam != GPIO_FSEL_MAX)
-        gpio_set_fsel(gpio, fsparam);
+        gpio_set_fsel(gpio, (GPIO_FSEL_T)fsparam);
     else
         fsparam = gpio_get_fsel(gpio);
 
@@ -197,7 +199,7 @@ static int do_gpio_set(unsigned int gpio, int fsparam, int drive, int pull)
     {
         if (fsparam == GPIO_FSEL_OUTPUT)
         {
-            gpio_set_drive(gpio, drive);
+            gpio_set_drive(gpio, (GPIO_DRIVE_T)drive);
         }
         else
         {
@@ -207,7 +209,7 @@ static int do_gpio_set(unsigned int gpio, int fsparam, int drive, int pull)
     }
 
     if (pull != PULL_MAX)
-        gpio_set_pull(gpio, pull);
+        gpio_set_pull(gpio, (GPIO_PULL_T)pull);
 
     return 0;
 }
@@ -265,7 +267,7 @@ static int do_gpio_poll_add(unsigned int gpio)
     if (!gpio_num_is_valid(gpio))
         return 1;
 
-    poll_gpios = reallocarray(poll_gpios, num_poll_gpios + 1,
+    poll_gpios = (struct poll_gpio_state*)reallocarray(poll_gpios, num_poll_gpios + 1,
                               sizeof(*poll_gpios));
     new_gpio = &poll_gpios[num_poll_gpios];
     new_gpio->num = num;
@@ -323,7 +325,7 @@ static void verbose_callback(const char *msg)
 {
     printf("%s", msg);
 }
-
+#if 0
 int main(int argc, char *argv[])
 {
     int ret;
@@ -709,3 +711,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif

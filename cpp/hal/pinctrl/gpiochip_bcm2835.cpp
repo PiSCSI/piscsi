@@ -157,7 +157,7 @@ static const char *bcm2711_gpio_alt_names[BCM2711_NUM_GPIOS][BCM2711_ALT_COUNT] 
 
 static GPIO_FSEL_T bcm2835_gpio_get_fsel(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     /* GPFSEL0-5 with 10 sels per reg, 3 bits per sel (so bits 0:29 used) */
     uint32_t reg = GPFSEL0 + (gpio / 10);
     uint32_t lsb = (gpio % 10) * 3;
@@ -182,7 +182,7 @@ static GPIO_FSEL_T bcm2835_gpio_get_fsel(void *priv, unsigned gpio)
 
 static void bcm2835_gpio_set_fsel(void *priv, unsigned gpio, const GPIO_FSEL_T func)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     /* GPFSEL0-5 with 10 sels per reg, 3 bits per sel (so bits 0:29 used) */
     uint32_t reg = GPFSEL0 + (gpio / 10);
     uint32_t lsb = (gpio % 10) * 3;
@@ -232,7 +232,7 @@ static void bcm2835_gpio_set_dir(void *priv, unsigned gpio, GPIO_DIR_T dir)
 
 static int bcm2835_gpio_get_level(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
 
     if (gpio >= BCM2835_NUM_GPIOS)
         return -1;
@@ -250,7 +250,7 @@ GPIO_DRIVE_T bcm2835_gpio_get_drive(void *priv, unsigned gpio)
 
 static void bcm2835_gpio_set_drive(void *priv, unsigned gpio, GPIO_DRIVE_T drv)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
 
     if (gpio < BCM2835_NUM_GPIOS && drv <= DRIVE_HIGH)
         base[(drv ? GPSET0 : GPCLR0) + (gpio / 32)] = (1 << (gpio % 32));
@@ -266,7 +266,7 @@ static GPIO_PULL_T bcm2835_gpio_get_pull(void *priv, unsigned gpio)
 
 static void bcm2835_gpio_set_pull(void *priv, unsigned gpio, GPIO_PULL_T pull)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int clkreg = GPPUDCLK0 + (gpio / 32);
     int clkbit = 1 << (gpio % 32);
 
@@ -324,7 +324,7 @@ static const char *bcm2835_gpio_get_fsel_name(void *priv, unsigned gpio, GPIO_FS
 
 static GPIO_PULL_T bcm2711_gpio_get_pull(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int reg = GPPUPPDN0 + (gpio / 16);
     int lsb = (gpio % 16) * 2;
 
@@ -343,7 +343,7 @@ static GPIO_PULL_T bcm2711_gpio_get_pull(void *priv, unsigned gpio)
 
 static void bcm2711_gpio_set_pull(void *priv, unsigned gpio, GPIO_PULL_T pull)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int reg = GPPUPPDN0 + (gpio / 16);
     int lsb = (gpio % 16) * 2;
     int pull_val;

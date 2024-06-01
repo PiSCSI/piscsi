@@ -46,7 +46,7 @@ static void *do_read_file(const char *fname, const char *mode, size_t *plen)
 
 char *read_text_file(const char *fname, size_t *plen)
 {
-    return do_read_file(fname, "rt", plen);
+    return (char*)do_read_file(fname, "rt", plen);
 }
 
 void *read_file(const char *fname, size_t *plen)
@@ -73,7 +73,7 @@ char *dt_read_prop(const char *node, const char *prop, size_t *plen)
 
     filename[sizeof(filename) - 1] = '\0';
 
-    return read_file(filename, plen);
+    return (char*)read_file(filename, plen);
 }
 
 uint32_t *dt_read_cells(const char *node, const char *prop, unsigned *num_cells)

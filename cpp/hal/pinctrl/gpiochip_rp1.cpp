@@ -228,7 +228,7 @@ static void rp1_gpio_sys_rio_oe_set(volatile uint32_t *base, int bank, int offse
 
 static void rp1_gpio_set_dir(void *priv, uint32_t gpio, GPIO_DIR_T dir)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int bank, offset;
 
     rp1_gpio_get_bank(gpio, &bank, &offset);
@@ -243,7 +243,7 @@ static void rp1_gpio_set_dir(void *priv, uint32_t gpio, GPIO_DIR_T dir)
 
 static GPIO_DIR_T rp1_gpio_get_dir(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int bank, offset;
     GPIO_DIR_T dir;
     uint32_t reg;
@@ -258,7 +258,7 @@ static GPIO_DIR_T rp1_gpio_get_dir(void *priv, unsigned gpio)
 
 static GPIO_FSEL_T rp1_gpio_get_fsel(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int bank, offset;
     uint32_t reg;
     GPIO_FSEL_T fsel;
@@ -266,7 +266,7 @@ static GPIO_FSEL_T rp1_gpio_get_fsel(void *priv, unsigned gpio)
 
     rp1_gpio_get_bank(gpio, &bank, &offset);
     reg = rp1_gpio_ctrl_read(base, bank, offset);
-    rsel = ((reg & RP1_GPIO_CTRL_FSEL_MASK) >> RP1_GPIO_CTRL_FSEL_LSB);
+    rsel = (RP1_FSEL_T)((reg & RP1_GPIO_CTRL_FSEL_MASK) >> RP1_GPIO_CTRL_FSEL_LSB);
     if (rsel == RP1_FSEL_SYS_RIO)
         fsel = GPIO_FSEL_GPIO;
     else if (rsel == RP1_FSEL_NULL)
@@ -281,7 +281,7 @@ static GPIO_FSEL_T rp1_gpio_get_fsel(void *priv, unsigned gpio)
 
 static void rp1_gpio_set_fsel(void *priv, unsigned gpio, const GPIO_FSEL_T func)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int bank, offset;
     uint32_t ctrl_reg;
     uint32_t pad_reg;
@@ -339,7 +339,7 @@ static void rp1_gpio_set_fsel(void *priv, unsigned gpio, const GPIO_FSEL_T func)
 
 static int rp1_gpio_get_level(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int bank, offset;
     uint32_t pad_reg;
     uint32_t reg;
@@ -357,7 +357,7 @@ static int rp1_gpio_get_level(void *priv, unsigned gpio)
 
 static void rp1_gpio_set_drive(void *priv, unsigned gpio, GPIO_DRIVE_T drv)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     int bank, offset;
 
     rp1_gpio_get_bank(gpio, &bank, &offset);
@@ -369,7 +369,7 @@ static void rp1_gpio_set_drive(void *priv, unsigned gpio, GPIO_DRIVE_T drv)
 
 static void rp1_gpio_set_pull(void *priv, unsigned gpio, GPIO_PULL_T pull)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     uint32_t reg;
     int bank, offset;
 
@@ -385,7 +385,7 @@ static void rp1_gpio_set_pull(void *priv, unsigned gpio, GPIO_PULL_T pull)
 
 static GPIO_PULL_T rp1_gpio_get_pull(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     uint32_t reg;
     GPIO_PULL_T pull = PULL_NONE;
     int bank, offset;
@@ -402,7 +402,7 @@ static GPIO_PULL_T rp1_gpio_get_pull(void *priv, unsigned gpio)
 
 static GPIO_DRIVE_T rp1_gpio_get_drive(void *priv, unsigned gpio)
 {
-    volatile uint32_t *base = priv;
+    volatile uint32_t *base = (volatile uint32_t*)priv;
     uint32_t reg;
     int bank, offset;
 
