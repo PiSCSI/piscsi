@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "hal/gpiobus_raspberry.h"
+#include "hal/gpiobus_rpi_bcm.h"
 #include "mocks.h"
 #include <cstdlib>
 #include "test/test_shared.h"
