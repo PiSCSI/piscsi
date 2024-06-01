@@ -809,13 +809,13 @@ static const char *bcm2712_gpio_get_name(void *priv, unsigned gpio)
     if (inst->flags & FLAGS_AON)
     {
         if (bank == 1)
-            sprintf(name_buf, "AON_SGPIO%d", gpio_offset);
+            snprintf(name_buf, sizeof(name_buf), "AON_SGPIO%d", gpio_offset);
         else
-            sprintf(name_buf, "AON_GPIO%d", gpio_offset);
+            snprintf(name_buf, sizeof(name_buf), "AON_GPIO%d", gpio_offset);
     }
     else
     {
-        sprintf(name_buf, "GPIO%d", gpio);
+        snprintf(name_buf, sizeof(name_buf), "GPIO%d", gpio);
     }
     return name_buf;
 }

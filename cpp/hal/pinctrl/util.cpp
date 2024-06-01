@@ -173,7 +173,7 @@ uint64_t dt_parse_addr(const char *node)
     while (1)
     {
         char *tmp, *p;
-        strcpy(parent, node);
+        strncpy(parent, node, FILENAME_MAX);
         p = strrchr(parent, '/');
         if (!p)
             return INVALID_ADDRESS;

@@ -315,7 +315,9 @@ unsigned gpio_get_gpio_by_name(const char *name, int name_len)
     unsigned gpio;
 
     if (!name_len)
-        name_len = strlen(name);
+        // Note: max length of name is limited by the maximum argument
+        // length. However, FILENAME_MAX is a more reasonable limit.
+        name_len = strnlen(name, FILENAME_MAX);
     for (gpio = 0; gpio < num_gpios; gpio++)
     {
         const char *gpio_name = gpio_names[gpio];
@@ -443,8 +445,8 @@ int gpiolib_init(void)
 
     for (i = 0; ; i++)
     {
-        sprintf(pathbuf, "gpio%d", i);
-        sprintf(gpiomem_idx, "%d", i);
+        snprintf(pathbuf, sizeof(pathbuf), "gpio%d", i);
+        snprintf(gpiomem_idx, sizeof(gpiomem_idx), "%d", i);
         alias = dt_read_prop("/aliases", pathbuf, NULL);
         if (!alias && i == 0)
         {
@@ -457,7 +459,7 @@ int gpiolib_init(void)
         compatible = dt_read_prop(alias, "compatible", NULL);
         if (!compatible)
         {
-            sprintf(pathbuf, "%s/..", alias);
+            snprintf(pathbuf, sizeof(pathbuf), "%s/..", alias);
             compatible = dt_read_prop(pathbuf, "compatible", NULL);
         }
 
@@ -485,7 +487,7 @@ int gpiolib_init(void)
             return -1;
         }
 
-        sprintf(pathbuf, "/dev/gpiomem%s", gpiomem_idx);
+        snprintf(pathbuf, sizeof(pathbuf), "/dev/gpiomem%s", gpiomem_idx);
         inst->mem_fd = open(pathbuf, O_RDWR|O_SYNC);
     }
 
@@ -530,7 +532,7 @@ int gpiolib_init(void)
             if (p && p < end)
             {
                 name = p;
-                p += strlen(p) + 1;
+                p += strnlen(p, FILENAME_MAX) + 1;
                 if (sscanf(name, "PIN%u", &pin) != 1 ||
                     pin < 1 || pin > NUM_HDR_PINS)
                 {

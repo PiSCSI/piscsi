@@ -419,7 +419,7 @@ static const char *rp1_gpio_get_name(void *priv, unsigned gpio)
     if (gpio >= RP1_NUM_GPIOS)
         return NULL;
 
-    sprintf(name_buf, "GPIO%d", gpio);
+    snprintf(name_buf, sizeof(name_buf), "GPIO%d", gpio);
     return name_buf;
 }
 

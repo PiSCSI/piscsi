@@ -287,7 +287,7 @@ static const char *bcm2835_gpio_get_name(void *priv, unsigned gpio)
 {
     static char name_buf[16];
     UNUSED(priv);
-    sprintf(name_buf, "GPIO%d", gpio);
+    snprintf(name_buf, sizeof(name_buf), "GPIO%d", gpio);
     return name_buf;
 }
 
