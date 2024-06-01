@@ -112,9 +112,9 @@ SRC_SCSILOOP = scsiloop/scsiloop.cpp
 SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp' | grep -v scsiloop.cpp)
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./shared ./controllers ./devices ./scsimon ./hal \
+vpath %.h ./shared ./controllers ./devices ./scsimon ./hal ./hal/pinctrl \
 	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop
-vpath %.cpp ./shared ./controllers ./devices ./scsimon ./hal \
+vpath %.cpp ./shared ./controllers ./devices ./scsimon ./hal ./hal/pinctrl \
 	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
