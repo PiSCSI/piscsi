@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include "hal/rpi_revision_code.h"
 
 using namespace std;
 
@@ -60,6 +61,8 @@ private:
   static const map<std::string, sbc_version_type, less<>> proc_device_tree_mapping;
 
   static const string m_device_tree_model_path;
+
+  static sbc_version_type rpi_rev_to_sbc_version(Rpi_Revision_Code::Rpi_Revision_Code::rpi_version_type rpi_code);
 
   static uint32_t GetDeviceTreeRanges(const char *filename, uint32_t offset);
 };

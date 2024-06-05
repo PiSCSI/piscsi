@@ -42,6 +42,10 @@ typedef struct
     bool otpprogram;
     bool overvoltage;
     bool isvalid;
+    std::string type_str;
+    std::string processor_str;
+    std::string manufacturer_str;
+    std::string memorysize_str;
 } rpi_revision_test_case;
 
 std::list<rpi_revision_test_case> test_cases =
@@ -60,6 +64,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_Aplus",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -75,6 +83,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_Bplus",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -90,6 +102,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_Zero",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -105,7 +121,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_Zero",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
+
         {
             .rev_code = 0x9000c1,
             .revision = 1,
@@ -119,6 +140,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_ZeroW",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -134,6 +159,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3Aplus",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -149,6 +178,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3Aplus",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -164,6 +197,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_Zero",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "Embest2",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -179,7 +216,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_Zero",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "Embest2",
+            .memorysize_str = "MEM_512MB",
         },
+
         {
             .rev_code = 0x900061,
             .revision = 1,
@@ -193,6 +235,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM1",
+            .processor_str = "BCM2835",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -208,6 +254,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_2B",
+            .processor_str = "BCM2836",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -223,7 +273,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_2B",
+            .processor_str = "BCM2836",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
+
         {
             .rev_code = 0xa02082,
             .revision = 2,
@@ -237,7 +292,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3B",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
+
         {
             .rev_code = 0xa020a0,
             .revision = 0,
@@ -251,7 +311,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM3",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
+
         {
             .rev_code = 0xa020d3,
             .revision = 3,
@@ -265,7 +330,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3Bplus",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
+
         {
             .rev_code = 0xa020d4,
             .revision = 4,
@@ -279,6 +349,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3Bplus",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -294,7 +368,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_2B",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
+
         {
             .rev_code = 0xa21041,
             .revision = 1,
@@ -308,6 +387,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_2B",
+            .processor_str = "BCM2836",
+            .manufacturer_str = "Embest2",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -323,6 +406,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_2B",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "Embest2",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -338,6 +425,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3B",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "Embest2",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -353,6 +444,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM3",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "Embest2",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -368,6 +463,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3B",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyJapan",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -383,6 +482,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3B",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "Stadium",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -398,6 +501,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_3B",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "Embest2",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -413,6 +520,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM3plus",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -428,6 +539,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -444,6 +559,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_2GB",
         },
 
         {
@@ -459,7 +578,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_2GB",
         },
+
         {
             .rev_code = 0xb03114,
 
@@ -474,6 +598,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_2GB",
         },
 
         {
@@ -490,11 +618,14 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_2GB",
         },
 
         {
             .rev_code = 0xc03111,
-
             .revision = 1,
             .type = Rpi_Revision_Code::rpi_version_type::rpi_version_4B,
             .processor = Rpi_Revision_Code::cpu_type::BCM2711,
@@ -506,6 +637,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_4GB",
         },
 
         {
@@ -522,6 +657,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_4GB",
         },
 
         {
@@ -537,6 +676,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_4GB",
         },
 
         {
@@ -553,6 +696,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_4GB",
         },
 
         {
@@ -569,11 +716,14 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
             .rev_code = 0xd03115,
-
             .revision = 5,
             .type = Rpi_Revision_Code::rpi_version_type::rpi_version_4B,
             .processor = Rpi_Revision_Code::cpu_type::BCM2711,
@@ -585,6 +735,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_4B",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -601,6 +755,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_400",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_4GB",
         },
 
         {
@@ -617,6 +775,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM4",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_1GB",
         },
 
         {
@@ -632,6 +794,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM4",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_2GB",
         },
 
         {
@@ -648,6 +814,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM4",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_4GB",
         },
 
         {
@@ -664,6 +834,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_CM4",
+            .processor_str = "BCM2711",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -680,6 +854,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_Zero2W",
+            .processor_str = "BCM2837",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_512MB",
         },
 
         {
@@ -696,7 +874,12 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_5",
+            .processor_str = "BCM2712",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_4GB",
         },
+
         {
             .rev_code = 0xd04170,
             .revision = 0,
@@ -710,6 +893,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_5",
+            .processor_str = "BCM2712",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -726,6 +913,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = true,
             .isvalid = true,
+            .type_str = "rpi_version_5",
+            .processor_str = "BCM2712",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -742,6 +933,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = true,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_5",
+            .processor_str = "BCM2712",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -758,6 +953,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_5",
+            .processor_str = "BCM2712",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -774,6 +973,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_5",
+            .processor_str = "BCM2712",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -790,6 +993,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = false,
             .overvoltage = false,
             .isvalid = true,
+            .type_str = "rpi_version_5",
+            .processor_str = "BCM2712",
+            .manufacturer_str = "SonyUK",
+            .memorysize_str = "MEM_8GB",
         },
 
         {
@@ -806,6 +1013,10 @@ std::list<rpi_revision_test_case> test_cases =
             .otpprogram = true,
             .overvoltage = true,
             .isvalid = false,
+            .type_str = "<<Invalid Rpi Version>>",
+            .processor_str = "<<Invalid CPU Type>>",
+            .manufacturer_str = "<<Invalid Manufacturer>>",
+            .memorysize_str = "<<Invalid Memory Size>>",
         },
 };
 
@@ -831,6 +1042,10 @@ TEST(RpiRevisionCode, Initialization)
         EXPECT_EQ(rpi_info->OtpProgram(), tc.otpprogram);
         EXPECT_EQ(rpi_info->Overvoltage(), tc.overvoltage);
         EXPECT_EQ(rpi_info->IsValid(), tc.isvalid);
+        EXPECT_EQ(rpi_info->TypeStr(), tc.type_str);
+        EXPECT_EQ(rpi_info->ProcessorStr(), tc.processor_str);
+        EXPECT_EQ(rpi_info->ManufacturerStr(), tc.manufacturer_str);
+        EXPECT_EQ(rpi_info->MemorySizeStr(), tc.memorysize_str);
         DeleteTempFile(cpuinfo_file);
     }
 }

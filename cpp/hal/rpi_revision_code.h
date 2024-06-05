@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 using namespace std;
 
@@ -31,9 +32,11 @@ using namespace std;
 //
 //===========================================================================
 
-class Rpi_Revision_Code {
+class Rpi_Revision_Code
+{
 public:
-  enum class memory_size_type : uint8_t {
+  enum class memory_size_type : uint8_t
+  {
     MEM_256MB = 0,
     MEM_512MB = 1,
     MEM_1GB = 2,
@@ -42,11 +45,25 @@ public:
     MEM_8GB = 5,
     MEM_INVALID = 0x7,
   };
-  bool valid_memory_size_type(memory_size_type value) {
+
+private:
+  const vector<std::string> memory_size_type_string = {
+      "MEM_256MB",
+      "MEM_512MB",
+      "MEM_1GB",
+      "MEM_2GB",
+      "MEM_4GB",
+      "MEM_8GB",
+  };
+  bool valid_memory_size_type(memory_size_type value)
+  {
     return (value >= memory_size_type::MEM_256MB &&
             value <= memory_size_type::MEM_8GB);
   }
-  enum class manufacturer_type : uint8_t {
+
+public:
+  enum class manufacturer_type : uint8_t
+  {
     SonyUK = 0,
     Egoman = 1,
     Embest2 = 2,
@@ -56,12 +73,19 @@ public:
     MANUFACTURER_INVALID = 0xF,
   };
 
-  bool valid_manufacturer_type(manufacturer_type value) {
+private:
+  const vector<std::string> manufacturer_type_string = {
+      "SonyUK", "Egoman", "Embest2", "SonyJapan", "Embest4", "Stadium"};
+
+  bool valid_manufacturer_type(manufacturer_type value)
+  {
     return (value >= manufacturer_type::SonyUK &&
             value <= manufacturer_type::Stadium);
   }
 
-  enum class cpu_type : uint8_t {
+public:
+  enum class cpu_type : uint8_t
+  {
     BCM2835 = 0,
     BCM2836 = 1,
     BCM2837 = 2,
@@ -69,21 +93,30 @@ public:
     BCM2712 = 4,
     CPU_TYPE_INVALID = 0xF,
   };
-  bool valid_cpu_type(cpu_type value) {
+
+private:
+  const vector<std::string> cpu_type_string = {
+      "BCM2835", "BCM2836", "BCM2837", "BCM2711", "BCM2712"};
+  bool valid_cpu_type(cpu_type value)
+  {
     return (value >= cpu_type::BCM2835 && value <= cpu_type::BCM2712);
   }
 
-  enum class rpi_version_type : uint8_t {
-    rpi_version_A = 0,
-    rpi_version_B = 1,
-    rpi_version_Aplus = 2,
-    rpi_version_Bplus = 3,
-    rpi_version_2B = 4,
-    rpi_version_Alpha = 5, // (early prototype)
-    rpi_version_CM1 = 6,
-    rpi_version_3B = 8,
-    rpi_version_Zero = 9,
+public:
+  enum class rpi_version_type : uint8_t
+  {
+    rpi_version_A = 0x0,
+    rpi_version_B = 0x1,
+    rpi_version_Aplus = 0x2,
+    rpi_version_Bplus = 0x3,
+    rpi_version_2B = 0x4,
+    rpi_version_Alpha = 0x5, // (early prototype)
+    rpi_version_CM1 = 0x6,
+    unused_7 = 0x7,
+    rpi_version_3B = 0x8,
+    rpi_version_Zero = 0x9,
     rpi_version_CM3 = 0xa,
+    unused_B = 0xb,
     rpi_version_ZeroW = 0xc,
     rpi_version_3Bplus = 0xd,
     rpi_version_3Aplus = 0xe,
@@ -98,7 +131,39 @@ public:
     rpi_version_5 = 0x17,
     rpi_version_invalid = 0xFF
   };
-  bool valid_rpi_version_type(rpi_version_type value) {
+
+private:
+  const vector<std::string> rpi_version_type_string = {
+      "rpi_version_A",
+      "rpi_version_B",
+      "rpi_version_Aplus",
+      "rpi_version_Bplus",
+      "rpi_version_2B",
+      "rpi_version_Alpha",
+      "rpi_version_CM1",
+      "unused_7",
+      "rpi_version_3B",
+      "rpi_version_Zero",
+      "rpi_version_CM3",
+      "unused_B",
+      "rpi_version_ZeroW",
+      "rpi_version_3Bplus",
+      "rpi_version_3Aplus",
+      "rpi_version_InternalUseOnly1",
+      "rpi_version_CM3plus",
+      "rpi_version_4B",
+      "rpi_version_Zero2W",
+      "rpi_version_400",
+      "rpi_version_CM4",
+      "rpi_version_CM4S",
+      "rpi_version_InternalUseOnly2",
+      "rpi_version_5",
+      "unknown_24",
+      "unknown_25",
+
+  };
+  bool valid_rpi_version_type(rpi_version_type value)
+  {
     return (value >= rpi_version_type::rpi_version_A &&
             value <= rpi_version_type::rpi_version_5);
   }
@@ -112,17 +177,21 @@ private:
   uint32_t extract_bits(int start_bit, int size);
 
 public:
-  uint8_t Revision() {
+  uint8_t Revision()
+  {
     return (uint8_t)extract_bits(0, 4);
   } //: 4;         // (bits 0-3)
-  rpi_version_type Type() {
+  rpi_version_type Type()
+  {
     return (rpi_version_type)extract_bits(4, 8);
   } //: // (bits 4-11)
   cpu_type Processor() { return (cpu_type)extract_bits(12, 4); } // (bits 12-15)
-  manufacturer_type Manufacturer() {
+  manufacturer_type Manufacturer()
+  {
     return (manufacturer_type)extract_bits(16, 4);
   } // (bits 16-19)
-  memory_size_type MemorySize() {
+  memory_size_type MemorySize()
+  {
     return (memory_size_type)extract_bits(20, 3);
   } // (bits 20-22)
   // 1: new-style revision
@@ -143,6 +212,12 @@ public:
 
   bool IsValid() { return is_valid; }
   void SetValid(bool val) { is_valid = val; }
+
+  std::string RevisionStr();
+  std::string TypeStr();
+  std::string ProcessorStr();
+  std::string ManufacturerStr();
+  std::string MemorySizeStr();
 
 private:
   uint32_t rpi_revcode;

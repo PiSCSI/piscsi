@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "sbc_version.h"
+#include "rpi_revision_code.h"
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <iostream>
@@ -17,30 +18,11 @@
 
 SBC_Version::sbc_version_type SBC_Version::sbc_version = sbc_version_type::sbc_unknown;
 
-// TODO: THESE NEED TO BE VALIDATED!!!!
 const string SBC_Version::str_raspberry_pi_1 = "Raspberry Pi 1";
 const string SBC_Version::str_raspberry_pi_2_3 = "Raspberry Pi 2/3";
 const string SBC_Version::str_raspberry_pi_4 = "Raspberry Pi 4";
 const string SBC_Version::str_raspberry_pi_5 = "Raspberry Pi 5";
 const string SBC_Version::str_unknown_sbc = "Unknown SBC";
-
-// The strings in this table should align with the 'model' embedded
-// in the device tree. This can be aquired by running:
-//     cat /proc/device-tree/model
-// Only the first part of the string is checked. Anything following
-// will be ignored. For example:
-//     "Raspberry Pi 4 Model B" will match with both of the following:
-//         - Raspberry Pi 4 Model B Rev 1.4
-//         - Raspberry Pi 4 Model B Rev 1.3
-// TODO Is there a better way to detect the Pi type than relying on strings?
-const map<string, SBC_Version::sbc_version_type, less<>> SBC_Version::proc_device_tree_mapping = {
-    {"Raspberry Pi 1 Model ", sbc_version_type::sbc_raspberry_pi_1},
-    {"Raspberry Pi 2 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
-    {"Raspberry Pi 3 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
-    {"Raspberry Pi 4 Model ", sbc_version_type::sbc_raspberry_pi_4},
-    {"Raspberry Pi 400 ", sbc_version_type::sbc_raspberry_pi_4},
-    {"Raspberry Pi Zero W", sbc_version_type::sbc_raspberry_pi_1},
-    {"Raspberry Pi Zero", sbc_version_type::sbc_raspberry_pi_1}};
 
 const string SBC_Version::m_device_tree_model_path = "/proc/device-tree/model";
 
@@ -71,6 +53,41 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
     return sbc_version;
 }
 
+SBC_Version::sbc_version_type SBC_Version::rpi_rev_to_sbc_version(Rpi_Revision_Code::rpi_version_type rpi_code)
+{
+
+    switch (rpi_code)
+    {
+
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_A:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_B:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_Aplus:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_Bplus:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_Alpha: // (early prototype)
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_Zero:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_ZeroW:
+        return sbc_version_type::sbc_raspberry_pi_1;
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_2B:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_CM1:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_3B:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_CM3:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_Zero2W:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_3Bplus:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_3Aplus:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_CM3plus:
+        return sbc_version_type::sbc_raspberry_pi_2_3;
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_4B:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_400:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_CM4:
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_CM4S:
+        return sbc_version_type::sbc_raspberry_pi_4;
+    case Rpi_Revision_Code::rpi_version_type::rpi_version_5:
+        return sbc_version_type::sbc_raspberry_pi_5;
+    default:
+        return sbc_version_type::sbc_unknown;
+    }
+}
+
 //---------------------------------------------------------------------------
 //
 //	Determine which version of single board computer (Pi) is being used
@@ -79,37 +96,24 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 //---------------------------------------------------------------------------
 void SBC_Version::Init()
 {
-    ifstream input_stream(SBC_Version::m_device_tree_model_path);
-
-    if (input_stream.fail())
+    spdlog::error("Checking rpi version...");
+    auto rpi_version = Rpi_Revision_Code();
+    if (rpi_version.IsValid())
     {
-#if defined(__x86_64__) || defined(__X86__)
-        // We expect this to fail on x86
-        spdlog::warn("Detected " + GetAsString());
-        sbc_version = sbc_version_type::sbc_unknown;
-        return;
-#else
-        spdlog::error("Failed to open " + SBC_Version::m_device_tree_model_path + ". Are you running as root?");
-        throw invalid_argument("Failed to open /proc/device-tree/model");
-#endif
+        spdlog::debug("Detected valid raspberry pi version");
+    }
+    else
+    {
+        spdlog::error("Invalid rpi version defined");
     }
 
-    stringstream str_buffer;
-    str_buffer << input_stream.rdbuf();
-    const string device_tree_model = str_buffer.str();
+    sbc_version = rpi_rev_to_sbc_version(rpi_version.Type());
+ 
 
-    for (const auto &[key, value] : proc_device_tree_mapping)
-    {
-        if (device_tree_model.starts_with(key))
-        {
-            sbc_version = value;
-            spdlog::info("Detected " + GetAsString());
-            return;
-        }
+    if (sbc_version == sbc_version_type::sbc_unknown){
+        sbc_version = sbc_version_type::sbc_raspberry_pi_4;
+        spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
     }
-
-    sbc_version = sbc_version_type::sbc_raspberry_pi_4;
-    spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
 }
 
 bool SBC_Version::IsRaspberryPi()
