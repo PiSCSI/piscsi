@@ -67,10 +67,12 @@ bool SCSIBR::Init(const param_map& params)
 #endif
 }
 
+#if 0
 void SCSIBR::CleanUp()
 {
 	tap.CleanUp();
 }
+#endif
 
 vector<uint8_t> SCSIBR::InquiryInternal() const
 {

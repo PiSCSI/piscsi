@@ -72,10 +72,12 @@ bool SCSIDaynaPort::Init(const param_map& params)
 	return true;
 }
 
+#if 0
 void SCSIDaynaPort::CleanUp()
 {
 	tap.CleanUp();
 }
+#endif
 
 vector<uint8_t> SCSIDaynaPort::InquiryInternal() const
 {

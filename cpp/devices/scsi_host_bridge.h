@@ -36,7 +36,7 @@ public:
 	~SCSIBR() override = default;
 
 	bool Init(const param_map&) override;
-	void CleanUp() override;
+//	void CleanUp() override;
 
 	param_map GetDefaultParams() const override { return tap.GetDefaultParams(); }
 
