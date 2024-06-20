@@ -71,7 +71,7 @@ static void vcd_output_if_changed_byte(ofstream &fp, uint8_t data, int pin, char
 {
     if (prev_value[pin] != data) {
         prev_value[pin] = data;
-        fp << "b" << fmt::format("{0:8b}", data) << " " << symbol << endl;
+        fp << "b" << fmt::format("{0:b}", data) << " " << symbol << endl;
     }
 }
 
