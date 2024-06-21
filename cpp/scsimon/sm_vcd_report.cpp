@@ -71,7 +71,7 @@ static void vcd_output_if_changed_byte(ofstream &fp, uint8_t data, int pin, char
 {
     if (prev_value[pin] != data) {
         prev_value[pin] = data;
-        fp << "b" << fmt::format("{0:8b}", data) << " " << symbol << endl;
+        fp << "b" << fmt::format("{0:b}", data) << " " << symbol << endl;
     }
 }
 
@@ -130,7 +130,7 @@ void scsimon_generate_value_change_dump(const string &filename, const vector<sha
                  << "$end" << endl;
 
     for (shared_ptr<DataSample> cur_sample : data_capture_array) {
-        vcd_ofstream << "#" << (double)cur_sample->GetTimestamp() * ScsiMon::ns_per_loop << endl;
+        vcd_ofstream << "#" << (uint64_t)((double)cur_sample->GetTimestamp() * ScsiMon::ns_per_loop) << endl;
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetBSY(), PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetSEL(), PIN_SEL, SYMBOL_PIN_SEL);
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetCD(), PIN_CD, SYMBOL_PIN_CD);
