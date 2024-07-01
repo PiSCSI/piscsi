@@ -71,11 +71,11 @@ const static int GIC_GPIO_IRQ  = (32 + 116); // GPIO3
 //	Class definition
 //
 //---------------------------------------------------------------------------
-class GPIOBUS_Raspberry : public GPIOBUS
+class GPIOBUS_RPi_bcm : public GPIOBUS
 {
   public:
-    GPIOBUS_Raspberry()           = default;
-    ~GPIOBUS_Raspberry() override = default;
+    GPIOBUS_RPi_bcm()           = default;
+    ~GPIOBUS_RPi_bcm() override = default;
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     void Reset() override;
