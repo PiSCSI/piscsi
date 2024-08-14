@@ -37,7 +37,7 @@ public:
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) const override;
+	void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;

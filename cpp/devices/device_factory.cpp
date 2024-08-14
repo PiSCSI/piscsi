@@ -17,6 +17,7 @@
 #include "scsi_daynaport.h"
 #include "host_services.h"
 #include "device_factory.h"
+#include "scsi_streamer.h"
 
 using namespace std;
 using namespace piscsi_util;
@@ -60,6 +61,9 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		}
 		break;
 	}
+	case SCST:
+		device = make_shared<SCSIST>(lun);
+		break;
 
 	case SCRM:
 		device = make_shared<SCSIHD>(lun, true, scsi_level::scsi_2);

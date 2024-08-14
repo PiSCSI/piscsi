@@ -113,7 +113,7 @@ private:
 
 	int ExtractInitiatorId(int) const;
 
-	using ctrl_t = struct _ctrl_t {
+	struct ctrl_t {
 		// Command data, dynamically resized if required
 		vector<int> cmd = vector<int>(16);
 

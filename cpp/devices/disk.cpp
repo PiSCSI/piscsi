@@ -36,7 +36,6 @@ bool Disk::Init(const param_map& params)
 	AddCommand(scsi_command::eCmdWrite6, [this] { Write6(); });
 	AddCommand(scsi_command::eCmdSeek6, [this] { Seek6(); });
 	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
-	AddCommand(scsi_command::eCmdPreventAllowMediumRemoval, [this]{ PreventAllowMediumRemoval(); });
 	AddCommand(scsi_command::eCmdReadCapacity10, [this] { ReadCapacity10(); });
 	AddCommand(scsi_command::eCmdRead10, [this] { Read10(); });
 	AddCommand(scsi_command::eCmdWrite10, [this] { Write10(); });
@@ -232,18 +231,7 @@ void Disk::StartStopUnit()
 	EnterStatusPhase();
 }
 
-void Disk::PreventAllowMediumRemoval()
-{
-	CheckReady();
 
-	const bool lock = GetController()->GetCmdByte(4) & 0x01;
-
-	LogTrace(lock ? "Locking medium" : "Unlocking medium");
-
-	SetLocked(lock);
-
-	EnterStatusPhase();
-}
 
 void Disk::SynchronizeCache()
 {
@@ -680,32 +668,6 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 	}
 
 	return tuple(true, start, count);
-}
-
-uint32_t Disk::CalculateShiftCount(uint32_t size_in_bytes)
-{
-	const auto& it = shift_counts.find(size_in_bytes);
-	return it != shift_counts.end() ? it->second : 0;
-}
-
-uint32_t Disk::GetSectorSizeInBytes() const
-{
-	return size_shift_count ? 1 << size_shift_count : 0;
-}
-
-void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
-{
-	if (!GetSupportedSectorSizes().contains(size_in_bytes)) {
-    	throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
-	}
-
-	size_shift_count = CalculateShiftCount(size_in_bytes);
-	assert(size_shift_count);
-}
-
-uint32_t Disk::GetConfiguredSectorSize() const
-{
-	return configured_sector_size;
 }
 
 bool Disk::SetConfiguredSectorSize(uint32_t configured_size)

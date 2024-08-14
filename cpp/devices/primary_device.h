@@ -38,7 +38,7 @@ public:
 	virtual bool Init(const param_map&);
 	virtual void CleanUp() {
 		// Override if cleanup work is required for a derived device
-	};
+	}
 
 	virtual void Dispatch(scsi_command);
 

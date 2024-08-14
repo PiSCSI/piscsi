@@ -110,6 +110,10 @@
                     {% if f["name"].lower().endswith(env['mo_suffixes']) %}
                     <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                     {% endif %}
+                    {% elif device.device_type == "SCST" %}
+                    {% if f["name"].lower().endswith(env['st_suffixes']) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+                    {% endif %}
                     {% endif %}
                     {% endfor %}
                     </select>
@@ -482,6 +486,13 @@
                 {% endif %}
                 {% if type == "SCMO" %}
                 {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCST" %}
+                {% for drive in drive_properties["st_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>

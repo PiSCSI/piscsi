@@ -301,11 +301,14 @@ public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
+	MOCK_METHOD(void ,Write, (span<const uint8_t>, uint64_t), (override));
+	MOCK_METHOD(int , Read, (span<uint8_t>, uint64_t), (override));
+
 	MOCK_METHOD(int, ModeSense6, (span<const int>, vector<uint8_t>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (span<const int>, vector<uint8_t>&), (const override));
 	MOCK_METHOD(void, SetUpModePages, ((map<int, vector<byte>>&), int, bool), (const override));
 
-	MockStorageDevice() : StorageDevice(UNDEFINED, 0) {}
+	MockStorageDevice() : StorageDevice(UNDEFINED, 0, {512}) {}
 	~MockStorageDevice() override = default;
 };
 
