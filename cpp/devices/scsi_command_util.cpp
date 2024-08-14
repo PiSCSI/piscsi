@@ -104,12 +104,7 @@ void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, bo
 	}
 }
 
-int scsi_command_util::GetInt24(span <const int> buf, int offset)
-{
-	assert(buf.size() > static_cast<size_t>(offset) + 2);
 
-	return (buf[offset] << 16) | (buf[offset + 1] << 8) | buf[offset + 2];
-}
 
 uint32_t scsi_command_util::GetInt32(span <const int> buf, int offset)
 {

@@ -46,7 +46,7 @@ TEST(DeviceFactoryTest, GetExtensionMapping)
 	DeviceFactory device_factory;
 
 	auto mapping = device_factory.GetExtensionMapping();
-	EXPECT_EQ(12, mapping.size());
+	EXPECT_EQ(14, mapping.size());
 	EXPECT_EQ(SCHD, mapping["hd1"]);
 	EXPECT_EQ(SCHD, mapping["hds"]);
 	EXPECT_EQ(SCHD, mapping["hda"]);
@@ -59,6 +59,8 @@ TEST(DeviceFactoryTest, GetExtensionMapping)
 	EXPECT_EQ(SCCD, mapping["is1"]);
 	EXPECT_EQ(SCCD, mapping["cdr"]);
 	EXPECT_EQ(SCCD, mapping["toast"]);
+	EXPECT_EQ(SCST, mapping["tar"]);
+	EXPECT_EQ(SCST, mapping["tap"]);
 }
 
 TEST(DeviceFactoryTest, UnknownDeviceType)

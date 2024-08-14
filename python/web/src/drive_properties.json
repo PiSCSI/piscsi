@@ -442,5 +442,17 @@
     "file_type": null,
     "description": "For use with host systems that expect the non-standard 512 byte block size for CD-ROM drives, such as Akai samplers.",
     "url": ""
+},
+{
+    "device_type": "SCST",
+    "vendor": "TANDBERG",
+    "product": " TDC 3600",
+    "revision": null,
+    "block_size": 512,
+    "size": 262144000,
+    "name": "250 Mb Cartige",
+    "file_type": "tap",
+    "description": "DC 6250 Data Cartige.",
+    "url": ""
 }
 ]

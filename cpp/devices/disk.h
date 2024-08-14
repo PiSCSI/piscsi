@@ -34,12 +34,6 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 
 	unique_ptr<DiskCache> cache;
 
-	unordered_set<uint32_t> supported_sector_sizes;
-	uint32_t configured_sector_size = 0;
-
-	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
-	uint32_t size_shift_count = 0;
-
 	uint64_t sector_read_count = 0;
 	uint64_t sector_write_count = 0;
 
@@ -49,7 +43,7 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 public:
 
 	Disk(PbDeviceType type, int lun, const unordered_set<uint32_t>& s)
-		: StorageDevice(type, lun), supported_sector_sizes(s) {}
+		: StorageDevice(type, lun, s) {}
 	~Disk() override = default;
 
 	bool Init(const param_map&) override;
@@ -59,13 +53,11 @@ public:
 
 	bool Eject(bool) override;
 
-	virtual void Write(span<const uint8_t>, uint64_t);
+	void Write(span<const uint8_t>, uint64_t) override;
 
-	virtual int Read(span<uint8_t> , uint64_t);
+	int Read(span<uint8_t> , uint64_t) override;
 
-	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const { return supported_sector_sizes.size() > 1; }
-	const auto& GetSupportedSectorSizes() const { return supported_sector_sizes; }
 	bool SetConfiguredSectorSize(uint32_t);
 	void FlushCache() override;
 
@@ -75,7 +67,6 @@ private:
 
 	// Commands covered by the SCSI specifications (see https://www.t10.org/drafts.htm)
 	void StartStopUnit();
-	void PreventAllowMediumRemoval();
 	void SynchronizeCache();
 	void ReadDefectData10() const;
 	virtual void Read6() { Read(RW6); }
@@ -100,13 +91,11 @@ private:
 	void ReadCapacity16_ReadLong16();
 
 	void ValidateBlockAddress(access_mode) const;
+
 	tuple<bool, uint64_t, uint32_t> CheckAndGetStartAndCount(access_mode) const;
 
 	int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
-
-	static inline const unordered_map<uint32_t, uint32_t> shift_counts =
-		{ { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
 
 protected:
 
@@ -119,10 +108,4 @@ protected:
 	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;
 	void AddCachePage(map<int, vector<byte>>&, bool) const;
 
-	unordered_set<uint32_t> GetSectorSizes() const;
-	void SetSectorSizeInBytes(uint32_t);
-	uint32_t GetSectorSizeShiftCount() const { return size_shift_count; }
-	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
-	uint32_t GetConfiguredSectorSize() const;
-	static uint32_t CalculateShiftCount(uint32_t);
 };

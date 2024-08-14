@@ -35,7 +35,7 @@ class ScsiController : public AbstractController
 
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
-	using scsi_t = struct _scsi_t {
+	struct scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
 		uint8_t syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period

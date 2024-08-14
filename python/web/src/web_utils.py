@@ -110,6 +110,8 @@ def get_device_name(device_type):
         return _("Printer")
     if device_type == "SCHS":
         return _("Host Services")
+    if device_type == "SCST":
+        return _("Streamer (Tape) Drive")
     return device_type
 
 
@@ -143,6 +145,10 @@ def get_image_description(file_suffix):
         return _("Removable Disk Image")
     if file_suffix == "mos":
         return _("Magneto-Optical Disk Image")
+    if file_suffix == "tap":
+        return _("Tape Image")
+    if file_suffix == "tar":
+        return _("Tape Archive")
     return file_suffix
 
 
@@ -185,7 +191,7 @@ def format_drive_properties(drive_properties):
     cd_conf = []
     rm_conf = []
     mo_conf = []
-
+    st_conf = []
     for device in drive_properties:
         # Fallback for when the properties data is corrupted, to avoid crashing the web app.
         # The integration tests will catch this scenario, but relies on the web app not crashing.
@@ -205,12 +211,15 @@ def format_drive_properties(drive_properties):
             rm_conf.append(device)
         elif device["device_type"] == "SCMO":
             mo_conf.append(device)
+        elif device["device_type"] == "SCST":
+            st_conf.append(device)
 
     return {
         "hd_conf": hd_conf,
         "cd_conf": cd_conf,
         "rm_conf": rm_conf,
         "mo_conf": mo_conf,
+        "st_conf": st_conf,
     }
 
 

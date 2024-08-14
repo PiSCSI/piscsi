@@ -4,7 +4,7 @@
 ##   CROSS_COMPILE : Specify which compiler toolchain to use.
 ##                   To cross compile set this accordingly, e.g. to:
 ##                   arm-linux-gnueabihf-
-CROSS_COMPILE =
+CROSS_COMPILE ?=
 
 CXX = $(CROSS_COMPILE)g++
 

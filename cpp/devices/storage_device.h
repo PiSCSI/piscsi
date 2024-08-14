@@ -23,9 +23,10 @@ class StorageDevice : public ModePageDevice
 {
 public:
 
-	StorageDevice(PbDeviceType, int);
+	StorageDevice(PbDeviceType, int, const unordered_set<uint32_t>&);
 	~StorageDevice() override = default;
 
+	bool Init(const param_map&) override;
 	void CleanUp() override;
 
 	virtual void Open() = 0;
@@ -49,6 +50,20 @@ public:
 		{ reserved_files = r; }
 	static id_set GetIdsForReservedFile(const string&);
 
+	static uint32_t CalculateShiftCount(uint32_t);
+	uint32_t GetSectorSizeInBytes() const;
+	void SetSectorSizeInBytes(uint32_t);
+	const auto& GetSupportedSectorSizes() const { return supported_sector_sizes; }
+	uint32_t GetMinSupportedSectorSize() const;
+	uint32_t GetMaxSupportedSectorSize() const;
+
+	unordered_set<uint32_t> GetSectorSizes() const;
+	uint32_t GetSectorSizeShiftCount() const { return size_shift_count; }
+	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
+	uint32_t GetConfiguredSectorSize() const;
+
+	virtual void Write(span<const uint8_t>, uint64_t) = 0;
+	virtual int Read(span<uint8_t> , uint64_t) = 0;
 protected:
 
 	void ValidateFile();
@@ -58,6 +73,21 @@ protected:
 	void SetBlockCount(uint64_t b) { blocks = b; }
 
 	off_t GetFileSize() const;
+
+protected:
+	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
+	uint32_t size_shift_count = 0;
+
+	unordered_set<uint32_t> supported_sector_sizes;
+
+	static inline const unordered_map<uint32_t, uint32_t> shift_counts =
+	{ { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
+
+	uint32_t configured_sector_size = 0;
+
+private:
+	void PreventAllowMediumRemoval();
+
 
 private:
 

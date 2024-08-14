@@ -49,6 +49,7 @@ enum class phase_t {
 
 enum class device_type {
     direct_access  = 0,
+    sad            = 1,
     printer        = 2,
     processor      = 3,
     cd_rom         = 5,
@@ -61,6 +62,7 @@ enum class scsi_command {
     eCmdRezero         = 0x01,
     eCmdRequestSense   = 0x03,
     eCmdFormatUnit     = 0x04,
+    eCmdReadBlockLimits= 0x05,
     eCmdReassignBlocks = 0x07,
     eCmdRead6          = 0x08,
     // Bridge specific command
@@ -79,10 +81,14 @@ enum class scsi_command {
     // DaynaPort specific command
     eCmdEnableInterface            = 0x0E,
     eCmdSynchronizeBuffer          = 0x10,
+    eCmdWriteFilemarks             = 0x10,
+    eCmdSpace                      = 0x11,
     eCmdInquiry                    = 0x12,
+    eCmdVerify                     = 0x13,
     eCmdModeSelect6                = 0x15,
     eCmdReserve6                   = 0x16,
     eCmdRelease6                   = 0x17,
+    eCmdErase                      = 0x19,
     eCmdModeSense6                 = 0x1A,
     eCmdStartStop                  = 0x1B,
     eCmdStopPrint                  = 0x1B,
@@ -93,6 +99,7 @@ enum class scsi_command {
     eCmdWrite10                    = 0x2A,
     eCmdSeek10                     = 0x2B,
     eCmdVerify10                   = 0x2F,
+    eCmdReadPosition               = 0x34,
     eCmdSynchronizeCache10         = 0x35,
     eCmdReadDefectData10           = 0x37,
     eCmdReadLong10                 = 0x3E,
@@ -123,6 +130,7 @@ enum class sense_key {
     illegal_request = 0x05,
     unit_attention  = 0x06,
     data_protect    = 0x07,
+    blank_check     = 0x08,
     aborted_command = 0x0b
 };
 
@@ -130,6 +138,7 @@ enum class asc {
     no_additional_sense_information = 0x00,
     write_fault                     = 0x03,
     read_fault                      = 0x11,
+    parameter_list_length_error     = 0x1a,
     invalid_command_operation_code  = 0x20,
     lba_out_of_range                = 0x21,
     invalid_field_in_cdb            = 0x24,

@@ -41,6 +41,8 @@ enum PbDeviceType {
     SCHS = 8;
     // Printer device
     SCLP = 9;
+    // Streamer (tape) device
+    SCST = 10;
 }
 
 // piscsi remote operations, returning PbResult

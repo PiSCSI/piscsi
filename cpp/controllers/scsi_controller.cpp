@@ -739,9 +739,9 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 		case scsi_command::eCmdRead6:
 		case scsi_command::eCmdRead10:
 		case scsi_command::eCmdRead16:
-			// Read from disk
+			// Read from StorageDevice
 			try {
-				SetLength(dynamic_pointer_cast<Disk>(GetDeviceForLun(lun))->Read(buf, GetNext()));
+				SetLength(dynamic_pointer_cast<StorageDevice>(GetDeviceForLun(lun))->Read(buf, GetNext()));
 			}
 			catch(const scsi_exception&) {
 				// If there is an error, go to the status phase
@@ -819,13 +819,13 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				break;
 			}
 
-			auto disk = dynamic_pointer_cast<Disk>(device);
-			if (disk == nullptr) {
+			auto storage = dynamic_pointer_cast<StorageDevice>(device);
+			if (storage == nullptr) {
 				return false;
 			}
 
 			try {
-				disk->Write(GetBuffer(), GetNext() - 1);
+				storage->Write(GetBuffer(), GetNext() - 1);
 			}
 			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc());
@@ -836,7 +836,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			// If you do not need the next block, end here
 			IncrementNext();
 			if (cont) {
-				SetLength(disk->GetSectorSizeInBytes());
+				SetLength(storage->GetSectorSizeInBytes());
 				ResetOffset();
 			}
 
@@ -846,15 +846,15 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
 		{
-			auto disk = dynamic_pointer_cast<Disk>(device);
-			if (disk == nullptr) {
+			auto storage = dynamic_pointer_cast<StorageDevice>(device);
+			if (storage == nullptr) {
 				return false;
 			}
 
 			// If you do not need the next block, end here
 			IncrementNext();
 			if (cont) {
-				SetLength(disk->GetSectorSizeInBytes());
+				SetLength(storage->GetSectorSizeInBytes());
 				ResetOffset();
 			}
 

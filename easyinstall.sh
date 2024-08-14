@@ -356,7 +356,7 @@ function configureTokenAuth() {
 
     echo "$TOKEN" > "$SECRET_FILE"
 
-	# Make the secret file owned and only readable by root
+    # Make the secret file owned and only readable by root
     sudo chown root:root "$SECRET_FILE"
     sudo chmod 600 "$SECRET_FILE"
 
@@ -391,7 +391,7 @@ function installWebInterfaceService() {
 
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/piscsi-web.service"
-	# Make the service file readable by root only, to protect the token string
+        # Make the service file readable by root only, to protect the token string
         sudo chmod 600 "$SYSTEMD_PATH/piscsi-web.service"
         echo "Granted access to the Web Interface with the token password that you configured for PiSCSI."
     else
@@ -587,14 +587,14 @@ function setupWiredNetworking() {
     echo "Setting up wired network..."
 
     if [[ -z $HEADLESS ]]; then
-	LAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx' | head -n 1`
+        LAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx' | head -n 1`
     else
-	LAN_INTERFACE="eth0"
+        LAN_INTERFACE="eth0"
     fi
 
     if [[ -z "$LAN_INTERFACE" ]]; then
-	echo "No usable wired network interfaces detected. Have you already enabled the bridge? Aborting..."
-	return 1
+        echo "No usable wired network interfaces detected. Have you already enabled the bridge? Aborting..."
+        return 1
     fi
 
     echo "Network interface '$LAN_INTERFACE' will be configured for network forwarding with DHCP."
@@ -664,14 +664,14 @@ function setupWirelessNetworking() {
     ROUTING_ADDRESS=$NETWORK.0/$CIDR
 
     if [[ -z $HEADLESS ]]; then
-	WLAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx' | head -n 1`
+        WLAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx' | head -n 1`
     else
-	WLAN_INTERFACE="wlan0"
+        WLAN_INTERFACE="wlan0"
     fi
 
     if [[ -z "$WLAN_INTERFACE" ]]; then
-	echo "No usable wireless network interfaces detected. Have you already enabled the bridge? Aborting..."
-	return 1
+        echo "No usable wireless network interfaces detected. Have you already enabled the bridge? Aborting..."
+        return 1
     fi
 
     echo "Network interface '$WLAN_INTERFACE' will be configured for network forwarding with static IP assignment."
@@ -1063,7 +1063,7 @@ function installPiscsiScreen() {
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-oled.service"
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/piscsi-oled.service"
-	# Make the service file readable by root only, to protect the token string
+        # Make the service file readable by root only, to protect the token string
         sudo chmod 600 "$SYSTEMD_PATH/piscsi-oled.service"
         echo "Granted access to the OLED Monitor with the password that you configured for PiSCSI."
     else
@@ -1476,7 +1476,7 @@ function runChoice() {
               echo "- Install the vsftpd Webmin module"
               installWebmin
               echo "Install Webmin - Complete!"
-	      echo "The Webmin webapp should now be listening to port 10000 on this system"
+              echo "The Webmin webapp should now be listening to port 10000 on this system"
           ;;
           99)
               echo "Hidden setup mode for running the pi-gen utility"

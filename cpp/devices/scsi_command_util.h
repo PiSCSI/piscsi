@@ -31,7 +31,7 @@ namespace scsi_command_util
 		assert(buf.size() > static_cast<size_t>(offset) + 1);
 
 		return (static_cast<int>(buf[offset]) << 8) | buf[offset + 1];
-	};
+	}
 
 	template<typename T>
 	void SetInt16(vector<T>& buf, int offset, int value)
@@ -52,8 +52,22 @@ namespace scsi_command_util
 		buf[offset + 2] = static_cast<T>(value >> 8);
 		buf[offset + 3] = static_cast<T>(value);
 	}
+    template<typename T>
+    void SetInt24(vector<T>& buf, int offset, uint32_t value)
+    {
+        assert(buf.size() > static_cast<size_t>(offset) + 3);
 
-	int GetInt24(span<const int>, int);
+        buf[offset + 0] = static_cast<T>(value >> 16);
+        buf[offset + 1] = static_cast<T>(value >> 8);
+        buf[offset + 2] = static_cast<T>(value);
+    }
+
+	inline int GetInt24(const auto buf, int offset)
+	{
+		assert(buf.size() > static_cast<size_t>(offset) + 2);
+
+		return (int(buf[offset]) << 16) | (int(buf[offset + 1]) << 8) | buf[offset + 2];
+	}
 	uint32_t GetInt32(span <const int>, int);
 	uint64_t GetInt64(span<const int>, int);
 	void SetInt64(vector<uint8_t>&, int, uint64_t);

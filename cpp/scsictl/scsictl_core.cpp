@@ -39,7 +39,7 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 				<< " where  ID[:LUN] ID := {0-" << (ControllerManager::GetScsiIdMax() - 1) << "},"
 				<< " LUN := {0-" << (ControllerManager::GetScsiLunMax() - 1) << "}, default is 0\n"
 				<< "        CMD := {attach|detach|insert|eject|protect|unprotect|show}\n"
-				<< "        TYPE := {schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}\n"
+				<< "        TYPE := {schd|scrm|sccd|scmo|scbr|scdp|scst} or convenience type {hd|rm|mo|cd|bridge|daynaport|streamer}\n"
 				<< "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block\n"
 				<< "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)\n"
 				<< "        FILE|PARAM := image file path or device-specific parameter\n"

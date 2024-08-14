@@ -114,7 +114,7 @@ void ModePageDevice::ModeSense10() const
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(scsi_command, cdb_t, span<const uint8_t>, int) const
+void ModePageDevice::ModeSelect(scsi_command, cdb_t, span<const uint8_t>, int)
 {
 	// There is no default implementation of MODE SELECT
 	throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
