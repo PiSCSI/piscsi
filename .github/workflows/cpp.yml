@@ -73,7 +73,7 @@ jobs:
         with:
           java-version: 17
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Cache SonarCloud setup
         id: sonar-install-cache
         with:
