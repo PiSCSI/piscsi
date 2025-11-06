@@ -15,7 +15,7 @@ pluggy==1.4.0
 pycodestyle==2.11.1
 pyflakes==3.2.0
 pytest==8.1.1
-pytest_httpserver==1.0.10
+pytest_httpserver==1.1.3
 requests==2.32.0
 urllib3==2.2.2
 vcgencmd==0.1.1
