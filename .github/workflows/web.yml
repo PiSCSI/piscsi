@@ -4,14 +4,12 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'python/web/**'
-      - 'python/common/**'
+      - 'python/**'
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
   pull_request:
     paths:
-      - 'python/web/**'
-      - 'python/common/**'
+      - 'python/**'
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
     types:
