@@ -1,7 +1,17 @@
 version: 2
 updates:
   - package-ecosystem: "docker"
-    directory: "/docker"
+    directory: "/docker/backend"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/docker/pytest"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/docker/web"
     schedule:
       interval: "weekly"
 
