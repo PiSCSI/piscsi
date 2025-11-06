@@ -28,9 +28,9 @@ jobs:
       run:
         working-directory: python
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: 3.9.19
           cache: 'pip'
@@ -49,7 +49,7 @@ jobs:
       run:
         working-directory: docker
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Check DockerHub for existing backend image
         run: |
@@ -70,7 +70,7 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         if: env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -82,7 +82,7 @@ jobs:
 
       - name: Upload test artifacts
         if: success() || failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: pytest-output.zip
           path: |
@@ -98,21 +98,21 @@ jobs:
 
       - name: Upload backend log
         if: success() || failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: backend.log
           path: docker/backend.log
 
       - name: Upload web log
         if: success() || failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: web.log
           path: docker/web.log
 
       - name: Upload combined log
         if: success() || failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: combined.log
           path: docker/combined.log
@@ -123,9 +123,9 @@ jobs:
       run:
         working-directory: python/web
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:
         node-version: 16
         cache: 'npm'
