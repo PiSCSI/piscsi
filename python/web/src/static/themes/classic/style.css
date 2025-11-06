@@ -18,7 +18,7 @@ tr,
 td {
   border: 1px solid black;
   border-collapse: collapse;
-  margin: none;
+  margin: 0;
 }
 
 th {
