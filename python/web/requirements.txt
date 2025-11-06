@@ -2,7 +2,7 @@ Babel==2.13.1
 bjoern==3.2.2
 blinker==1.6.3
 charset-normalizer==2.1.1
-click==8.1.7
+click==8.3.0
 Flask==3.0.0
 flask-babel==4.0.0
 itsdangerous==2.1.2
