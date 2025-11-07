@@ -1,5 +1,5 @@
 luma.core==2.4.1
-luma.oled==3.8.1
+luma.oled==3.14.0
 Pillow==12.0.0
 protobuf==3.20.3
 pyftdi==0.55.0
