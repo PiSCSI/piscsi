@@ -12,6 +12,7 @@ packaging==25.0
 pathspec==0.12.1
 platformdirs==4.2.0
 pluggy==1.4.0
+protobuf==3.20.3
 pycodestyle==2.14.0
 pyflakes==3.4.0
 pytest==8.1.1
