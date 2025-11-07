@@ -155,7 +155,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:s:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
 			// The two options below are kind of a compound option with two letters
 			case 'i':
@@ -211,6 +211,16 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 
 			case 'r':
 				reserved_ids = optarg;
+				continue;
+
+			case 's':
+				{
+					int min_exec_time;
+					if (!GetAsUnsignedInt(optarg, min_exec_time)) {
+						throw parser_exception("Invalid command delay " + string(optarg));
+					}
+					ScsiController::SetMinExecTime(min_exec_time);
+				}
 				continue;
 
 			case 't':
@@ -517,6 +527,8 @@ int Piscsi::run(span<char *> args)
 
 		return EXIT_FAILURE;
 	}
+
+	spdlog::info("SCSI command execution time set to " + to_string(ScsiController::MIN_EXEC_TIME) + " microseconds");
 
 	if (const string error = executor->SetReservedIds(reserved_ids); !error.empty()) {
 		cerr << "Error: " << error << endl;

@@ -75,6 +75,10 @@ The piscsi server port, default is 6868.
 .TP
 .BR \-r\fI " " \fIRESERVED_IDS
 Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
+.TP
+.BR \-r\fs " " \fIMICROSECONDS
+Minimum execution time for SCSI commands in microseconds. Default is 50. Higher values may be needed for some older SCSI initiators to work properly.
+.TP
 .BR \-p\fI " " \fITYPE
 The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP, SCLP, SCHS). If no type is specified for devices that support an image file, piscsi tries to derive the type from the file extension.
 .TP
