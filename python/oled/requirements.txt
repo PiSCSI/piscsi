@@ -4,7 +4,7 @@ adafruit-circuitpython-framebuf==1.6.4
 adafruit-circuitpython-requests==2.0.2
 adafruit-circuitpython-ssd1306==2.12.11
 adafruit-circuitpython-typing==1.9.5
-Adafruit-PlatformDetect==3.53.0
+Adafruit-PlatformDetect==3.84.1
 Adafruit-PureIO==1.1.11
 Pillow==12.0.0
 protobuf==3.20.3
