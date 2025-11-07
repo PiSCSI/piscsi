@@ -1,5 +1,5 @@
 Adafruit-Blinka==8.24.0
-adafruit-circuitpython-busdevice==5.2.6
+adafruit-circuitpython-busdevice==5.2.14
 adafruit-circuitpython-framebuf==1.6.4
 adafruit-circuitpython-requests==2.0.2
 adafruit-circuitpython-ssd1306==2.12.11
