@@ -12,7 +12,7 @@ from os import path
 import bjoern
 
 from piscsi.return_codes import ReturnCodes
-from simplepam import authenticate
+from pam import authenticate
 from flask_babel import Babel, Locale, refresh, _
 from werkzeug.utils import secure_filename
 
@@ -357,7 +357,7 @@ def upload_page():
 @APP.route("/login", methods=["POST"])
 def login():
     """
-    Uses simplepam to authenticate against Linux users
+    Uses PAM to authenticate with system users
     """
     username = request.form["username"]
     password = request.form["password"]
