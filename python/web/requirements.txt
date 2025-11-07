@@ -1,4 +1,4 @@
-Babel==2.13.1
+Babel==2.17.0
 bjoern==3.2.2
 blinker==1.6.3
 charset-normalizer==2.1.1
