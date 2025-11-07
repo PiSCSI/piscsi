@@ -984,3 +984,5 @@ void ScsiController::Sleep()
 	}
 	execstart = 0;
 }
+
+unsigned int ScsiController::MIN_EXEC_TIME = 50;
