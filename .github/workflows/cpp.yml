@@ -51,7 +51,10 @@ jobs:
 
   sonarcloud:
     runs-on: ubuntu-24.04
-    if: github.repository == 'PiSCSI/piscsi'
+    if: >
+      (github.event_name == 'push' && github.actor != 'dependabot[bot]' && github.actor != 'dependabot') || (github.event_name
+      == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' && github.actor
+      != 'dependabot')
     env:
       BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out"
     steps:
