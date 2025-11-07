@@ -59,8 +59,8 @@ TEST(DeviceFactoryTest, GetExtensionMapping)
 	EXPECT_EQ(SCCD, mapping["is1"]);
 	EXPECT_EQ(SCCD, mapping["cdr"]);
 	EXPECT_EQ(SCCD, mapping["toast"]);
-	EXPECT_EQ(SCST, mapping["tar"]);
-	EXPECT_EQ(SCST, mapping["tap"]);
+	EXPECT_EQ(SCTP, mapping["tar"]);
+	EXPECT_EQ(SCTP, mapping["tap"]);
 }
 
 TEST(DeviceFactoryTest, UnknownDeviceType)

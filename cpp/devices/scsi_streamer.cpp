@@ -73,7 +73,7 @@ void File::close()
 
 
 SCSIST::SCSIST(int lun)
-	: StorageDevice(SCST, lun, {512})
+	: StorageDevice(SCTP, lun, {512})
 {
 	SetProtectable(true);
 	SetRemovable(true);

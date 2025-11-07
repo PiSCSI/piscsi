@@ -148,7 +148,7 @@ class PiscsiCmds:
         scrm = []
         scmo = []
         sccd = []
-        scst = []
+        sctp = []
         for dtype in mappings:
             if mappings[dtype] == proto.PbDeviceType.SCHD:
                 schd.append(dtype)
@@ -158,8 +158,8 @@ class PiscsiCmds:
                 scmo.append(dtype)
             elif mappings[dtype] == proto.PbDeviceType.SCCD:
                 sccd.append(dtype)
-            elif mappings[dtype] == proto.PbDeviceType.SCST:
-                scst.append(dtype)
+            elif mappings[dtype] == proto.PbDeviceType.SCTP:
+                sctp.append(dtype)
 
         return {
             "status": result.status,
@@ -173,7 +173,7 @@ class PiscsiCmds:
             "scrm": scrm,
             "scmo": scmo,
             "sccd": sccd,
-            "scst": scst,
+            "sctp": sctp,
         }
 
     def get_reserved_ids(self):

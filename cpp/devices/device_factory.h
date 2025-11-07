@@ -47,8 +47,8 @@ private:
 			{ "iso", SCCD },
 			{ "cdr", SCCD },
 			{ "toast", SCCD },
-			{ "tar", SCST },
-			{ "tap", SCST },
+			{ "tar", SCTP },
+			{ "tap", SCTP },
 	};
 
 	const inline static unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> DEVICE_MAPPING = {

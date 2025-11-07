@@ -444,7 +444,7 @@
     "url": ""
 },
 {
-    "device_type": "SCST",
+    "device_type": "SCTP",
     "vendor": "TANDBERG",
     "product": " TDC 3600",
     "revision": null,

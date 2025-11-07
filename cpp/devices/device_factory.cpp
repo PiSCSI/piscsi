@@ -61,7 +61,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		}
 		break;
 	}
-	case SCST:
+	case SCTP:
 		device = make_shared<SCSIST>(lun);
 		break;
 

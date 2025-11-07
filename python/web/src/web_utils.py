@@ -110,7 +110,7 @@ def get_device_name(device_type):
         return _("Printer")
     if device_type == "SCHS":
         return _("Host Services")
-    if device_type == "SCST":
+    if device_type == "SCTP":
         return _("Streamer (Tape) Drive")
     return device_type
 
@@ -211,7 +211,7 @@ def format_drive_properties(drive_properties):
             rm_conf.append(device)
         elif device["device_type"] == "SCMO":
             mo_conf.append(device)
-        elif device["device_type"] == "SCST":
+        elif device["device_type"] == "SCTP":
             st_conf.append(device)
 
     return {

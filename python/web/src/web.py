@@ -130,7 +130,7 @@ def get_env_info():
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
-        "st_suffixes": tuple(server_info["scst"]),
+        "st_suffixes": tuple(server_info["sctp"]),
         "throttle_status": [
             (s[0], ReturnCodeMapper.add_msg({"return_code": s[1]})) for s in throttled_statuses
         ],
@@ -253,7 +253,7 @@ def index():
         )
         + server_info["scrm"]
         + server_info["scmo"]
-        + server_info["scst"]
+        + server_info["sctp"]
     )
 
     valid_image_suffixes = (
@@ -261,7 +261,7 @@ def index():
         + server_info["scrm"]
         + server_info["scmo"]
         + server_info["sccd"]
-        + server_info["scst"]
+        + server_info["sctp"]
     )
 
     return response(
