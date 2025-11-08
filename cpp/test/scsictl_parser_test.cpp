@@ -34,19 +34,21 @@ TEST(ScsictlParserTest, ParseType)
 	EXPECT_EQ(SCCD, parser.ParseType("sccd"));
 	EXPECT_EQ(SCDP, parser.ParseType("scdp"));
 	EXPECT_EQ(SCHD, parser.ParseType("schd"));
+	EXPECT_EQ(SCHS, parser.ParseType("schs"));
 	EXPECT_EQ(SCLP, parser.ParseType("sclp"));
 	EXPECT_EQ(SCMO, parser.ParseType("scmo"));
 	EXPECT_EQ(SCRM, parser.ParseType("scrm"));
-	EXPECT_EQ(SCHS, parser.ParseType("schs"));
+	EXPECT_EQ(SCTP, parser.ParseType("sctp"));
 
 	EXPECT_EQ(SCCD, parser.ParseType("C"));
 	EXPECT_EQ(SCCD, parser.ParseType("c"));
 	EXPECT_EQ(SCDP, parser.ParseType("d"));
 	EXPECT_EQ(SCHD, parser.ParseType("h"));
-	EXPECT_EQ(SCLP, parser.ParseType("l"));
+	EXPECT_EQ(SCHS, parser.ParseType("s"));
+	EXPECT_EQ(SCLP, parser.ParseType("p"));
 	EXPECT_EQ(SCMO, parser.ParseType("m"));
 	EXPECT_EQ(SCRM, parser.ParseType("r"));
-	EXPECT_EQ(SCHS, parser.ParseType("s"));
+	EXPECT_EQ(SCTP, parser.ParseType("t"));
 
 	EXPECT_EQ(UNDEFINED, parser.ParseType(""));
 	EXPECT_EQ(UNDEFINED, parser.ParseType("xyz"));

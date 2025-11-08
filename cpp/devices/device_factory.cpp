@@ -60,9 +60,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		}
 		break;
 	}
-	case SCTP:
-		device = make_shared<SCSIST>(lun);
-		break;
 
 	case SCRM:
 		device = make_shared<SCSIHD>(lun, true, scsi_level::scsi_2);
@@ -98,6 +95,13 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	case SCLP:
 		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
+		break;
+
+	case SCTP:
+		device = make_shared<SCSIST>(lun);
+		// Masquerade as Tandberg
+		device->SetVendor("TANDBERG");
+		device->SetProduct(" TDC Streamer");
 		break;
 
 	default:

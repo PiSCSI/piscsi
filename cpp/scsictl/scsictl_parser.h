@@ -41,9 +41,10 @@ private:
 			{ 'c', SCCD },
 			{ 'd', SCDP },
 			{ 'h', SCHD },
-			{ 'l', SCLP },
+			{ 's', SCHS },
 			{ 'm', SCMO },
+			{ 'p', SCLP },
 			{ 'r', SCRM },
-			{ 's', SCHS }
+			{ 't', SCTP }
 	};
 };

@@ -35,7 +35,17 @@ PiSCSI will determine the type of device based upon the file extension of the FI
     mos: SCSI Magneto-Optical image (generic - typically used with NeXT, X68000, etc.)
     iso: SCSI CD-ROM or DVD-ROM image (ISO 9660 image)
     is1: SCSI CD-ROM or DVD-ROM image (ISO 9660 image, SCSI-1)
-  
+.PP
+If the file extension is not recognized, the device type can be specified explicitly using the -t option and a four letter code.
+    SCCD: SCSI CD-ROM (generic CD-ROM or DVD-ROM drive)
+    SCDP: SCSI DaynaPort (DaynaPort compatible network adapter)
+    SCHD: SCSI Hard Disk (generic, non-removable)
+    SCHS: SCSI Host Services (used for special host services)
+    SCLP: SCSI Printer (generic line printer)
+    SCMO: SCSI Magneto-Optical Drive (generic MO drive)
+    SCRM: SCSI Removable Hard Disk (generic, removable)
+    SCTP: SCSI Tape Drive (generic tape, or streamer, drive)
+.PP
 For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
     sudo piscsi -ID0 /path/to/drive/hdimage.hda
 
@@ -76,11 +86,11 @@ The piscsi server port, default is 6868.
 .BR \-r\fI " " \fIRESERVED_IDS
 Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
 .TP
-.BR \-r\fs " " \fIMICROSECONDS
+.BR \-s\fI " " \fIMICROSECONDS
 Minimum execution time for SCSI commands in microseconds. Default is 50. Higher values may be needed for some older SCSI initiators to work properly.
 .TP
-.BR \-p\fI " " \fITYPE
-The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCDP, SCLP, SCHS). If no type is specified for devices that support an image file, piscsi tries to derive the type from the file extension.
+.BR \-t\fI " " \fITYPE
+The optional case-insensitive device type (see list of type codes above). If no type is specified for devices that support an image file, piscsi tries to derive the type from the file extension.
 .TP
 .BR \-v\fI " " \fI
 Display the piscsi version.
