@@ -52,7 +52,6 @@ private:
 	};
 
 	const inline static unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> DEVICE_MAPPING = {
-			{ "bridge", SCBR },
 			{ "daynaport", SCDP },
 			{ "printer", SCLP },
 			{ "services", SCHS }

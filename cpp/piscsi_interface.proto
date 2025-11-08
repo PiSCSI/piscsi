@@ -33,8 +33,8 @@ enum PbDeviceType {
     SCMO = 4;
     // CD-ROM drive
     SCCD = 5;
-    // Network bridge
-    SCBR = 6;
+    // Support for X68000 host bridge removed
+    SCBR = 6 [deprecated = true];
     // DaynaPort network adapter
     SCDP = 7;
     // Host services device

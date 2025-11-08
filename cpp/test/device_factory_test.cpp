@@ -33,7 +33,6 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.cdr"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.toast"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.suffix.iso"), SCCD);
-	EXPECT_EQ(device_factory.GetTypeForFile("bridge"), SCBR);
 	EXPECT_EQ(device_factory.GetTypeForFile("daynaport"), SCDP);
 	EXPECT_EQ(device_factory.GetTypeForFile("printer"), SCLP);
 	EXPECT_EQ(device_factory.GetTypeForFile("services"), SCHS);
@@ -172,31 +171,6 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 
 	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI CD-ROM", device->GetProduct());
-	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
-}
-
-TEST(DeviceFactoryTest, SCBR_Device_Defaults)
-{
-	DeviceFactory device_factory;
-
-	auto device = device_factory.CreateDevice(UNDEFINED, 0, "bridge");
-	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(SCBR, device->GetType());
-	EXPECT_FALSE(device->SupportsFile());
-	EXPECT_TRUE(device->SupportsParams());
-	EXPECT_FALSE(device->IsProtectable());
-	EXPECT_FALSE(device->IsProtected());
-	EXPECT_FALSE(device->IsReadOnly());
-	EXPECT_FALSE(device->IsRemovable());
-	EXPECT_FALSE(device->IsRemoved());
-	EXPECT_FALSE(device->IsLockable());
-	EXPECT_FALSE(device->IsLocked());
-	EXPECT_FALSE(device->IsStoppable());
-	EXPECT_FALSE(device->IsStopped());
-
-	EXPECT_EQ("PiSCSI", device->GetVendor());
-	EXPECT_EQ("RASCSI BRIDGE", device->GetProduct());
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 }

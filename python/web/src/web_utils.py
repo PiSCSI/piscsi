@@ -102,8 +102,6 @@ def get_device_name(device_type):
         return _("Magneto-Optical Drive")
     if device_type == "SCCD":
         return _("CD/DVD Drive")
-    if device_type == "SCBR":
-        return _("Host Bridge")
     if device_type == "SCDP":
         return _("Ethernet Adapter")
     if device_type == "SCLP":
