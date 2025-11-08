@@ -145,14 +145,15 @@ The optional block size, either 512, 1024, 2048 or 4096 bytes. The default size 
 Device-specific: Either a path to a disk image file, or a parameter for a non-disk device. See the piscsi(1) man page for permitted file types.
 .TP 
 .BR \-t\fI " " \fITYPE
-Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the piscsi(1) man page for the available device types. For some types there are shortcuts (only the first letter is required):
-   hd: SCSI hard disk drive
-   rm: SCSI removable media drive
-   cd: CD-ROM
-   mo: Magneto-Optical disk
-   lp: SCSI printer
-   daynaport: DaynaPort network adapter
-   services: Host services device
+Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the piscsi(1) man page for the available device type codes, or use a shorthand (only the first letter is required):
+    cd: CD-ROM
+    daynaport: DaynaPort Network Adapter
+    hd: Hard Disk
+    services: Host Services
+    printer: Printer
+    mo: Magneto-Optical Drive
+    removable: Removable Hard Disk
+    tape: Tape Drive
 .TP 
 .BR \-n\fI " " \fIVENDOR:PRODUCT:REVISION
 The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.

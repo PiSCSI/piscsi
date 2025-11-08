@@ -79,8 +79,6 @@ SCSIST::SCSIST(int lun)
 	SetRemovable(true);
 	SetLockable(true);
 	SupportsSaveParameters(true);
-	SetVendor("TANDBERG"); // Masquerade as Tandberg
-	SetProduct(" TDC Streamer");
 }
 
 bool SCSIST::Init(const param_map &pm)
