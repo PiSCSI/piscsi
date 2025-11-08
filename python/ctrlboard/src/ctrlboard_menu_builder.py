@@ -80,8 +80,6 @@ class CtrlBoardMenuBuilder(MenuBuilder):
 
             if device_type == "SCDP":
                 menu_str += "Daynaport"
-            elif device_type == "SCBR":
-                menu_str += "X68000 Host Bridge"
             elif device_type == "SCLP":
                 menu_str += "SCSI Printer"
             elif device_type == "SCHS":

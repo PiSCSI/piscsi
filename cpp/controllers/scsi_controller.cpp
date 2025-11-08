@@ -17,7 +17,6 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "controllers/controller_manager.h"
-#include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"
@@ -799,16 +798,6 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdWrite10:
 		case scsi_command::eCmdWrite16:
 		{
-			// TODO Get rid of this special case for SCBR
-			if (auto bridge = dynamic_pointer_cast<SCSIBR>(device); bridge) {
-				if (!bridge->ReadWrite(GetCmd(), GetBuffer())) {
-					return false;
-				}
-
-				ResetOffset();
-				break;
-			}
-
 			// TODO Get rid of this special case for SCDP
 			if (auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(device); daynaport) {
 				if (!daynaport->Write(GetCmd(), GetBuffer())) {

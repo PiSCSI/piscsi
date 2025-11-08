@@ -139,9 +139,6 @@ TEST(DeviceTest, GetTypeString)
 	MockDevice schs(SCHS);
 	EXPECT_EQ("SCHS", schs.GetTypeString());
 
-	MockDevice scbr(SCBR);
-	EXPECT_EQ("SCBR", scbr.GetTypeString());
-
 	MockDevice scdp(SCDP);
 	EXPECT_EQ("SCDP", scdp.GetTypeString());
 

@@ -60,13 +60,15 @@ void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 
 void PiscsiResponse::GetDeviceTypesInfo(PbDeviceTypesInfo& device_types_info) const
 {
-	// Start with 2 instead of 1. 1 was the removed SASI drive type.
-	int ordinal = 2;
+	int ordinal = 1;
 	while (PbDeviceType_IsValid(ordinal)) {
-		PbDeviceType type = UNDEFINED;
-		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);
-		GetDeviceTypeProperties(device_types_info, type);
-		ordinal++;
+		// Only report device types supported by the factory
+		if (const auto device = device_factory.CreateDevice(static_cast<PbDeviceType>(ordinal), 0, ""); device) {
+			auto* type_properties = device_types_info.add_properties();
+			type_properties->set_type(device->GetType());
+			GetDeviceProperties(device, *type_properties->mutable_properties());
+		}
+		++ordinal;
 	}
 }
 

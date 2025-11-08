@@ -30,8 +30,7 @@ TEST(ScsictlParserTest, ParseType)
 {
 	ScsictlParser parser;
 
-	EXPECT_EQ(SCBR, parser.ParseType("SCBR"));
-	EXPECT_EQ(SCBR, parser.ParseType("scbr"));
+	EXPECT_EQ(SCCD, parser.ParseType("SCCD"));
 	EXPECT_EQ(SCCD, parser.ParseType("sccd"));
 	EXPECT_EQ(SCDP, parser.ParseType("scdp"));
 	EXPECT_EQ(SCHD, parser.ParseType("schd"));
@@ -40,8 +39,7 @@ TEST(ScsictlParserTest, ParseType)
 	EXPECT_EQ(SCRM, parser.ParseType("scrm"));
 	EXPECT_EQ(SCHS, parser.ParseType("schs"));
 
-	EXPECT_EQ(SCBR, parser.ParseType("B"));
-	EXPECT_EQ(SCBR, parser.ParseType("b"));
+	EXPECT_EQ(SCCD, parser.ParseType("C"));
 	EXPECT_EQ(SCCD, parser.ParseType("c"));
 	EXPECT_EQ(SCDP, parser.ParseType("d"));
 	EXPECT_EQ(SCHD, parser.ParseType("h"));

@@ -269,7 +269,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
         device_type = device_info["device_list"][0]["device_type"]
         image = device_info["device_list"][0]["image"]
-        if device_type in ("SCHD", "SCBR", "SCDP", "SCLP", "SCHS"):
+        if device_type in ("SCHD", "SCDP", "SCLP", "SCHS"):
             result = self.piscsi_cmd.detach_by_id(scsi_id)
             if result["status"] is True:
                 self.show_id_action_message(scsi_id, "detached")

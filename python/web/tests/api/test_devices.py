@@ -77,17 +77,12 @@ def test_attach_device_with_image(http_client, create_test_image, detach_devices
             },
         ),
         # TODO: Find a portable way to detect network interfaces for testing
-        ("Host Bridge", {"type": "SCBR", "param_inet": "192.168.0.1/24"}),
-        # TODO: Find a portable way to detect network interfaces for testing
         ("Ethernet Adapter", {"type": "SCDP", "param_inet": "192.168.0.1/24"}),
         ("Host Services", {"type": "SCHS"}),
         ("Printer", {"type": "SCLP", "param_timeout": 60, "param_cmd": "lp -fart %f"}),
     ],
 )
 def test_attach_device(env, http_client, detach_devices, device_name, device_config):
-    if env["is_docker"] and device_name == "Host Bridge":
-        pytest.skip("Test not supported in Docker environment.")
-
     device_config["scsi_id"] = SCSI_ID
     device_config["unit"] = 0
 
