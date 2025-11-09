@@ -252,25 +252,5 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCTP_Device_Defaults)
 {
-	DeviceFactory device_factory;
-
-	auto device = device_factory.CreateDevice(UNDEFINED, 0, "test.tap");
-	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(SCTP, device->GetType());
-	EXPECT_TRUE(device->SupportsFile());
-	EXPECT_FALSE(device->SupportsParams());
-	EXPECT_TRUE(device->IsProtectable());
-	EXPECT_FALSE(device->IsProtected());
-	EXPECT_FALSE(device->IsReadOnly());
-	EXPECT_TRUE(device->IsRemovable());
-	EXPECT_FALSE(device->IsRemoved());
-	EXPECT_TRUE(device->IsLockable());
-	EXPECT_FALSE(device->IsLocked());
-	EXPECT_TRUE(device->IsStoppable());
-	EXPECT_FALSE(device->IsStopped());
-
-	EXPECT_EQ("TANDBERG", device->GetVendor());
-	EXPECT_EQ(" TDC Streamer", device->GetProduct());
-	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
+	TestRemovableDrive(SCTP, "test.tap", "SCSI TAPE");
 }

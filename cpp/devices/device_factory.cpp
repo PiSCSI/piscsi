@@ -99,9 +99,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 
 	case SCTP:
 		device = make_shared<SCSIST>(lun);
-		// Masquerade as Tandberg
-		device->SetVendor("TANDBERG");
-		device->SetProduct(" TDC Streamer");
+		device->SetProduct("SCSI TAPE");
 		break;
 
 	default:
