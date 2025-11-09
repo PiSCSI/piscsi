@@ -111,6 +111,40 @@
 {% endfor %}
 </tbody>
 </table>
+
+<h2>{{ _("Tape Drives") }}</h2>
+<table cellpadding="3" border="black" summary="List of tape drives">
+<tbody>
+<tr>
+    <th scope="col">{{ _("Name") }}</th>
+    <th scope="col">{{ _("Size (MiB)") }}</th>
+    <th scope="col">{{ _("Description") }}</th>
+    <th scope="col">{{ _("Action") }}</th>
+</tr>
+{% for st in drive_properties['st_conf']|sort(attribute='name') %}
+<tr>
+    <td align="center">
+        {% if st.url != "" %}
+        <a href="{{ st.url }}">{{ st.name }}</a>
+        {% else %}
+        {{ st.name }}
+        {% endif %}
+    </td>
+    <td align="center">{{ st.size_mb }}</td>
+    <td>{{ st.description }}</td>
+    <td>
+    <form action="/drive/create" method="post">
+        <input type="hidden" name="drive_name" value="{{ st.name }}">
+        <label for="file_name_{{ st.name }}">{{ _("Save as:") }}</label>
+        <input type="text" name="file_name" id="file_name_{{ st.name }}" value="{{ st.secure_name }}" required />.{{ st.file_type }}
+        <input type="submit" value="{{ _("Create") }}" />
+    </form>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
 <p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
 
 <hr/>
