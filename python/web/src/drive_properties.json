@@ -448,11 +448,11 @@
     "vendor": "TANDBERG",
     "product": " TDC 3600",
     "revision": null,
-    "block_size": 512,
+    "block_size": "",
     "size": 262144000,
-    "name": "250 Mb Cartige",
+    "name": "250 MB Cartridge",
     "file_type": "tap",
-    "description": "DC 6250 Data Cartige.",
+    "description": "DC 6250 Data Cartridge",
     "url": ""
 }
 ]

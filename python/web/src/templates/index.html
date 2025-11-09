@@ -525,6 +525,10 @@
                 {% if f["name"].lower().endswith(env['mo_suffixes']) %}
                 <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                 {% endif %}
+                {% elif type == "SCTP" %}
+                {% if f["name"].lower().endswith(env['st_suffixes']) %}
+                <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+                {% endif %}
                 {% else %}
                 <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                 {% endif %}
