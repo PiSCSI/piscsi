@@ -450,9 +450,33 @@
     "revision": null,
     "block_size": "",
     "size": 262144000,
-    "name": "250 MB Cartridge",
+    "name": "Tandberg TDC 3600",
     "file_type": "tap",
-    "description": "DC 6250 Data Cartridge",
-    "url": ""
+    "description": "Tandberg TDC 3600 with DC6250 250 MB Data Cartridge",
+    "url": "https://web.archive.org/web/20200325013232/http://www.bitsavers.org/pdf/tandbergData/TDC_3620_3640_3660_Reference_Manual.pdf"
+},
+{
+    "device_type": "SCTP",
+    "vendor": "TANDBERG",
+    "product": " TDC 4100",
+    "revision": null,
+    "block_size": "",
+    "size": 1073741824,
+    "name": "Tandberg TDC 4100",
+    "file_type": "tap",
+    "description": "Tandberg TDC 4100 with DC9100 1 GB Data Cartridge",
+    "url": "https://web.archive.org/web/20240526132933/http://bitsavers.org/pdf/tandbergData/423042_TDC_4000_Series_SCSI-2_Interface_Functional_Specifications_May97.pdf"
+},
+{
+    "device_type": "SCTP",
+    "vendor": "TANDBERG",
+    "product": " TDC 4222",
+    "revision": null,
+    "block_size": "",
+    "size": 2147483648,
+    "name": "Tandberg TDC 4222",
+    "file_type": "tap",
+    "description": "Tandberg TDC 4222 with DC9200 2 GB Data Cartridge",
+    "url": "https://web.archive.org/web/20240526132933/http://bitsavers.org/pdf/tandbergData/423042_TDC_4000_Series_SCSI-2_Interface_Functional_Specifications_May97.pdf"
 }
 ]
