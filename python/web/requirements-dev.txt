@@ -20,4 +20,4 @@ requests==2.32.4
 urllib3==2.5.0
 vcgencmd==0.1.1
 watchdog==4.0.0
-Werkzeug==3.0.6
+Werkzeug==3.1.3
