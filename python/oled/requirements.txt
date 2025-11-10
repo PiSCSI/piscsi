@@ -2,7 +2,7 @@ Adafruit-Blinka==8.24.0
 adafruit-circuitpython-busdevice==5.2.14
 adafruit-circuitpython-framebuf==1.6.4
 adafruit-circuitpython-requests==4.1.15
-adafruit-circuitpython-ssd1306==2.12.11
+adafruit-circuitpython-ssd1306==2.12.22
 adafruit-circuitpython-typing==1.12.3
 Adafruit-PlatformDetect==3.84.1
 Adafruit-PureIO==1.1.11
