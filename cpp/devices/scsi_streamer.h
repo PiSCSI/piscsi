@@ -78,6 +78,8 @@ public:
 	void AddDevicePage(map<int, vector<byte> > &, bool) const;
 	void AddMediumPartitionPage(map<int, vector<byte> > &, bool) const;
 	void AddMiscellaneousPage(map<int, vector<byte> > &, bool) const;
+	bool Eject(bool force) override;
+
 private:
 	File file;
 };

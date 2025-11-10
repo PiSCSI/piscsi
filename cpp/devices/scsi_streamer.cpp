@@ -919,3 +919,21 @@ void SCSIST::AddMiscellaneousPage(map<int, vector<byte> > &pages, bool) const
 	buf[10] = (byte)0x00; // PSEW Position
 	pages[0x12] = buf;
 }
+
+bool SCSIST::Eject(bool force)
+{
+    // Only eject if removable and ready, and not locked (unless forced)
+    if (!IsReady() || !IsRemovable() || (!force && IsLocked())) {
+        return false;
+    }
+
+    file.close();
+    UnreserveFile();
+
+    SetReady(false);
+    SetRemoved(true);
+    SetLocked(false);
+    SetStopped(true);
+
+    return true;
+}
