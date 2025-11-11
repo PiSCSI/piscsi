@@ -40,42 +40,10 @@ def test_attach_device_with_image(http_client, create_test_image, detach_devices
 @pytest.mark.parametrize(
     "device_name,device_config",
     [
-        (
-            "Removable Disk Drive",
-            {
-                "type": "SCRM",
-                "drive_props": {
-                    "vendor": "HD VENDOR",
-                    "product": "HD PRODUCT",
-                    "revision": "0123",
-                    "block_size": "512",
-                },
-            },
-        ),
-        (
-            "Magneto-Optical Drive",
-            {
-                "type": "SCMO",
-                "drive_props": {
-                    "vendor": "MO VENDOR",
-                    "product": "MO PRODUCT",
-                    "revision": "0123",
-                    "block_size": "512",
-                },
-            },
-        ),
-        (
-            "CD/DVD Drive",
-            {
-                "type": "SCCD",
-                "drive_props": {
-                    "vendor": "CD VENDOR",
-                    "product": "CD PRODUCT",
-                    "revision": "0123",
-                    "block_size": "512",
-                },
-            },
-        ),
+        ("Removable Disk Drive", {"type": "SCRM"}),
+        ("Magneto-Optical Drive", {"type": "SCMO"}),
+        ("CD/DVD Drive", {"type": "SCCD"}),
+        ("Streamer (Tape) Drive", {"type": "SCTP"}),
         # TODO: Find a portable way to detect network interfaces for testing
         ("Ethernet Adapter", {"type": "SCDP", "param_inet": "192.168.0.1/24"}),
         ("Host Services", {"type": "SCHS"}),
@@ -159,17 +127,36 @@ def test_detach_all_devices(http_client, create_test_image, list_attached_images
     assert list_attached_images() == []
 
 
-def test_eject_device(http_client, create_test_image, detach_devices):
-    test_image = create_test_image()
-
-    http_client.post(
+@pytest.mark.parametrize(
+    "device_name,device_type,extension",
+    [
+        ("Removable Disk Drive", "SCRM", "hds"),
+        ("Magneto-Optical Drive", "SCMO", "mos"),
+        ("CD/DVD Drive", "SCCD", "iso"),
+        ("Streamer (Tape) Drive", "SCTP", "tap"),
+    ],
+)
+def test_eject_device(
+    http_client, create_test_image, detach_devices, device_name, device_type, extension
+):
+    test_image = create_test_image(image_type=extension)
+    response = http_client.post(
         ATTACH_ENDPOINT,
         data={
             "file_name": test_image,
             "scsi_id": SCSI_ID,
             "unit": 0,
-            "type": "SCCD",  # CD-ROM
+            "type": device_type,
         },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Attached {device_name} to SCSI ID {SCSI_ID} LUN 0"
     )
 
     response = http_client.post(
@@ -185,6 +172,25 @@ def test_eject_device(http_client, create_test_image, detach_devices):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"Ejected SCSI ID {SCSI_ID} LUN 0"
+
+    response = http_client.post(
+        ATTACH_ENDPOINT,
+        data={
+            "file_name": test_image,
+            "scsi_id": SCSI_ID,
+            "unit": 0,
+            "type": device_type,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Attached {device_name} to SCSI ID {SCSI_ID} LUN 0"
+    )
 
     # Cleanup
     detach_devices()
