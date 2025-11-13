@@ -13,6 +13,7 @@
 #include "hal/systimer.h"
 #include "hal/log.h"
 #include <cstddef>
+#include <fcntl.h>
 #include <map>
 #include <memory>
 #include <string.h>
@@ -556,4 +557,3 @@ uint32_t GPIOBUS_Virtual::Acquire()
 #endif
     return signal_value;
 }
-
