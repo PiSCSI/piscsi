@@ -19,6 +19,7 @@
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
+#include <fcntl.h>
 #include <map>
 #include <cstring>
 #ifdef __linux__

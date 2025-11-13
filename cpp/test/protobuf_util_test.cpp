@@ -11,6 +11,7 @@
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "generated/piscsi_interface.pb.h"
+#include <fcntl.h>
 #include <filesystem>
 
 using namespace piscsi_interface;

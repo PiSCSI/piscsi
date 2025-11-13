@@ -1,0 +1,14 @@
+option(
+    'connect_type',
+    type : 'combo',
+    choices : ['AIBOM', 'FULLSPEC', 'GAMERNIUM', 'STANDARD'],
+    value : 'FULLSPEC',
+    description : 'PiSCSI board type'
+)
+option(
+    'to_build',
+    type : 'array',
+    choices : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'test'],
+    value : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'test'],
+    description : 'Binaries to build'
+)
