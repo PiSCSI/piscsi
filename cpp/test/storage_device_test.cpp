@@ -15,7 +15,20 @@
 
 using namespace filesystem;
 
-TEST(StorageDeviceTest, SetGetFilename)
+class StorageDeviceTest : public ::testing::Test {
+protected:
+	void SetUp() override {
+		// Clean up any previous test state before each test
+		StorageDevice::UnreserveAll();
+	}
+
+	void TearDown() override {
+		// Clean up after each test
+		StorageDevice::UnreserveAll();
+	}
+};
+
+TEST_F(StorageDeviceTest, SetGetFilename)
 {
 	MockStorageDevice device;
 
@@ -23,7 +36,7 @@ TEST(StorageDeviceTest, SetGetFilename)
 	EXPECT_EQ("filename", device.GetFilename());
 }
 
-TEST(StorageDeviceTest, ValidateFile)
+TEST_F(StorageDeviceTest, ValidateFile)
 {
 	MockStorageDevice device;
 
@@ -59,7 +72,7 @@ TEST(StorageDeviceTest, ValidateFile)
 	remove(filename);
 }
 
-TEST(StorageDeviceTest, MediumChanged)
+TEST_F(StorageDeviceTest, MediumChanged)
 {
 	MockStorageDevice device;
 
@@ -72,7 +85,7 @@ TEST(StorageDeviceTest, MediumChanged)
 	EXPECT_FALSE(device.IsMediumChanged());
 }
 
-TEST(StorageDeviceTest, GetIdsForReservedFile)
+TEST_F(StorageDeviceTest, GetIdsForReservedFile)
 {
 	const int ID = 1;
 	const int LUN = 0;
@@ -81,7 +94,6 @@ TEST(StorageDeviceTest, GetIdsForReservedFile)
 	MockAbstractController controller(bus, ID);
 	auto device = make_shared<MockSCSIHD_NEC>(LUN);
 	device->SetFilename("filename");
-	StorageDevice::UnreserveAll();
 
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
 
@@ -100,7 +112,7 @@ TEST(StorageDeviceTest, GetIdsForReservedFile)
 	EXPECT_EQ(-1, lun3);
 }
 
-TEST(StorageDeviceTest, UnreserveAll)
+TEST_F(StorageDeviceTest, UnreserveAll)
 {
 	const int ID = 1;
 	const int LUN = 0;
@@ -119,7 +131,7 @@ TEST(StorageDeviceTest, UnreserveAll)
 	EXPECT_EQ(-1, lun);
 }
 
-TEST(StorageDeviceTest, GetSetReservedFiles)
+TEST_F(StorageDeviceTest, GetSetReservedFiles)
 {
 	const int ID = 1;
 	const int LUN = 0;
@@ -142,13 +154,13 @@ TEST(StorageDeviceTest, GetSetReservedFiles)
 	EXPECT_TRUE(reserved_files.contains("filename"));
 }
 
-TEST(StorageDeviceTest, FileExists)
+TEST_F(StorageDeviceTest, FileExists)
 {
 	EXPECT_FALSE(StorageDevice::FileExists("/non_existing_file"));
 	EXPECT_TRUE(StorageDevice::FileExists("/dev/null"));
 }
 
-TEST(StorageDeviceTest, GetFileSize)
+TEST_F(StorageDeviceTest, GetFileSize)
 {
 	MockStorageDevice device;
 
