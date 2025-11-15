@@ -23,7 +23,7 @@ on:
       - 'main'
 
 env:
-  APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
+  APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev meson ninja-build
 
 jobs:
   unit_tests:
@@ -48,6 +48,32 @@ jobs:
         with:
           name: piscsi_test_log.txt
           path: cpp/piscsi_test_log.txt
+
+  unit_tests_meson:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Install dependencies
+        run: sudo apt-get install ${{ env.APT_PACKAGES }}
+
+      - name: Configure build
+        run: meson setup build
+
+      - name: Build unit tests
+        run: meson compile -C build
+
+      - name: Run unit tests
+        run: meson test -C build
+
+      - name: Upload logs
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: testlog.txt
+          path: build/meson-logs/testlog.txt
 
   sonarcloud:
     runs-on: ubuntu-24.04
