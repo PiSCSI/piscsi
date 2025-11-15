@@ -34,8 +34,12 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 
 	const PbOperation operation = context.GetCommand().operation();
 
-	// For all commands except ATTACH the device and LUN must exist
-	if (operation != ATTACH && !VerifyExistingIdAndLun(context, id, lun)) {
+	// ATTACH creates the device, so it must be handled before looking up an existing one.
+	if (operation == ATTACH) {
+		return Attach(context, pb_device, dryRun);
+	}
+
+	if (!VerifyExistingIdAndLun(context, id, lun)) {
 		return false;
 	}
 
@@ -51,9 +55,6 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 
 		case STOP:
 			return Stop(*device, dryRun);
-
-		case ATTACH:
-			return Attach(context, pb_device, dryRun);
 
 		case DETACH:
 			return Detach(context, *device, dryRun);
