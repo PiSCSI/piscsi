@@ -137,7 +137,7 @@ TEST(ScsiMoTest, ModeSelect)
 {
 	MockSCSIMO mo(0);
 	vector<int> cmd(10);
-	vector<uint8_t> buf(255);
+	vector<uint8_t> buf(32);
 
 	mo.SetSectorSizeInBytes(2048);
 
@@ -145,20 +145,20 @@ TEST(ScsiMoTest, ModeSelect)
 	cmd[1] = 0x10;
 	// Page 3 (Device Format Page)
 	buf[4] = 0x03;
-    // 22 bytes (standard format page length)
+	// 22 bytes (standard format page length)
 	buf[5] = 0x16;
 	// 2048 bytes per sector
 	buf[16] = 0x08;
-	EXPECT_NO_THROW(mo.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) is supported";
+	EXPECT_NO_THROW(mo.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 28)) << "MODE SELECT(6) is supported";
 	buf[4] = 0;
 	buf[5] = 0;
 	buf[16] = 0;
 
 	// Page 3 (Device Format Page)
 	buf[8] = 0x03;
-    // 22 bytes (standard format page length)
+	// 22 bytes (standard format page length)
 	buf[9] = 0x16;
 	// 2048 bytes per sector
 	buf[20] = 0x08;
-	EXPECT_NO_THROW(mo.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 255)) << "MODE SELECT(10) is supported";
+	EXPECT_NO_THROW(mo.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 32)) << "MODE SELECT(10) is supported";
 }

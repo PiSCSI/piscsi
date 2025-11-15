@@ -30,23 +30,40 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 		return result;
 	}
 
+	// The parameter list must include a complete MODE SELECT header and be present in the transfer buffer.
+	// SCSI-2 8.2.8 requires PARAMETER LIST LENGTH ERROR for any truncated header, descriptor, or page.
+	const int header_length = cmd == scsi_command::eCmdModeSelect10 ? 8 : 4;
+	if (length < header_length || length > static_cast<int>(buf.size())) {
+		throw scsi_exception(sense_key::illegal_request, asc::parameter_list_length_error);
+	}
+
 	// Skip block descriptors
-	int offset;
-	if (cmd == scsi_command::eCmdModeSelect10) {
-		offset = 8 + GetInt16(buf, 6);
+	const int block_descriptor_length = cmd == scsi_command::eCmdModeSelect10 ? GetInt16(buf, 6) : buf[3];
+	if (block_descriptor_length > length - header_length) {
+		throw scsi_exception(sense_key::illegal_request, asc::parameter_list_length_error);
 	}
-	else {
-		offset = 4 + buf[3];
-	}
+
+	int offset = header_length + block_descriptor_length;
 	length -= offset;
 
 	bool has_valid_page_code = false;
 
 	// Parse the pages
 	while (length > 0) {
+		// A mode page header must not be truncated.
+		if (length < 2) {
+			throw scsi_exception(sense_key::illegal_request, asc::parameter_list_length_error);
+		}
+
+		const int size = buf[offset + 1] + 2;
+		if (size > length) {
+			throw scsi_exception(sense_key::illegal_request, asc::parameter_list_length_error);
+		}
+
 		// Format device page
 		if (const int page = buf[offset]; page == 0x03) {
-			if (length < 14) {
+			// The sector size field is at offset 12 in the page and occupies two bytes.
+			if (size < 14) {
 				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 			}
 
@@ -69,8 +86,6 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 		}
 
 		// Advance to the next page
-		const int size = buf[offset + 1] + 2;
-
 		length -= size;
 		offset += size;
 	}
