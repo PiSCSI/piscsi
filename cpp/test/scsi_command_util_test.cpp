@@ -16,7 +16,7 @@ using namespace scsi_command_util;
 
 TEST(ScsiCommandUtilTest, ModeSelect6)
 {
-	const int LENGTH = 26;
+	const int LENGTH = 30;
 
 	vector<int> cdb(6);
 	vector<uint8_t> buf(LENGTH);
@@ -28,10 +28,11 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	cdb[0] = 0x15;
 	// PF (standard parameter format)
 	cdb[1] = 0x10;
+	// Page 3 (Format Device Page), with its 22-byte payload
+	buf[4] = 0x03;
+	buf[5] = 0x16;
 	// Request 512 bytes per sector
-	buf[9] = 0x00;
-	buf[10] = 0x02;
-	buf[11] = 0x00;
+	buf[16] = 0x02;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 256); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -39,7 +40,7 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
-	buf[12] = 0x00;
+	buf[4] = 0x00;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -47,7 +48,8 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
-	buf[12] = 0x03;
+	buf[4] = 0x03;
+	buf[16] = 0;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -55,11 +57,11 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
-	buf[24] = 0x02;
+	buf[16] = 0x02;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH - 1, 512); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
+			Property(&scsi_exception::get_asc, asc::parameter_list_length_error))))
 		<< "Not enough command parameters";
 
 	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512).empty());
@@ -67,7 +69,7 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 
 TEST(ScsiCommandUtilTest, ModeSelect10)
 {
-	const int LENGTH = 30;
+	const int LENGTH = 34;
 
 	vector<int> cdb(10);
 	vector<uint8_t> buf(LENGTH);
@@ -78,10 +80,11 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 
 	// PF (standard parameter format)
 	cdb[1] = 0x10;
+	// Page 3 (Format Device Page), with its 22-byte payload
+	buf[8] = 0x03;
+	buf[9] = 0x16;
 	// Request 512 bytes per sector
-	buf[13] = 0x00;
-	buf[14] = 0x02;
-	buf[15] = 0x00;
+	buf[20] = 0x02;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 256); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -89,7 +92,7 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
-	buf[16] = 0x00;
+	buf[8] = 0x00;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -97,7 +100,8 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
-	buf[16] = 0x03;
+	buf[8] = 0x03;
+	buf[20] = 0;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -105,14 +109,59 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
-	buf[28] = 0x02;
+	buf[20] = 0x02;
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH - 1, 512); },
 			Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
+			Property(&scsi_exception::get_asc, asc::parameter_list_length_error))))
 		<< "Not enough command parameters";
 
 	EXPECT_FALSE(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512).empty());
+}
+
+TEST(ScsiCommandUtilTest, ModeSelectRejectsTruncatedParameterList)
+{
+	vector<int> cdb(6);
+	cdb[1] = 0x10;
+	vector<uint8_t> buf(19);
+
+	// A complete Format Device Page is followed by one byte of a truncated page header.
+	buf[4] = 0x03;
+	buf[5] = 0x0c;
+	buf[16] = 0x02;
+
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, static_cast<int>(buf.size()), 512); },
+			Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::parameter_list_length_error))))
+		<< "Truncated mode page header was accepted";
+}
+
+TEST(ScsiCommandUtilTest, ModeSelectReportsParameterListLengthErrorForTruncation)
+{
+	const auto expect_truncation = [](const auto& operation) {
+		EXPECT_THAT(operation, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::parameter_list_length_error))));
+	};
+
+	vector<int> cdb6(6);
+	cdb6[1] = 0x10;
+	vector<uint8_t> buf6(28);
+	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb6, buf6, 3, 512); });
+	buf6[3] = 1;
+	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb6, buf6, 4, 512); });
+	buf6[3] = 0;
+	buf6[4] = 0x03;
+	buf6[5] = 0x16;
+	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb6, buf6, 27, 512); });
+
+	vector<int> cdb10(10);
+	cdb10[1] = 0x10;
+	vector<uint8_t> buf10(8);
+	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb10, buf10, 7, 512); });
+	buf10[7] = 1;
+	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb10, buf10, 8, 512); });
 }
 
 TEST(ScsiCommandUtilTest, EnrichFormatPage)

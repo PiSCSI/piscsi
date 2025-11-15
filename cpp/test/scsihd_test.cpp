@@ -105,7 +105,7 @@ TEST(ScsiHdTest, ModeSelect)
 {
 	MockSCSIHD hd({ 512 });
 	vector<int> cmd(10);
-	vector<uint8_t> buf(255);
+	vector<uint8_t> buf(32);
 
 	hd.SetSectorSizeInBytes(512);
 
@@ -117,7 +117,7 @@ TEST(ScsiHdTest, ModeSelect)
 	buf[5] = 0x16;
 	// 512 bytes per sector (offset 12 from page start = offset 16 from buffer start)
 	buf[16] = 0x02;
-	EXPECT_NO_THROW(hd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) is supported";
+	EXPECT_NO_THROW(hd.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 28)) << "MODE SELECT(6) is supported";
 	buf[4] = 0;
 	buf[5] = 0;
 	buf[16] = 0;
@@ -128,5 +128,5 @@ TEST(ScsiHdTest, ModeSelect)
 	buf[9] = 0x16;
 	// 512 bytes per sector (offset 12 from page start = offset 20 from buffer start)
 	buf[20] = 0x02;
-	EXPECT_NO_THROW(hd.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 255)) << "MODE SELECT(10) is supported";
+	EXPECT_NO_THROW(hd.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 32)) << "MODE SELECT(10) is supported";
 }
