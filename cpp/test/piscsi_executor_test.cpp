@@ -164,6 +164,16 @@ TEST(PiscsiExecutorTest, ProcessCmd)
 	device2->set_unit(1);
 	CommandContext context_attach2(command_attach2, "", "");
 	EXPECT_FALSE(executor->ProcessCmd(context_attach2)) << "LUN 0 is missing";
+
+	PbCommand command_attach3;
+	command_attach3.set_operation(ATTACH);
+	auto *device3 = command_attach3.add_devices();
+	device3->set_type(SCHS);
+	device3->set_id(0);
+	device3->set_unit(0);
+	CommandContext context_attach3(command_attach3, "", "");
+	EXPECT_TRUE(executor->ProcessCmd(context_attach3));
+	EXPECT_TRUE(controller_manager.HasDeviceForIdAndLun(0, 0));
 }
 
 TEST(PiscsiExecutorTest, Attach)
