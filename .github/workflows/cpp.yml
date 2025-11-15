@@ -41,7 +41,7 @@ jobs:
         run: DEBUG=1 make -j $(nproc) test
 
       - name: Run unit tests
-        run: (set -o pipefail && bin/piscsi_test | tee piscsi_test_log.txt)
+        run: (set -o pipefail && GTEST_SHUFFLE=1 bin/piscsi_test | tee piscsi_test_log.txt)
 
       - name: Upload logs
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
@@ -67,7 +67,7 @@ jobs:
         run: meson compile -C build
 
       - name: Run unit tests
-        run: meson test -C build
+        run: GTEST_SHUFFLE=1 meson test -C build
 
       - name: Upload logs
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
