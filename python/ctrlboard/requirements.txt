@@ -1,10 +1,12 @@
 luma.core==2.4.1
 luma.oled==3.14.0
-Pillow==12.0.0
+pillow==11.2.1
 protobuf==3.20.3
 pyftdi==0.55.0
 pyserial==3.5
 pyusb==1.3.1
+RPi.GPIO==0.7.1
 smbus==1.1.post2
 smbus2==0.5.0
+spidev==3.8
 Unidecode==1.3.2
