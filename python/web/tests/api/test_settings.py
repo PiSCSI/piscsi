@@ -41,7 +41,7 @@ def test_set_language(http_client, locale, confirm_message):
     assert response_data["messages"][0]["message"] == confirm_message
 
 
-@pytest.mark.parametrize("level", ["trace", "debug", "info", "warn", "err", "off"])
+@pytest.mark.parametrize("level", ["trace", "debug", "info", "warning", "error", "off"])
 def test_set_log_level(http_client, level):
     response = http_client.post(
         LOG_LEVEL_ENDPOINT,
