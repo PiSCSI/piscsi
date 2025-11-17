@@ -20,7 +20,7 @@
 #include <cassert>
 #include <algorithm>
 
-DiskCache::DiskCache(const string& path, int size, uint32_t blocks, off_t imgoff)
+DiskCache::DiskCache(const string& path, int size, uint64_t blocks, off_t imgoff)
 	: sec_path(path), sec_size(size), sec_blocks(blocks), imgoffset(imgoff)
 {
 	assert(blocks > 0);
@@ -34,19 +34,19 @@ bool DiskCache::Save()
 			{ return c.disktrk != nullptr && !c.disktrk->Save(sec_path, cache_miss_write_count); });
 }
 
-shared_ptr<DiskTrack> DiskCache::GetTrack(uint32_t block)
+shared_ptr<DiskTrack> DiskCache::GetTrack(uint64_t block)
 {
 	// Update first
 	UpdateSerialNumber();
 
 	// Calculate track (fixed to 256 sectors/track)
-	int track = block >> 8;
+	int64_t track = block >> 8;
 
 	// Get track data
 	return Assign(track);
 }
 
-bool DiskCache::ReadSector(span<uint8_t> buf, uint32_t block)
+bool DiskCache::ReadSector(span<uint8_t> buf, uint64_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
 	if (disktrk == nullptr) {
@@ -57,7 +57,7 @@ bool DiskCache::ReadSector(span<uint8_t> buf, uint32_t block)
 	return disktrk->ReadSector(buf, block & 0xff);
 }
 
-bool DiskCache::WriteSector(span<const uint8_t> buf, uint32_t block)
+bool DiskCache::WriteSector(span<const uint8_t> buf, uint64_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
 	if (disktrk == nullptr) {
@@ -73,7 +73,7 @@ bool DiskCache::WriteSector(span<const uint8_t> buf, uint32_t block)
 //	Track Assignment
 //
 //---------------------------------------------------------------------------
-shared_ptr<DiskTrack> DiskCache::Assign(int track)
+shared_ptr<DiskTrack> DiskCache::Assign(int64_t track)
 {
 	assert(sec_size != 0);
 	assert(track >= 0);
@@ -143,14 +143,14 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 //	Load cache
 //
 //---------------------------------------------------------------------------
-bool DiskCache::Load(int index, int track, shared_ptr<DiskTrack> disktrk)
+bool DiskCache::Load(int index, int64_t track, shared_ptr<DiskTrack> disktrk)
 {
 	assert(index >= 0 && index < static_cast<int>(cache.size()));
 	assert(track >= 0);
 	assert(cache[index].disktrk == nullptr);
 
 	// Get the number of sectors on this track
-	int sectors = sec_blocks - (track << 8);
+	int64_t sectors = sec_blocks - (track << 8);
 	assert(sectors > 0);
 	if (sectors > 0x100) {
 		sectors = 0x100;

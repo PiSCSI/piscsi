@@ -72,7 +72,7 @@ bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 	offset += dt.imgoffset;
 
 	// Calculate length (data size of this track)
-	const int length = dt.sectors << dt.size;
+	const int64_t length = dt.sectors << dt.size;
 
 	// Allocate buffer memory
 	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
