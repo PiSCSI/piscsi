@@ -62,10 +62,6 @@ void StorageDevice::ValidateFile()
 		throw file_not_found_exception("Image file '" + filename.string() + "' for " + GetTypeString() + " device does not exist");
 	}
 
-	if (GetFileSize() > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("Image files > 2 TiB are not supported");
-	}
-
 	// TODO Check for duplicate handling of these properties (-> piscsi_executor.cpp)
 	if (IsReadOnlyFile()) {
 		// Permanently write-protected

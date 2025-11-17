@@ -79,13 +79,13 @@ void Disk::Dispatch(scsi_command cmd)
 
 void Disk::SetUpCache(off_t image_offset, bool raw)
 {
-	cache = make_unique<DiskCache>(GetFilename(), size_shift_count, static_cast<uint32_t>(GetBlockCount()), image_offset);
+	cache = make_unique<DiskCache>(GetFilename(), size_shift_count, GetBlockCount(), image_offset);
 	cache->SetRawMode(raw);
 }
 
 void Disk::ResizeCache(const string& path, bool raw)
 {
-	cache.reset(new DiskCache(path, size_shift_count, static_cast<uint32_t>(GetBlockCount())));
+	cache.reset(new DiskCache(path, size_shift_count, GetBlockCount()));
 	cache->SetRawMode(raw);
 }
 
@@ -291,7 +291,10 @@ int Disk::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
 		// Only if ready
 		if (IsReady()) {
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-			SetInt32(buf, 4, static_cast<uint32_t>(GetBlockCount()));
+			uint64_t disk_blocks = GetBlockCount();
+			if (disk_blocks > 0xFFFFFFFF)
+				disk_blocks = 0xFFFFFFFF;
+			SetInt32(buf, 4, static_cast<uint32_t>(disk_blocks));
 			SetInt32(buf, 8, GetSectorSizeInBytes());
 		}
 
@@ -330,6 +333,8 @@ int Disk::ModeSense10(cdb_t cdb, vector<uint8_t>& buf) const
 			buf[7] = 0x08;
 
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
+			if (disk_blocks > 0xFFFFFFFF)
+				disk_blocks = 0xFFFFFFFF;
 			SetInt32(buf, 8, static_cast<uint32_t>(disk_blocks));
 			SetInt32(buf, 12, disk_size);
 
@@ -493,7 +498,7 @@ int Disk::Read(span<uint8_t> buf, uint64_t block)
 
 	CheckReady();
 
-	if (!cache->ReadSector(buf, static_cast<uint32_t>(block))) {
+	if (!cache->ReadSector(buf, block)) {
 		throw scsi_exception(sense_key::medium_error, asc::read_fault);
 	}
 
@@ -508,7 +513,7 @@ void Disk::Write(span<const uint8_t> buf, uint64_t block)
 
 	CheckReady();
 
-	if (!cache->WriteSector(buf, static_cast<uint32_t>(block))) {
+	if (!cache->WriteSector(buf, block)) {
 		throw scsi_exception(sense_key::medium_error, asc::write_fault);
 	}
 

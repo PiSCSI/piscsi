@@ -34,8 +34,12 @@ string SCSIHD::GetProductData() const
 	uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 	string unit;
 
+	if (capacity >= 10'737'418'240'000) {
+		capacity /= 1'099'511'627'776;
+		unit = "TiB";
+	}
 	// 10,000 MiB and more
-	if (capacity >= 10'485'760'000) {
+	else if (capacity >= 10'485'760'000) {
 		capacity /= 1'073'741'824;
 		unit = "GiB";
 	}
@@ -72,7 +76,7 @@ void SCSIHD::Open()
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-	SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
+	SetBlockCount(size >> GetSectorSizeShiftCount());
 
 	FinalizeSetup(0);
 }
