@@ -848,11 +848,11 @@ function shareImagesWithNetatalk() {
 
 # Downloads, compiles, and installs Macproxy (web proxy)
 function installMacproxy {
-    PORT=5000
+    PORT=5001
 
-    echo "Macproxy is a Web Proxy for all vintage Web Browsers -- not only for Macs!"
+    echo "Macproxy Classic is a Web Proxy for all vintage Web Browsers -- not only for Macs!"
     echo ""
-    echo "By default, Macproxy listens to port $PORT, but you can choose any other available port."
+    echo "By default, Macproxy Classic listens to port $PORT, but you can choose any other available port."
     echo -n "Enter a port number 1024 - 65535, or press Enter to use the default port: "
 
     read -r CHOICE
@@ -868,15 +868,15 @@ function installMacproxy {
         sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
     fi
 
-    MACPROXY_VER="22.8"
-    MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
+    MACPROXY_VER="25.11.1"
+    MACPROXY_PATH="$HOME/macproxy_classic-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
         echo "The $MACPROXY_PATH directory already exists. Deleting before downloading again..."
         sudo rm -rf "$MACPROXY_PATH"
     fi
     cd "$HOME" || exit 1
-    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
-    tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
+    wget -O "macproxy_classic-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy_classic/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
+    tar -xzvf "macproxy_classic-$MACPROXY_VER.tar.gz"
 
     sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
@@ -885,7 +885,7 @@ function installMacproxy {
     sudo systemctl enable macproxy
     startMacproxy
 
-    echo -n "Macproxy is now running on IP "
+    echo -n "Macproxy Classic is now running on IP "
     echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
     echo " port $PORT"
     echo "Configure your browser to use the above as http (and https) proxy."
@@ -1539,7 +1539,7 @@ function showMenu() {
     echo "  7) Install AppleShare File Server (Netatalk)"
     echo "  8) Install FTP File Server (vsftpd)"
     echo "  9) Install SMB File Server (Samba)"
-    echo " 10) Install Web Proxy Server (Macproxy)"
+    echo " 10) Install Web Proxy Server (Macproxy Classic)"
     echo "ADVANCED OPTIONS"
     echo " 11) Compile and install PiSCSI stand-alone"
     echo " 12) Configure the PiSCSI Web Interface stand-alone"
