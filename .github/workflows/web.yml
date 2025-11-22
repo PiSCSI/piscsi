@@ -1,23 +1,26 @@
 name: Web Tests/Analysis
 
 on:
-  workflow_dispatch:
   push:
+    branches:
+      - develop
+      - main
     paths:
-      - 'python/**'
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
+      - 'python/**'
   pull_request:
-    paths:
-      - 'python/**'
-      - '.github/workflows/web.yml'
-      - 'easyinstall.sh'
+    branches:
+      - develop
+      - main
     types:
       - opened
       - synchronize
-    branches:
-      - 'develop'
-      - 'main'
+      - reopened
+    paths:
+      - '.github/workflows/web.yml'
+      - 'easyinstall.sh'
+      - 'python/**'
 
 jobs:
   backend_checks:
