@@ -68,8 +68,6 @@ SYSTEMD_PATH="/etc/systemd/system"
 SSL_CERTS_PATH="/etc/ssl/certs"
 SSL_KEYS_PATH="/etc/ssl/private"
 HFDISK_BIN=/usr/bin/hfdisk
-GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
 AUTH_GROUP="piscsi"
 SECRET_FILE="$HOME/.config/piscsi/secret"
@@ -280,38 +278,6 @@ function createCfgDir() {
         echo "The $CFG_PATH directory does not exist; creating..."
         mkdir -p "$CFG_PATH"
         chmod -R 775 "$CFG_PATH"
-    fi
-}
-
-# Checks for upstream changes to the git repo and fast-forwards changes if needed
-function updatePiscsiGit() {
-    cd "$BASE" || exit 1
-
-    set +e
-    git rev-parse --is-inside-work-tree &> /dev/null
-    if [[ $? -ge 1 ]]; then
-        echo "Warning: This does not seem to be a valid clone of a git repository. I will not be able to pull the latest code."
-        return 0
-    fi
-    set -e
-
-    stashed=0
-    if [[ $(git diff --stat) != '' ]]; then
-        echo "There are local changes to the PiSCSI code; we will stash and reapply them."
-        git -c user.name="${GIT_COMMITTER_NAME-piscsi}" -c user.email="${GIT_COMMITTER_EMAIL-piscsi@piscsi.com}" stash
-        stashed=1
-    fi
-
-    if [[ `git for-each-ref --format='%(upstream:short)' "$(git symbolic-ref -q HEAD)"` != "" ]]; then
-        echo "Updating checked out git branch $GIT_REMOTE/$GIT_BRANCH"
-        git pull --ff-only
-    else
-        echo "Detected a local git working branch; skipping the remote update step."
-    fi
-
-    if [ $stashed -eq 1 ]; then
-        echo "Reapplying local changes..."
-        git stash apply
     fi
 }
 
@@ -1037,7 +1003,6 @@ function installPiscsiScreen() {
     stopService "piscsi-oled"
     stopService "piscsi-ctrlboard"
     disableService "piscsi-ctrlboard"
-    updatePiscsiGit
 
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
@@ -1114,7 +1079,6 @@ function installPiscsiCtrlBoard() {
     fi
 
     stopService "piscsi-ctrlboard"
-    updatePiscsiGit
 
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
@@ -1249,7 +1213,6 @@ function runChoice() {
               createCfgDir
               migrateLegacyData
               stopService "piscsi-web"
-              updatePiscsiGit
               installPackages
               installHfdisk
               fetchHardDiskDrivers
@@ -1291,7 +1254,6 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              updatePiscsiGit
               installPackagesStandalone
               migrateLegacyData
               stopService "piscsi-ctrlboard"
@@ -1413,7 +1375,6 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
-              updatePiscsiGit
               installPackagesStandalone
               stopService "piscsi"
               compilePiscsi
@@ -1431,7 +1392,6 @@ function runChoice() {
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               createCfgDir
-              updatePiscsiGit
               installPackagesWeb
               installHfdisk
               fetchHardDiskDrivers
@@ -1484,7 +1444,6 @@ function runChoice() {
               sudoCache
               createImagesDir
               createCfgDir
-              updatePiscsiGit
               installPackages
               installHfdisk
               fetchHardDiskDrivers
