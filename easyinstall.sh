@@ -770,11 +770,11 @@ function createFileSharingDir() {
     fi
 }
 
-# Downloads, compiles, and installs Netatalk (AppleShare server)
+# Downloads, compiles, and installs Netatalk (AFP server)
 function installNetatalk() {
-    NETATALK_VERSION="2.3.2"
+    NETATALK_VERSION="4.3.2"
     NETATALK_CONFIG_PATH="/etc/netatalk"
-    NETATALK_OPTIONS="--base-dir=$BASE/tmp/netatalk-$NETATALK_VERSION --cores=$CORES --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
+    NETATALK_OPTIONS="--base-dir=$BASE/tmp/netatalk-$NETATALK_VERSION --sysconf-dir=$NETATALK_CONFIG_PATH --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
         echo
@@ -950,8 +950,6 @@ function installSamba() {
 # Installs and configures Webmin
 function installWebmin() {
     WEBMIN_PATH="/usr/share/webmin"
-    WEBMIN_NETATALK_MODULE_CONFIG="/etc/webmin/netatalk2/config"
-    WEBMIN_NETATALK_MODULE_VERSION="1.3"
     WEBMIN_VSFTPD_MODULE_VERSION="2024-01-26"
 
     if [ -d "$WEBMIN_PATH" ]; then
@@ -973,22 +971,6 @@ function installWebmin() {
     sudo sh setup-repos.sh -f
     rm setup-repos.sh
     sudo apt-get install webmin --no-install-recommends --assume-yes </dev/null
-    echo
-    echo "Downloading and installing Webmin modules..."
-    if [[ -f "$WEBMIN_NETATALK_MODULE_CONFIG" ]]; then
-        echo "$WEBMIN_NETATALK_MODULE_CONFIG already exists; will not modify..."
-        WEBMIN_MODULE_FLAG=1
-    fi
-
-    rm netatalk2-wbm.tgz 2> /dev/null || true
-    wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_NETATALK_MODULE_VERSION/netatalk2-wbm-$WEBMIN_NETATALK_MODULE_VERSION.tgz" </dev/null
-    sudo "$WEBMIN_PATH/install-module.pl" netatalk2-wbm.tgz
-
-    if [[ ! $WEBMIN_MODULE_FLAG ]]; then
-        echo "Modifying $WEBMIN_NETATALK_MODULE_CONFIG..."
-        sudo sed -i 's@/usr/sbin@/usr/local/sbin@' "$WEBMIN_NETATALK_MODULE_CONFIG"
-    fi
-    rm netatalk2-wbm.tgz || true
 
     rm vsftpd.wbm.gz 2> /dev/null || true
     wget -O vsftpd.wbm.tgz "https://github.com/rdmark/vsftpd-webmin/releases/download/$WEBMIN_VSFTPD_MODULE_VERSION/vsftpd-$WEBMIN_VSFTPD_MODULE_VERSION.wbm.gz" </dev/null
@@ -1365,10 +1347,10 @@ function runChoice() {
               echo "Configuring wifi network bridge - Complete!"
           ;;
           7)
-              echo "Installing AppleShare File Server"
+              echo "Installing AFP File Server"
               createFileSharingDir
               installNetatalk
-              echo "Installing AppleShare File Server - Complete!"
+              echo "Installing AFP File Server - Complete!"
           ;;
           8)
               echo "Installing FTP File Server"
@@ -1461,7 +1443,7 @@ function runChoice() {
           ;;
           15)
               shareImagesWithNetatalk
-              echo "Configuring AppleShare File Server - Complete!"
+              echo "Configuring AFP File Server - Complete!"
           ;;
           16)
               installPackagesStandalone
@@ -1470,9 +1452,8 @@ function runChoice() {
           17)
               echo "Install Webmin"
               echo "This script will make the following changes to your system:"
-              echo "- Add a 3rd party apt repository"
+              echo "- Add a 3rd party deb repository"
               echo "- Install and start the Webmin webapp"
-              echo "- Install the netatalk2 Webmin module"
               echo "- Install the vsftpd Webmin module"
               installWebmin
               echo "Install Webmin - Complete!"
@@ -1536,7 +1517,7 @@ function showMenu() {
     echo "  5) Configure network bridge for Ethernet (DHCP)"
     echo "  6) Configure network bridge for WiFi (static IP + NAT)"
     echo "INSTALL COMPANION APPS"
-    echo "  7) Install AppleShare File Server (Netatalk)"
+    echo "  7) Install AFP File Server (Netatalk)"
     echo "  8) Install FTP File Server (vsftpd)"
     echo "  9) Install SMB File Server (Samba)"
     echo " 10) Install Web Proxy Server (Macproxy Classic)"
@@ -1546,7 +1527,7 @@ function showMenu() {
     echo " 13) Enable or disable PiSCSI back-end authentication"
     echo " 14) Enable or disable PiSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 15) Share the images dir over AppleShare (requires Netatalk)"
+    echo " 15) Share the images dir over AFP (requires Netatalk)"
     echo " 16) Compile PiSCSI binaries"
     echo " 17) Install Webmin to manage the system and companion apps"
 }

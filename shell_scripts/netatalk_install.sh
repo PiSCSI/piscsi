@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 
-# Netatalk install script for Debian Linux. May work on other flavors too.
-# This script should be run from within the contrib/shell_utils directory.
-# Example usage, compiling with four cores:
-#   $ ./debian_install.sh -j=4
+# Netatalk install script for Debian GNU/Linux.
 #
 # By Daniel Markstedt
 # Based on RsSCSI easyinstall.sh by sonique6784
 # BSD 3-Clause License
-# Copyright (c) 2022, 2023, Daniel Markstedt
+# Copyright (c) 2022, 2023, 2025, Daniel Markstedt
 # Copyright (c) 2020, sonique6784
 
 set -e
@@ -41,14 +38,13 @@ function initialChecks() {
 
     echo " - Classic AppleTalk (DDP) support enabled"
     echo " - TCP/IP (DSI) support and service discovery with Zeroconf / Bonjour enabled"
-    echo " - Cleartxt UAM to authenticate Classic Mac OS clients"
-    echo " - DHX2 UAM to authenticate Mac OS X / macOS clients"
+    echo " - DHX2, DHX, ClearTxt, and Guest UAMs to allow any AFP client to authenticate"
     echo " - Additional AppleTalk daemons papd (printer server), timelord (time server), and a2boot (Apple II netboot server)"
     echo
     echo "The following changes will be made to your system:"
     echo " - Modify user groups and permissions"
     echo " - Install packages with apt-get"
-    echo " - Install Netatalk systemd services: afpd, atalkd, cnid, papd, timelord, a2boot"
+    echo " - Install Netatalk systemd services: netatalk, atalkd, cnid, papd, timelord, a2boot"
     echo " - Create a directory in the current user's home directory where shared files will be stored"
     echo " - Install binaries to /usr/local/sbin"
     echo " - Install manpages to /usr/local/share/man"
@@ -69,7 +65,7 @@ function initialChecks() {
 
 function installNetatalk() {
     echo "Checking for previous versions of Netatalk..."
-    sudo systemctl stop atalkd afpd || true
+    sudo systemctl stop atalkd afpd netatalk || true
 
     if [ -f /etc/init.d/netatalk ]; then
         echo
@@ -103,33 +99,22 @@ function installNetatalk() {
         echo
         echo "Installing dependencies..."
         sudo apt-get update || true
-        sudo apt-get install libssl-dev libdb-dev libcups2-dev cups libavahi-client-dev autotools-dev automake libtool libtool-bin libgcrypt20-dev pkg-config --assume-yes --no-install-recommends </dev/null
+        sudo apt-get install cmark-gfm gcc libdb-dev libcups2-dev cups libavahi-client-dev libevent-dev libgcrypt20-dev libiniparser-dev libpam0g-dev libsqlite3-dev meson ninja-build pkg-config --assume-yes --no-install-recommends </dev/null
     fi
 
     cd "$BASE" || exit 1
 
-    if [[ ! -f configure ]]; then
-        echo
-        echo "Bootstrapping Netatalk..."
-        ./bootstrap </dev/null
-    fi
-
     echo
     echo "Configuring Netatalk..."
-    ./configure --enable-systemd --enable-overwrite --sysconfdir="$SYSCONFDIR" --with-uams-path=/usr/lib/netatalk </dev/null
+    meson setup build -Dbuildtype=release -Dwith-appletalk=true -Dwith-cups-pap-backend=true -Dwith-pkgconfdir-path="$SYSCONFDIR" -Dwith-webmin=true
 
     echo
-    echo "Compiling Netatalk with ${CORES} simultaneous core(s)..."
-
-    if [ $MAKE_CLEAN ]; then
-        make clean </dev/null
-    fi
-
-    make all -j "${CORES}" </dev/null
+    echo "Compiling Netatalk..."
+    meson compile -C build
 
     echo
     echo "Installing Netatalk..."
-    sudo make install </dev/null
+    sudo meson install -C build
 
     if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
         echo
@@ -142,14 +127,28 @@ function installNetatalk() {
     echo
     echo "Modifying service configurations..."
 
-    if [[ "$AFP_SHARE_PATH" ]]; then
-        echo "$NETATALK_CONFDIR/AppleVolumes.default:"
-        sudo sed -i /^~/d "$NETATALK_CONFDIR/AppleVolumes.default"
-        echo "$AFP_SHARE_PATH \"$AFP_SHARE_NAME\"" | sudo tee -a "$NETATALK_CONFDIR/AppleVolumes.default"
+    AFPCONF="$NETATALK_CONFDIR/afp.conf"
+
+    if ! grep -q "^uam list" "$AFPCONF"; then
+        sudo sed -i "/^\[Global\]/a uam list = uams_clrtxt.so uams_guest.so uams_dhx.so uams_dhx2.so" "$AFPCONF"
+        echo "Added 'uam list' to [Global] in afp.conf"
+    else
+        echo "'uam list' already exists; not updating afp.conf"
     fi
 
-    echo "$NETATALK_CONFDIR/afpd.conf:"
-    echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -icon" | sudo tee -a "$NETATALK_CONFDIR/afpd.conf"
+    if [[ "$AFP_SHARE_NAME" && "$AFP_SHARE_PATH" ]]; then
+        if ! grep -q "^\[$AFP_SHARE_NAME\]" "$AFPCONF"; then
+            {
+                echo
+                echo "[$AFP_SHARE_NAME]"
+                echo "path = $AFP_SHARE_PATH"
+                echo "volume name = $AFP_SHARE_NAME"
+            } | sudo sudo tee -a "$AFPCONF" > /dev/null
+            echo "Added share section for $AFP_SHARE_NAME to afp.conf"
+        else
+            echo "Share section [$AFP_SHARE_NAME] already exists; not updating afp.conf"
+        fi
+    fi
 
     if [[ "$APPLETALK_INTERFACE" ]]; then
         echo "$NETATALK_CONFDIR/atalkd.conf:"
@@ -168,16 +167,21 @@ function installNetatalk() {
     if [ $START_SERVICES ]; then
         echo
         echo "Starting systemd services... (this may take a while)"
-        sudo systemctl enable afpd atalkd papd timelord a2boot cups
-        sudo systemctl start afpd atalkd papd timelord a2boot cups
+        sudo systemctl start netatalk atalkd papd timelord a2boot cups
 
         echo
         echo "Netatalk daemons are now installed and running, and should be discoverable by your Macs."
         echo "To authenticate with the file server, use the current username ("$USER") and password."
         echo
-        echo "To learn more about Netatalk and its capabilities, visit https://netatalk.sourceforge.io"
-        echo "Enjoy Netatalk!"
+        echo "To learn more about Netatalk and its capabilities, visit https://netatalk.io"
+        echo "Enjoy AFP file sharing!"
         echo
+    fi
+
+    if [ -f $NETATALK_CONFDIR/afpd.conf ]; then
+        echo
+        echo "NOTE: An older Netatalk 2.x installation was detected."
+        echo "Please review and merge any custom settings from $NETATALK_CONFDIR/afpd.conf and $NETATALK_CONFDIR/AppleVolumes.default into $NETATALK_CONFDIR/afp.conf as needed."
     fi
 }
 
@@ -223,9 +227,6 @@ while [ "$1" != "" ]; do
     case $PARAM in
         -b | --base-dir)
             BASE=$VALUE
-            ;;
-        -j | --cores)
-            CORES=$VALUE
             ;;
         -d | --sysconf-dir)
             SYSCONFDIR=$VALUE
