@@ -1,26 +1,26 @@
 name: C++ Tests; Full Static Analysis
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - 'cpp/**'
-      - 'python/**'
-      - '.github/workflows/cpp.yml'
     branches:
-      - 'develop'
-      - 'main'
-  pull_request:
+      - develop
+      - main
     paths:
+      - '.github/workflows/cpp.yml'
       - 'cpp/**'
       - 'python/**'
-      - '.github/workflows/cpp.yml'
+  pull_request:
+    branches:
+      - develop
+      - main
     types:
       - opened
       - synchronize
-    branches:
-      - 'develop'
-      - 'main'
+      - reopened
+    paths:
+      - '.github/workflows/cpp.yml'
+      - 'cpp/**'
+      - 'python/**'
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev

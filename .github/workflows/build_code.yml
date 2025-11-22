@@ -1,26 +1,26 @@
 name: Build ARM binaries
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - 'cpp/**'
-      - '.github/workflows/build_code.yml'
-      - '.github/workflows/arm_cross_compile.yml'
     branches:
-      - 'develop'
-      - 'main'
-  pull_request:
+      - develop
+      - main
     paths:
-      - 'cpp/**'
-      - '.github/workflows/build_code.yml'
       - '.github/workflows/arm_cross_compile.yml'
+      - '.github/workflows/build_code.yml'
+      - 'cpp/**'
+  pull_request:
+    branches:
+      - develop
+      - main
     types:
       - opened
       - synchronize
-    branches:
-      - 'develop'
-      - 'main'
+      - reopened
+    paths:
+      - '.github/workflows/arm_cross_compile.yml'
+      - '.github/workflows/build_code.yml'
+      - 'cpp/**'
 
 jobs:
   fullspec:
