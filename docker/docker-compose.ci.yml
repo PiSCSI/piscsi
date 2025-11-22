@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${DOCKER_BACKEND_IMAGE}
+    image: ${GHCR_IMAGE}
     build:
       context: ..
       dockerfile: docker/backend/Dockerfile

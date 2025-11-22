@@ -49,11 +49,18 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Check DockerHub for existing backend image
+      - name: Set backend container image name
         run: |
-          export DOCKER_BACKEND_IMAGE="piscsi/backend-standalone:`git ls-files -s python .github/workflows/web.yml | git hash-object --stdin`"
-          echo "DOCKER_BACKEND_IMAGE=${DOCKER_BACKEND_IMAGE}" >> $GITHUB_ENV
-          docker pull --quiet ${DOCKER_BACKEND_IMAGE} || echo "DOCKER_BACKEND_NEEDS_PUSH=1" >> $GITHUB_ENV
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=$(git ls-files -s cpp python .github/workflows/web.yml | git hash-object --stdin)
+          echo "GHCR_IMAGE=ghcr.io/${REPO_LOWER}/backend-standalone:${IMAGE_TAG}" >> $GITHUB_ENV
+
+      - name: Login to container registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and launch containers
         run: docker compose -f docker-compose.ci.yml up -d
@@ -61,21 +68,8 @@ jobs:
       - name: Run test suite
         run: docker compose -f docker-compose.ci.yml run pytest -v
 
-      - name: Check if DockerHub secrets defined
-        run: if [[ $DOCKERHUB_USERNAME && $DOCKERHUB_TOKEN ]]; then echo "DOCKERHUB_SECRETS_DEFINED=1" >> $GITHUB_ENV; fi
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Login to DockerHub
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
-        if: env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push backend image to DockerHub
-        if: (success() || failure()) && env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
+      - name: Push backend image to container registry
+        if: success() || failure()
         run: docker compose -f docker-compose.ci.yml push backend
 
       - name: Upload test artifacts
