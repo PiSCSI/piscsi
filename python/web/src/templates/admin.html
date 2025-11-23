@@ -65,16 +65,25 @@
     </ul>
 </details>
 
-<div>
-    <div class="theme-change-hint">
-        {{ _("The current theme is \"%(theme)s\".", theme=current_theme) }}
-        {% if current_theme == "classic" %}
-            {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="modern") }}
+<div class="theme-change-hint">
+<form action="/theme" method="post">
+    <label for="theme">{{ _("Theme:") }}</label>
+    <select name="theme" id="theme">
+    {% for theme in themes %}
+        {% if theme == current_theme %}
+            <option value="{{ theme }}" selected>
         {% else %}
-            {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="classic") }}
+            <option value="{{ theme }}">
         {% endif %}
-    </div>
+        {{ theme }}
+        </option>
+    {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Change Theme") }}">
+</form>
+</div>
 
+<div>
 <form action="/language" method="post">
     <label for="locale">{{ _("Language:") }}</label>
     <select name="locale" id="locale">
