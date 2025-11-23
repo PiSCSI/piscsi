@@ -1003,8 +1003,8 @@ def download_file():
 @APP.route("/files/upload", methods=["POST"])
 def upload_file():
     """
-    Uploads a file from the local computer to the images dir on the system
-    Depending on the Dropzone.js JavaScript library
+    Uploads a file from the local computer to a directory on the system
+    Expects a data stream from the Dropzone.js JavaScript library
     """
     # Due to the embedded javascript library, we cannot use the @login_required decorator
     auth = auth_active(AUTH_GROUP)
@@ -1074,6 +1074,10 @@ def upload_file():
 @APP.route("/files/uploadform/", methods=["POST"])
 @login_required
 def upload_file_form():
+    """
+    Uploads a file from the local computer to a directory on the system
+    Expects a regular web form submission
+    """
     file_object = request.files.get("file")
     filename = file_object.filename if file_object else None
     destination = request.form.get("destination")
