@@ -285,6 +285,37 @@ def test_upload_file(http_client, delete_file):
     delete_file(file_name)
 
 
+def test_upload_file_form(http_client, env, list_files, delete_file):
+    file_prefix = str(uuid.uuid4())
+    file_name = f"{file_prefix}.uploadtest"
+    images_subdir = ""  # root images dir
+
+    with open("tests/assets/test_image.hds", mode="rb") as file:
+        file_content = file.read()
+        file_size = len(file_content)
+
+    data = {
+        "destination": "disk_images",
+        "images_subdir": images_subdir,
+    }
+    files = {
+        "file": (file_name, file_content),
+    }
+
+    resp = http_client.post("/files/uploadform/", data=data, files=files, allow_redirects=False)
+    # Should redirect to index after upload
+    assert resp.status_code == 302
+    assert resp.headers["location"].startswith("/?")
+
+    # Check file exists in images dir
+    files_list = http_client.get("/").json()["data"]["files"]
+    uploaded_file = [f for f in files_list if f["name"] == file_name][0]
+    assert uploaded_file["size"] == file_size
+
+    # Cleanup
+    delete_file(file_name)
+
+
 def test_download_image(http_client, create_test_image):
     file_name = create_test_image()
 
