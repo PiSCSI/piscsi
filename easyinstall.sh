@@ -180,25 +180,6 @@ function compilePiscsi() {
 
 # install the PiSCSI binaries and modify the service configuration
 function installPiscsi() {
-    OUTDATED_MAN_PAGE_DIR="/usr/share/man/man1"
-    CURRENT_MAN_PAGE_DIR="/usr/local/man/man1"
-    CURRENT_BIN_DIR="/usr/local/bin"
-    # clean up outdated binaries and man pages if they exist
-    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rascsi.1"
-    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rasctl.1"
-    deleteFile "$OUTDATED_MAN_PAGE_DIR" "scsimon.1"
-    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rasdump.1"
-    deleteFile "$OUTDATED_MAN_PAGE_DIR" "sasidump.1"
-    deleteFile "$CURRENT_MAN_PAGE_DIR" "rascsi.1"
-    deleteFile "$CURRENT_MAN_PAGE_DIR" "rasctl.1"
-    deleteFile "$CURRENT_MAN_PAGE_DIR" "rasdump.1"
-    deleteFile "$CURRENT_MAN_PAGE_DIR" "sasidump.1"
-    deleteFile "$CURRENT_BIN_DIR" "rascsi"
-    deleteFile "$CURRENT_BIN_DIR" "rasctl"
-    deleteFile "$CURRENT_BIN_DIR" "rasdump"
-    deleteFile "$CURRENT_BIN_DIR" "sasidump"
-
-    # install
     sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
 }
 
@@ -216,9 +197,6 @@ function configurePiscsiService() {
 # Prepare shared Python code
 function preparePythonCommon() {
     PISCSI_PYTHON_PROTO="piscsi_interface_pb2.py"
-    deleteFile "$WEB_INSTALL_PATH/src" "rascsi_interface_pb2.py"
-    deleteFile "$OLED_INSTALL_PATH/src" "rascsi_interface_pb2.py"
-    deleteFile "$PYTHON_COMMON_PATH/src" "rascsi_interface_pb2.py"
     deleteFile "$WEB_INSTALL_PATH/src" "$PISCSI_PYTHON_PROTO"
     deleteFile "$OLED_INSTALL_PATH/src" "$PISCSI_PYTHON_PROTO"
     deleteFile "$PYTHON_COMMON_PATH/src" "$PISCSI_PYTHON_PROTO"
@@ -231,9 +209,6 @@ function preparePythonCommon() {
 function installPiscsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
-
-    deleteFile "$SSL_CERTS_PATH" "rascsi-web.crt"
-    deleteFile "$SSL_KEYS_PATH" "rascsi-web.key"
 
     # Deleting previous venv dir, if one exists, to avoid the common issue of broken python dependencies
     deleteDir "$WEB_INSTALL_PATH/venv"
@@ -269,10 +244,7 @@ function createImagesDir() {
 
 # Creates the dir that the Web Interface uses to store configuration files
 function createCfgDir() {
-    if [ -d "$HOME/.config/rascsi" ]; then
-        sudo mv "$HOME/.config/rascsi" "$CFG_PATH"
-        echo "Renamed the rascsi config dir as $CFG_PATH."
-    elif [ -d "$CFG_PATH" ]; then
+    if [ -d "$CFG_PATH" ]; then
         echo "The $CFG_PATH directory already exists."
     else
         echo "The $CFG_PATH directory does not exist; creating..."
@@ -294,18 +266,6 @@ function backupPiscsiService() {
 
 # Offers the choice of enabling token-based authentication for PiSCSI, or disables it if enabled
 function configureTokenAuth() {
-    if [[ -f "$HOME/.rascsi_secret" ]]; then
-        sudo mv "$HOME/.rascsi_secret" "$SECRET_FILE"
-        echo "Renamed legacy RaSCSI token file for use with PiSCSI"
-        return
-    fi
-
-    if [[ -f "$CFG_PATH/rascsi_secret" ]]; then
-        sudo mv "$CFG_PATH/rascsi_secret" "$SECRET_FILE"
-        echo "Renamed legacy RaSCSI token file for use with PiSCSI"
-        return
-    fi
-
     if [[ -f $SECRET_FILE ]]; then
         sudo rm "$SECRET_FILE"
         echo "PiSCSI token file $SECRET_FILE already exists. Do you want to disable authentication? (y/N)"
@@ -340,7 +300,6 @@ function enablePiscsiService() {
     sudo systemctl restart rsyslog
     sudo systemctl enable piscsi # start piscsi at boot
     sudo systemctl start piscsi
-
 }
 
 # Modifies and installs the piscsi-web service
@@ -367,56 +326,6 @@ function installWebInterfaceService() {
     sudo systemctl daemon-reload
     sudo systemctl enable piscsi-web
     sudo systemctl start piscsi-web
-}
-
-# Checks for and disables legacy systemd services
-function migrateLegacyData() {
-    if [[ -f "$SYSTEMD_PATH/rascsi.service" ]]; then
-        stopService "rascsi"
-        disableService "rascsi"
-        sudo mv "$SYSTEMD_PATH/rascsi.service" "$SYSTEMD_PATH/piscsi.service"
-        echo "Renamed rascsi.service to piscsi.service"
-    fi
-    if [[ -f "$SYSTEMD_PATH/rascsi-web.service" ]]; then
-        stopService "rascsi-web"
-        disableService "rascsi-web"
-        sudo mv "$SYSTEMD_PATH/rascsi-web.service" "$SYSTEMD_PATH/piscsi-web.service"
-        echo "Renamed rascsi-web.service to piscsi-web.service"
-    fi
-    if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
-        stopService "rascsi-oled"
-        disableService "rascsi-oled"
-        sudo mv "$SYSTEMD_PATH/rascsi-oled.service" "$SYSTEMD_PATH/piscsi-oled.service"
-        echo "Renamed rascsi-oled.service to piscsi-oled.service"
-    elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
-        stopService "monitor_rascsi"
-        disableService "monitor_rascsi"
-        sudo mv "$SYSTEMD_PATH/monitor_rascsi.service" "$SYSTEMD_PATH/piscsi-oled.service"
-        echo "Renamed monitor_rascsi.service to piscsi-oled.service"
-    fi
-    if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
-        stopService "rascsi-ctrlboard"
-        disableService "rascsi-ctrlboard"
-        sudo mv "$SYSTEMD_PATH/rascsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
-        echo "Renamed rascsi-ctrlboard.service to piscsi-ctrlboard.service"
-    fi
-    if [[ -f "/etc/rsyslog.d/rascsi.conf" ]]; then
-        sudo rm "/etc/rsyslog.d/rascsi.conf"
-        sudo cp "$BASE/os_integration/piscsi.conf" "/etc/rsyslog.d"
-        echo "Replaced rascsi.conf with piscsi.conf"
-    fi
-    if [[ -f "/etc/network/interfaces.d/rascsi_bridge" ]]; then
-        sudo rm "/etc/network/interfaces.d/rascsi_bridge"
-        sudo cp "$BASE/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
-        echo "Replaced rascsi_bridge with piscsi_bridge"
-    fi
-    if [[ $(getent group rascsi) && $(getent group "$AUTH_GROUP") ]]; then
-        sudo groupdel rascsi
-        echo "Deleted the rascsi group in favor of the existing piscsi group"
-    elif [ $(getent group rascsi) ]; then
-        sudo groupmod --new-name piscsi rascsi
-        echo "Renamed the rascsi group to piscsi"
-    fi
 }
 
 # Stops a service if it is running
@@ -1193,7 +1102,6 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              migrateLegacyData
               stopService "piscsi-web"
               installPackages
               installHfdisk
@@ -1237,7 +1145,6 @@ function runChoice() {
               createImagesDir
               createCfgDir
               installPackagesStandalone
-              migrateLegacyData
               stopService "piscsi-ctrlboard"
               stopService "piscsi-oled"
               stopService "piscsi"
@@ -1268,7 +1175,6 @@ function runChoice() {
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               preparePythonCommon
-              migrateLegacyData
               installPiscsiScreen
               showServiceStatus "piscsi-oled"
               echo "Installing / Updating PiSCSI OLED Screen - Complete!"
@@ -1282,7 +1188,6 @@ function runChoice() {
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               preparePythonCommon
-              migrateLegacyData
               installPiscsiCtrlBoard
               showServiceStatus "piscsi-ctrlboard"
               echo "Installing / Updating PiSCSI Control Board UI - Complete!"
