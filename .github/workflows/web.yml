@@ -72,7 +72,7 @@ jobs:
         run: docker compose -f docker-compose.ci.yml run pytest -v
 
       - name: Push backend image to container registry
-        if: success() || failure()
+        if: (success() || failure()) && github.actor != 'dependabot[bot]' && github.actor != 'dependabot'
         run: docker compose -f docker-compose.ci.yml push backend
 
       - name: Upload test artifacts
