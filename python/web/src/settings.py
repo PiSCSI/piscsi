@@ -43,7 +43,7 @@ TEMPLATE_THEME_LEGACY = "classic"
 #  "17": "Arm frequency capping has occurred"
 #  "18": "Throttling has occurred"
 #  "19": "Soft temperature limit has occurred"
-THROTTLE_NOTIFY_MODES = ["0", "16"]
+THROTTLE_NOTIFY_MODES = ["0", "17"]
 # Include a list of modes to be shown ALL THE TIME to be used for styling
 # and formatting.
 THROTTLE_TEST_MODES = []
