@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 <noscript>
-    <form id="uploadForm" action="/files/uploadform/" onchange="fileSelect(event)" method="post" enctype="multipart/form-data">
+    <form action="/files/uploadform/" method="post" enctype="multipart/form-data">
         <fieldset>
             <legend>{{ _("Destination") }}</legend>
             <label for="disk_images" class="hidden">{{ _("Disk Images") }}</label>
