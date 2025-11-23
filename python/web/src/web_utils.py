@@ -239,7 +239,7 @@ def get_properties_by_drive_name(drives, drive_name):
                 "size": drive["size"],
             }
 
-    logging.error("Properties for drive '%s' does not exist in database", drive_name)
+    logging.error("Properties for drive '%s' does not exist in databasee", drive_name)
     return False
 
 
