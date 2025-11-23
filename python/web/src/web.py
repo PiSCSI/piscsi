@@ -333,6 +333,7 @@ def admin():
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         locales=get_supported_locales(),
+        themes=TEMPLATE_THEMES,
         netatalk_configured=sys_cmd.running_proc("afpd"),
         samba_configured=sys_cmd.running_proc("smbd"),
         ftp_configured=sys_cmd.running_proc("vsftpd"),
@@ -1448,9 +1449,9 @@ def change_language():
 @APP.route("/theme", methods=["GET", "POST"])
 def change_theme():
     if request.method == "GET":
-        theme = request.args.get("name")
+        theme = request.args.get("theme")
     else:
-        theme = request.form.get("name")
+        theme = request.form.get("theme")
 
     if theme not in TEMPLATE_THEMES:
         return response(error=True, message=_("The requested theme does not exist."))
