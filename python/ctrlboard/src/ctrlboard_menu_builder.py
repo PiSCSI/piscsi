@@ -1,11 +1,15 @@
 """Module for building the control board UI specific menus"""
 
 import logging
+import threading
+import time
+from unidecode import unidecode
 
 from menu.menu import Menu
 from menu.menu_builder import MenuBuilder
 from piscsi.file_cmds import FileCmds
 from piscsi.piscsi_cmds import PiscsiCmds
+from piscsi.sys_cmds import SysCmds
 
 
 class CtrlBoardMenuBuilder(MenuBuilder):
@@ -16,20 +20,45 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     IMAGES_MENU = "images_menu"
     PROFILES_MENU = "profiles_menu"
     DEVICEINFO_MENU = "device_info_menu"
+    SYSTEMINFO_MENU = "system_info_menu"
+    SYSTEMCMDS_MENU = "system_commands_menu"
 
     ACTION_OPENACTIONMENU = "openactionmenu"
     ACTION_RETURN = "return"
     ACTION_SLOT_ATTACHINSERT = "slot_attachinsert"
     ACTION_SLOT_DETACHEJECT = "slot_detacheject"
     ACTION_SLOT_INFO = "slot_info"
+    ACTION_REBOOT = "reboot"
     ACTION_SHUTDOWN = "shutdown"
     ACTION_LOADPROFILE = "loadprofile"
     ACTION_IMAGE_ATTACHINSERT = "image_attachinsert"
+    ACTION_SYSTEMINFO = "system_info"
+    ACTION_SYSTEMCMDS = "system_commands"
 
     def __init__(self, piscsi_cmd: PiscsiCmds):
         super().__init__()
         self._piscsi_client = piscsi_cmd
         self.file_cmd = FileCmds(piscsi=piscsi_cmd)
+        self.sys_cmd = SysCmds()
+        self._server_info_cache = None
+        self._server_info_lock = threading.Lock()
+        self._server_info_refresh_interval = 10  # seconds
+        self._start_server_info_updater()
+
+    def _start_server_info_updater(self):
+        def updater():
+            while True:
+                info = self._piscsi_client.get_server_info()
+                with self._server_info_lock:
+                    self._server_info_cache = info
+                time.sleep(self._server_info_refresh_interval)
+
+        thread = threading.Thread(target=updater, daemon=True)
+        thread.start()
+
+    def get_server_info(self):
+        with self._server_info_lock:
+            return self._server_info_cache or {}
 
     def build(self, name: str, context_object=None) -> Menu:
         if name == CtrlBoardMenuBuilder.SCSI_ID_MENU:
@@ -42,6 +71,10 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             return self.create_profiles_menu(context_object)
         if name == CtrlBoardMenuBuilder.DEVICEINFO_MENU:
             return self.create_device_info_menu(context_object)
+        if name == CtrlBoardMenuBuilder.SYSTEMINFO_MENU:
+            return self.create_system_info_menu(context_object)
+        if name == CtrlBoardMenuBuilder.SYSTEMCMDS_MENU:
+            return self.create_system_commands_menu(context_object)
 
         log = logging.getLogger(__name__)
         log.debug("Provided menu name [%s] cannot be built!", name)
@@ -128,8 +161,12 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             {"context": self.ACTION_MENU, "action": self.ACTION_LOADPROFILE},
         )
         menu.add_entry(
-            "Shutdown",
-            {"context": self.ACTION_MENU, "action": self.ACTION_SHUTDOWN},
+            "System Info",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SYSTEMINFO},
+        )
+        menu.add_entry(
+            "System Commands",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SYSTEMCMDS},
         )
         return menu
 
@@ -141,7 +178,9 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         images = images_info["files"]
         sorted_images = sorted(images, key=lambda d: d["name"])
         for image in sorted_images:
-            image_str = image["name"] + " [" + image["detected_type"] + "]"
+            image_str = (
+                unidecode(image["name"], errors="replace") + " [" + image["detected_type"] + "]"
+            )
             image_context = {
                 "context": self.IMAGES_MENU,
                 "name": str(image["name"]),
@@ -201,6 +240,51 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         menu.add_entry("Rvisn: " + str(device_info["device_list"][0]["revision"]))
         menu.add_entry("Blksz: " + str(device_info["device_list"][0]["block_size"]))
         menu.add_entry("Imgsz: " + str(device_info["device_list"][0]["size"]))
+
+        return menu
+
+    def create_system_info_menu(self, context_object=None):
+        """Create a menu displaying system information"""
+        menu = Menu(CtrlBoardMenuBuilder.SYSTEMINFO_MENU)
+        menu.add_entry("Return", {"context": self.SYSTEMINFO_MENU, "action": self.ACTION_RETURN})
+
+        ip_addr, _ = self.sys_cmd.get_ip_and_host()
+        system_stats = self.sys_cmd.get_cpu_mem_usage()
+        server_info = self.get_server_info()
+
+        menu.add_entry("[" + self.sys_cmd.get_pretty_host() + "]")
+        menu.add_entry("IP: " + ip_addr if ip_addr else "No network")
+        menu.add_entry(
+            "Disk: "
+            + str(int(self.sys_cmd.disk_space(server_info["image_dir"])["free"] / 1024 / 1024))
+            + " MB free"
+        )
+        menu.add_entry("CPU: " + str(system_stats["cpu_percent"]) + "%")
+        menu.add_entry(
+            "Mem: "
+            + str(int(system_stats["mem_available"] / 1024))
+            + "/"
+            + str(int(system_stats["mem_total"] / 1024))
+            + " MB free"
+        )
+        menu.add_entry("PiSCSI v" + server_info["version"])
+        menu.add_entry(self.sys_cmd.running_env()["env"])
+
+        return menu
+
+    def create_system_commands_menu(self, context_object=None):
+        """Create a menu displaying system commands"""
+        menu = Menu(CtrlBoardMenuBuilder.SYSTEMCMDS_MENU)
+        menu.add_entry("Return", {"context": self.SYSTEMCMDS_MENU, "action": self.ACTION_RETURN})
+
+        menu.add_entry(
+            "Reboot",
+            {"context": self.SYSTEMCMDS_MENU, "action": self.ACTION_REBOOT},
+        )
+        menu.add_entry(
+            "Shutdown",
+            {"context": self.SYSTEMCMDS_MENU, "action": self.ACTION_SHUTDOWN},
+        )
 
         return menu
 

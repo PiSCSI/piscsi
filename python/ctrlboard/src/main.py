@@ -19,6 +19,7 @@ from piscsi.exceptions import (
     FailedSocketConnectionException,
 )
 from piscsi.piscsi_cmds import PiscsiCmds
+from piscsi.sys_cmds import SysCmds
 from piscsi.socket_cmds import SocketCmds
 
 from piscsi_menu_controller import PiscsiMenuController
@@ -135,9 +136,11 @@ def main():
         exit(1)
 
     sock_cmd = None
+    sys_cmd = None
     piscsi_cmd = None
     try:
         sock_cmd = SocketCmds(host=config.PISCSI_HOST, port=config.PISCSI_PORT)
+        sys_cmd = SysCmds()
         piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=config.TOKEN)
     except EmptySocketChunkException:
         log.error("Retrieved empty data from PiSCSI. Stopping service")
@@ -175,7 +178,7 @@ def main():
     menu_controller.show_splash_screen("../common/resources/splash_start_64.bmp")
 
     menu_update_event_handler = CtrlBoardMenuUpdateEventHandler(
-        menu_controller, sock_cmd=sock_cmd, piscsi_cmd=piscsi_cmd
+        menu_controller, sock_cmd=sock_cmd, sys_cmd=sys_cmd, piscsi_cmd=piscsi_cmd
     )
     ctrlboard_hw.attach(menu_update_event_handler)
     menu_controller.set_active_menu(CtrlBoardMenuBuilder.SCSI_ID_MENU)

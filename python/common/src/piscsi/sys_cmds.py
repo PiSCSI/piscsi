@@ -5,6 +5,7 @@ Module with methods that interact with the Pi system
 import subprocess
 import logging
 import sys
+import time
 from subprocess import run, CalledProcessError
 from shutil import disk_usage
 from re import findall, match
@@ -308,3 +309,52 @@ class SysCmds:
             return matched_states
         else:
             return []
+
+    @staticmethod
+    def get_cpu_mem_usage():
+        """
+        Returns a dict with:
+        - cpu_percent: (int) CPU usage percentage
+        - mem_total: (int) Total memory in kilobytes
+        - mem_available: (int) Available memory in kilobytes
+        """
+
+        # Get CPU usage percentage by reading /proc/stat twice
+        def get_cpu_times():
+            with open("/proc/stat", "r") as f:
+                line = f.readline()
+                # Format: cpu user nice system idle iowait irq softirq steal guest guest_nice
+                fields = line.strip().split()
+                # Sum all time values except idle and iowait
+                idle = int(fields[4])
+                iowait = int(fields[5]) if len(fields) > 5 else 0
+                total = sum(int(x) for x in fields[1:])
+                return total, idle + iowait
+
+        total1, idle1 = get_cpu_times()
+        time.sleep(0.1)  # Small delay for measurement
+        total2, idle2 = get_cpu_times()
+
+        total_diff = total2 - total1
+        idle_diff = idle2 - idle1
+
+        if total_diff > 0:
+            cpu_percent = int(100.0 * (total_diff - idle_diff) / total_diff)
+        else:
+            cpu_percent = 0
+
+        # Get memory usage
+        meminfo = {}
+        with open("/proc/meminfo", "r") as f:
+            for line in f:
+                key, value = line.split(":")
+                meminfo[key.strip()] = int(value.strip().split()[0])
+
+        mem_total = meminfo.get("MemTotal", 0)
+        mem_available = meminfo.get("MemAvailable", 0)
+
+        return {
+            "cpu_percent": cpu_percent,
+            "mem_total": mem_total,
+            "mem_available": mem_available,
+        }
