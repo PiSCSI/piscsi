@@ -12,6 +12,7 @@ from ctrlboard_hw.encoder import Encoder
 from observer import Observer
 from piscsi.file_cmds import FileCmds
 from piscsi.piscsi_cmds import PiscsiCmds
+from piscsi.sys_cmds import SysCmds
 from piscsi.socket_cmds import SocketCmds
 from piscsi_menu_controller import PiscsiMenuController
 
@@ -24,12 +25,14 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self,
         menu_controller: PiscsiMenuController,
         sock_cmd: SocketCmds,
+        sys_cmd: SysCmds,
         piscsi_cmd: PiscsiCmds,
     ):
         self.message = None
         self._menu_controller = menu_controller
         self._menu_renderer_config = self._menu_controller.get_menu_renderer().get_config()
         self.sock_cmd = sock_cmd
+        self.sys_cmd = sys_cmd
         self.piscsi_cmd = piscsi_cmd
         self.context_stack = []
         self.piscsi_profile_cycler: Optional[PiscsiProfileCycler] = None
@@ -171,8 +174,51 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         )
 
     # noinspection PyUnusedLocal
+    def handle_action_menu_system_info(self, info_object):
+        """Method handles the rotary button press on 'System Info' in the action menu."""
+        context_object = self._menu_controller.get_active_menu().context_object
+        self.context_stack.append(context_object)
+        self._menu_controller.segue(
+            CtrlBoardMenuBuilder.SYSTEMINFO_MENU,
+            transition_attributes=self._menu_renderer_config.transition_attributes_left,
+            context_object=context_object,
+        )
+
+    # noinspection PyUnusedLocal
+    def handle_action_menu_system_commands(self, info_object):
+        """Method handles the rotary button press on 'System Commands' in the action menu."""
+        context_object = self._menu_controller.get_active_menu().context_object
+        self.context_stack.append(context_object)
+        self._menu_controller.segue(
+            CtrlBoardMenuBuilder.SYSTEMCMDS_MENU,
+            transition_attributes=self._menu_renderer_config.transition_attributes_left,
+            context_object=context_object,
+        )
+
+    # noinspection PyUnusedLocal
     def handle_device_info_menu_return(self, info_object):
         """Method handles the rotary button press on 'Return' in the info menu."""
+        self.context_stack.pop()
+        context_object = self._menu_controller.get_active_menu().context_object
+        self._menu_controller.segue(
+            CtrlBoardMenuBuilder.ACTION_MENU,
+            transition_attributes=self._menu_renderer_config.transition_attributes_right,
+            context_object=context_object,
+        )
+
+    # noinspection PyUnusedLocal
+    def handle_system_info_menu_return(self, info_object):
+        """Method handles the rotary button press on 'Return' in the system info menu."""
+        self.context_stack.pop()
+        context_object = self._menu_controller.get_active_menu().context_object
+        self._menu_controller.segue(
+            CtrlBoardMenuBuilder.ACTION_MENU,
+            transition_attributes=self._menu_renderer_config.transition_attributes_right,
+            context_object=context_object,
+        )
+
+    def handle_system_commands_menu_return(self, info_object):
+        """Method handles the rotary button press on 'Return' in the system commands menu."""
         self.context_stack.pop()
         context_object = self._menu_controller.get_active_menu().context_object
         self._menu_controller.segue(
@@ -209,11 +255,20 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
             transition_attributes=self._menu_renderer_config.transition_attributes_right,
         )
 
+    def handle_system_commands_menu_reboot(self, info_object):
+        """Method handles the rotary button press on 'Reboot' in the system commands menu."""
+        self._menu_controller.show_message("Rebooting!", 2)
+        self.sys_cmd.reboot_system()
+        self._menu_controller.segue(
+            CtrlBoardMenuBuilder.SCSI_ID_MENU,
+            transition_attributes=self._menu_renderer_config.transition_attributes_right,
+        )
+
     # noinspection PyUnusedLocal
-    def handle_action_menu_shutdown(self, info_object):
-        """Method handles the rotary button press on 'Shutdown' in the action menu."""
+    def handle_system_commands_menu_shutdown(self, info_object):
+        """Method handles the rotary button press on 'Shutdown' in the system commands menu."""
+        self._menu_controller.show_message("Shutting down!", 2)
         self.piscsi_cmd.shutdown("system")
-        self._menu_controller.show_message("Shutting down!", 150)
         self._menu_controller.segue(
             CtrlBoardMenuBuilder.SCSI_ID_MENU,
             transition_attributes=self._menu_renderer_config.transition_attributes_right,
