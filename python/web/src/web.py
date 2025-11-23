@@ -8,6 +8,7 @@ import argparse
 from pathlib import Path, PurePath
 from functools import wraps
 from grp import getgrall
+from io import DEFAULT_BUFFER_SIZE
 from os import path
 import bjoern
 
@@ -1068,6 +1069,49 @@ def upload_file():
             return make_response(_("Unable to rename temporary file!"), 500)
 
     return make_response(_("File upload successful!"), 200)
+
+
+@APP.route("/files/uploadform/", methods=["POST"])
+@login_required
+def upload_file_form():
+    file_object = request.files.get("file")
+    filename = file_object.filename if file_object else None
+    destination = request.form.get("destination")
+    images_subdir = request.form.get("images_subdir")
+    shared_subdir = request.form.get("shared_subdir")
+    if destination == "disk_images":
+        safe_path = is_safe_path(Path(images_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
+        server_info = piscsi_cmd.get_server_info()
+        destination_dir = Path(server_info["image_dir"]) / images_subdir
+    elif destination == "shared_files":
+        safe_path = is_safe_path(Path(shared_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
+        destination_dir = Path(FILE_SERVER_DIR) / shared_subdir
+    elif destination == "piscsi_config":
+        destination_dir = Path(CFG_DIR)
+    else:
+        return make_response(_("Unknown destination"), 403)
+    if not filename:
+        flash("No file provided.", "error")
+        return redirect(url_for("index"))
+
+    file_path = path.join(destination_dir, filename)
+    if path.isfile(file_path):
+        flash(f"{filename} already exists.", "error")
+        return redirect(url_for("index"))
+
+    binary_new_file = "bx"
+    with open(file_path, binary_new_file, buffering=DEFAULT_BUFFER_SIZE) as f:
+        chunk_size = DEFAULT_BUFFER_SIZE
+        while True:
+            chunk = file_object.stream.read(chunk_size)
+            if len(chunk) == 0:
+                break
+            f.write(chunk)
+    return redirect(url_for("index", filename=filename))
 
 
 @APP.route("/files/create", methods=["POST"])
