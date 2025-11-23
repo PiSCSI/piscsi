@@ -78,6 +78,8 @@ APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils ca-certi
 APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang"
 APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
 APT_PACKAGES_WEB="nginx-light genisoimage man2html hfsutils dosfstools kpartx unzip unar disktype gettext"
+APT_PACKAGES_SCREEN="libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config"
+APT_PACKAGES_CTRLB="python3-rpi.gpio python3-cbor2 python3-smbus python3-spidev"
 
 set -e
 
@@ -898,7 +900,7 @@ function installPiscsiScreen() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
+        sudo apt-get update && sudo apt-get install $APT_PACKAGES_SCREEN --assume-yes --no-install-recommends </dev/null
     fi
 
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
@@ -974,9 +976,7 @@ function installPiscsiCtrlBoard() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config python3-rpi.gpio --assume-yes --no-install-recommends </dev/null
-        # install python packages through apt that need compilation
-        sudo apt-get install python3-cbor2 --assume-yes --no-install-recommends </dev/null
+        sudo apt-get update && sudo apt-get install $APT_PACKAGES_SCREEN $APT_PACKAGES_CTRLB --assume-yes --no-install-recommends </dev/null
     fi
 
     # enable i2c
