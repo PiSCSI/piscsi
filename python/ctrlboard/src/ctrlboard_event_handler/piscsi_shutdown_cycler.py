@@ -6,7 +6,7 @@ from menu.cycler import Cycler
 class PiscsiShutdownCycler(Cycler):
     """Class implementing the shutdown cycler for the PiSCSI Control Board UI"""
 
-    def __init__(self, menu_controller, sock_cmd, piscsi_cmd):
+    def __init__(self, menu_controller, sock_cmd, sys_cmd, piscsi_cmd):
         super().__init__(
             menu_controller,
             sock_cmd,
@@ -14,19 +14,24 @@ class PiscsiShutdownCycler(Cycler):
             return_entry=True,
             empty_messages=False,
         )
+        self.sys_cmd = sys_cmd
         self.executed_once = False
 
     def populate_cycle_entries(self):
-        cycle_entries = ["Shutdown"]
+        cycle_entries = ["Shutdown", "Reboot"]
 
         return cycle_entries
 
     def perform_selected_entry_action(self, selected_entry):
         if self.executed_once is False:
             self.executed_once = True
-            self._menu_controller.show_timed_message("Shutting down...")
-            self.piscsi_cmd.shutdown("system")
-            return "shutdown"
+            if selected_entry == "Shutdown":
+                self._menu_controller.show_timed_message("Shutting down...")
+                self.piscsi_cmd.shutdown("system")
+            elif selected_entry == "Reboot":
+                self._menu_controller.show_timed_message("Rebooting...")
+                self.sys_cmd.reboot_system()
+            return selected_entry.lower()
 
         return None
 
