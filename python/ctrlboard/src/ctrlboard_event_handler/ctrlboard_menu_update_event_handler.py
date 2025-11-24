@@ -91,7 +91,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         """Method for handling the second cycle button (cycle shutdown)"""
         if self.piscsi_shutdown_cycler is None:
             self.piscsi_shutdown_cycler = PiscsiShutdownCycler(
-                self._menu_controller, self.sock_cmd, self.piscsi_cmd
+                self._menu_controller, self.sock_cmd, self.sys_cmd, self.piscsi_cmd
             )
         else:
             self.piscsi_shutdown_cycler.cycle()
