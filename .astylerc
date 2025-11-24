@@ -1,0 +1,18 @@
+# astyle base ruleset: One True Brace Style
+--style=1tbs
+
+# See the astyle docs for descriptions of individual rules:
+# https://astyle.sourceforge.net/astyle.html
+--add-braces
+--align-pointer=name
+--align-reference=type
+--break-blocks
+--break-closing-braces
+--ignore-exclude-errors-x
+--indent=tab=4
+--indent-switches
+--keep-one-line-blocks
+--max-code-length=120
+--pad-comma
+--pad-header
+--pad-oper
