@@ -32,13 +32,3 @@ The start.sh script can also be run standalone, and will handle the venv creatio
 ```
 $ ./start.sh --rotation=180 --height=64
 ```
-
-## Credits
-### type_writer.ttf
-* _Type Writer_ TrueType font by Mandy Smith
-* Source: https://www.dafont.com/type-writer.font
-* Distributed under BSD 3-Clause by permission from author (see LICENSE for full text)
-
-### splash_start_\*.bmp, splash_stop_\*.bmp
-* Drawn by Daniel Markstedt
-* Distributed under BSD 3-Clause by permission from author (see LICENSE for full text)
