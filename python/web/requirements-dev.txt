@@ -4,7 +4,7 @@ charset-normalizer==3.3.2
 click==8.1.8
 exceptiongroup==1.3.0
 flake8==7.3.0
-idna==3.7
+idna==3.11
 iniconfig==2.0.0
 MarkupSafe==3.0.2
 mccabe==0.7.0
