@@ -40,7 +40,7 @@ class SysCmds:
         if Path(PROC_MODEL_PATH).is_file():
             try:
                 with open(PROC_MODEL_PATH, "r") as open_file:
-                    hardware = open_file.read().rstrip()
+                    hardware = open_file.read().rstrip("\x00")
             except (IOError, ValueError, EOFError, TypeError) as error:
                 logging.error(str(error))
         # As a fallback, look for PC vendor information
