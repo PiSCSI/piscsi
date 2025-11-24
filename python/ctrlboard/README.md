@@ -45,13 +45,3 @@ the raspberry pi model and enable transitions only for the following pi models:
 - Raspberry Pi Zero 2 models
 
 The model detection can be overriden by adding a --transitions parameter to start.sh.
-
-## Credits
-
-### DejaVuSansMono-Bold.ttf
-* Source: https://dejavu-fonts.github.io
-* Distributed under DejaVu Fonts Lience (see DejaVu Fonts License.txt for full text)
-
-### splash_start_\*.bmp, splash_stop_\*.bmp
-* Drawn by Daniel Markstedt
-* Distributed under BSD 3-Clause by permission from author (see LICENSE for full text)

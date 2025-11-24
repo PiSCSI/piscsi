@@ -131,8 +131,8 @@ print("Will update the OLED display every " + str(args.refresh_interval) + "ms (
 # Show a startup splash bitmap image before starting the main loop
 # Convert the image to mode '1' for 1-bit color (monochrome)
 # Make sure the splash bitmap image is in the same dir as this script
-IMAGE_STOP = Image.open(f"resources/splash_stop_{HEIGHT}.bmp").convert("1")
-IMAGE = Image.open(f"resources/splash_start_{HEIGHT}.bmp").convert("1")
+IMAGE_STOP = Image.open(f"../common/resources/splash_stop_{HEIGHT}.bmp").convert("1")
+IMAGE = Image.open(f"../common/resources/splash_start_{HEIGHT}.bmp").convert("1")
 OLED.image(IMAGE)
 OLED.show()
 
@@ -156,7 +156,7 @@ LINE_SPACING = 8
 # When using other fonts, you may need to adjust PADDING, FONT_SIZE,
 # LINE_SPACING, and LINES.
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
-FONT = ImageFont.truetype("resources/type_writer.ttf", FONT_SIZE)
+FONT = ImageFont.truetype("../common/resources/type_writer.ttf", FONT_SIZE)
 
 REMOVABLE_DEVICE_TYPES = piscsi_cmd.get_removable_device_types()
 PERIPHERAL_DEVICE_TYPES = piscsi_cmd.get_peripheral_device_types()

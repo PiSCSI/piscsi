@@ -14,7 +14,7 @@ class MenuRendererConfig:
         self.i2c_address = 0x3C
         self.i2c_port = 1
         self.display_type = "ssd1306"  # luma-oled supported devices, "sh1106", "ssd1306", ...
-        self.font_path = "resources/DejaVuSansMono-Bold.ttf"
+        self.font_path = "../common/resources/DejaVuSansMono-Bold.ttf"
         self.font_size = 12
         self.row_selection_pixel_extension = 2
         self.scroll_behavior = "page"  # "extend" or "page"
