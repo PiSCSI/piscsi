@@ -36,7 +36,8 @@ public:
 	~PrimaryDevice() override = default;
 
 	virtual bool Init(const param_map&);
-	virtual void CleanUp() {
+	virtual void CleanUp()
+	{
 		// Override if cleanup work is required for a derived device
 	}
 
@@ -53,11 +54,13 @@ public:
 
 	void Reset() override;
 
-	virtual void FlushCache() {
+	virtual void FlushCache()
+	{
 		// Devices with a cache have to override this method
 	}
 
-	virtual vector<PbStatistics> GetStatistics() const {
+	virtual vector<PbStatistics> GetStatistics() const
+	{
 		// Devices which provide statistics have to override this method
 
 		return vector<PbStatistics>();

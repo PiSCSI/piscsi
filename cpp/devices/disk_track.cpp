@@ -60,11 +60,13 @@ bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 
 	// Calculate offset (previous tracks are considered to hold 256 sectors)
 	off_t offset = ((off_t)dt.track << 8);
+
 	if (dt.raw) {
 		assert(dt.size == 11);
 		offset *= 0x930;
 		offset += 0x10;
-	} else {
+	}
+	else {
 		offset <<= dt.size;
 	}
 
@@ -81,6 +83,7 @@ bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
 			spdlog::warn("posix_memalign failed");
 		}
+
 		dt.length = length;
 	}
 
@@ -91,9 +94,11 @@ bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 	// Reallocate if the buffer length is different
 	if (dt.length != static_cast<uint32_t>(length)) {
 		free(dt.buffer);
+
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
 			spdlog::warn("posix_memalign failed");
-        }
+		}
+
 		dt.length = length;
 	}
 
@@ -102,6 +107,7 @@ bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 	fill(dt.changemap.begin(), dt.changemap.end(), false); //NOSONAR ranges::fill() cannot be applied to vector<bool>
 
 	ifstream in(path, ios::binary);
+
 	if (in.fail()) {
 		return false;
 	}
@@ -110,11 +116,13 @@ bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 		// Split Reading
 		for (int i = 0; i < dt.sectors; i++) {
 			in.seekg(offset);
+
 			if (in.fail()) {
 				return false;
 			}
 
 			in.read((char *)&dt.buffer[i << dt.size], 1 << dt.size);
+
 			if (in.fail()) {
 				return false;
 			}
@@ -122,13 +130,17 @@ bool DiskTrack::Load(const string& path, uint64_t& cache_miss_read_count)
 			// Next offset
 			offset += 0x930;
 		}
-	} else {
+	}
+	else {
 		// Continuous reading
 		in.seekg(offset);
+
 		if (in.fail()) {
 			return false;
 		}
+
 		in.read((char *)dt.buffer, length);
+
 		if (in.fail()) {
 			return false;
 		}
@@ -172,12 +184,14 @@ bool DiskTrack::Save(const string& path, uint64_t& cache_miss_write_count)
 	const int length = 1 << dt.size;
 
 	ofstream out(path, ios::in | ios::out | ios::binary);
+
 	if (out.fail()) {
 		return false;
 	}
 
 	// Partial write loop
 	int total;
+
 	for (int i = 0; i < dt.sectors;) {
 		// If changed
 		if (dt.changemap[i]) {
@@ -185,12 +199,14 @@ bool DiskTrack::Save(const string& path, uint64_t& cache_miss_write_count)
 			total = 0;
 
 			out.seekp(offset + ((off_t)i << dt.size));
+
 			if (out.fail()) {
 				return false;
 			}
 
 			// Consectutive sector length
 			int j;
+
 			for (j = i; j < dt.sectors; j++) {
 				// end when interrupted
 				if (!dt.changemap[j]) {
@@ -202,13 +218,15 @@ bool DiskTrack::Save(const string& path, uint64_t& cache_miss_write_count)
 			}
 
 			out.write((const char *)&dt.buffer[i << dt.size], total);
+
 			if (out.fail()) {
 				return false;
 			}
 
 			// To unmodified sector
 			i = j;
-		} else {
+		}
+		else {
 			// Next Sector
 			i++;
 		}
@@ -266,6 +284,7 @@ bool DiskTrack::WriteSector(span<const uint8_t> buf, int sec)
 	// Compare
 	assert(dt.buffer);
 	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
+
 	if (memcmp(buf.data(), &dt.buffer[offset], length) == 0) {
 		// Exit normally since it's attempting to write the same thing
 		return true;

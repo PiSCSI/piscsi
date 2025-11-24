@@ -43,6 +43,7 @@ vector<string> piscsi_util::Split(const string& s, char separator, int limit)
 string piscsi_util::GetLocale()
 {
 	const char *locale = setlocale(LC_MESSAGES, "");
+
 	if (locale == nullptr || !strcmp(locale, "C")) {
 		locale = "en";
 	}
@@ -60,10 +61,10 @@ bool piscsi_util::GetAsUnsignedInt(const string& value, int& result)
 		auto v = stoul(value);
 		result = (int)v;
 	}
-	catch(const invalid_argument&) {
+	catch (const invalid_argument&) {
 		return false;
 	}
-	catch(const out_of_range&) {
+	catch (const out_of_range&) {
 		return false;
 	}
 
@@ -148,5 +149,6 @@ void piscsi_util::FixCpu(int cpu)
 		CPU_SET(cpu, &mask);
 		sched_setaffinity(0, sizeof(cpu_set_t), &mask);
 	}
+
 #endif
 }

@@ -37,7 +37,7 @@ string ScsictlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 	ostringstream s;
 
 	s << "  " << pb_device.id() << ":" << pb_device.unit() << "  " << PbDeviceType_Name(pb_device.type())
-			<< "  " << pb_device.vendor() << ":" << pb_device.product() << ":" << pb_device.revision();
+	  << "  " << pb_device.vendor() << ":" << pb_device.product() << ":" << pb_device.revision();
 
 	if (pb_device.block_size()) {
 		s << "  " << pb_device.block_size() << " bytes per sector";
@@ -89,7 +89,7 @@ string ScsictlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) con
 	ostringstream s;
 
 	s << "piscsi server version: " << setfill('0') << setw(2) << version_info.major_version() << "."
-			<< setw(2) << version_info.minor_version();
+	  << setw(2) << version_info.minor_version();
 
 	if (version_info.patch_version() > 0) {
 		s << "." << version_info.patch_version();
@@ -194,9 +194,10 @@ string ScsictlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files
 
 	if (!image_files_info.image_files().empty()) {
 		vector<PbImageFile> image_files(image_files_info.image_files().begin(), image_files_info.image_files().end());
-		ranges::sort(image_files, [](const auto& a, const auto& b) { return a.name() < b.name(); });
+		ranges::sort(image_files, [](const auto & a, const auto & b) { return a.name() < b.name(); });
 
 		s << "Available image files:\n";
+
 		for (const auto& image_file : image_files) {
 			s << "  ";
 
@@ -211,7 +212,8 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 {
 	ostringstream s;
 
-	const set<string, less<>> sorted_interfaces(network_interfaces_info.name().begin(), network_interfaces_info.name().end());
+	const set<string, less<>> sorted_interfaces(network_interfaces_info.name().begin(),
+	        network_interfaces_info.name().end());
 	s << "Available (up) network interfaces: " << Join(sorted_interfaces) << '\n';
 
 	return s.str();
@@ -223,8 +225,9 @@ string ScsictlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) con
 
 	s << "Supported image file extension to device type mappings:\n";
 
-	for (const map<string, PbDeviceType, less<>> sorted_mappings(mapping_info.mapping().begin(), mapping_info.mapping().end());
-			const auto& [extension, type] : sorted_mappings) {
+	for (const map<string, PbDeviceType, less<>> sorted_mappings(mapping_info.mapping().begin(),
+	        mapping_info.mapping().end());
+	        const auto& [extension, type] : sorted_mappings) {
 		s << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
 	}
 
@@ -239,17 +242,24 @@ string ScsictlDisplay::DisplayStatisticsInfo(const PbStatisticsInfo& statistics_
 
 	// Sort by ascending ID, LUN and key and by descending category
 	vector<PbStatistics> sorted_statistics = { statistics_info.statistics().begin(), statistics_info.statistics().end() };
-	ranges::sort(sorted_statistics, [] (const PbStatistics& a, const PbStatistics& b) {
-		if (a.category() > b.category()) return true;
-		if (a.category() < b.category()) return false;
-		if (a.id() < b.id()) return true;
-		if (a.id() > b.id()) return false;
-		if (a.unit() < b.unit()) return true;
-		if (a.unit() > b.unit()) return false;
+	ranges::sort(sorted_statistics, [] (const PbStatistics & a, const PbStatistics & b) {
+		if (a.category() > b.category()) { return true; }
+
+		if (a.category() < b.category()) { return false; }
+
+		if (a.id() < b.id()) { return true; }
+
+		if (a.id() > b.id()) { return false; }
+
+		if (a.unit() < b.unit()) { return true; }
+
+		if (a.unit() > b.unit()) { return false; }
+
 		return a.key() < b.key();
 	});
 
 	PbStatisticsCategory prev_category = PbStatisticsCategory::CATEGORY_NONE;
+
 	for (const auto& statistics : sorted_statistics) {
 		if (statistics.category() != prev_category) {
 			// Strip leading "CATEGORY_"
@@ -257,7 +267,8 @@ string ScsictlDisplay::DisplayStatisticsInfo(const PbStatisticsInfo& statistics_
 			prev_category = statistics.category();
 		}
 
-		s << "    " << statistics.id() << ":" << statistics.unit() << "  " << statistics.key() << ": " << statistics.value() << '\n';
+		s << "    " << statistics.id() << ":" << statistics.unit() << "  " << statistics.key() << ": " << statistics.value() <<
+		'\n';
 	}
 
 	return s.str();
@@ -267,7 +278,8 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 {
 	ostringstream s;
 
-	const map<int, PbOperationMetaData, less<>> operations(operation_info.operations().begin(), operation_info.operations().end());
+	const map<int, PbOperationMetaData, less<>> operations(operation_info.operations().begin(),
+	        operation_info.operations().end());
 
 	// Copies result into a map sorted by operation name
 	auto unknown_operation = make_unique<PbOperationMetaData>();
@@ -285,12 +297,15 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 	}
 
 	s << "Operations supported by piscsi server and their parameters:\n";
+
 	for (const auto& [name, meta_data] : sorted_operations) {
 		if (!meta_data.server_side_name().empty()) {
 			s << "  " << name;
+
 			if (!meta_data.description().empty()) {
 				s << " (" << meta_data.description() << ")";
 			}
+
 			s << '\n';
 
 			s << DisplayParameters(meta_data);
@@ -308,6 +323,7 @@ string ScsictlDisplay::DisplayParams(const PbDevice& pb_device) const
 	ostringstream s;
 
 	set<string, less<>> params;
+
 	for (const auto& [key, value] : pb_device.params()) {
 		params.insert(key + "=" + value);
 	}
@@ -322,18 +338,23 @@ string ScsictlDisplay::DisplayAttributes(const PbDeviceProperties& props) const
 	ostringstream s;
 
 	vector<string> properties;
+
 	if (props.read_only()) {
 		properties.emplace_back("read-only");
 	}
+
 	if (props.protectable()) {
 		properties.emplace_back("protectable");
 	}
+
 	if (props.stoppable()) {
 		properties.emplace_back("stoppable");
 	}
+
 	if (props.removable()) {
 		properties.emplace_back("removable");
 	}
+
 	if (props.lockable()) {
 		properties.emplace_back("lockable");
 	}
@@ -351,6 +372,7 @@ string ScsictlDisplay::DisplayDefaultParameters(const PbDeviceProperties& proper
 
 	if (!properties.default_params().empty()) {
 		set<string, less<>> params;
+
 		for (const auto& [key, value] : properties.default_params()) {
 			params.insert(key + "=" + value);
 		}
@@ -376,17 +398,18 @@ string ScsictlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) c
 string ScsictlDisplay::DisplayParameters(const PbOperationMetaData& meta_data) const
 {
 	vector<PbOperationParameter> sorted_parameters(meta_data.parameters().begin(), meta_data.parameters().end());
-	ranges::sort(sorted_parameters, [](const auto& a, const auto& b) { return a.name() < b.name(); });
+	ranges::sort(sorted_parameters, [](const auto & a, const auto & b) { return a.name() < b.name(); });
 
 	ostringstream s;
 
 	for (const auto& parameter : sorted_parameters) {
 		s << "    " << parameter.name() << ": "
-			<< (parameter.is_mandatory() ? "mandatory" : "optional");
+		  << (parameter.is_mandatory() ? "mandatory" : "optional");
 
 		if (!parameter.description().empty()) {
 			s << " (" << parameter.description() << ")";
 		}
+
 		s << '\n';
 
 		s << DisplayPermittedValues(parameter);
@@ -402,6 +425,7 @@ string ScsictlDisplay::DisplayParameters(const PbOperationMetaData& meta_data) c
 string ScsictlDisplay::DisplayPermittedValues(const PbOperationParameter& parameter) const
 {
 	ostringstream s;
+
 	if (parameter.permitted_values_size()) {
 		const set<string, less<>> sorted_values(parameter.permitted_values().begin(), parameter.permitted_values().end());
 		s << "      Permitted values: " << Join(parameter.permitted_values()) << '\n';

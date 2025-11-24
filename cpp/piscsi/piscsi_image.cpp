@@ -45,7 +45,7 @@ bool PiscsiImage::CreateImageFolder(const CommandContext& context, string_view f
 
 			return ChangeOwner(context, folder, false);
 		}
-		catch(const filesystem_error& e) {
+		catch (const filesystem_error& e) {
 			return context.ReturnErrorStatus("Can't create image folder '" + folder.string() + "': " + e.what());
 		}
 	}
@@ -61,6 +61,7 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 
 	// If a relative path is specified, the path is assumed to be relative to the user's home directory
 	path folder(f);
+
 	if (folder.is_relative()) {
 		folder = path(GetHomeDir() + "/" + folder.string());
 	}
@@ -88,6 +89,7 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 bool PiscsiImage::CreateImage(const CommandContext& context) const
 {
 	const string filename = GetParam(context.GetCommand(), "file");
+
 	if (filename.empty()) {
 		return context.ReturnErrorStatus("Missing image filename");
 	}
@@ -97,25 +99,29 @@ bool PiscsiImage::CreateImage(const CommandContext& context) const
 	}
 
 	const string full_filename = GetFullName(filename);
+
 	if (!IsValidDstFilename(full_filename)) {
 		return context.ReturnErrorStatus("Can't create image file: '" + full_filename + "': File already exists");
 	}
 
 	const string size = GetParam(context.GetCommand(), "size");
+
 	if (size.empty()) {
 		return context.ReturnErrorStatus("Can't create image file '" + full_filename + "': Missing file size");
 	}
 
 	off_t len;
+
 	try {
 		len = stoull(size);
 	}
-	catch(const invalid_argument&) {
+	catch (const invalid_argument&) {
 		return context.ReturnErrorStatus("Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
-	catch(const out_of_range&) {
+	catch (const out_of_range&) {
 		return context.ReturnErrorStatus("Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
+
 	if (len < 512 || (len & 0x1ff)) {
 		return context.ReturnErrorStatus("Invalid image file size " + to_string(len) + " (not a multiple of 512)");
 	}
@@ -128,6 +134,7 @@ bool PiscsiImage::CreateImage(const CommandContext& context) const
 
 	error_code error;
 	path file(full_filename);
+
 	try {
 		ofstream s(file);
 		s.close();
@@ -138,14 +145,14 @@ bool PiscsiImage::CreateImage(const CommandContext& context) const
 
 		resize_file(file, len);
 	}
-	catch(const filesystem_error& e) {
+	catch (const filesystem_error& e) {
 		remove(file, error);
 
 		return context.ReturnErrorStatus("Can't create image file '" + full_filename + "': " + e.what());
 	}
 
 	spdlog::info("Created " + string(read_only ? "read-only " : "") + "image file '" + full_filename +
-			"' with a size of " + to_string(len) + " bytes");
+	             "' with a size of " + to_string(len) + " bytes");
 
 	return context.ReturnSuccessStatus();
 }
@@ -153,6 +160,7 @@ bool PiscsiImage::CreateImage(const CommandContext& context) const
 bool PiscsiImage::DeleteImage(const CommandContext& context) const
 {
 	const string filename = GetParam(context.GetCommand(), "file");
+
 	if (filename.empty()) {
 		return context.ReturnErrorStatus("Missing image filename");
 	}
@@ -162,6 +170,7 @@ bool PiscsiImage::DeleteImage(const CommandContext& context) const
 	}
 
 	const auto full_filename = path(GetFullName(filename));
+
 	if (!exists(full_filename)) {
 		return context.ReturnErrorStatus("Image file '" + full_filename.string() + "' does not exist");
 	}
@@ -176,6 +185,7 @@ bool PiscsiImage::DeleteImage(const CommandContext& context) const
 
 	// Delete empty subfolders
 	size_t last_slash = filename.rfind('/');
+
 	while (last_slash != string::npos) {
 		const string folder = filename.substr(0, last_slash);
 		const auto full_folder = path(GetFullName(folder));
@@ -200,6 +210,7 @@ bool PiscsiImage::RenameImage(const CommandContext& context) const
 {
 	string from;
 	string to;
+
 	if (!ValidateParams(context, "rename/move", from, to)) {
 		return false;
 	}
@@ -207,7 +218,7 @@ bool PiscsiImage::RenameImage(const CommandContext& context) const
 	try {
 		rename(path(from), path(to));
 	}
-	catch(const filesystem_error& e) {
+	catch (const filesystem_error& e) {
 		return context.ReturnErrorStatus("Can't rename/move image file '" + from + "': " + e.what());
 	}
 
@@ -220,6 +231,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 {
 	string from;
 	string to;
+
 	if (!ValidateParams(context, "copy", from, to)) {
 		return false;
 	}
@@ -227,13 +239,13 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 	path f(from);
 	path t(to);
 
-    // Symbolic links need a special handling
+	// Symbolic links need a special handling
 	if (error_code error; is_symlink(f, error)) {
 		try {
 			copy_symlink(f, t);
 		}
-		catch(const filesystem_error& e) {
-	    	return context.ReturnErrorStatus("Can't copy image file symlink '" + from + "': " + e.what());
+		catch (const filesystem_error& e) {
+			return context.ReturnErrorStatus("Can't copy image file symlink '" + from + "': " + e.what());
 		}
 
 		spdlog::info("Copied image file symlink '" + from + "' to '" + to + "'");
@@ -245,12 +257,12 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 		copy_file(f, t);
 
 		permissions(t, GetParam(context.GetCommand(), "read_only") == "true" ?
-				perms::owner_read | perms::group_read | perms::others_read :
-				perms::owner_read | perms::group_read | perms::others_read |
-				perms::owner_write | perms::group_write);
+		            perms::owner_read | perms::group_read | perms::others_read :
+		            perms::owner_read | perms::group_read | perms::others_read |
+		            perms::owner_write | perms::group_write);
 	}
-	catch(const filesystem_error& e) {
-        return context.ReturnErrorStatus("Can't copy image file '" + from + "': " + e.what());
+	catch (const filesystem_error& e) {
+		return context.ReturnErrorStatus("Can't copy image file '" + from + "': " + e.what());
 	}
 
 	spdlog::info("Copied image file '" + from + "' to '" + to + "'");
@@ -261,6 +273,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 {
 	const string filename = GetParam(context.GetCommand(), "file");
+
 	if (filename.empty()) {
 		return context.ReturnErrorStatus("Missing image filename");
 	}
@@ -270,6 +283,7 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 	}
 
 	const string full_filename = GetFullName(filename);
+
 	if (!IsValidSrcFilename(full_filename)) {
 		return context.ReturnErrorStatus("Can't modify image file '" + full_filename + "': Invalid name or type");
 	}
@@ -282,13 +296,13 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 
 	try {
 		permissions(path(full_filename), protect ?
-				perms::owner_read | perms::group_read | perms::others_read :
-				perms::owner_read | perms::group_read | perms::others_read |
-				perms::owner_write | perms::group_write);
+		            perms::owner_read | perms::group_read | perms::others_read :
+		            perms::owner_read | perms::group_read | perms::others_read |
+		            perms::owner_write | perms::group_write);
 	}
-	catch(const filesystem_error& e) {
+	catch (const filesystem_error& e) {
 		return context.ReturnErrorStatus("Can't " + string(protect ? "protect" : "unprotect") + " image file '" +
-				full_filename + "': " + e.what());
+		                                 full_filename + "': " + e.what());
 	}
 
 	spdlog::info((protect ? "Protected" : "Unprotected") + string(" image file '") + full_filename + "'");
@@ -299,9 +313,10 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 bool PiscsiImage::IsReservedFile(const CommandContext& context, const string& file, const string& op)
 {
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(file);
+
 	if (id != -1) {
 		return context.ReturnErrorStatus("Can't " + op + " image file '" + file +
-				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
+		                                 "', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
 	}
 
 	return true;
@@ -310,6 +325,7 @@ bool PiscsiImage::IsReservedFile(const CommandContext& context, const string& fi
 bool PiscsiImage::ValidateParams(const CommandContext& context, const string& op, string& from, string& to) const
 {
 	from = GetParam(context.GetCommand(), "from");
+
 	if (from.empty()) {
 		return context.ReturnErrorStatus("Can't " + op + " image file: Missing source filename");
 	}
@@ -319,6 +335,7 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const string& op
 	}
 
 	to = GetParam(context.GetCommand(), "to");
+
 	if (to.empty()) {
 		return context.ReturnErrorStatus("Can't " + op + " image file '" + from + "': Missing destination filename");
 	}
@@ -328,11 +345,13 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const string& op
 	}
 
 	from = GetFullName(from);
+
 	if (!IsValidSrcFilename(from)) {
 		return context.ReturnErrorStatus("Can't " + op + " image file: '" + from + "': Invalid name or type");
 	}
 
 	to = GetFullName(to);
+
 	if (!IsValidDstFilename(to)) {
 		return context.ReturnErrorStatus("Can't " + op + " image file '" + from + "' to '" + to + "': File already exists");
 	}
@@ -363,7 +382,7 @@ bool PiscsiImage::IsValidDstFilename(string_view filename)
 	try {
 		return !exists(path(filename));
 	}
-	catch(const filesystem_error&) {
+	catch (const filesystem_error&) {
 		return false;
 	}
 }
@@ -371,6 +390,7 @@ bool PiscsiImage::IsValidDstFilename(string_view filename)
 bool PiscsiImage::ChangeOwner(const CommandContext& context, const path& filename, bool read_only)
 {
 	const auto [uid, gid] = GetUidAndGid();
+
 	if (chown(filename.c_str(), uid, gid)) {
 		// Remember the current error before the next filesystem operation
 		const int e = errno;
@@ -382,9 +402,9 @@ bool PiscsiImage::ChangeOwner(const CommandContext& context, const path& filenam
 	}
 
 	permissions(filename, read_only ?
-			perms::owner_read | perms::group_read | perms::others_read :
-			perms::owner_read | perms::group_read | perms::others_read |
-			perms::owner_write | perms::group_write);
+	            perms::owner_read | perms::group_read | perms::others_read :
+	            perms::owner_read | perms::group_read | perms::others_read |
+	            perms::owner_write | perms::group_write);
 
 	return true;
 }
@@ -408,6 +428,7 @@ string PiscsiImage::GetHomeDir()
 pair<int, int> PiscsiImage::GetUidAndGid()
 {
 	int uid = getuid();
+
 	if (const char *sudo_user = getenv("SUDO_UID"); sudo_user != nullptr) {
 		uid = stoi(sudo_user);
 	}
@@ -417,6 +438,7 @@ pair<int, int> PiscsiImage::GetUidAndGid()
 	array<char, 256> pwbuf;
 
 	int gid = -1;
+
 	if (!getpwuid_r(uid, &pwd, pwbuf.data(), pwbuf.size(), &p_pwd)) {
 		gid = pwd.pw_gid;
 	}

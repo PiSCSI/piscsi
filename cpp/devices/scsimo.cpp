@@ -91,7 +91,7 @@ void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 void SCSIMO::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length)
 {
 	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
-		!result.empty()) {
+	        !result.empty()) {
 		LogWarn(result);
 	}
 }
@@ -171,7 +171,7 @@ void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 					bands = 11;
 					break;
 
-					// 1.3GB (lpproj: not tested with real device)
+				// 1.3GB (lpproj: not tested with real device)
 				case 605846:
 					spare = 4437;
 					bands = 18;
@@ -194,7 +194,8 @@ void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 	return;
 }
 
-bool SCSIMO::SetGeometryForCapacity(uint64_t capacity) {
+bool SCSIMO::SetGeometryForCapacity(uint64_t capacity)
+{
 	if (const auto& geometry = geometries.find(capacity); geometry != geometries.end()) {
 		SetSectorSizeInBytes(geometry->second.first);
 		SetBlockCount(geometry->second.second);

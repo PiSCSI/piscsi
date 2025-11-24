@@ -25,7 +25,7 @@ using namespace std;
 
 class DiskTrack
 {
-	 struct {
+	struct {
 		int track;							// Track Number
 		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		int sectors;						// Number of sectors(<0x100)

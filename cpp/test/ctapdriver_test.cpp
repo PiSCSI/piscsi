@@ -33,10 +33,12 @@ TEST(CTapDriverTest, Crc32)
 	for (size_t i = 0; i < buf.size(); i++) {
 		buf[i] = (uint8_t)i;
 	}
+
 	EXPECT_EQ(0xe7870705, CTapDriver::Crc32(span(buf.data(), ETH_FRAME_LEN)));
 
 	for (size_t i = buf.size() - 1; i > 0; i--) {
 		buf[i] = (uint8_t)i;
 	}
+
 	EXPECT_EQ(0xe7870705, CTapDriver::Crc32(span(buf.data(), ETH_FRAME_LEN)));
 }

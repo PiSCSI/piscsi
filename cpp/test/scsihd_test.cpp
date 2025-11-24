@@ -25,7 +25,8 @@ TEST(ScsiHdTest, Inquiry)
 {
 	TestInquiry::Inquiry(SCHD, device_type::direct_access, scsi_level::scsi_2, "PiSCSI                  ", 0x1f, false);
 
-	TestInquiry::Inquiry(SCHD, device_type::direct_access, scsi_level::scsi_1_ccs, "PiSCSI                  ", 0x1f, false, "file.hd1");
+	TestInquiry::Inquiry(SCHD, device_type::direct_access, scsi_level::scsi_1_ccs, "PiSCSI                  ", 0x1f, false,
+	                     "file.hd1");
 }
 
 TEST(ScsiHdTest, SupportsSaveParameters)

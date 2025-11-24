@@ -109,8 +109,8 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 
 	// Remember the list of reserved files during the dry run
 	const auto& reserved_files = StorageDevice::GetReservedFiles();
-	const bool isDryRunError = ranges::find_if_not(command.devices(), [&] (const auto& device)
-			{ return ProcessDeviceCmd(context, device, true); }) != command.devices().end();
+	const bool isDryRunError = ranges::find_if_not(command.devices(), [&] (const auto & device)
+	{ return ProcessDeviceCmd(context, device, true); }) != command.devices().end();
 	StorageDevice::SetReservedFiles(reserved_files);
 
 	if (isDryRunError) {
@@ -121,13 +121,13 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 		return context.ReturnErrorStatus(error);
 	}
 
-	if (ranges::find_if_not(command.devices(), [&] (const auto& device)
-			{ return ProcessDeviceCmd(context, device, false); } ) != command.devices().end()) {
+	if (ranges::find_if_not(command.devices(), [&] (const auto & device)
+	{ return ProcessDeviceCmd(context, device, false); } ) != command.devices().end()) {
 		return false;
 	}
 
-            // ATTACH and DETACH are special cases because they return the current device list
-    return command.operation() == ATTACH || command.operation() == DETACH ? true : context.ReturnSuccessStatus();
+	// ATTACH and DETACH are special cases because they return the current device list
+	return command.operation() == ATTACH || command.operation() == DETACH ? true : context.ReturnSuccessStatus();
 }
 
 bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
@@ -197,7 +197,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	if (lun >= ControllerManager::GetScsiLunMax()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_LUN, to_string(lun),
-				to_string(ControllerManager::GetScsiLunMax()));
+		                                    to_string(ControllerManager::GetScsiLunMax()));
 	}
 
 	if (controller_manager.HasDeviceForIdAndLun(id, lun)) {
@@ -211,6 +211,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	const string filename = GetParam(pb_device, "file");
 
 	auto device = CreateDevice(context, type, lun, filename);
+
 	if (device == nullptr) {
 		return false;
 	}
@@ -227,6 +228,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	const auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
+
 	if (device->SupportsFile()) {
 		// Only with removable media drives, CD and MO the medium (=file) may be inserted later
 		if (!device->IsRemovable() && filename.empty()) {
@@ -250,6 +252,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	param_map params = { pb_device.params().begin(), pb_device.params().end() };
+
 	if (!device->SupportsFile()) {
 		// Clients like scsictl might have sent both "file" and "interfaces"
 		params.erase("file");
@@ -268,12 +271,14 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	string msg = "Attached ";
+
 	if (device->IsReadOnly()) {
 		msg += "read-only ";
 	}
 	else if (device->IsProtectable() && device->IsProtected()) {
 		msg += "protected ";
 	}
+
 	msg += device->GetIdentifier();
 	spdlog::info(msg);
 
@@ -281,7 +286,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 }
 
 bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device,
-		const shared_ptr<PrimaryDevice>& device, bool dryRun) const
+                            const shared_ptr<PrimaryDevice>& device, bool dryRun) const
 {
 	if (!device->SupportsFile()) {
 		return false;
@@ -296,6 +301,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	const string filename = GetParam(pb_device, "file");
+
 	if (filename.empty()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME);
 	}
@@ -306,13 +312,14 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	spdlog::info("Insert " + string(pb_device.protected_() ? "protected " : "") + "file '" + filename +
-			"' requested into " + device->GetIdentifier());
+	             "' requested into " + device->GetIdentifier());
 
 	if (!SetSectorSize(context, device, pb_device.block_size())) {
 		return false;
 	}
 
 	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
+
 	if (!ValidateImageFile(context, *storage_device, filename)) {
 		return false;
 	}
@@ -327,6 +334,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 {
 	auto controller = controller_manager.FindController(device.GetId());
+
 	if (controller == nullptr) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 	}
@@ -367,34 +375,36 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
 {
 	set<int> ids_to_reserve;
 	stringstream ss(ids.data());
-    string id;
-    while (getline(ss, id, ',')) {
-    	int res_id;
-    	if (!GetAsUnsignedInt(id, res_id) || res_id > 7) {
-    		return "Invalid ID " + id;
-    	}
+	string id;
 
-    	if (controller_manager.HasController(res_id)) {
-    		return "ID " + id + " is currently in use";
-    	}
+	while (getline(ss, id, ',')) {
+		int res_id;
 
-    	ids_to_reserve.insert(res_id);
-    }
+		if (!GetAsUnsignedInt(id, res_id) || res_id > 7) {
+			return "Invalid ID " + id;
+		}
 
-    reserved_ids = { ids_to_reserve.begin(), ids_to_reserve.end() };
+		if (controller_manager.HasController(res_id)) {
+			return "ID " + id + " is currently in use";
+		}
 
-    if (!ids_to_reserve.empty()) {
-    	spdlog::info("Reserved ID(s) set to " + Join(ids_to_reserve));
-    }
-    else {
-    	spdlog::info("Cleared reserved ID(s)");
-    }
+		ids_to_reserve.insert(res_id);
+	}
+
+	reserved_ids = { ids_to_reserve.begin(), ids_to_reserve.end() };
+
+	if (!ids_to_reserve.empty()) {
+		spdlog::info("Reserved ID(s) set to " + Join(ids_to_reserve));
+	}
+	else {
+		spdlog::info("Cleared reserved ID(s)");
+	}
 
 	return "";
 }
 
 bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDevice& storage_device,
-		const string& filename) const
+                                       const string& filename) const
 {
 	if (filename.empty()) {
 		return true;
@@ -420,7 +430,7 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 	try {
 		storage_device.Open();
 	}
-	catch(const io_exception&) {
+	catch (const io_exception&) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, storage_device.GetFilename());
 	}
 
@@ -431,7 +441,7 @@ bool PiscsiExecutor::CheckForReservedFile(const CommandContext& context, const s
 {
 	if (const auto [id, lun] = StorageDevice::GetIdsForReservedFile(filename); id != -1) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-				to_string(id) + ":" + to_string(lun));
+		                                    to_string(id) + ":" + to_string(lun));
 	}
 
 	return true;
@@ -447,10 +457,12 @@ string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefi
 	if (!params.empty()) {
 		s << ", command params=";
 		bool isFirst = true;
+
 		for (const auto& [key, value] : params) {
 			if (!isFirst) {
 				s << ", ";
 			}
+
 			isFirst = false;
 			string v = key != "token" ? value : "???";
 			s << "'" << key << "=" << v << "'";
@@ -462,17 +474,19 @@ string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefi
 	if (pb_device.params_size()) {
 		s << ", device params=";
 		bool isFirst = true;
-		for (const auto& [key, value]: pb_device.params()) {
+
+		for (const auto& [key, value] : pb_device.params()) {
 			if (!isFirst) {
 				s << ":";
 			}
+
 			isFirst = false;
 			s << "'" << key << "=" << value << "'";
 		}
 	}
 
 	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
-		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
+	  << "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
 
 	return s.str();
 }
@@ -492,7 +506,7 @@ string PiscsiExecutor::EnsureLun0(const PbCommand& command) const
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
-	const auto& it = ranges::find_if_not(luns, [] (const auto& l) { return l.second & 0x01; } );
+	const auto& it = ranges::find_if_not(luns, [] (const auto & l) { return l.second & 0x01; } );
 	return it == luns.end() ? "" : "LUN 0 is missing for device ID " + to_string((*it).first);
 }
 
@@ -510,9 +524,10 @@ bool PiscsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int i
 }
 
 shared_ptr<PrimaryDevice> PiscsiExecutor::CreateDevice(const CommandContext& context, const PbDeviceType type,
-		int lun, const string& filename) const
+        int lun, const string& filename) const
 {
 	auto device = device_factory.CreateDevice(type, lun, filename);
+
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
@@ -529,6 +544,7 @@ bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<Pri
 {
 	if (size) {
 		const auto disk = dynamic_pointer_cast<Disk>(device);
+
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(size)) {
 				return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE, to_string(size));
@@ -536,7 +552,7 @@ bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<Pri
 		}
 		else {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE,
-					device->GetTypeString());
+			                                    device->GetTypeString());
 		}
 	}
 
@@ -544,26 +560,26 @@ bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<Pri
 }
 
 bool PiscsiExecutor::ValidateOperationAgainstDevice(const CommandContext& context, const PrimaryDevice& device,
-		PbOperation operation)
+        PbOperation operation)
 {
 	if ((operation == START || operation == STOP) && !device.IsStoppable()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, PbOperation_Name(operation),
-				device.GetTypeString());
+		                                    device.GetTypeString());
 	}
 
 	if ((operation == INSERT || operation == EJECT) && !device.IsRemovable()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, PbOperation_Name(operation),
-				device.GetTypeString());
+		                                    device.GetTypeString());
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device.IsProtectable()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, PbOperation_Name(operation),
-				device.GetTypeString());
+		                                    device.GetTypeString());
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device.IsReady()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_READY, PbOperation_Name(operation),
-				device.GetTypeString());
+		                                    device.GetTypeString());
 	}
 
 	return true;
@@ -574,33 +590,37 @@ bool PiscsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int
 	if (id < 0) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_ID);
 	}
+
 	if (id >= ControllerManager::GetScsiIdMax()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_ID, to_string(id),
-				to_string(ControllerManager::GetScsiIdMax() - 1));
+		                                    to_string(ControllerManager::GetScsiIdMax() - 1));
 	}
+
 	if (lun < 0 || lun >= ControllerManager::GetScsiLunMax()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_LUN, to_string(lun),
-				to_string(ControllerManager::GetScsiLunMax() - 1));
+		                                    to_string(ControllerManager::GetScsiLunMax() - 1));
 	}
 
 	return true;
 }
 
 bool PiscsiExecutor::SetProductData(const CommandContext& context, const PbDeviceDefinition& pb_device,
-		PrimaryDevice& device)
+                                    PrimaryDevice& device)
 {
 	try {
 		if (!pb_device.vendor().empty()) {
 			device.SetVendor(pb_device.vendor());
 		}
+
 		if (!pb_device.product().empty()) {
 			device.SetProduct(pb_device.product());
 		}
+
 		if (!pb_device.revision().empty()) {
 			device.SetRevision(pb_device.revision());
 		}
 	}
-	catch(const invalid_argument& e) {
+	catch (const invalid_argument& e) {
 		return context.ReturnErrorStatus(e.what());
 	}
 

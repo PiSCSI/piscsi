@@ -16,7 +16,7 @@ using namespace std;
 using namespace filesystem;
 using namespace scsi_command_util;
 
-StorageDevice::StorageDevice(PbDeviceType type, int lun, const unordered_set<uint32_t> &s)
+StorageDevice::StorageDevice(PbDeviceType type, int lun, const unordered_set<uint32_t>& s)
 	: ModePageDevice(type, lun)
 	, supported_sector_sizes(s)
 {
@@ -27,7 +27,7 @@ StorageDevice::StorageDevice(PbDeviceType type, int lun, const unordered_set<uin
 bool StorageDevice::Init(const param_map &pm)
 {
 	ModePageDevice::Init(pm);
-	AddCommand(scsi_command::eCmdPreventAllowMediumRemoval, [this]{ PreventAllowMediumRemoval(); });
+	AddCommand(scsi_command::eCmdPreventAllowMediumRemoval, [this] { PreventAllowMediumRemoval(); });
 	return true;
 }
 
@@ -59,7 +59,8 @@ void StorageDevice::ValidateFile()
 	}
 
 	if (!exists(filename)) {
-		throw file_not_found_exception("Image file '" + filename.string() + "' for " + GetTypeString() + " device does not exist");
+		throw file_not_found_exception("Image file '" + filename.string() + "' for " + GetTypeString() +
+		                               " device does not exist");
 	}
 
 	// TODO Check for duplicate handling of these properties (-> piscsi_executor.cpp)
@@ -162,22 +163,26 @@ void StorageDevice::SetSectorSizeInBytes(uint32_t size_in_bytes)
 uint32_t StorageDevice::GetMinSupportedSectorSize() const
 {
 	uint32_t res = 0;
+
 	for (const auto& s : supported_sector_sizes) {
 		if (!res || s < res) {
 			res = s;
 		}
 	}
+
 	return res;
 }
 
 uint32_t StorageDevice::GetMaxSupportedSectorSize() const
 {
 	uint32_t res = 0;
+
 	for (const auto& s : supported_sector_sizes) {
 		if (s > res) {
 			res = s;
 		}
 	}
+
 	return res;
 }
 

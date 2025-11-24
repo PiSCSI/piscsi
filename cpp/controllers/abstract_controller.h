@@ -43,7 +43,7 @@ public:
 	~AbstractController() override = default;
 
 	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::no_additional_sense_information,
-			scsi_defs::status = scsi_defs::status::check_condition) = 0;
+	                   scsi_defs::status = scsi_defs::status::check_condition) = 0;
 	virtual void Reset();
 	virtual int GetInitiatorId() const = 0;
 

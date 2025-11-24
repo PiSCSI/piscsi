@@ -14,6 +14,6 @@ using namespace std;
 
 class ScsiLoop_Timer
 {
-  public:
-    static int RunTimerTest(vector<string> &error_list);
+public:
+	static int RunTimerTest(vector<string>& error_list);
 };

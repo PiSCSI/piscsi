@@ -26,10 +26,10 @@ string piscsi_get_version_string()
 
 	if (piscsi_patch_version < 0) {
 		s << " --DEVELOPMENT BUILD--";
-    }
-    else {
+	}
+	else {
 		s << '.' << setw(2) << piscsi_patch_version;
-    }
+	}
 
 	return s.str();
 }

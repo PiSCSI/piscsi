@@ -51,11 +51,13 @@ void SCSICD::Open()
 
 	if (GetFilename()[0] == '\\') {
 		OpenPhysical();
-	} else {
+	}
+	else {
 		// Judge whether it is a CUE sheet or an ISO file
 		array<char, 4> cue;
 		ifstream in(GetFilename(), ios::binary);
 		in.read(cue.data(), cue.size());
+
 		if (!in.good()) {
 			throw io_exception("Can't read header of CD-ROM file '" + GetFilename() + "'");
 		}
@@ -63,7 +65,8 @@ void SCSICD::Open()
 		// If it starts with FILE consider it a CUE sheet
 		if (!strncasecmp(cue.data(), "FILE", cue.size())) {
 			throw io_exception("CUE CD-ROM files are not supported");
-		} else {
+		}
+		else {
 			OpenIso();
 		}
 	}
@@ -83,6 +86,7 @@ void SCSICD::Open()
 void SCSICD::OpenIso()
 {
 	const off_t size = GetFileSize();
+
 	if (size < 2048) {
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
@@ -91,6 +95,7 @@ void SCSICD::OpenIso()
 	array<char, 16> header;
 	ifstream in(GetFilename(), ios::binary);
 	in.read(header.data(), header.size());
+
 	if (!in.good()) {
 		throw io_exception("Can't read header of ISO CD-ROM file");
 	}
@@ -114,11 +119,12 @@ void SCSICD::OpenIso()
 	if (rawfile) {
 		if (size % 2352) {
 			LogWarn("Raw ISO CD-ROM file size is not a multiple of 2352 bytes but is "
-					+ to_string(size) + " bytes");
+			        + to_string(size) + " bytes");
 		}
 
 		SetBlockCount(static_cast<uint32_t>(size / 2352));
-	} else {
+	}
+	else {
 		SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 	}
 
@@ -129,6 +135,7 @@ void SCSICD::OpenIso()
 void SCSICD::OpenPhysical()
 {
 	off_t size = GetFileSize();
+
 	if (size < 2048) {
 		throw io_exception("CD-ROM file size must be at least 2048 bytes");
 	}
@@ -218,6 +225,7 @@ int SCSICD::Read(span<uint8_t> buf, uint64_t block)
 	CheckReady();
 
 	const int index = SearchTrack(static_cast<int>(block));
+
 	if (index < 0) {
 		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
@@ -258,6 +266,7 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 
 	// Get and check the last track number
 	const int last = tracks[tracks.size() - 1]->GetTrackNo();
+
 	// Except for AA
 	if (cdb[6] > last && cdb[6] != 0xaa) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
@@ -265,12 +274,14 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 
 	// Check start index
 	int index = 0;
+
 	if (cdb[6] != 0x00) {
 		// Advance the track until the track numbers match
 		while (tracks[index]) {
 			if (cdb[6] == tracks[index]->GetTrackNo()) {
 				break;
 			}
+
 			index++;
 		}
 
@@ -287,9 +298,11 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 			buf[3] = (uint8_t)last;
 			buf[6] = 0xaa;
 			const uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
+
 			if (msf) {
 				LBAtoMSF(lba, &buf[8]);
-			} else {
+			}
+			else {
 				SetInt16(buf, 10, lba);
 			}
 
@@ -313,7 +326,8 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 		if (tracks[index]->IsAudio()) {
 			// audio track
 			buf[offset + 1] = 0x10;
-		} else {
+		}
+		else {
 			// data track
 			buf[offset + 1] = 0x14;
 		}
@@ -324,7 +338,8 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 		// track address
 		if (msf) {
 			LBAtoMSF(tracks[index]->GetFirst(), &buf[offset + 4]);
-		} else {
+		}
+		else {
 			SetInt16(buf, offset + 6, tracks[index]->GetFirst());
 		}
 
@@ -347,6 +362,7 @@ void SCSICD::LBAtoMSF(uint32_t lba, uint8_t *msf) const
 
 	// The base point is M=0, S=2, F=0
 	s += 2;
+
 	if (s >= 60) {
 		s -= 60;
 		m++;
@@ -377,6 +393,7 @@ int SCSICD::SearchTrack(uint32_t lba) const
 	for (size_t i = 0; i < tracks.size(); i++) {
 		// Listen to the track
 		assert(tracks[i]);
+
 		if (tracks[i]->IsValid(lba)) {
 			return static_cast<int>(i);
 		}

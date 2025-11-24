@@ -165,52 +165,52 @@ const static int OFF = 0;
 //---------------------------------------------------------------------------
 class GPIOBUS : public BUS
 {
-  public:
-    // Basic Functions
-    GPIOBUS() = default;
-    // Destructor
-    ~GPIOBUS() override = default;
-    // Initialization
-    bool Init(mode_e mode = mode_e::TARGET) override;
+public:
+	// Basic Functions
+	GPIOBUS() = default;
+	// Destructor
+	~GPIOBUS() override = default;
+	// Initialization
+	bool Init(mode_e mode = mode_e::TARGET) override;
 
-    // Command receive handshake
-    int CommandHandShake(vector<uint8_t>&) override;
-    // Data receive handshake
-    int ReceiveHandShake(uint8_t *, int) override;
-    // Data transmission handshake
-    int SendHandShake(uint8_t *, int, int) override;
+	// Command receive handshake
+	int CommandHandShake(vector<uint8_t>&) override;
+	// Data receive handshake
+	int ReceiveHandShake(uint8_t *, int) override;
+	// Data transmission handshake
+	int SendHandShake(uint8_t *, int, int) override;
 
-    // SEL signal event polling
-    bool PollSelectEvent() override;
+	// SEL signal event polling
+	bool PollSelectEvent() override;
 
-  protected:
-    virtual void MakeTable() = 0;
+protected:
+	virtual void MakeTable() = 0;
 
-    bool GetSignal(int pin) const override     = 0;
-    void SetSignal(int pin, bool ast) override = 0;
-    bool WaitSignal(int pin, bool ast);
+	bool GetSignal(int pin) const override     = 0;
+	void SetSignal(int pin, bool ast) override = 0;
+	bool WaitSignal(int pin, bool ast);
 
-    // Wait for a signal to change
-    virtual bool WaitREQ(bool ast) = 0;
-    virtual bool WaitACK(bool ast) = 0;
+	// Wait for a signal to change
+	virtual bool WaitREQ(bool ast) = 0;
+	virtual bool WaitACK(bool ast) = 0;
 
-    // Interrupt control
-    virtual void EnableIRQ()  = 0;
-    virtual void DisableIRQ() = 0;
+	// Interrupt control
+	virtual void EnableIRQ()  = 0;
+	virtual void DisableIRQ() = 0;
 
-    // Set GPIO output signal
-    virtual void PinSetSignal(int pin, bool ast) = 0;
-    // Set GPIO drive strength
-    virtual void DrvConfig(uint32_t drive) = 0;
+	// Set GPIO output signal
+	virtual void PinSetSignal(int pin, bool ast) = 0;
+	// Set GPIO drive strength
+	virtual void DrvConfig(uint32_t drive) = 0;
 
-    // Operation mode
-    mode_e actmode = mode_e::TARGET;
+	// Operation mode
+	mode_e actmode = mode_e::TARGET;
 
 #ifdef __linux__
-    // SEL signal event request
-    struct gpioevent_request selevreq = {};
-    // epoll file descriptor
-    int epfd = 0;
+	// SEL signal event request
+	struct gpioevent_request selevreq = {};
+	// epoll file descriptor
+	int epfd = 0;
 
 #endif
 };

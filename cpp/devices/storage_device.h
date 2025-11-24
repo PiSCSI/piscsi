@@ -47,7 +47,7 @@ public:
 
 	static auto GetReservedFiles() { return reserved_files; }
 	static void SetReservedFiles(const unordered_map<string, id_set, piscsi_util::StringHash, equal_to<>>& r)
-		{ reserved_files = r; }
+	{ reserved_files = r; }
 	static id_set GetIdsForReservedFile(const string&);
 
 	static uint32_t CalculateShiftCount(uint32_t);
@@ -63,7 +63,7 @@ public:
 	uint32_t GetConfiguredSectorSize() const;
 
 	virtual void Write(span<const uint8_t>, uint64_t) = 0;
-	virtual int Read(span<uint8_t> , uint64_t) = 0;
+	virtual int Read(span<uint8_t>, uint64_t) = 0;
 protected:
 
 	void ValidateFile();

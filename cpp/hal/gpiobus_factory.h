@@ -14,7 +14,7 @@
 
 class GPIOBUS_Factory
 {
-  public:
+public:
 
-  static unique_ptr<BUS> Create(BUS::mode_e mode);
+	static unique_ptr<BUS> Create(BUS::mode_e mode);
 };

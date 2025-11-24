@@ -55,7 +55,8 @@ phase_t BUS::GetPhase()
 //	Determine Phase String phase enum
 //
 //---------------------------------------------------------------------------
-const char* BUS::GetPhaseStrRaw(phase_t current_phase) {
+const char *BUS::GetPhaseStrRaw(phase_t current_phase)
+{
 	const auto& it = phase_str_mapping.find(current_phase);
 	return it != phase_str_mapping.end() ? it->second : "INVALID";
 }
@@ -74,14 +75,14 @@ const char* BUS::GetPhaseStrRaw(phase_t current_phase) {
 // | 1 | 1 | 0 | MESSAGE OUT
 // | 1 | 1 | 1 | MESSAGE IN
 const array<phase_t, 8> BUS::phase_table = {
-    phase_t::dataout,
-    phase_t::datain,
-    phase_t::command,
-    phase_t::status,
-    phase_t::reserved,
-    phase_t::reserved,
-    phase_t::msgout,
-    phase_t::msgin
+	phase_t::dataout,
+	phase_t::datain,
+	phase_t::command,
+	phase_t::status,
+	phase_t::reserved,
+	phase_t::reserved,
+	phase_t::msgout,
+	phase_t::msgin
 };
 
 //---------------------------------------------------------------------------
@@ -89,7 +90,7 @@ const array<phase_t, 8> BUS::phase_table = {
 // Phase string to phase mapping
 //
 //---------------------------------------------------------------------------
-const unordered_map<phase_t, const char*> BUS::phase_str_mapping = {
+const unordered_map<phase_t, const char *> BUS::phase_str_mapping = {
 	{ phase_t::busfree, "busfree" },
 	{ phase_t::arbitration, "arbitration" },
 	{ phase_t::selection, "selection" },

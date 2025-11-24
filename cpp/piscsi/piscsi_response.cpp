@@ -43,6 +43,7 @@ void PiscsiResponse::GetDeviceProperties(shared_ptr<Device> device, PbDeviceProp
 	}
 
 	shared_ptr<Disk> disk = dynamic_pointer_cast<Disk>(device);
+
 	if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 		for (const auto& sector_size : disk->GetSupportedSectorSizes()) {
 			properties.add_block_sizes(sector_size);
@@ -61,6 +62,7 @@ void PiscsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 void PiscsiResponse::GetDeviceTypesInfo(PbDeviceTypesInfo& device_types_info) const
 {
 	int ordinal = 1;
+
 	while (PbDeviceType_IsValid(ordinal)) {
 		// Only report device types supported by the factory
 		if (const auto device = device_factory.CreateDevice(static_cast<PbDeviceType>(ordinal), 0, ""); device) {
@@ -68,6 +70,7 @@ void PiscsiResponse::GetDeviceTypesInfo(PbDeviceTypesInfo& device_types_info) co
 			type_properties->set_type(device->GetType());
 			GetDeviceProperties(device, *type_properties->mutable_properties());
 		}
+
 		++ordinal;
 	}
 }
@@ -81,9 +84,9 @@ void PiscsiResponse::GetDevice(shared_ptr<Device> device, PbDevice& pb_device, c
 	pb_device.set_revision(device->GetRevision());
 	pb_device.set_type(device->GetType());
 
-    GetDeviceProperties(device, *pb_device.mutable_properties());
+	GetDeviceProperties(device, *pb_device.mutable_properties());
 
-    auto status = pb_device.mutable_status();
+	auto status = pb_device.mutable_status();
 	status->set_protected_(device->IsProtected());
 	status->set_stopped(device->IsStopped());
 	status->set_removed(device->IsRemoved());
@@ -95,12 +98,13 @@ void PiscsiResponse::GetDevice(shared_ptr<Device> device, PbDevice& pb_device, c
 		}
 	}
 
-    if (const auto disk = dynamic_pointer_cast<const Disk>(device); disk) {
-    	pb_device.set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
-    	pb_device.set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
-    }
+	if (const auto disk = dynamic_pointer_cast<const Disk>(device); disk) {
+		pb_device.set_block_size(device->IsRemoved() ? 0 : disk->GetSectorSizeInBytes());
+		pb_device.set_block_count(device->IsRemoved() ? 0 : disk->GetBlockCount());
+	}
 
-    const auto storage_device = dynamic_pointer_cast<const StorageDevice>(device);
+	const auto storage_device = dynamic_pointer_cast<const StorageDevice>(device);
+
 	if (storage_device != nullptr) {
 		GetImageFile(*pb_device.mutable_file(), default_folder, device->IsReady() ? storage_device->GetFilename() : "");
 	}
@@ -117,6 +121,7 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 		image_file.set_read_only(access(p.c_str(), W_OK));
 
 		error_code error;
+
 		if (is_regular_file(p, error) || (is_symlink(p, error) && !is_block_file(p, error))) {
 			image_file.set_size(file_size(p));
 			return true;
@@ -127,9 +132,10 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 }
 
 void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_folder,
-		const string& folder_pattern, const string& file_pattern, int scan_depth) const
+                                        const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	const path default_path(default_folder);
+
 	if (!is_directory(default_path)) {
 		return;
 	}
@@ -141,7 +147,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	ranges::transform(file_pattern, back_inserter(file_pattern_lower), ::tolower);
 
 	for (auto it = recursive_directory_iterator(default_path, directory_options::follow_directory_symlink);
-		it != recursive_directory_iterator(); it++) {
+	        it != recursive_directory_iterator(); it++) {
 		if (it.depth() > scan_depth) {
 			it.disable_recursion_pending();
 			continue;
@@ -151,7 +157,8 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 
 		const string folder = parent.size() > default_folder.size() ? parent.substr(default_folder.size() + 1) : "";
 
-		if (!FilterMatches(folder, folder_pattern_lower) || !FilterMatches(it->path().filename().string(), file_pattern_lower)) {
+		if (!FilterMatches(folder, folder_pattern_lower)
+		        || !FilterMatches(it->path().filename().string(), file_pattern_lower)) {
 			continue;
 		}
 
@@ -160,7 +167,8 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		}
 
 		const string filename = folder.empty() ?
-				it->path().filename().string() : folder + "/" + it->path().filename().string();
+		                        it->path().filename().string() : folder + "/" + it->path().filename().string();
+
 		if (PbImageFile image_file; GetImageFile(image_file, default_folder, filename)) {
 			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
@@ -168,7 +176,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 }
 
 void PiscsiResponse::GetImageFilesInfo(PbImageFilesInfo& image_files_info, const string& default_folder,
-		const string& folder_pattern, const string& file_pattern, int scan_depth) const
+                                       const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	image_files_info.set_default_image_folder(default_folder);
 	image_files_info.set_depth(scan_depth);
@@ -177,7 +185,7 @@ void PiscsiResponse::GetImageFilesInfo(PbImageFilesInfo& image_files_info, const
 }
 
 void PiscsiResponse::GetAvailableImages(PbServerInfo& server_info, const string& default_folder,
-		const string& folder_pattern, const string& file_pattern, int scan_depth) const
+                                        const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	server_info.mutable_image_files_info()->set_default_image_folder(default_folder);
 
@@ -192,7 +200,7 @@ void PiscsiResponse::GetReservedIds(PbReservedIdsInfo& reserved_ids_info, const 
 }
 
 void PiscsiResponse::GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbServerInfo& server_info,
-		const string& default_folder) const
+                                const string& default_folder) const
 {
 	for (const auto& device : devices) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
@@ -201,7 +209,7 @@ void PiscsiResponse::GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>& 
 }
 
 void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbResult& result,
-		const PbCommand& command, const string& default_folder) const
+                                    const PbCommand& command, const string& default_folder) const
 {
 	set<id_set> id_sets;
 
@@ -214,12 +222,14 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 	// Otherwise get information on the devices provided in the command
 	else {
 		id_sets = MatchDevices(devices, result, command);
+
 		if (id_sets.empty()) {
 			return;
 		}
 	}
 
 	auto devices_info = result.mutable_devices_info();
+
 	for (const auto& [id, lun] : id_sets) {
 		for (const auto& d : devices) {
 			if (d->GetId() == id && d->GetLun() == lun) {
@@ -233,11 +243,12 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 }
 
 void PiscsiResponse::GetServerInfo(PbServerInfo& server_info, const PbCommand& command,
-		const unordered_set<shared_ptr<PrimaryDevice>>& devices, const unordered_set<int>& reserved_ids,
-		const string& default_folder, int scan_depth) const
+                                   const unordered_set<shared_ptr<PrimaryDevice>>& devices, const unordered_set<int>& reserved_ids,
+                                   const string& default_folder, int scan_depth) const
 {
 	const vector<string> command_operations = Split(GetParam(command, "operations"), ',');
 	set<string, less<>> operations;
+
 	for (const string& operation : command_operations) {
 		string op;
 		ranges::transform(operation, back_inserter(op), ::toupper);
@@ -262,7 +273,7 @@ void PiscsiResponse::GetServerInfo(PbServerInfo& server_info, const PbCommand& c
 
 	if (HasOperation(operations, PbOperation::DEFAULT_IMAGE_FILES_INFO)) {
 		GetAvailableImages(server_info, default_folder, GetParam(command, "folder_pattern"),
-				GetParam(command, "file_pattern"), scan_depth);
+		                   GetParam(command, "file_pattern"), scan_depth);
 	}
 
 	if (HasOperation(operations, PbOperation::NETWORK_INTERFACES_INFO)) {
@@ -321,7 +332,7 @@ void PiscsiResponse::GetMappingInfo(PbMappingInfo& mapping_info) const
 }
 
 void PiscsiResponse::GetStatisticsInfo(PbStatisticsInfo& statistics_info,
-		const unordered_set<shared_ptr<PrimaryDevice>>& devices) const
+                                       const unordered_set<shared_ptr<PrimaryDevice>>& devices) const
 {
 	for (const auto& device : devices) {
 		for (const auto& statistics : device->GetStatistics()) {
@@ -361,9 +372,11 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 	CreateOperation(operation_info, UNPROTECT, "Unprotect medium, device-specific parameters are required");
 
 	operation = CreateOperation(operation_info, SERVER_INFO, "Get piscsi server information");
+
 	if (depth) {
 		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
+
 	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
 	CreateOperation(operation_info, VERSION_INFO, "Get piscsi server version");
@@ -373,9 +386,11 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 	CreateOperation(operation_info, DEVICE_TYPES_INFO, "Get device properties by device type");
 
 	operation = CreateOperation(operation_info, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
+
 	if (depth) {
 		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
+
 	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
 	operation = CreateOperation(operation_info, IMAGE_FILE_INFO, "Get information on image file");
@@ -401,6 +416,7 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 	AddOperationParameter(*operation, "ids", "Comma-separated device ID list", "", true);
 
 	operation = CreateOperation(operation_info, SHUT_DOWN, "Shut down or reboot");
+
 	if (getuid()) {
 		AddOperationParameter(*operation, "mode", "Shutdown mode", "", true, { "rascsi" } );
 	}
@@ -440,7 +456,7 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 
 // This method returns a raw pointer because protobuf does not have support for smart pointers
 PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
-		const string& description) const
+        const string& description) const
 {
 	PbOperationMetaData meta_data;
 	meta_data.set_server_side_name(PbOperation_Name(operation));
@@ -451,26 +467,28 @@ PbOperationMetaData *PiscsiResponse::CreateOperation(PbOperationInfo& operation_
 }
 
 void PiscsiResponse::AddOperationParameter(PbOperationMetaData& meta_data, const string& name,
-		const string& description, const string& default_value, bool is_mandatory,
-		const vector<string>& permitted_values) const
+        const string& description, const string& default_value, bool is_mandatory,
+        const vector<string>& permitted_values) const
 {
 	auto parameter = meta_data.add_parameters();
 	parameter->set_name(name);
 	parameter->set_description(description);
 	parameter->set_default_value(default_value);
 	parameter->set_is_mandatory(is_mandatory);
+
 	for (const auto& permitted_value : permitted_values) {
 		parameter->add_permitted_values(permitted_value);
 	}
 }
 
 set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbResult& result,
-		const PbCommand& command) const
+        const PbCommand& command) const
 {
 	set<id_set> id_sets;
 
 	for (const auto& device : command.devices()) {
 		bool has_device = false;
+
 		for (const auto& d : devices) {
 			if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
 				id_sets.insert({ device.id(), device.unit() });
@@ -503,6 +521,7 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 	// Follow symlink
 	if (is_symlink(p)) {
 		p = read_symlink(p);
+
 		if (!exists(p)) {
 			spdlog::warn("Image file symlink '" + path.string() + "' is broken");
 			return false;

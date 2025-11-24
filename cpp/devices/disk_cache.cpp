@@ -31,7 +31,7 @@ bool DiskCache::Save()
 {
 	// Save valid tracks
 	return ranges::none_of(cache.begin(), cache.end(), [this](const cache_t& c)
-			{ return c.disktrk != nullptr && !c.disktrk->Save(sec_path, cache_miss_write_count); });
+	{ return c.disktrk != nullptr && !c.disktrk->Save(sec_path, cache_miss_write_count); });
 }
 
 shared_ptr<DiskTrack> DiskCache::GetTrack(uint64_t block)
@@ -49,6 +49,7 @@ shared_ptr<DiskTrack> DiskCache::GetTrack(uint64_t block)
 bool DiskCache::ReadSector(span<uint8_t> buf, uint64_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
+
 	if (disktrk == nullptr) {
 		return false;
 	}
@@ -60,6 +61,7 @@ bool DiskCache::ReadSector(span<uint8_t> buf, uint64_t block)
 bool DiskCache::WriteSector(span<const uint8_t> buf, uint64_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
+
 	if (disktrk == nullptr) {
 		return false;
 	}
@@ -152,6 +154,7 @@ bool DiskCache::Load(int index, int64_t track, shared_ptr<DiskTrack> disktrk)
 	// Get the number of sectors on this track
 	int64_t sectors = sec_blocks - (track << 8);
 	assert(sectors > 0);
+
 	if (sectors > 0x100) {
 		sectors = 0x100;
 	}
@@ -179,6 +182,7 @@ void DiskCache::UpdateSerialNumber()
 {
 	// Update and do nothing except 0
 	serial++;
+
 	if (serial != 0) {
 		return;
 	}

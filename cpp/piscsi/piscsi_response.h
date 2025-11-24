@@ -36,7 +36,7 @@ public:
 	void GetDeviceTypesInfo(PbDeviceTypesInfo&) const;
 	void GetVersionInfo(PbVersionInfo&) const;
 	void GetServerInfo(PbServerInfo&, const PbCommand&, const unordered_set<shared_ptr<PrimaryDevice>>&,
-			const unordered_set<int>&, const string&, int) const;
+	                   const unordered_set<int>&, const string&, int) const;
 	void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo&) const;
 	void GetMappingInfo(PbMappingInfo&) const;
 	void GetLogLevelInfo(PbLogLevelInfo&) const;
@@ -56,7 +56,7 @@ private:
 	void GetAvailableImages(PbServerInfo&, const string&, const string&, const string&, int) const;
 	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	void AddOperationParameter(PbOperationMetaData&, const string&, const string&,
-			const string& = "", bool = false, const vector<string>& = EMPTY_VECTOR) const;
+	                           const string& = "", bool = false, const vector<string>& = EMPTY_VECTOR) const;
 	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 
 	static bool ValidateImageFile(const path&);

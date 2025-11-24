@@ -35,25 +35,25 @@ public:
 private:
 
 	const inline static unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> EXTENSION_MAPPING = {
-			{ "hd1", SCHD },
-			{ "hds", SCHD },
-			{ "hda", SCHD },
-			{ "hdn", SCHD },
-			{ "hdi", SCHD },
-			{ "nhd", SCHD },
-			{ "hdr", SCRM },
-			{ "mos", SCMO },
-			{ "is1", SCCD },
-			{ "iso", SCCD },
-			{ "cdr", SCCD },
-			{ "toast", SCCD },
-			{ "tar", SCTP },
-			{ "tap", SCTP },
+		{ "hd1", SCHD },
+		{ "hds", SCHD },
+		{ "hda", SCHD },
+		{ "hdn", SCHD },
+		{ "hdi", SCHD },
+		{ "nhd", SCHD },
+		{ "hdr", SCRM },
+		{ "mos", SCMO },
+		{ "is1", SCCD },
+		{ "iso", SCCD },
+		{ "cdr", SCCD },
+		{ "toast", SCCD },
+		{ "tar", SCTP },
+		{ "tap", SCTP },
 	};
 
 	const inline static unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> DEVICE_MAPPING = {
-			{ "daynaport", SCDP },
-			{ "printer", SCLP },
-			{ "services", SCHS }
+		{ "daynaport", SCDP },
+		{ "printer", SCLP },
+		{ "services", SCHS }
 	};
 };

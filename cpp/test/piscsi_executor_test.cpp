@@ -51,7 +51,8 @@ TEST(PiscsiExecutorTest, ProcessDeviceCmd)
 
 	command.set_operation(ATTACH);
 	CommandContext context_attach(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_attach, definition, true)) << "Operation for unknown device type must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_attach, definition,
+	                                        true)) << "Operation for unknown device type must fail";
 
 	auto device1 = make_shared<MockPrimaryDevice>(LUN);
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device1));
@@ -59,7 +60,8 @@ TEST(PiscsiExecutorTest, ProcessDeviceCmd)
 	definition.set_type(SCHS);
 	command.set_operation(INSERT);
 	CommandContext context_insert1(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert1, definition, true)) << "Operation unsupported by device must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert1, definition,
+	                                        true)) << "Operation unsupported by device must fail";
 	controller_manager.DeleteAllControllers();
 	definition.set_type(SCRM);
 

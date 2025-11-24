@@ -56,12 +56,14 @@ bool SCSIDaynaPort::Init(const param_map& params)
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	tap_enabled = tap.Init(GetParams());
+
 	if (!tap_enabled) {
 // Not terminating on regular Linux PCs is helpful for testing
 #if !defined(__x86_64__) && !defined(__X86__)
 		return false;
 #endif
-	} else {
+	}
+	else {
 		LogTrace("Tap interface created");
 	}
 
@@ -140,6 +142,7 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 	// TODO send_message_to_host is effctively always true
 	bool send_message_to_host;
 	int read_count = 0;
+
 	while (read_count < MAX_READ_RETRIES) {
 		read_count++;
 
@@ -156,7 +159,7 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 			return DAYNAPORT_READ_HEADER_SZ;
 		}
 
-        byte_read_count += rx_packet_size;
+		byte_read_count += rx_packet_size;
 
 		LogTrace("Packet Size " + to_string(rx_packet_size) + ", read count: " + to_string(read_count));
 
@@ -164,24 +167,24 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 		// being sent to the SCSI initiator.
 		send_message_to_host = false;
 
-	// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
-	// functionality.
-	///////	// Check if received packet destination MAC address matches the
-	///////	// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
-	///////	// of the data.
-	///////	if (memcmp(response->data, m_mac_addr, 6) == 0) {
-	///////		send_message_to_host = true;
-	///////	}
+		// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
+		// functionality.
+		///////	// Check if received packet destination MAC address matches the
+		///////	// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
+		///////	// of the data.
+		///////	if (memcmp(response->data, m_mac_addr, 6) == 0) {
+		///////		send_message_to_host = true;
+		///////	}
 
-	///////	// Check to see if this is a broadcast message
-	///////	if (memcmp(response->data, m_bcast_addr, 6) == 0) {
-	///////		send_message_to_host = true;
-	///////	}
+		///////	// Check to see if this is a broadcast message
+		///////	if (memcmp(response->data, m_bcast_addr, 6) == 0) {
+		///////		send_message_to_host = true;
+		///////	}
 
-	///////	// Check to see if this is an AppleTalk Message
-	///////	if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
-	///////		send_message_to_host = true;
-	///////	}
+		///////	// Check to see if this is an AppleTalk Message
+		///////	if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
+		///////		send_message_to_host = true;
+		///////	}
 		send_message_to_host = true;
 
 		// TODO: We should check to see if this message is in the multicast
@@ -190,9 +193,11 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 		if (!send_message_to_host) {
 			stringstream s;
 			s << "Received a packet that's not for me:" << setfill('0') << setw(2) << hex;
+
 			for (int i = 0 ; i < 6; i++) {
 				s << " $" << static_cast<int>(response->data[i]);
 			}
+
 			LogDebug(s.str());
 
 			// If there are pending packets to be processed, we'll tell the host that the read
@@ -213,16 +218,18 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 			// 	response->flags = e_no_more_data;
 			// }
 			int size = rx_packet_size;
-            if (size < 128) {
-                // A frame must have at least 64 bytes for the Atari driver, see https://github.com/PiSCSI/piscsi/issues/619,
-                // but also works with 128 bytes.
-                // The NetBSD driver requires at least 128 bytes, see https://github.com/PiSCSI/piscsi/issues/1098.
-                // The Mac driver is also fine with 128 bytes.
-                // Note that this work-around breaks the checksum. As currently there are no known drivers
-                // that care for the checksum it was decided to accept the broken checksum.
-                // If a driver should pop up that breaks because of this, the work-around has to be re-evaluated.
-                size = 128;
+
+			if (size < 128) {
+				// A frame must have at least 64 bytes for the Atari driver, see https://github.com/PiSCSI/piscsi/issues/619,
+				// but also works with 128 bytes.
+				// The NetBSD driver requires at least 128 bytes, see https://github.com/PiSCSI/piscsi/issues/1098.
+				// The Mac driver is also fine with 128 bytes.
+				// Note that this work-around breaks the checksum. As currently there are no known drivers
+				// that care for the checksum it was decided to accept the broken checksum.
+				// If a driver should pop up that breaks because of this, the work-around has to be re-evaluated.
+				size = 128;
 			}
+
 			SetInt16(buf, 0, size);
 			SetInt32(buf, 2, tap.HasPendingPackets() ? 0x10 : 0x00);
 
@@ -230,6 +237,7 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t)
 			// The CRC was already appended by the ctapdriver
 			return size + DAYNAPORT_READ_HEADER_SZ;
 		}
+
 		// If we got to this point, there are still messages in the queue, so
 		// we should loop back and get the next one.
 	} // end while
@@ -315,8 +323,8 @@ void SCSIDaynaPort::TestUnitReady()
 void SCSIDaynaPort::Read6()
 {
 	// Get record number and block number
-    const uint32_t record = GetInt24(GetController()->GetCmd(), 1) & 0x1fffff;
-    GetController()->SetBlocks(1);
+	const uint32_t record = GetInt24(GetController()->GetCmd(), 1) & 0x1fffff;
+	GetController()->SetBlocks(1);
 
 	// If any commands have a bogus control value, they were probably not
 	// generated by the DaynaPort driver so ignore them
@@ -414,7 +422,8 @@ void SCSIDaynaPort::SetInterfaceMode() const
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
 	GetController()->SetLength(RetrieveStats(GetController()->GetCmd(), GetController()->GetBuffer()));
-	switch(GetController()->GetCmdByte(5)){
+
+	switch (GetController()->GetCmdByte(5)) {
 		case CMD_SCSILINK_SETMODE:
 			// Not implemented, do nothing
 			EnterStatusPhase();
@@ -437,6 +446,7 @@ void SCSIDaynaPort::SetInterfaceMode() const
 void SCSIDaynaPort::SetMcastAddr() const
 {
 	GetController()->SetLength(GetController()->GetCmdByte(4));
+
 	if (GetController()->GetLength() == 0) {
 		stringstream s;
 		s << "Unsupported SetMcastAddr command: " << setfill('0') << setw(2) << hex << GetController()->GetCmdByte(2);

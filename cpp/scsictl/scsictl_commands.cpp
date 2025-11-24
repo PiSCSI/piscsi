@@ -27,9 +27,9 @@ using namespace piscsi_util;
 using namespace protobuf_util;
 
 bool ScsictlCommands::Execute(string_view log_level, string_view default_folder, string_view reserved_ids,
-		string_view image_params, string_view filename)
+                              string_view image_params, string_view filename)
 {
-	switch(command.operation()) {
+	switch (command.operation()) {
 		case LOG_LEVEL:
 			return CommandLogLevel(log_level);
 
@@ -94,27 +94,30 @@ bool ScsictlCommands::Execute(string_view log_level, string_view default_folder,
 			return SendCommand();
 	}
 
-    return false;
+	return false;
 }
 
 bool ScsictlCommands::SendCommand()
 {
 	sockaddr_in server_addr = {};
+
 	if (!ResolveHostName(hostname, &server_addr)) {
 		throw io_exception("Can't resolve hostname '" + hostname + "'");
 	}
 
 	const int fd = socket(AF_INET, SOCK_STREAM, 0);
+
 	if (fd == -1) {
 		throw io_exception("Can't create socket: " + string(strerror(errno)));
 	}
 
 	server_addr.sin_port = htons(uint16_t(port));
+
 	if (connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
 		close(fd);
 
 		throw io_exception("Can't connect to piscsi on host '" + hostname + "', port " + to_string(port)
-				+ ": " + strerror(errno));
+		                   + ": " + strerror(errno));
 	}
 
 	if (write(fd, "RASCSI", 6) != 6) {
@@ -124,13 +127,13 @@ bool ScsictlCommands::SendCommand()
 	}
 
 	SerializeMessage(fd, command);
-    DeserializeMessage(fd, result);
+	DeserializeMessage(fd, result);
 
-    close(fd);
+	close(fd);
 
-    if (!result.status()) {
-    	throw io_exception(result.msg());
-    }
+	if (!result.status()) {
+		throw io_exception(result.msg());
+	}
 
 	if (!result.msg().empty()) {
 		cout << result.msg() << endl;
@@ -286,7 +289,7 @@ bool ScsictlCommands::CommandServerInfo()
 
 	if (server_info.has_devices_info() && server_info.devices_info().devices_size()) {
 		vector<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
-		ranges::sort(sorted_devices, [](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
+		ranges::sort(sorted_devices, [](const auto & a, const auto & b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 		cout << "Attached devices:\n";
 

@@ -62,9 +62,9 @@ public:
 	MOCK_METHOD(bool, PollSelectEvent, (), (override));
 	MOCK_METHOD(unique_ptr<DataSample>, GetSample, (uint64_t), (override));
 	MOCK_METHOD(void, PinConfig, (int, int), (override));
-    MOCK_METHOD(void, PullConfig, (int , int ), (override));
-    MOCK_METHOD(void, SetControl, (int , bool ), (override));
-    MOCK_METHOD(void, SetMode, (int , int ), (override));
+	MOCK_METHOD(void, PullConfig, (int, int ), (override));
+	MOCK_METHOD(void, SetControl, (int, bool ), (override));
+	MOCK_METHOD(void, SetMode, (int, int ), (override));
 
 	MockBus() = default;
 	~MockBus() override = default;
@@ -175,10 +175,12 @@ public:
 	MOCK_METHOD(void, MsgOut, (), ());
 
 	MockAbstractController() : AbstractController(*mock_bus, 0, 32) {}
-	explicit MockAbstractController(int target_id) : AbstractController(*mock_bus, target_id, 32) {
+	explicit MockAbstractController(int target_id) : AbstractController(*mock_bus, target_id, 32)
+	{
 		AllocateBuffer(512);
 	}
-	MockAbstractController(shared_ptr<BUS> bus, int target_id) : AbstractController(*bus, target_id, 32) {
+	MockAbstractController(shared_ptr<BUS> bus, int target_id) : AbstractController(*bus, target_id, 32)
+	{
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
@@ -264,7 +266,8 @@ public:
 	MockModePageDevice() : ModePageDevice(UNDEFINED, 0) {}
 	~MockModePageDevice() override = default;
 
-	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override {
+	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override
+	{
 		// Return dummy data for other pages than page 0
 		if (page) {
 			vector<byte> buf(32);
@@ -281,7 +284,8 @@ public:
 
 	using MockModePageDevice::MockModePageDevice;
 
-	void SetUpModePages(map<int, vector<byte>>& pages, int, bool) const override {
+	void SetUpModePages(map<int, vector<byte>>& pages, int, bool) const override
+	{
 		// Return dummy data for pages 0 and 1
 		vector<byte> buf(32);
 		pages[0] = buf;
@@ -301,8 +305,8 @@ public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
-	MOCK_METHOD(void ,Write, (span<const uint8_t>, uint64_t), (override));
-	MOCK_METHOD(int , Read, (span<uint8_t>, uint64_t), (override));
+	MOCK_METHOD(void, Write, (span<const uint8_t>, uint64_t), (override));
+	MOCK_METHOD(int, Read, (span<uint8_t>, uint64_t), (override));
 
 	MOCK_METHOD(int, ModeSense6, (span<const int>, vector<uint8_t>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (span<const int>, vector<uint8_t>&), (const override));

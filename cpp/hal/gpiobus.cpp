@@ -25,12 +25,12 @@ using namespace std;
 
 bool GPIOBUS::Init(mode_e mode)
 {
-    GPIO_FUNCTION_TRACE
+	GPIO_FUNCTION_TRACE
 
-    // Save operation mode
-    actmode = mode;
+	// Save operation mode
+	actmode = mode;
 
-    return true;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -38,124 +38,126 @@ bool GPIOBUS::Init(mode_e mode)
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
+int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 {
-    // Only works in TARGET mode
+	// Only works in TARGET mode
 	assert(actmode == mode_e::TARGET);
 
 	GPIO_FUNCTION_TRACE
 
-    DisableIRQ();
+	DisableIRQ();
 
-    // Assert REQ signal
-    SetREQ(ON);
+	// Assert REQ signal
+	SetREQ(ON);
 
-    // Wait for ACK signal
-    bool ret = WaitACK(ON);
+	// Wait for ACK signal
+	bool ret = WaitACK(ON);
 
-    // Wait until the signal line stabilizes
-    SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+	// Wait until the signal line stabilizes
+	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
-    // Get data
-    buf[0] = GetDAT();
+	// Get data
+	buf[0] = GetDAT();
 
-    // Disable REQ signal
-    SetREQ(OFF);
+	// Disable REQ signal
+	SetREQ(OFF);
 
-    // Timeout waiting for ACK assertion
-    if (!ret) {
-        EnableIRQ();
-        return 0;
-    }
+	// Timeout waiting for ACK assertion
+	if (!ret) {
+		EnableIRQ();
+		return 0;
+	}
 
-    // Wait for ACK to clear
-    ret = WaitACK(OFF);
+	// Wait for ACK to clear
+	ret = WaitACK(OFF);
 
-    // Timeout waiting for ACK to clear
-    if (!ret) {
-        EnableIRQ();
-        return 0;
-    }
+	// Timeout waiting for ACK to clear
+	if (!ret) {
+		EnableIRQ();
+		return 0;
+	}
 
-    // The ICD AdSCSI ST, AdSCSI Plus ST and AdSCSI Micro ST host adapters allow SCSI devices to be connected
-    // to the ACSI bus of Atari ST/TT computers and some clones. ICD-aware drivers prepend a $1F byte in front
-    // of the CDB (effectively resulting in a custom SCSI command) in order to get access to the full SCSI
-    // command set. Native ACSI is limited to the low SCSI command classes with command bytes < $20.
-    // Most other host adapters (e.g. LINK96/97 and the one by Inventronik) and also several devices (e.g.
-    // UltraSatan or GigaFile) that can directly be connected to the Atari's ACSI port also support ICD
-    // semantics. I fact, these semantics have become a standard in the Atari world.
+	// The ICD AdSCSI ST, AdSCSI Plus ST and AdSCSI Micro ST host adapters allow SCSI devices to be connected
+	// to the ACSI bus of Atari ST/TT computers and some clones. ICD-aware drivers prepend a $1F byte in front
+	// of the CDB (effectively resulting in a custom SCSI command) in order to get access to the full SCSI
+	// command set. Native ACSI is limited to the low SCSI command classes with command bytes < $20.
+	// Most other host adapters (e.g. LINK96/97 and the one by Inventronik) and also several devices (e.g.
+	// UltraSatan or GigaFile) that can directly be connected to the Atari's ACSI port also support ICD
+	// semantics. I fact, these semantics have become a standard in the Atari world.
 
-    // PiSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
-    if (buf[0] == 0x1F) {
-        SetREQ(ON);
+	// PiSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
+	if (buf[0] == 0x1F) {
+		SetREQ(ON);
 
-        ret = WaitACK(ON);
+		ret = WaitACK(ON);
 
-        SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
-        // Get the actual SCSI command
-        buf[0] = GetDAT();
+		// Get the actual SCSI command
+		buf[0] = GetDAT();
 
-        SetREQ(OFF);
+		SetREQ(OFF);
 
-        if (!ret) {
-            EnableIRQ();
-            return 0;
-        }
+		if (!ret) {
+			EnableIRQ();
+			return 0;
+		}
 
-        WaitACK(OFF);
+		WaitACK(OFF);
 
-        if (!ret) {
-            EnableIRQ();
-            return 0;
-        }
-    }
+		if (!ret) {
+			EnableIRQ();
+			return 0;
+		}
+	}
 
-    const int command_byte_count = GetCommandByteCount(buf[0]);
-    if (command_byte_count == 0) {
-        EnableIRQ();
+	const int command_byte_count = GetCommandByteCount(buf[0]);
 
-        return 0;
-    }
+	if (command_byte_count == 0) {
+		EnableIRQ();
 
-    int offset = 0;
+		return 0;
+	}
 
-    int bytes_received;
-    for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
-        ++offset;
+	int offset = 0;
 
-        // Assert REQ signal
-        SetREQ(ON);
+	int bytes_received;
 
-        // Wait for ACK signal
-        ret = WaitACK(ON);
+	for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
+		++offset;
 
-        // Wait until the signal line stabilizes
-        SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+		// Assert REQ signal
+		SetREQ(ON);
 
-        // Get data
-        buf[offset] = GetDAT();
+		// Wait for ACK signal
+		ret = WaitACK(ON);
 
-        // Clear the REQ signal
-        SetREQ(OFF);
+		// Wait until the signal line stabilizes
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
-        // Check for timeout waiting for ACK assertion
-        if (!ret) {
-            break;
-        }
+		// Get data
+		buf[offset] = GetDAT();
 
-        // Wait for ACK to clear
-        ret = WaitACK(OFF);
+		// Clear the REQ signal
+		SetREQ(OFF);
 
-        // Check for timeout waiting for ACK to clear
-        if (!ret) {
-            break;
-        }
-    }
+		// Check for timeout waiting for ACK assertion
+		if (!ret) {
+			break;
+		}
 
-    EnableIRQ();
+		// Wait for ACK to clear
+		ret = WaitACK(OFF);
 
-    return bytes_received;
+		// Check for timeout waiting for ACK to clear
+		if (!ret) {
+			break;
+		}
+	}
+
+	EnableIRQ();
+
+	return bytes_received;
 }
 
 //---------------------------------------------------------------------------
@@ -165,101 +167,104 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 //---------------------------------------------------------------------------
 int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
-    GPIO_FUNCTION_TRACE
-    int i;
+	GPIO_FUNCTION_TRACE
+	int i;
 
-    // Disable IRQs
-    DisableIRQ();
+	// Disable IRQs
+	DisableIRQ();
 
-    if (actmode == mode_e::TARGET) {
-        for (i = 0; i < count; i++) {
-            // Assert the REQ signal
-            SetREQ(ON);
+	if (actmode == mode_e::TARGET) {
+		for (i = 0; i < count; i++) {
+			// Assert the REQ signal
+			SetREQ(ON);
 
-            // Wait for ACK
-            bool ret = WaitACK(ON);
+			// Wait for ACK
+			bool ret = WaitACK(ON);
 
-            // Wait until the signal line stabilizes
-            SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+			// Wait until the signal line stabilizes
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
-            // Get data
-            *buf = GetDAT();
+			// Get data
+			*buf = GetDAT();
 
-            // Clear the REQ signal
-            SetREQ(OFF);
+			// Clear the REQ signal
+			SetREQ(OFF);
 
-            // Check for timeout waiting for ACK signal
-            if (!ret) {
-                break;
-            }
+			// Check for timeout waiting for ACK signal
+			if (!ret) {
+				break;
+			}
 
-            // Wait for ACK to clear
-            ret = WaitACK(OFF);
+			// Wait for ACK to clear
+			ret = WaitACK(OFF);
 
-            // Check for timeout waiting for ACK to clear
-            if (!ret) {
-                break;
-            }
+			// Check for timeout waiting for ACK to clear
+			if (!ret) {
+				break;
+			}
 
-            // Advance the buffer pointer to receive the next byte
-            buf++;
-        }
-    } else {
-        // Get phase
-        Acquire();
-        phase_t phase = GetPhase();
+			// Advance the buffer pointer to receive the next byte
+			buf++;
+		}
+	}
+	else {
+		// Get phase
+		Acquire();
+		phase_t phase = GetPhase();
 
-        for (i = 0; i < count; i++) {
-            // Wait for the REQ signal to be asserted
-            bool ret = WaitREQ(ON);
+		for (i = 0; i < count; i++) {
+			// Wait for the REQ signal to be asserted
+			bool ret = WaitREQ(ON);
 
-            // Check for timeout waiting for REQ signal
-            if (!ret) {
-                break;
-            }
+			// Check for timeout waiting for REQ signal
+			if (!ret) {
+				break;
+			}
 
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
-                break;
-            }
+			// Phase error
+			Acquire();
 
-            // Wait until the signal line stabilizes
-            SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+			if (GetPhase() != phase) {
+				break;
+			}
 
-            // Get data
-            *buf = GetDAT();
+			// Wait until the signal line stabilizes
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
-            // Assert the ACK signal
-            SetACK(ON);
+			// Get data
+			*buf = GetDAT();
 
-            // Wait for REQ to clear
-            ret = WaitREQ(OFF);
+			// Assert the ACK signal
+			SetACK(ON);
 
-            // Clear the ACK signal
-            SetACK(OFF);
+			// Wait for REQ to clear
+			ret = WaitREQ(OFF);
 
-            // Check for timeout waiting for REQ to clear
-            if (!ret) {
-                break;
-            }
+			// Clear the ACK signal
+			SetACK(OFF);
 
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
-                break;
-            }
+			// Check for timeout waiting for REQ to clear
+			if (!ret) {
+				break;
+			}
 
-            // Advance the buffer pointer to receive the next byte
-            buf++;
-        }
-    }
+			// Phase error
+			Acquire();
 
-    // Re-enable IRQ
-    EnableIRQ();
+			if (GetPhase() != phase) {
+				break;
+			}
 
-    // Return the number of bytes received
-    return i;
+			// Advance the buffer pointer to receive the next byte
+			buf++;
+		}
+	}
+
+	// Re-enable IRQ
+	EnableIRQ();
+
+	// Return the number of bytes received
+	return i;
 }
 
 //---------------------------------------------------------------------------
@@ -269,116 +274,119 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 //---------------------------------------------------------------------------
 int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 {
-    GPIO_FUNCTION_TRACE
-    int i;
+	GPIO_FUNCTION_TRACE
+	int i;
 
-    // Disable IRQs
-    DisableIRQ();
+	// Disable IRQs
+	DisableIRQ();
 
-    if (actmode == mode_e::TARGET) {
-        for (i = 0; i < count; i++) {
-            if (i == delay_after_bytes) {
-                spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_NS) + " ns after " +
-                		to_string(delay_after_bytes) + " bytes");
-                EnableIRQ();
-                const timespec ts = { .tv_sec = 0, .tv_nsec = SCSI_DELAY_SEND_DATA_DAYNAPORT_NS};
-                nanosleep(&ts, nullptr);
-                DisableIRQ();
-            }
+	if (actmode == mode_e::TARGET) {
+		for (i = 0; i < count; i++) {
+			if (i == delay_after_bytes) {
+				spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_NS) + " ns after " +
+				              to_string(delay_after_bytes) + " bytes");
+				EnableIRQ();
+				const timespec ts = { .tv_sec = 0, .tv_nsec = SCSI_DELAY_SEND_DATA_DAYNAPORT_NS};
+				nanosleep(&ts, nullptr);
+				DisableIRQ();
+			}
 
-            // Set the DATA signals
-            SetDAT(*buf);
+			// Set the DATA signals
+			SetDAT(*buf);
 
-            // Wait for ACK to clear
-            bool ret = WaitACK(OFF);
+			// Wait for ACK to clear
+			bool ret = WaitACK(OFF);
 
-            // Check for timeout waiting for ACK to clear
-            if (!ret) {
-                break;
-            }
+			// Check for timeout waiting for ACK to clear
+			if (!ret) {
+				break;
+			}
 
-            // Already waiting for ACK to clear
+			// Already waiting for ACK to clear
 
-            // Assert the REQ signal
-            SetREQ(ON);
+			// Assert the REQ signal
+			SetREQ(ON);
 
-            // Wait for ACK
-            ret = WaitACK(ON);
+			// Wait for ACK
+			ret = WaitACK(ON);
 
-            // Clear REQ signal
-            SetREQ(OFF);
+			// Clear REQ signal
+			SetREQ(OFF);
 
-            // Check for timeout waiting for ACK to clear
-            if (!ret) {
-                break;
-            }
+			// Check for timeout waiting for ACK to clear
+			if (!ret) {
+				break;
+			}
 
-            // Advance the data buffer pointer to receive the next byte
-            buf++;
-        }
+			// Advance the data buffer pointer to receive the next byte
+			buf++;
+		}
 
-        // Wait for ACK to clear
-        WaitACK(OFF);
-    } else {
-        // Get Phase
-        Acquire();
-        phase_t phase = GetPhase();
+		// Wait for ACK to clear
+		WaitACK(OFF);
+	}
+	else {
+		// Get Phase
+		Acquire();
+		phase_t phase = GetPhase();
 
-        for (i = 0; i < count; i++) {
-            // Set the DATA signals
-            SetDAT(*buf);
+		for (i = 0; i < count; i++) {
+			// Set the DATA signals
+			SetDAT(*buf);
 
-            // Wait for REQ to be asserted
-            bool ret = WaitREQ(ON);
+			// Wait for REQ to be asserted
+			bool ret = WaitREQ(ON);
 
-            // Check for timeout waiting for REQ to be asserted
-            if (!ret) {
-                break;
-            }
+			// Check for timeout waiting for REQ to be asserted
+			if (!ret) {
+				break;
+			}
 
-           	// Signal the last MESSAGE OUT byte
-            if (phase == phase_t::msgout && i == count - 1) {
-            	SetATN(false);
-            }
+			// Signal the last MESSAGE OUT byte
+			if (phase == phase_t::msgout && i == count - 1) {
+				SetATN(false);
+			}
 
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
-                break;
-            }
+			// Phase error
+			Acquire();
 
-            // Already waiting for REQ assertion
+			if (GetPhase() != phase) {
+				break;
+			}
 
-            // Assert the ACK signal
-            SetACK(ON);
+			// Already waiting for REQ assertion
 
-            // Wait for REQ to clear
-            ret = WaitREQ(OFF);
+			// Assert the ACK signal
+			SetACK(ON);
 
-            // Clear the ACK signal
-            SetACK(OFF);
+			// Wait for REQ to clear
+			ret = WaitREQ(OFF);
 
-            // Check for timeout waiting for REQ to clear
-            if (!ret) {
-                break;
-            }
+			// Clear the ACK signal
+			SetACK(OFF);
 
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
-                break;
-            }
+			// Check for timeout waiting for REQ to clear
+			if (!ret) {
+				break;
+			}
 
-            // Advance the data buffer pointer to receive the next byte
-            buf++;
-        }
-    }
+			// Phase error
+			Acquire();
 
-    // Re-enable IRQ
-    EnableIRQ();
+			if (GetPhase() != phase) {
+				break;
+			}
 
-    // Return number of transmissions
-    return i;
+			// Advance the data buffer pointer to receive the next byte
+			buf++;
+		}
+	}
+
+	// Re-enable IRQ
+	EnableIRQ();
+
+	// Return number of transmissions
+	return i;
 }
 
 //---------------------------------------------------------------------------
@@ -389,42 +397,43 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 bool GPIOBUS::PollSelectEvent()
 {
 #ifndef USE_SEL_EVENT_ENABLE
-    return false;
+	return false;
 #else
-    GPIO_FUNCTION_TRACE
-    errno = 0;
+	GPIO_FUNCTION_TRACE
+	errno = 0;
 
-    if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
-        spdlog::warn("epoll_wait failed");
-        return false;
-    }
+	if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
+		spdlog::warn("epoll_wait failed");
+		return false;
+	}
 
-    if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
-        spdlog::warn("read failed");
-        return false;
-    }
+	if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
+		spdlog::warn("read failed");
+		return false;
+	}
 
-    return true;
+	return true;
 #endif
 }
 
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
-    const auto now = chrono::steady_clock::now();
+	const auto now = chrono::steady_clock::now();
 
-    // Wait up to 3 s
-    do {
-        Acquire();
+	// Wait up to 3 s
+	do {
+		Acquire();
 
-        if (GetSignal(pin) == ast) {
-            return true;
-        }
+		if (GetSignal(pin) == ast) {
+			return true;
+		}
 
-        // Abort on a reset
-        if (GetRST()) {
-            return false;
-        }
-    } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
+		// Abort on a reset
+		if (GetRST()) {
+			return false;
+		}
+	}
+	while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
 
-    return false;
+	return false;
 }

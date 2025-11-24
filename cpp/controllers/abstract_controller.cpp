@@ -14,7 +14,8 @@
 
 using namespace scsi_defs;
 
-AbstractController::AbstractController(BUS& bus, int target_id, int max_luns) : bus(bus), target_id(target_id), max_luns(max_luns)
+AbstractController::AbstractController(BUS& bus, int target_id, int max_luns) : bus(bus), target_id(target_id),
+	max_luns(max_luns)
 {
 	device_logger.SetIdAndLun(target_id, -1);
 }
@@ -35,11 +36,11 @@ void AbstractController::AllocateBuffer(size_t size)
 
 void AbstractController::SetByteTransfer(bool b)
 {
-	 is_byte_transfer = b;
+	is_byte_transfer = b;
 
-	 if (!is_byte_transfer) {
-		 bytes_to_transfer = 0;
-	 }
+	if (!is_byte_transfer) {
+		bytes_to_transfer = 0;
+	}
 }
 
 unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
@@ -47,12 +48,13 @@ unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
 	unordered_set<shared_ptr<PrimaryDevice>> devices;
 
 	// "luns | views:values" is not supported by the bullseye compiler
-	ranges::transform(luns, inserter(devices, devices.begin()), [] (const auto& l) { return l.second; } );
+	ranges::transform(luns, inserter(devices, devices.begin()), [] (const auto & l) { return l.second; } );
 
 	return devices;
 }
 
-shared_ptr<PrimaryDevice> AbstractController::GetDeviceForLun(int lun) const {
+shared_ptr<PrimaryDevice> AbstractController::GetDeviceForLun(int lun) const
+{
 	const auto& it = luns.find(lun);
 	return it == luns.end() ? nullptr : it->second;
 }
@@ -78,6 +80,7 @@ void AbstractController::ProcessOnController(int id_data)
 	device_logger.SetIdAndLun(GetTargetId(), -1);
 
 	const int initiator_id = ExtractInitiatorId(id_data);
+
 	if (initiator_id != UNKNOWN_INITIATOR_ID) {
 		LogTrace("++++ Starting processing for initiator ID " + to_string(initiator_id));
 	}

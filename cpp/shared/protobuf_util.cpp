@@ -81,6 +81,7 @@ string protobuf_util::SetFromGenericParams(PbCommand& command, const string& par
 {
 	for (const string& key_value : Split(params, COMPONENT_SEPARATOR)) {
 		const auto& param = Split(key_value, KEY_VALUE_SEPARATOR, 2);
+
 		if (param.size() > 1 && !param[0].empty()) {
 			SetParam(command, param[0], param[1]);
 		}
@@ -95,6 +96,7 @@ string protobuf_util::SetFromGenericParams(PbCommand& command, const string& par
 void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& data)
 {
 	const auto& components = Split(data, COMPONENT_SEPARATOR, 3);
+
 	switch (components.size()) {
 		case 3:
 			device.set_revision(components[2]);
@@ -117,6 +119,7 @@ string protobuf_util::SetIdAndLun(PbDeviceDefinition& device, const string& valu
 {
 	int id;
 	int lun;
+
 	if (const string error = ProcessId(value, id, lun); !error.empty()) {
 		return error;
 	}
@@ -135,14 +138,15 @@ string protobuf_util::ListDevices(const vector<PbDevice>& pb_devices)
 
 	ostringstream s;
 	s << "+----+-----+------+-------------------------------------\n"
-			<< "| ID | LUN | TYPE | IMAGE FILE\n"
-			<< "+----+-----+------+-------------------------------------\n";
+	  << "| ID | LUN | TYPE | IMAGE FILE\n"
+	  << "+----+-----+------+-------------------------------------\n";
 
 	vector<PbDevice> devices = pb_devices;
-	ranges::sort(devices, [](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
+	ranges::sort(devices, [](const auto & a, const auto & b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 	for (const auto& device : devices) {
 		string filename;
+
 		switch (device.type()) {
 			case SCDP:
 				filename = "DaynaPort SCSI/Link";
@@ -162,9 +166,10 @@ string protobuf_util::ListDevices(const vector<PbDevice>& pb_devices)
 		}
 
 		s << "|  " << device.id() << " | " << setw(3) << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
-				<< (filename.empty() ? "NO MEDIUM" : filename)
-				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
-				<< '\n';
+		  << (filename.empty() ? "NO MEDIUM" : filename)
+		  << (!device.status().removed() && (device.properties().read_only()
+		                                     || device.status().protected_()) ? " (READ-ONLY)" : "")
+		  << '\n';
 	}
 
 	s << "+----+-----+------+-------------------------------------\n";
@@ -185,32 +190,36 @@ void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& me
 
 	// Write the size of the protobuf data as a header
 	const auto size = static_cast<int32_t>(data.length());
-    if (write(fd, &size, sizeof(size)) != sizeof(size)) {
-    	throw io_exception("Can't write protobuf message size");
-    }
 
-    // Write the actual protobuf data
-    if (write(fd, data.data(), size) != size) {
-    	throw io_exception("Can't write protobuf message data");
-    }
+	if (write(fd, &size, sizeof(size)) != sizeof(size)) {
+		throw io_exception("Can't write protobuf message size");
+	}
+
+	// Write the actual protobuf data
+	if (write(fd, data.data(), size) != size) {
+		throw io_exception("Can't write protobuf message data");
+	}
 }
 
 void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& message)
 {
 	// Read the header with the size of the protobuf data
 	array<byte, sizeof(int32_t)> header_buf;
+
 	if (ReadBytes(fd, header_buf) < header_buf.size()) {
 		throw io_exception("Can't read protobuf message size");
 	}
 
 	const int size = (static_cast<int>(header_buf[3]) << 24) + (static_cast<int>(header_buf[2]) << 16)
-			+ (static_cast<int>(header_buf[1]) << 8) + static_cast<int>(header_buf[0]);
+	                 + (static_cast<int>(header_buf[1]) << 8) + static_cast<int>(header_buf[0]);
+
 	if (size < 0) {
 		throw io_exception("Invalid protobuf message size");
 	}
 
 	// Read the binary protobuf data
 	vector<byte> data_buf(size);
+
 	if (ReadBytes(fd, data_buf) != data_buf.size()) {
 		throw io_exception("Invalid protobuf message data");
 	}
@@ -221,8 +230,10 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 size_t protobuf_util::ReadBytes(int fd, span<byte> buf)
 {
 	size_t offset = 0;
+
 	while (offset < buf.size()) {
 		const auto len = read(fd, &buf.data()[offset], buf.size() - offset);
+
 		if (len == -1) {
 			throw io_exception("Read error: " + string(strerror(errno)));
 		}

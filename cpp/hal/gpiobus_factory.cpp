@@ -23,26 +23,29 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
 	unique_ptr<BUS> bus;
 
-    try {
-        SBC_Version::Init();
-        if (SBC_Version::IsRaspberryPi()) {
-        	if (getuid()) {
-        		spdlog::error("GPIO bus access requires root permissions. Are you running as root?");
-        		return nullptr;
-        	}
+	try {
+		SBC_Version::Init();
 
-            bus = make_unique<GPIOBUS_Raspberry>();
-        } else {
-            bus = make_unique<GPIOBUS_Virtual>();
-        }
+		if (SBC_Version::IsRaspberryPi()) {
+			if (getuid()) {
+				spdlog::error("GPIO bus access requires root permissions. Are you running as root?");
+				return nullptr;
+			}
 
-        if (bus->Init(mode)) {
-        	bus->Reset();
-        }
-    } catch (const invalid_argument& e) {
-        spdlog::error(string("Exception while trying to initialize GPIO bus: ") + e.what());
-        return nullptr;
-    }
+			bus = make_unique<GPIOBUS_Raspberry>();
+		}
+		else {
+			bus = make_unique<GPIOBUS_Virtual>();
+		}
 
-    return bus;
+		if (bus->Init(mode)) {
+			bus->Reset();
+		}
+	}
+	catch (const invalid_argument& e) {
+		spdlog::error(string("Exception while trying to initialize GPIO bus: ") + e.what());
+		return nullptr;
+	}
+
+	return bus;
 }

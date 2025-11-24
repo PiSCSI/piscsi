@@ -62,7 +62,7 @@ public:
 	int GetEffectiveLun() const override;
 
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::no_additional_sense_information,
-			scsi_defs::status status = scsi_defs::status::check_condition) override;
+	           scsi_defs::status status = scsi_defs::status::check_condition) override;
 
 	int GetInitiatorId() const override { return initiator_id; }
 

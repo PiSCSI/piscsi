@@ -39,71 +39,75 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
 		type = GetTypeForFile(filename);
+
 		if (type == UNDEFINED) {
 			return nullptr;
 		}
 	}
 
 	shared_ptr<PrimaryDevice> device;
+
 	switch (type) {
-	case SCHD: {
-		if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = make_shared<SCSIHD_NEC>(lun);
-		} else {
-			device = make_shared<SCSIHD>(lun, false, ext == "hd1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
-
-			// Some Apple tools require a particular drive identification
-			if (ext == "hda") {
-				device->SetVendor("QUANTUM");
-				device->SetProduct("FIREBALL");
+		case SCHD: {
+			if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
+				device = make_shared<SCSIHD_NEC>(lun);
 			}
+			else {
+				device = make_shared<SCSIHD>(lun, false, ext == "hd1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
+
+				// Some Apple tools require a particular drive identification
+				if (ext == "hda") {
+					device->SetVendor("QUANTUM");
+					device->SetProduct("FIREBALL");
+				}
+			}
+
+			break;
 		}
-		break;
-	}
 
-	case SCRM:
-		device = make_shared<SCSIHD>(lun, true, scsi_level::scsi_2);
-		device->SetProduct("SCSI HD (REM.)");
-		break;
+		case SCRM:
+			device = make_shared<SCSIHD>(lun, true, scsi_level::scsi_2);
+			device->SetProduct("SCSI HD (REM.)");
+			break;
 
-	case SCMO:
-		device = make_shared<SCSIMO>(lun);
-		device->SetProduct("SCSI MO");
-		break;
+		case SCMO:
+			device = make_shared<SCSIMO>(lun);
+			device->SetProduct("SCSI MO");
+			break;
 
-	case SCCD:
-		device = make_shared<SCSICD>(lun,
-            GetExtensionLowerCase(filename) == "is1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
-		device->SetProduct("SCSI CD-ROM");
-		break;
+		case SCCD:
+			device = make_shared<SCSICD>(lun,
+			                             GetExtensionLowerCase(filename) == "is1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
+			device->SetProduct("SCSI CD-ROM");
+			break;
 
-	case SCDP:
-		device = make_shared<SCSIDaynaPort>(lun);
-		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
-		device->SetVendor("Dayna");
-		device->SetProduct("SCSI/Link");
-		device->SetRevision("1.4a");
-		break;
+		case SCDP:
+			device = make_shared<SCSIDaynaPort>(lun);
+			// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+			device->SetVendor("Dayna");
+			device->SetProduct("SCSI/Link");
+			device->SetRevision("1.4a");
+			break;
 
-	case SCHS:
-		device = make_shared<HostServices>(lun);
-		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
-		device->SetVendor("PiSCSI");
-		device->SetProduct("Host Services");
-		break;
+		case SCHS:
+			device = make_shared<HostServices>(lun);
+			// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+			device->SetVendor("PiSCSI");
+			device->SetProduct("Host Services");
+			break;
 
-	case SCLP:
-		device = make_shared<SCSIPrinter>(lun);
-		device->SetProduct("SCSI PRINTER");
-		break;
+		case SCLP:
+			device = make_shared<SCSIPrinter>(lun);
+			device->SetProduct("SCSI PRINTER");
+			break;
 
-	case SCTP:
-		device = make_shared<SCSIST>(lun);
-		device->SetProduct("SCSI TAPE");
-		break;
+		case SCTP:
+			device = make_shared<SCSIST>(lun);
+			device->SetProduct("SCSI TAPE");
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return device;

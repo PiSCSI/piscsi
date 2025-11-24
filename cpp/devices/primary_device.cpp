@@ -121,6 +121,7 @@ void PrimaryDevice::ReportLuns()
 	fill_n(buf.begin(), min(buf.size(), static_cast<size_t>(allocation_length)), 0);
 
 	uint32_t size = 0;
+
 	for (int lun = 0; lun < GetController()->GetMaxLuns(); lun++) {
 		if (GetController()->HasDeviceForLun(lun)) {
 			size += 8;
@@ -141,10 +142,10 @@ void PrimaryDevice::RequestSense()
 {
 	int lun = GetController()->GetEffectiveLun();
 
-    // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
+	// Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
 	if (!GetController()->HasDeviceForLun(lun)) {
-        // LUN 0 can be assumed to be present (required to call RequestSense() below)
+		// LUN 0 can be assumed to be present (required to call RequestSense() below)
 		assert(GetController()->HasDeviceForLun(0));
 
 		lun = 0;
@@ -155,14 +156,14 @@ void PrimaryDevice::RequestSense()
 		GetController()->SetStatus(status::good);
 	}
 
-    vector<byte> buf = GetController()->GetDeviceForLun(lun)->HandleRequestSense();
+	vector<byte> buf = GetController()->GetDeviceForLun(lun)->HandleRequestSense();
 
 	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetController()->GetCmdByte(4)));
 
-    memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
-    GetController()->SetLength(static_cast<uint32_t>(allocation_length));
+	memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
+	GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
-    EnterDataInPhase();
+	EnterDataInPhase();
 }
 
 void PrimaryDevice::SendDiagnostic()
@@ -219,7 +220,7 @@ vector<uint8_t> PrimaryDevice::HandleInquiry(device_type type, scsi_level level,
 	buf[1] = is_removable ? 0x80 : 0x00;
 	buf[2] = static_cast<uint8_t>(level);
 	buf[3] = level >= scsi_level::scsi_2 ?
-			static_cast<uint8_t>(scsi_level::scsi_2) : static_cast<uint8_t>(scsi_level::scsi_1_ccs);
+	         static_cast<uint8_t>(scsi_level::scsi_2) : static_cast<uint8_t>(scsi_level::scsi_1_ccs);
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
@@ -249,9 +250,9 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 
 	stringstream s;
 	s << setfill('0') << setw(2) << hex
-			<< "Status $" << static_cast<int>(GetController()->GetStatus())
-			<< ", Sense Key $" << static_cast<int>(buf[2])
-			<< ", ASC $" << static_cast<int>(buf[12]);
+	  << "Status $" << static_cast<int>(GetController()->GetStatus())
+	  << ", Sense Key $" << static_cast<int>(buf[2])
+	  << ", ASC $" << static_cast<int>(buf[12]);
 	LogTrace(s.str());
 
 	return buf;
@@ -302,6 +303,7 @@ bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool pr
 	if (cmd == scsi_command::eCmdInquiry || cmd == scsi_command::eCmdRequestSense || cmd == scsi_command::eCmdRelease6) {
 		return true;
 	}
+
 	// PREVENT ALLOW MEDIUM REMOVAL is permitted if the prevent bit is 0
 	if (cmd == scsi_command::eCmdPreventAllowMediumRemoval && !prevent_removal) {
 		return true;

@@ -102,14 +102,16 @@ private:
 		e_dropped_packets = 0xFFFFFFFF,
 	};
 
-	using scsi_resp_read_t = struct __attribute__((packed)) {
+	using scsi_resp_read_t = struct __attribute__((packed))
+	{
 		uint32_t length;
 		read_data_flags_t flags;
 		byte pad;
-		array<byte, ETH_FRAME_LEN + sizeof(uint32_t)> data; // Frame length + 4 byte CRC
+		array < byte, ETH_FRAME_LEN + sizeof(uint32_t) > data; // Frame length + 4 byte CRC
 	};
 
-	using scsi_resp_link_stats_t = struct __attribute__((packed)) {
+	using scsi_resp_link_stats_t = struct __attribute__((packed))
+	{
 		array<byte, 6> mac_address;
 		uint32_t frame_alignment_errors;
 		uint32_t crc_errors;

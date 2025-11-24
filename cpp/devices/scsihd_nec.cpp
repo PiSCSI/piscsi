@@ -31,6 +31,7 @@ void SCSIHD_NEC::Open()
 	array<char, 512> root_sector;
 	ifstream in(GetFilename(), ios::binary);
 	in.read(root_sector.data(), root_sector.size());
+
 	if (!in.good() || size < static_cast<off_t>(root_sector.size())) {
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}

@@ -56,10 +56,10 @@ TEST(PrimaryDeviceTest, Reset)
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must be reserved for initiator ID 1";
+	        << "Device must be reserved for initiator ID 1";
 	device->Reset();
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must not be reserved anymore for initiator ID 1";
+	        << "Device must not be reserved anymore for initiator ID 1";
 }
 
 TEST(PrimaryDeviceTest, CheckReservation)
@@ -67,26 +67,26 @@ TEST(PrimaryDeviceTest, CheckReservation)
 	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_TRUE(device->CheckReservation(0, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must not be reserved for initiator ID 0";
+	        << "Device must not be reserved for initiator ID 0";
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_TRUE(device->CheckReservation(0, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must not be reserved for initiator ID 0";
+	        << "Device must not be reserved for initiator ID 0";
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must be reserved for initiator ID 1";
+	        << "Device must be reserved for initiator ID 1";
 	EXPECT_FALSE(device->CheckReservation(-1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must be reserved for unknown initiator";
+	        << "Device must be reserved for unknown initiator";
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdInquiry, false))
-		<< "Device must not be reserved for INQUIRY";
+	        << "Device must not be reserved for INQUIRY";
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdRequestSense, false))
-		<< "Device must not be reserved for REQUEST SENSE";
+	        << "Device must not be reserved for REQUEST SENSE";
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdRelease6, false))
-		<< "Device must not be reserved for RELEASE (6)";
+	        << "Device must not be reserved for RELEASE (6)";
 
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdPreventAllowMediumRemoval, false))
-		<< "Device must not be reserved for PREVENT ALLOW MEDIUM REMOVAL with prevent bit not set";
+	        << "Device must not be reserved for PREVENT ALLOW MEDIUM REMOVAL with prevent bit not set";
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdPreventAllowMediumRemoval, true))
-		<< "Device must be reserved for PREVENT ALLOW MEDIUM REMOVAL with prevent bit set";
+	        << "Device must be reserved for PREVENT ALLOW MEDIUM REMOVAL with prevent bit set";
 }
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
@@ -95,20 +95,20 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must be reserved for initiator ID 1";
+	        << "Device must be reserved for initiator ID 1";
 
 	device->Dispatch(scsi_command::eCmdRelease6);
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must not be reserved anymore for initiator ID 1";
+	        << "Device must not be reserved anymore for initiator ID 1";
 
 	ON_CALL(*controller, GetInitiatorId).WillByDefault(Return(-1));
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must be reserved for unknown initiator";
+	        << "Device must be reserved for unknown initiator";
 
 	device->Dispatch(scsi_command::eCmdRelease6);
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must not be reserved anymore for unknown initiator";
+	        << "Device must not be reserved anymore for unknown initiator";
 }
 
 TEST(PrimaryDeviceTest, DiscardReservation)
@@ -117,10 +117,10 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must be reserved for initiator ID 1";
+	        << "Device must be reserved for initiator ID 1";
 	device->DiscardReservation();
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
-		<< "Device must not be reserved anymore for initiator ID 1";
+	        << "Device must not be reserved anymore for initiator ID 1";
 }
 
 TEST(PrimaryDeviceTest, TestUnitReady)
@@ -134,34 +134,34 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 	device->SetReady(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
-			Property(&scsi_exception::get_asc, asc::power_on_or_reset))));
+	                Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+	                Property(&scsi_exception::get_asc, asc::power_on_or_reset))));
 
 	device->SetReset(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
-			Property(&scsi_exception::get_asc, asc::not_ready_to_ready_change))));
+	                Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+	                Property(&scsi_exception::get_asc, asc::not_ready_to_ready_change))));
 
 	device->SetReset(true);
 	device->SetAttn(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
-			Property(&scsi_exception::get_asc, asc::power_on_or_reset))));
+	                Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+	                Property(&scsi_exception::get_asc, asc::power_on_or_reset))));
 
 	device->SetReset(false);
 	device->SetAttn(true);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
-			Property(&scsi_exception::get_asc, asc::not_ready_to_ready_change))));
+	                Property(&scsi_exception::get_sense_key, sense_key::unit_attention),
+	                Property(&scsi_exception::get_asc, asc::not_ready_to_ready_change))));
 
 	device->SetAttn(false);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
-			Property(&scsi_exception::get_asc, asc::medium_not_present))));
+	                Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+	                Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	device->SetReady(true);
 	EXPECT_CALL(*controller, Status);
@@ -213,16 +213,16 @@ TEST(PrimaryDeviceTest, Inquiry)
 	controller->SetCmdByte(1, 0x01);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "EVPD bit is not supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "EVPD bit is not supported";
 
 	controller->SetCmdByte(2, 0x01);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&d] { d->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "PAGE CODE field is not supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "PAGE CODE field is not supported";
 
 	controller->SetCmdByte(1, 0);
 	controller->SetCmdByte(2, 0);
@@ -246,8 +246,8 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 	device->SetReady(false);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRequestSense); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
-			Property(&scsi_exception::get_asc, asc::medium_not_present))));
+	                Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+	                Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	device->SetReady(true);
 	EXPECT_CALL(*controller, DataIn);
@@ -267,22 +267,22 @@ TEST(PrimaryDeviceTest, SendDiagnostic)
 
 	controller->SetCmdByte(1, 0x10);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "SEND DIAGNOSTIC must fail because PF bit is not supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "SEND DIAGNOSTIC must fail because PF bit is not supported";
 	controller->SetCmdByte(1, 0);
 
 	controller->SetCmdByte(3, 1);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "SEND DIAGNOSTIC must fail because parameter list is not supported";
 	controller->SetCmdByte(3, 0);
 	controller->SetCmdByte(4, 1);
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "SEND DIAGNOSTIC must fail because parameter list is not supported";
 }
 
 TEST(PrimaryDeviceTest, ReportLuns)
@@ -320,9 +320,9 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 	controller->SetCmdByte(2, 0x01);
 	EXPECT_THAT([&] { device1->Dispatch(scsi_command::eCmdReportLuns); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "Only SELECT REPORT mode 0 is supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Only SELECT REPORT mode 0 is supported";
 }
 
 TEST(PrimaryDeviceTest, Dispatch)

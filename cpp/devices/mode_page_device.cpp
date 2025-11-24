@@ -35,6 +35,7 @@ bool ModePageDevice::Init(const param_map& params)
 int ModePageDevice::AddModePages(cdb_t cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
 {
 	const int max_length = length - offset;
+
 	if (max_length < 0) {
 		return length;
 	}
@@ -62,6 +63,7 @@ int ModePageDevice::AddModePages(cdb_t cdb, vector<uint8_t>& buf, int offset, in
 	vector<byte> result;
 
 	vector<byte> page0;
+
 	for (const auto& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
@@ -127,7 +129,8 @@ void ModePageDevice::ModeSelect6() const
 
 void ModePageDevice::ModeSelect10() const
 {
-	const auto length = min(GetController()->GetBuffer().size(), static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7)));
+	const auto length = min(GetController()->GetBuffer().size(), static_cast<size_t>(GetInt16(GetController()->GetCmd(),
+	                        7)));
 
 	SaveParametersCheck(static_cast<uint32_t>(length));
 }

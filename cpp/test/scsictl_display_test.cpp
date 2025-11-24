@@ -48,7 +48,7 @@ TEST(ScsictlDisplayTest, DisplayDeviceInfo)
 	device.set_block_count(4321);
 	s = display.DisplayDeviceInfo(device);
 	EXPECT_FALSE(s.empty());
-	EXPECT_NE(string::npos, s.find(to_string(1234 *4321)));
+	EXPECT_NE(string::npos, s.find(to_string(1234 * 4321)));
 
 	device.mutable_properties()->set_supports_file(true);
 	auto file = device.mutable_file();
@@ -110,6 +110,7 @@ TEST(ScsictlDisplayTest, DisplayDeviceTypesInfo)
 
 	// Start with 2 instead of 1. 1 was the removed SASI drive type.
 	int ordinal = 2;
+
 	while (PbDeviceType_IsValid(ordinal)) {
 		PbDeviceType type = UNDEFINED;
 		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);

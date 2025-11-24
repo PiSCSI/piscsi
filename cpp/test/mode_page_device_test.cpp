@@ -33,27 +33,27 @@ TEST(ModePageDeviceTest, AddModePages)
 	// Page 0
 	cdb[2] = 0x00;
 	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, 255); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "Data were returned for non-existing mode page 0";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Data were returned for non-existing mode page 0";
 
 	// All pages, non changeable
 	cdb[2] = 0x3f;
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
 	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
 	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, -1); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "Maximum size was ignored";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Maximum size was ignored";
 
 	// All pages, changeable
-	cdb[2]= 0x7f;
+	cdb[2] = 0x7f;
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
 	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
 	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, -1); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-		<< "Maximum size was ignored";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Maximum size was ignored";
 }
 
 TEST(ModePageDeviceTest, Page0)
@@ -84,10 +84,10 @@ TEST(ModePageDeviceTest, ModeSense6)
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
 	EXPECT_TRUE(device->Init({}));
 
-    controller->AddDevice(device);
+	controller->AddDevice(device);
 
-    EXPECT_CALL(*controller, DataIn());
-    device->Dispatch(scsi_command::eCmdModeSense6);
+	EXPECT_CALL(*controller, DataIn());
+	device->Dispatch(scsi_command::eCmdModeSense6);
 }
 
 TEST(ModePageDeviceTest, ModeSense10)
@@ -96,10 +96,10 @@ TEST(ModePageDeviceTest, ModeSense10)
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
 	EXPECT_TRUE(device->Init({}));
 
-    controller->AddDevice(device);
+	controller->AddDevice(device);
 
-    EXPECT_CALL(*controller, DataIn());
-    device->Dispatch(scsi_command::eCmdModeSense10);
+	EXPECT_CALL(*controller, DataIn());
+	device->Dispatch(scsi_command::eCmdModeSense10);
 }
 
 TEST(ModePageDeviceTest, ModeSelect)
@@ -109,13 +109,13 @@ TEST(ModePageDeviceTest, ModeSelect)
 	vector<uint8_t> buf;
 
 	EXPECT_THAT([&] { device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))))
-		<< "Unexpected MODE SELECT(6) default implementation";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))))
+	        << "Unexpected MODE SELECT(6) default implementation";
 	EXPECT_THAT([&] { device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))))
-		<< "Unexpected MODE SELECT(10) default implementation";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))))
+	        << "Unexpected MODE SELECT(10) default implementation";
 }
 
 TEST(ModePageDeviceTest, ModeSelect6)
@@ -124,16 +124,16 @@ TEST(ModePageDeviceTest, ModeSelect6)
 	auto device = make_shared<MockModePageDevice>();
 	EXPECT_TRUE(device->Init({}));
 
-    controller->AddDevice(device);
+	controller->AddDevice(device);
 
-    EXPECT_CALL(*controller, DataOut());
-    device->Dispatch(scsi_command::eCmdModeSelect6);
+	EXPECT_CALL(*controller, DataOut());
+	device->Dispatch(scsi_command::eCmdModeSelect6);
 
 	controller->SetCmdByte(1, 0x01);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-    	<< "Saving parameters is not supported by base class";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Saving parameters is not supported by base class";
 }
 
 TEST(ModePageDeviceTest, ModeSelect10)
@@ -142,14 +142,14 @@ TEST(ModePageDeviceTest, ModeSelect10)
 	auto device = make_shared<MockModePageDevice>();
 	EXPECT_TRUE(device->Init({}));
 
-    controller->AddDevice(device);
+	controller->AddDevice(device);
 
-    EXPECT_CALL(*controller, DataOut());
-    device->Dispatch(scsi_command::eCmdModeSelect10);
+	EXPECT_CALL(*controller, DataOut());
+	device->Dispatch(scsi_command::eCmdModeSelect10);
 
 	controller->SetCmdByte(1, 0x01);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-    	<< "Saving parameters is not supported for by base class";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Saving parameters is not supported for by base class";
 }

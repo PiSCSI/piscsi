@@ -31,7 +31,8 @@ TEST(ScsiCdTest, Inquiry)
 {
 	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
 
-	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_1_ccs, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
+	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_1_ccs, "PiSCSI  SCSI CD-ROM     ", 0x1f, true,
+	                     "file.is1");
 }
 
 TEST(ScsiCdTest, GetSectorSizes)
@@ -74,7 +75,7 @@ TEST(ScsiCdTest, Open)
 	EXPECT_THROW(cd_iso.Open(), io_exception) << "ISO CD-ROM image file size too small";
 	remove(filename);
 
-	filename = CreateTempFile(2* 2048);
+	filename = CreateTempFile(2 * 2048);
 	cd_iso.SetFilename(string(filename));
 	cd_iso.Open();
 	EXPECT_EQ(2, cd_iso.GetBlockCount());
@@ -112,7 +113,7 @@ TEST(ScsiCdTest, Open)
 	EXPECT_EQ(2, cd_raw.GetBlockCount());
 	remove(filename);
 
-	filename = CreateTempFile(2* 2048);
+	filename = CreateTempFile(2 * 2048);
 	cd_physical.SetFilename("\\" + string(filename));
 	// The respective code in SCSICD appears to be broken, see https://github.com/akuker/PISCSI/issues/919
 	EXPECT_THROW(cd_physical.Open(), io_exception) << "Invalid physical CD-ROM file";
@@ -128,8 +129,8 @@ TEST(ScsiCdTest, ReadToc)
 	controller->AddDevice(cd);
 
 	EXPECT_THAT([&] { cd->Dispatch(scsi_command::eCmdReadToc); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
-			Property(&scsi_exception::get_asc, asc::medium_not_present))));
+	                Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+	                Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	// Further testing requires filesystem access
 }

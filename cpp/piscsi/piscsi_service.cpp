@@ -29,6 +29,7 @@ string PiscsiService::Init(const callback& cb, int port)
 	}
 
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
+
 	if (service_socket == -1) {
 		return "Unable to create service socket: " + string(strerror(errno));
 	}
@@ -42,8 +43,10 @@ string PiscsiService::Init(const callback& cb, int port)
 	server.sin_family = PF_INET;
 	server.sin_port = htons((uint16_t)port);
 	server.sin_addr.s_addr = INADDR_ANY;
-    if (bind(service_socket, reinterpret_cast<const sockaddr*>(&server), //NOSONAR bit_cast is not supported by the bullseye compiler
-        static_cast<socklen_t>(sizeof(sockaddr_in))) < 0) {
+
+	if (bind(service_socket, reinterpret_cast<const sockaddr * >
+	         (&server), //NOSONAR bit_cast is not supported by the bullseye compiler
+	         static_cast<socklen_t>(sizeof(sockaddr_in))) < 0) {
 		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}
@@ -86,6 +89,7 @@ void PiscsiService::Execute() const
 	// TODO Accept more than one command instead of closing the socket after a single command
 	while (service_socket != -1) {
 		const int fd = accept(service_socket, nullptr, nullptr);
+
 		if (fd != -1) {
 			ExecuteCommand(fd);
 			close(fd);
@@ -96,21 +100,23 @@ void PiscsiService::Execute() const
 void PiscsiService::ExecuteCommand(int fd) const
 {
 	CommandContext context(fd);
+
 	try {
 		if (context.ReadCommand()) {
 			execute(context);
 		}
 	}
-	catch(const io_exception& e) {
+	catch (const io_exception& e) {
 		spdlog::warn(e.what());
 
 		// Try to return an error message (this may fail if the exception was caused when returning the actual result)
 		PbResult result;
 		result.set_msg(e.what());
+
 		try {
 			context.WriteResult(result);
 		}
-		catch(const io_exception&) { //NOSONAR Not handled on purpose
+		catch (const io_exception&) { //NOSONAR Not handled on purpose
 			// Ignore
 		}
 	}

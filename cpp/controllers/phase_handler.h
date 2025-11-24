@@ -56,7 +56,7 @@ protected:
 		try {
 			phase_executors.at(phase)();
 		}
-		catch(const out_of_range&) {
+		catch (const out_of_range&) {
 			throw scsi_exception(sense_key::aborted_command);
 		}
 	}

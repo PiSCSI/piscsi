@@ -28,23 +28,23 @@ public:
 private:
 
 	const unordered_map<int, PbOperation> operations = {
-			{ 'a', ATTACH },
-			{ 'd', DETACH },
-			{ 'e', EJECT },
-			{ 'i', INSERT },
-			{ 'p', PROTECT },
-			{ 's', DEVICES_INFO },
-			{ 'u', UNPROTECT }
+		{ 'a', ATTACH },
+		{ 'd', DETACH },
+		{ 'e', EJECT },
+		{ 'i', INSERT },
+		{ 'p', PROTECT },
+		{ 's', DEVICES_INFO },
+		{ 'u', UNPROTECT }
 	};
 
 	const unordered_map<int, PbDeviceType> device_types = {
-			{ 'c', SCCD },
-			{ 'd', SCDP },
-			{ 'h', SCHD },
-			{ 's', SCHS },
-			{ 'm', SCMO },
-			{ 'p', SCLP },
-			{ 'r', SCRM },
-			{ 't', SCTP }
+		{ 'c', SCCD },
+		{ 'd', SCDP },
+		{ 'h', SCHD },
+		{ 's', SCHS },
+		{ 'm', SCMO },
+		{ 'p', SCLP },
+		{ 'r', SCRM },
+		{ 't', SCTP }
 	};
 };

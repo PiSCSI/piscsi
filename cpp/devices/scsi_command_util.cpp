@@ -32,12 +32,14 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 
 	// Skip block descriptors
 	int offset;
+
 	if (cmd == scsi_command::eCmdModeSelect10) {
 		offset = 8 + GetInt16(buf, 6);
 	}
 	else {
 		offset = 4 + buf[3];
 	}
+
 	length -= offset;
 
 	bool has_valid_page_code = false;
@@ -111,7 +113,7 @@ uint32_t scsi_command_util::GetInt32(span <const int> buf, int offset)
 	assert(buf.size() > static_cast<size_t>(offset) + 3);
 
 	return (static_cast<uint32_t>(buf[offset]) << 24) | (static_cast<uint32_t>(buf[offset + 1]) << 16) |
-			(static_cast<uint32_t>(buf[offset + 2]) << 8) | static_cast<uint32_t>(buf[offset + 3]);
+	       (static_cast<uint32_t>(buf[offset + 2]) << 8) | static_cast<uint32_t>(buf[offset + 3]);
 }
 
 uint64_t scsi_command_util::GetInt64(span<const int> buf, int offset)
@@ -119,9 +121,9 @@ uint64_t scsi_command_util::GetInt64(span<const int> buf, int offset)
 	assert(buf.size() > static_cast<size_t>(offset) + 7);
 
 	return (static_cast<uint64_t>(buf[offset]) << 56) | (static_cast<uint64_t>(buf[offset + 1]) << 48) |
-			(static_cast<uint64_t>(buf[offset + 2]) << 40) | (static_cast<uint64_t>(buf[offset + 3]) << 32) |
-			(static_cast<uint64_t>(buf[offset + 4]) << 24) | (static_cast<uint64_t>(buf[offset + 5]) << 16) |
-			(static_cast<uint64_t>(buf[offset + 6]) << 8) | static_cast<uint64_t>(buf[offset + 7]);
+	       (static_cast<uint64_t>(buf[offset + 2]) << 40) | (static_cast<uint64_t>(buf[offset + 3]) << 32) |
+	       (static_cast<uint64_t>(buf[offset + 4]) << 24) | (static_cast<uint64_t>(buf[offset + 5]) << 16) |
+	       (static_cast<uint64_t>(buf[offset + 6]) << 8) | static_cast<uint64_t>(buf[offset + 7]);
 }
 
 void scsi_command_util::SetInt64(vector<uint8_t>& buf, int offset, uint64_t value)

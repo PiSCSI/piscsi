@@ -101,7 +101,7 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ("QUANTUM", device->GetVendor()) << "Invalid default vendor for Apple drive";
 	EXPECT_EQ("FIREBALL", device->GetProduct()) << "Invalid default vendor for Apple drive";
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
+	          device->GetRevision());
 
 	device = device_factory.CreateDevice(UNDEFINED, 0, "test.hds");
 	EXPECT_NE(nullptr, device);
@@ -138,7 +138,7 @@ void TestRemovableDrive(PbDeviceType type, const string& filename, const string&
 	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ(product, device->GetProduct());
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
+	          device->GetRevision());
 }
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
@@ -173,7 +173,7 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI CD-ROM", device->GetProduct());
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
+	          device->GetRevision());
 }
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
@@ -222,7 +222,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ("Host Services", device->GetProduct());
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
+	          device->GetRevision());
 }
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
@@ -247,7 +247,7 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI PRINTER", device->GetProduct());
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
+	          device->GetRevision());
 }
 
 TEST(DeviceFactoryTest, SCTP_Device_Defaults)

@@ -61,7 +61,8 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "de", "Image-Datei '%1' wird bereits von Gerät %2 benutzt");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "sv", "Skivbildsfilen '%1' används redan av nhet %2");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "fr", "Le fichier d'image '%1' est déjà utilisé par périphérique %2");
-	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "es", "El archivo de imagen '%1' ya está siendo utilizado por dispositivo %2");
+	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "es",
+	    "El archivo de imagen '%1' ya está siendo utilizado por dispositivo %2");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "zh", "图像文件%1已被 ID %2");
 
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "en", "Can't create image file info for '%1'");
@@ -100,10 +101,13 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "zh", "未知设备类型 %1");
 
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "en", "Device type required for unknown extension of file '%1'");
-	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "de", "Gerätetyp erforderlich für unbekannte Extension der Datei '%1'");
+	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "de",
+	    "Gerätetyp erforderlich für unbekannte Extension der Datei '%1'");
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "sv", "Man måste ange enhetstyp för obekant filändelse '%1'");
-	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "fr", "Type de périphérique requis pour extension inconnue du fichier '%1'");
-	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "es", "Tipo de dispositivo requerido para la extensión desconocida del archivo '%1'");
+	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "fr",
+	    "Type de périphérique requis pour extension inconnue du fichier '%1'");
+	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "es",
+	    "Tipo de dispositivo requerido para la extensión desconocida del archivo '%1'");
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "zh", "文件'%1'的未知扩展名所需的设备类型");
 
 	Add(LocalizationKey::ERROR_DUPLICATE_ID, "en", "Duplicate ID %1, unit %2");
@@ -128,10 +132,13 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_EJECT_REQUIRED, "zh", "必须先弹出现有介质");
 
 	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "en", "Once set the device name cannot be changed anymore");
-	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "de", "Ein bereits gesetzter Gerätename kann nicht mehr geändert werden");
+	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "de",
+	    "Ein bereits gesetzter Gerätename kann nicht mehr geändert werden");
 	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "sv", "Enhetsnamn kan ej ändras efter att ha fastställts en gång");
-	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "fr", "Une fois défini, le nom de périphérique ne peut plus être changé");
-	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "es", "Una vez establecido el nombre del dispositivo ya no se puede cambiar");
+	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "fr",
+	    "Une fois défini, le nom de périphérique ne peut plus être changé");
+	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "es",
+	    "Una vez establecido el nombre del dispositivo ya no se puede cambiar");
 	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "zh", "设备名称设置后不能再更改");
 
 	Add(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING, "en", "Missing shutdown mode");
@@ -150,7 +157,8 @@ Localizer::Localizer()
 
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "en", "Missing root permission for shutdown or reboot");
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "de", "Fehlende Root-Berechtigung für Shutdown oder Neustart");
-	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "sv", "Saknar root-rättigheter för att kunna stänga av eller starta om systemet");
+	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "sv",
+	    "Saknar root-rättigheter för att kunna stänga av eller starta om systemet");
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "fr", "Permissions root manquantes pour extinction ou redémarrage");
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "es", "Falta el permiso de root para el apagado o el reinicio");
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "zh", "缺少关机或重启的 root 权限");
@@ -170,10 +178,13 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_BLOCK_SIZE, "zh", "无效的块大小 %1 字节");
 
 	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "en", "Block size for device type %1 is not configurable");
-	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "de", "Blockgröße für Gerätetyp %1 ist nicht konfigurierbar");
+	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "de",
+	    "Blockgröße für Gerätetyp %1 ist nicht konfigurierbar");
 	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "sv", "Enhetstypen %1 kan inte använda andra blockstorlekar");
-	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "fr", "Taille de block pour le type de périphérique %1 non configurable");
-	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "es", "El tamaño del bloque para el tipo de dispositivo %1 no es configurable");
+	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "fr",
+	    "Taille de block pour le type de périphérique %1 non configurable");
+	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "es",
+	    "El tamaño del bloque para el tipo de dispositivo %1 no es configurable");
 	Add(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "zh", "设备类型 %1 的块大小不可配置");
 
 	Add(LocalizationKey::ERROR_SCSI_CONTROLLER, "en", "Couldn't create SCSI controller");
@@ -199,7 +210,8 @@ Localizer::Localizer()
 
 	Add(LocalizationKey::ERROR_LUN0, "en", "LUN 0 cannot be detached as long as there is still another LUN");
 	Add(LocalizationKey::ERROR_LUN0, "de", "LUN 0 kann nicht entfernt werden, solange noch eine andere LUN existiert");
-	Add(LocalizationKey::ERROR_LUN0, "sv", "Enhetsnummer 0 kan ej bli frånkopplat så länge som andra enhetsnummer är anslutna");
+	Add(LocalizationKey::ERROR_LUN0, "sv",
+	    "Enhetsnummer 0 kan ej bli frånkopplat så länge som andra enhetsnummer är anslutna");
 	Add(LocalizationKey::ERROR_LUN0, "fr", "LUN 0 ne peux pas être détaché tant qu'il y'a un autre LUN");
 	Add(LocalizationKey::ERROR_LUN0, "es", "El LUN 0 no se puede desconectar mientras haya otro LUN");
 	Add(LocalizationKey::ERROR_LUN0, "zh", "LUN 0 无法卸载，因为当前仍有另一个 LUN。");
@@ -227,7 +239,8 @@ Localizer::Localizer()
 
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "en", "%1 operation denied, %2 isn't protectable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "de", "%1-Operation verweigert, %2 ist nicht schützbar");
-	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "sv", "Operationen %1 nekades för att %2 inte är skyddbar(t)");
+	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "sv",
+	    "Operationen %1 nekades för att %2 inte är skyddbar(t)");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "fr", "Opération %1 refusée, %2 n'est pas protégeable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "es", "%1 operación denegada, %2 no es protegible");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, "zh", "%1 操作被拒绝,%2 不可保护");
@@ -251,17 +264,19 @@ void Localizer::Add(LocalizationKey key, const string& locale, string_view value
 }
 
 string Localizer::Localize(LocalizationKey key, const string& locale, const string& arg1, const string& arg2,
-		const string &arg3) const
+                           const string &arg3) const
 {
 	string locale_lower;
 	ranges::transform(locale, back_inserter(locale_lower), ::tolower);
 
 	auto it = localized_messages.find(locale_lower);
+
 	if (it == localized_messages.end()) {
 		// Try to fall back to country-indepedent locale (e.g. "en" instead of "en_US")
 		if (locale_lower.length() > 2) {
 			it = localized_messages.find(locale_lower.substr(0, 2));
 		}
+
 		if (it == localized_messages.end()) {
 			it = localized_messages.find("en");
 		}
@@ -272,6 +287,7 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 	auto messages = it->second;
 
 	const auto& m = messages.find(key);
+
 	if (m == messages.end()) {
 		return "Missing localization for enum value " + to_string(static_cast<int>(key));
 	}

@@ -19,6 +19,7 @@ int main(int argc, char *[])
 	spdlog::set_level(disable_logging ? spdlog::level::off : spdlog::level::trace);
 
 	int fd = -1;
+
 	if (disable_logging) {
 		fd = open("/dev/null", O_WRONLY);
 		dup2(fd, STDERR_FILENO);

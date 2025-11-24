@@ -33,7 +33,8 @@ public:
 	const PbCommand& GetCommand() const { return command; }
 
 	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;
-	bool ReturnLocalizedError(LocalizationKey, PbErrorCode, const string& = "", const string& = "", const string& = "") const;
+	bool ReturnLocalizedError(LocalizationKey, PbErrorCode, const string& = "", const string& = "",
+	                          const string& = "") const;
 	bool ReturnSuccessStatus() const;
 	bool ReturnErrorStatus(const string&) const;
 

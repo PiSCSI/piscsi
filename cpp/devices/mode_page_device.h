@@ -31,7 +31,8 @@ protected:
 	void SupportsSaveParameters(bool b) { supports_save_parameters = b; }
 	int AddModePages(cdb_t, vector<uint8_t>&, int, int, int) const;
 	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
-	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const {
+	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const
+	{
 		// Nothing to add by default
 	}
 

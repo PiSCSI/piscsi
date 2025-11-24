@@ -35,11 +35,13 @@ void SendCommand(const PbCommand& command, PbResult& result)
 
 	const int fd = socket(AF_INET, SOCK_STREAM, 0);
 	ASSERT_NE(-1, fd);
-	EXPECT_TRUE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running"; //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
+	EXPECT_TRUE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr),
+	                    sizeof(server_addr)) >= 0) <<
+	                            "Service should be running"; //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
 	ASSERT_EQ(6, write(fd, "RASCSI", 6));
 	SerializeMessage(fd, command);
-    DeserializeMessage(fd, result);
-    close(fd);
+	DeserializeMessage(fd, result);
+	close(fd);
 }
 
 TEST(PiscsiServiceTest, Init)
@@ -76,12 +78,14 @@ TEST(PiscsiServiceTest, Execute)
 	ASSERT_NE(-1, fd);
 
 	server_addr.sin_port = htons(uint16_t(9999));
-	EXPECT_FALSE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should not be running"; //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
+	EXPECT_FALSE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr),
+	                     sizeof(server_addr)) >= 0) <<
+	                             "Service should not be running"; //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
 
 	close(fd);
 
 	PiscsiService service;
-	service.Init([] (const CommandContext& context) {
+	service.Init([] (const CommandContext & context) {
 		if (context.GetCommand().operation() == PbOperation::NO_OPERATION) {
 			PbResult result;
 			result.set_status(true);
@@ -90,6 +94,7 @@ TEST(PiscsiServiceTest, Execute)
 		else {
 			throw io_exception("error");
 		}
+
 		return true;
 	}, 9999);
 
@@ -100,11 +105,11 @@ TEST(PiscsiServiceTest, Execute)
 
 	SendCommand(command, result);
 	command.set_operation(PbOperation::NO_OPERATION);
-    EXPECT_TRUE(result.status()) << "Command should have been successful";
+	EXPECT_TRUE(result.status()) << "Command should have been successful";
 
-    command.set_operation(PbOperation::EJECT);
-    SendCommand(command, result);
-    EXPECT_FALSE(result.status()) << "Exception should have been raised";
+	command.set_operation(PbOperation::EJECT);
+	SendCommand(command, result);
+	EXPECT_FALSE(result.status()) << "Exception should have been raised";
 
-    service.Stop();
+	service.Stop();
 }

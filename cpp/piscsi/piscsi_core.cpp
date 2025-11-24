@@ -43,10 +43,10 @@ void Piscsi::Banner(span<char *> args) const
 	cout << piscsi_util::Banner("(Backend Service)");
 	cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
-	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
+	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)) {
 		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
 		cout << " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n";
-		cout << " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n";
+		cout << " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) << ").\n";
 		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
 		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
 		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
@@ -67,6 +67,7 @@ void Piscsi::Banner(span<char *> args) const
 bool Piscsi::InitBus()
 {
 	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
+
 	if (bus == nullptr) {
 		return false;
 	}
@@ -87,6 +88,7 @@ void Piscsi::CleanUp()
 	// TODO Check why there are rare cases where bus is NULL on a remote interface shutdown
 	// even though it is never set to NULL anywhere
 	assert(bus);
+
 	if (bus) {
 		bus->Cleanup();
 	}
@@ -103,17 +105,19 @@ void Piscsi::ReadAccessToken(const path& filename)
 	}
 
 	if (const auto perms = filesystem::status(filename).permissions();
-		(perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
-			(perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
+	        (perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
+	        (perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
 		throw parser_exception("Access token file '" + filename.string() + "' must be readable by root only");
 	}
 
 	ifstream token_file(filename);
+
 	if (token_file.fail()) {
 		throw parser_exception("Can't open access token file '" + filename.string() + "'");
 	}
 
 	getline(token_file, access_token);
+
 	if (token_file.fail()) {
 		throw parser_exception("Can't read access token file '" + filename.string() + "'");
 	}
@@ -155,6 +159,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 
 	opterr = 1;
 	int opt;
+
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:s:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
 			// The two options below are kind of a compound option with two letters
@@ -171,6 +176,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 				if (!GetAsUnsignedInt(optarg, block_size)) {
 					throw parser_exception("Invalid block size " + string(optarg));
 				}
+
 				continue;
 
 			case 'z':
@@ -181,6 +187,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 				if (const string error = piscsi_image.SetDefaultFolder(optarg); !error.empty()) {
 					throw parser_exception(error);
 				}
+
 				continue;
 
 			case 'L':
@@ -189,9 +196,11 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 
 			case 'R':
 				int depth;
+
 				if (!GetAsUnsignedInt(optarg, depth)) {
 					throw parser_exception("Invalid image file scan depth " + string(optarg));
 				}
+
 				piscsi_image.SetDepth(depth);
 				continue;
 
@@ -203,6 +212,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 				if (!GetAsUnsignedInt(optarg, port) || port <= 0 || port > 65535) {
 					throw parser_exception("Invalid port " + string(optarg) + ", port must be between 1 and 65535");
 				}
+
 				continue;
 
 			case 'P':
@@ -213,15 +223,17 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 				reserved_ids = optarg;
 				continue;
 
-			case 's':
-				{
-					int min_exec_time;
-					if (!GetAsUnsignedInt(optarg, min_exec_time)) {
-						throw parser_exception("Invalid command delay " + string(optarg));
-					}
-					ScsiController::SetMinExecTime(min_exec_time);
+			case 's': {
+				int min_exec_time;
+
+				if (!GetAsUnsignedInt(optarg, min_exec_time)) {
+					throw parser_exception("Invalid command delay " + string(optarg));
 				}
-				continue;
+
+				ScsiController::SetMinExecTime(min_exec_time);
+			}
+
+			continue;
 
 			case 't':
 				type = ParseDeviceType(optarg);
@@ -273,6 +285,7 @@ PbDeviceType Piscsi::ParseDeviceType(const string& value)
 {
 	string t;
 	ranges::transform(value, back_inserter(t), ::toupper);
+
 	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
 		return type;
 	}
@@ -298,6 +311,7 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 	}
 
 	const level::level_enum l = level::from_str(level);
+
 	// Compensate for spdlog using 'off' for unknown levels
 	if (to_string_view(l) != level) {
 		spdlog::warn("Invalid log level '" + level + "'");
@@ -341,7 +355,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 	PbResult result;
 
-	switch(operation) {
+	switch (operation) {
 		case LOG_LEVEL:
 			if (const string log_level = GetParam(command, "level"); !SetLogLevel(log_level)) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
@@ -349,6 +363,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			else {
 				context.ReturnSuccessStatus();
 			}
+
 			break;
 
 		case DEFAULT_FOLDER:
@@ -358,6 +373,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			else {
 				context.ReturnSuccessStatus();
 			}
+
 			break;
 
 		case DEVICES_INFO:
@@ -371,7 +387,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case SERVER_INFO:
 			response.GetServerInfo(*result.mutable_server_info(), command, controller_manager.GetAllDevices(),
-					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
+			                       executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
 			context.WriteSuccessResult(result);
 			break;
 
@@ -385,7 +401,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case DEFAULT_IMAGE_FILES_INFO:
 			response.GetImageFilesInfo(*result.mutable_image_files_info(), piscsi_image.GetDefaultFolder(),
-					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
+			                           GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
 			return context.WriteSuccessResult(result);
 
 		case IMAGE_FILE_INFO:
@@ -395,7 +411,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			else {
 				auto image_file = make_unique<PbImageFile>();
 				const bool status = response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
-						filename);
+				                    filename);
+
 				if (status) {
 					result.set_allocated_image_file_info(image_file.get());
 					result.set_status(true);
@@ -405,6 +422,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 					context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
 				}
 			}
+
 			break;
 
 		case NETWORK_INTERFACES_INFO:
@@ -454,6 +472,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			return executor->ProcessCmd(context);
 
 		default:
+
 			// The remaining commands may only be executed when the target is idle
 			if (!ExecuteWithLock(context)) {
 				return false;
@@ -502,10 +521,11 @@ int Piscsi::run(span<char *> args)
 	string locale;
 	string reserved_ids;
 	int port = DEFAULT_PORT;
+
 	try {
 		locale = ParseArguments(args, command, port, reserved_ids);
 	}
-	catch(const parser_exception& e) {
+	catch (const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;
 
 		return EXIT_FAILURE;
@@ -517,10 +537,10 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (const string error = service.Init([this] (CommandContext& context) {
-			context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
-			return ExecuteCommand(context);
-		}, port); !error.empty()) {
+	if (const string error = service.Init([this] (CommandContext & context) {
+	context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
+		return ExecuteCommand(context);
+	}, port); !error.empty()) {
 		cerr << "Error: " << error << endl;
 
 		CleanUp();
@@ -569,7 +589,7 @@ int Piscsi::run(span<char *> args)
 	sigaction(SIGTERM, &termination_handler, nullptr);
 	signal(SIGPIPE, SIG_IGN);
 
-    // Set the affinity to a specific processor core
+	// Set the affinity to a specific processor core
 	FixCpu(3);
 
 	service.Start();
@@ -594,12 +614,14 @@ void Piscsi::Process()
 	// Main Loop
 	while (service.IsRunning()) {
 #ifdef USE_SEL_EVENT_ENABLE
+
 		// SEL signal polling
 		if (!bus->PollSelectEvent()) {
 			// Stop on interrupt
 			if (errno == EINTR) {
 				break;
 			}
+
 			continue;
 		}
 
@@ -607,11 +629,13 @@ void Piscsi::Process()
 		bus->Acquire();
 #else
 		bus->Acquire();
+
 		if (!bus->GetSEL()) {
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
 			nanosleep(&ts, nullptr);
 			continue;
 		}
+
 #endif
 
 		// Only process the SCSI command if the bus is not busy and no other device responded
@@ -620,7 +644,7 @@ void Piscsi::Process()
 
 			// Process command on the responsible controller based on the current initiator and target ID
 			if (const auto shutdown_mode = controller_manager.ProcessOnController(bus->GetDAT());
-				shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
+			        shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
 				// When the bus is free PiSCSI or the Pi may be shut down.
 				ShutDown(shutdown_mode);
 			}
@@ -629,12 +653,14 @@ void Piscsi::Process()
 }
 
 // Shutdown on a remote interface command
-bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
+bool Piscsi::ShutDown(const CommandContext& context, const string& m)
+{
 	if (m.empty()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 	}
 
 	AbstractController::piscsi_shutdown_mode mode = AbstractController::piscsi_shutdown_mode::NONE;
+
 	if (m == "rascsi") {
 		mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
 	}
@@ -663,31 +689,35 @@ bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
 // Shutdown on a SCSI command
 bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
-	switch(shutdown_mode) {
-	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
-		spdlog::info("PiSCSI shutdown requested");
-		CleanUp();
-		return true;
+	switch (shutdown_mode) {
+		case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
+			spdlog::info("PiSCSI shutdown requested");
+			CleanUp();
+			return true;
 
-	case AbstractController::piscsi_shutdown_mode::STOP_PI:
-		spdlog::info("Raspberry Pi shutdown requested");
-		CleanUp();
-		if (system("init 0") == -1) {
-			spdlog::error("Raspberry Pi shutdown failed");
-		}
-		break;
+		case AbstractController::piscsi_shutdown_mode::STOP_PI:
+			spdlog::info("Raspberry Pi shutdown requested");
+			CleanUp();
 
-	case AbstractController::piscsi_shutdown_mode::RESTART_PI:
-		spdlog::info("Raspberry Pi restart requested");
-		CleanUp();
-		if (system("init 6") == -1) {
-			spdlog::error("Raspberry Pi restart failed");
-		}
-		break;
+			if (system("init 0") == -1) {
+				spdlog::error("Raspberry Pi shutdown failed");
+			}
 
-	case AbstractController::piscsi_shutdown_mode::NONE:
-		assert(false);
-		break;
+			break;
+
+		case AbstractController::piscsi_shutdown_mode::RESTART_PI:
+			spdlog::info("Raspberry Pi restart requested");
+			CleanUp();
+
+			if (system("init 6") == -1) {
+				spdlog::error("Raspberry Pi restart failed");
+			}
+
+			break;
+
+		case AbstractController::piscsi_shutdown_mode::NONE:
+			assert(false);
+			break;
 	}
 
 	return false;
@@ -695,20 +725,21 @@ bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 
 bool Piscsi::IsNotBusy() const
 {
-    // Wait until BSY is released as there is a possibility for the
-    // initiator to assert it while setting the ID (for up to 3 seconds)
-    if (bus->GetBSY()) {
-        const auto now = chrono::steady_clock::now();
-        while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
-            bus->Acquire();
+	// Wait until BSY is released as there is a possibility for the
+	// initiator to assert it while setting the ID (for up to 3 seconds)
+	if (bus->GetBSY()) {
+		const auto now = chrono::steady_clock::now();
 
-            if (!bus->GetBSY()) {
-                return true;
-            }
-        }
+		while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
+			bus->Acquire();
 
-        return false;
-    }
+			if (!bus->GetBSY()) {
+				return true;
+			}
+		}
 
-    return true;
+		return false;
+	}
+
+	return true;
 }

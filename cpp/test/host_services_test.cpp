@@ -23,9 +23,9 @@ TEST(HostServicesTest, TestUnitReady)
 {
 	auto [controller, services] = CreateDevice(SCHS);
 
-    EXPECT_CALL(*controller, Status());
-    services->Dispatch(scsi_command::eCmdTestUnitReady);
-    EXPECT_EQ(status::good, controller->GetStatus());
+	EXPECT_CALL(*controller, Status());
+	services->Dispatch(scsi_command::eCmdTestUnitReady);
+	EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(HostServicesTest, Inquiry)
@@ -39,28 +39,28 @@ TEST(HostServicesTest, StartStopUnit)
 	// Required by the bullseye clang++ compiler
 	auto s = services;
 
-    // STOP
-    EXPECT_CALL(*controller, Status());
-    services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::good, controller->GetStatus());
+	// STOP
+	EXPECT_CALL(*controller, Status());
+	services->Dispatch(scsi_command::eCmdStartStop);
+	EXPECT_EQ(status::good, controller->GetStatus());
 
-    // LOAD
+	// LOAD
 	controller->SetCmdByte(4, 0x02);
-    EXPECT_CALL(*controller, Status());
-    services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::good, controller->GetStatus());
+	EXPECT_CALL(*controller, Status());
+	services->Dispatch(scsi_command::eCmdStartStop);
+	EXPECT_EQ(status::good, controller->GetStatus());
 
-    // UNLOAD
+	// UNLOAD
 	controller->SetCmdByte(4, 0x03);
-    EXPECT_CALL(*controller, Status());
-    services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::good, controller->GetStatus());
+	EXPECT_CALL(*controller, Status());
+	services->Dispatch(scsi_command::eCmdStartStop);
+	EXPECT_EQ(status::good, controller->GetStatus());
 
-    // START
+	// START
 	controller->SetCmdByte(4, 0x01);
 	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
 
 TEST(HostServicesTest, ModeSense6)
@@ -72,21 +72,21 @@ TEST(HostServicesTest, ModeSense6)
 	EXPECT_TRUE(services->Init({}));
 
 	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-    	<< "Unsupported mode page was returned";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Unsupported mode page was returned";
 
 	controller->SetCmdByte(2, 0x20);
 	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-    	<< "Block descriptors are not supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Block descriptors are not supported";
 
 	controller->SetCmdByte(1, 0x08);
-    // ALLOCATION LENGTH
+	// ALLOCATION LENGTH
 	controller->SetCmdByte(4, 255);
-    EXPECT_CALL(*controller, DataIn());
-    services->Dispatch(scsi_command::eCmdModeSense6);
+	EXPECT_CALL(*controller, DataIn());
+	services->Dispatch(scsi_command::eCmdModeSense6);
 	vector<uint8_t>& buffer = controller->GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[6]);
@@ -97,10 +97,10 @@ TEST(HostServicesTest, ModeSense6)
 	// Day
 	EXPECT_NE(0x00, buffer[10]);
 
-    // ALLOCATION LENGTH
+	// ALLOCATION LENGTH
 	controller->SetCmdByte(4, 2);
-    EXPECT_CALL(*controller, DataIn());
-    services->Dispatch(scsi_command::eCmdModeSense6);
+	EXPECT_CALL(*controller, DataIn());
+	services->Dispatch(scsi_command::eCmdModeSense6);
 	buffer = controller->GetBuffer();
 	EXPECT_EQ(0x02, buffer[0]);
 }
@@ -110,25 +110,25 @@ TEST(HostServicesTest, ModeSense10)
 	auto [controller, services] = CreateDevice(SCHS);
 	// Required by the bullseye clang++ compiler
 	auto s = services;
-	
+
 	EXPECT_TRUE(services->Init({}));
 
 	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-    	<< "Unsupported mode page was returned";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Unsupported mode page was returned";
 
 	controller->SetCmdByte(2, 0x20);
 	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
-    	<< "Block descriptors are not supported";
+	                Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+	                Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
+	        << "Block descriptors are not supported";
 
 	controller->SetCmdByte(1, 0x08);
-    // ALLOCATION LENGTH
+	// ALLOCATION LENGTH
 	controller->SetCmdByte(8, 255);
-    EXPECT_CALL(*controller, DataIn());
-    services->Dispatch(scsi_command::eCmdModeSense10);
+	EXPECT_CALL(*controller, DataIn());
+	services->Dispatch(scsi_command::eCmdModeSense10);
 	vector<uint8_t>& buffer = controller->GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[10]);
@@ -139,10 +139,10 @@ TEST(HostServicesTest, ModeSense10)
 	// Day
 	EXPECT_NE(0x00, buffer[14]);
 
-    // ALLOCATION LENGTH
+	// ALLOCATION LENGTH
 	controller->SetCmdByte(8, 2);
-    EXPECT_CALL(*controller, DataIn());
-    services->Dispatch(scsi_command::eCmdModeSense10);
+	EXPECT_CALL(*controller, DataIn());
+	services->Dispatch(scsi_command::eCmdModeSense10);
 	buffer = controller->GetBuffer();
 	EXPECT_EQ(0x02, buffer[1]);
 }

@@ -21,6 +21,7 @@ bool CommandContext::ReadCommand()
 {
 	// Read magic string
 	array<byte, 6> magic;
+
 	if (const size_t bytes_read = ReadBytes(fd, magic); bytes_read) {
 		if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 			throw io_exception("Invalid magic");
@@ -51,13 +52,13 @@ bool CommandContext::WriteSuccessResult(PbResult& result) const
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
-		const string& arg3) const
+        const string& arg3) const
 {
 	return ReturnLocalizedError(key, NO_ERROR_CODE, arg1, arg2, arg3);
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, PbErrorCode error_code, const string& arg1,
-		const string& arg2, const string& arg3) const
+        const string& arg2, const string& arg3) const
 {
 	// For the logfile always use English
 	// Do not log unknown operations as an error for backward/foward compatibility with old/new clients

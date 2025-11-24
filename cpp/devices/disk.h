@@ -55,7 +55,7 @@ public:
 
 	void Write(span<const uint8_t>, uint64_t) override;
 
-	int Read(span<uint8_t> , uint64_t) override;
+	int Read(span<uint8_t>, uint64_t) override;
 
 	bool IsSectorSizeConfigurable() const { return supported_sector_sizes.size() > 1; }
 	bool SetConfiguredSectorSize(uint32_t);

@@ -31,39 +31,50 @@ using namespace network_util;
 
 const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
-static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
+static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add)
+{
 #ifndef __linux__
 	return "if_nametoindex: Linux is required";
 #else
 	ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname.c_str());
+
 	if (ifr.ifr_ifindex == 0) {
 		return "Can't if_nametoindex " + ifname;
 	}
+
 	strncpy(ifr.ifr_name, bridgename.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
+
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		return "Can't ioctl " + string(add ? "SIOCBRADDIF" : "SIOCBRDELIF");
 	}
+
 	return "";
 #endif
 }
 
-string ip_link(int fd, const char* ifname, bool up) {
+string ip_link(int fd, const char* ifname, bool up)
+{
 #ifndef __linux__
 	return "Can't ip_link: Linux is required";
 #else
 	ifreq ifr;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
+
 	if (ioctl(fd, SIOCGIFFLAGS, &ifr)) {
 		return "Can't ioctl SIOCGIFFLAGS";
 	}
+
 	ifr.ifr_flags &= ~IFF_UP;
+
 	if (up) {
 		ifr.ifr_flags |= IFF_UP;
 	}
+
 	if (ioctl(fd, SIOCSIFFLAGS, &ifr)) {
 		return "Can't ioctl SIOCSIFFLAGS";
 	}
+
 	return "";
 #endif
 }
@@ -76,12 +87,15 @@ bool CTapDriver::Init(const param_map& const_params)
 	param_map params = const_params;
 	stringstream s(params["interface"]);
 	string interface;
+
 	while (getline(s, interface, ',')) {
 		interfaces.push_back(interface);
 	}
+
 	inet = params["inet"];
 
 	spdlog::trace("Opening tap device");
+
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
 		LogErrno("Can't open tun");
@@ -96,6 +110,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	spdlog::trace("Going to open " + string(ifr.ifr_name));
 
 	const int ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr);
+
 	if (ret < 0) {
 		LogErrno("Can't ioctl TUNSETIFF");
 
@@ -106,6 +121,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	spdlog::trace("Return code from ioctl was " + to_string(ret));
 
 	const int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
+
 	if (ip_fd < 0) {
 		LogErrno("Can't open ip socket");
 
@@ -114,6 +130,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	}
 
 	const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
+
 	if (br_socket_fd < 0) {
 		LogErrno("Can't open bridge socket");
 
@@ -122,7 +139,7 @@ bool CTapDriver::Init(const param_map& const_params)
 		return false;
 	}
 
-	auto cleanUp = [&] (const string& error) {
+	auto cleanUp = [&] (const string & error) {
 		LogErrno(error);
 		close(m_hTAP);
 		close(ip_fd);
@@ -135,7 +152,8 @@ bool CTapDriver::Init(const param_map& const_params)
 	if (access(string("/sys/class/net/" + BRIDGE_NAME).c_str(), F_OK)) {
 		spdlog::trace("Checking which interface is available for creating the bridge " + BRIDGE_NAME);
 
-		const auto& it = ranges::find_if(interfaces, [] (const string& iface) { return IsInterfaceUp(iface); } );
+		const auto& it = ranges::find_if(interfaces, [] (const string & iface) { return IsInterfaceUp(iface); } );
+
 		if (it == interfaces.end()) {
 			return cleanUp("No interface is up, not creating bridge " + BRIDGE_NAME);
 		}
@@ -178,6 +196,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	spdlog::trace("Getting the MAC address");
 
 	ifr.ifr_addr.sa_family = AF_INET;
+
 	if (ioctl(m_hTAP, SIOCGIFHWADDR, &ifr) < 0) {
 		return cleanUp("Can't ioctl SIOCGIFHWADDR");
 	}
@@ -199,12 +218,15 @@ void CTapDriver::CleanUp() const
 	if (m_hTAP != -1) {
 		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
 			LogErrno("Can't open bridge socket");
-		} else {
+		}
+		else {
 			spdlog::trace(">brctl delif " + BRIDGE_NAME + " piscsi0");
+
 			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", false); !error.empty()) {
 				spdlog::warn("Warning: Removing piscsi0 from the bridge failed: " + error);
 				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
 			}
+
 			close(br_socket_fd);
 		}
 
@@ -225,10 +247,12 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 {
 	string address = s;
 	string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
+
 	if (const auto& components = Split(s, '/', 2); components.size() == 2) {
 		address = components[0];
 
 		int m;
+
 		if (!GetAsUnsignedInt(components[1], m) || m < 8 || m > 32) {
 			spdlog::error("Invalid CIDR netmask notation '" + components[1] + "'");
 			return { "", "" };
@@ -237,7 +261,7 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 		// long long is required for compatibility with 32 bit platforms
 		const auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
 		netmask = to_string((mask >> 24) & 0xff) + '.' + to_string((mask >> 16) & 0xff) + '.' +
-				to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
+		          to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
 	}
 
 	return { address, netmask };
@@ -257,6 +281,7 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 	if (const string error = br_setif(socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
 		return error;
 	}
+
 #endif
 
 	return "";
@@ -266,6 +291,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 {
 #ifdef __linux__
 	const auto [address, netmask] = ExtractAddressAndMask(s);
+
 	if (address.empty() || netmask.empty()) {
 		return "Error extracting inet address and netmask";
 	}
@@ -279,16 +305,18 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 	ifreq ifr_a;
 	ifr_a.ifr_addr.sa_family = AF_INET;
 	strncpy(ifr_a.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
-	if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
-		inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
+
+	if (auto addr = (sockaddr_in * )&ifr_a.ifr_addr;
+	        inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
 		return "Can't convert '" + address + "' into a network address";
 	}
 
 	ifreq ifr_n;
 	ifr_n.ifr_addr.sa_family = AF_INET;
 	strncpy(ifr_n.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
-	if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
-		inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
+
+	if (auto mask = (sockaddr_in * )&ifr_n.ifr_addr;
+	        inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
 		return "Can't convert '" + netmask + "' into a netmask";
 	}
 
@@ -297,6 +325,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 	if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 		return "Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK";
 	}
+
 #endif
 
 	return "";
@@ -341,16 +370,20 @@ bool CTapDriver::HasPendingPackets() const
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t CTapDriver::Crc32(span<const uint8_t> data) {
-   uint32_t crc = 0xffffffff;
-   for (const auto d: data) {
-      crc ^= d;
-      for (int i = 0; i < 8; i++) {
-         const uint32_t mask = -(static_cast<int>(crc) & 1);
-         crc = (crc >> 1) ^ (0xEDB88320 & mask);
-      }
-   }
-   return ~crc;
+uint32_t CTapDriver::Crc32(span<const uint8_t> data)
+{
+	uint32_t crc = 0xffffffff;
+
+	for (const auto d : data) {
+		crc ^= d;
+
+		for (int i = 0; i < 8; i++) {
+			const uint32_t mask = -(static_cast<int>(crc) & 1);
+			crc = (crc >> 1) ^ (0xEDB88320 & mask);
+		}
+	}
+
+	return ~crc;
 }
 
 int CTapDriver::Receive(uint8_t *buf) const
@@ -364,6 +397,7 @@ int CTapDriver::Receive(uint8_t *buf) const
 
 	// Receive
 	auto dwReceived = static_cast<uint32_t>(read(m_hTAP, buf, ETH_FRAME_LEN));
+
 	if (dwReceived == static_cast<uint32_t>(-1)) {
 		spdlog::warn("Error occured while receiving a packet");
 		return 0;
@@ -381,8 +415,9 @@ int CTapDriver::Receive(uint8_t *buf) const
 		buf[dwReceived + 2] = (uint8_t)((crc >> 16) & 0xFF);
 		buf[dwReceived + 3] = (uint8_t)((crc >> 24) & 0xFF);
 
-		spdlog::trace("CRC is " + to_string(crc) + " - " + to_string(buf[dwReceived+0]) + " " + to_string(buf[dwReceived+1]) +
-				" " + to_string(buf[dwReceived+2]) + " " + to_string(buf[dwReceived+3]));
+		spdlog::trace("CRC is " + to_string(crc) + " - " + to_string(buf[dwReceived + 0]) + " " + to_string(
+		                  buf[dwReceived + 1]) +
+		              " " + to_string(buf[dwReceived + 2]) + " " + to_string(buf[dwReceived + 3]));
 
 		// Add FCS size to the received message size
 		dwReceived += 4;

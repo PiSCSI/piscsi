@@ -18,15 +18,15 @@ using namespace std;
 
 class ScsiLoop
 {
-  public:
-    ScsiLoop()  = default;
-    ~ScsiLoop() = default;
+public:
+	ScsiLoop()  = default;
+	~ScsiLoop() = default;
 
-    int run(const vector<char *> &args);
+	int run(const vector<char *>& args);
 
-  private:
-    void Banner(const vector<char *> &) const;
-    static void TerminationHandler(int signum);
-    bool ParseArgument(const vector<char *> &);
-    bool SetLogLevel(const string &);
+private:
+	void Banner(const vector<char *>&) const;
+	static void TerminationHandler(int signum);
+	bool ParseArgument(const vector<char *>&);
+	bool SetLogLevel(const string&);
 };

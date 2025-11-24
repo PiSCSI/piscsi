@@ -47,7 +47,7 @@ bool Disk::Init(const param_map& params)
 	AddCommand(scsi_command::eCmdSynchronizeCache10, [this] { SynchronizeCache(); });
 	AddCommand(scsi_command::eCmdSynchronizeCache16, [this] { SynchronizeCache(); });
 	AddCommand(scsi_command::eCmdReadDefectData10, [this] { ReadDefectData10(); });
-	AddCommand(scsi_command::eCmdRead16,[this] { Read16(); });
+	AddCommand(scsi_command::eCmdRead16, [this] { Read16(); });
 	AddCommand(scsi_command::eCmdWrite16, [this] { Write16(); });
 	AddCommand(scsi_command::eCmdVerify16, [this] { Verify16(); });
 	AddCommand(scsi_command::eCmdReadCapacity16_ReadLong16, [this] { ReadCapacity16_ReadLong16(); });
@@ -111,6 +111,7 @@ void Disk::FormatUnit()
 void Disk::Read(access_mode mode)
 {
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
+
 	if (valid) {
 		GetController()->SetBlocks(blocks);
 		GetController()->SetLength(Read(GetController()->GetBuffer(), start));
@@ -158,6 +159,7 @@ void Disk::Write(access_mode mode) const
 	}
 
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
+
 	if (valid) {
 		GetController()->SetBlocks(blocks);
 		GetController()->SetLength(GetSectorSizeInBytes());
@@ -175,6 +177,7 @@ void Disk::Write(access_mode mode) const
 void Disk::Verify(access_mode mode)
 {
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
+
 	if (valid) {
 		// if BytChk=0
 		if ((GetController()->GetCmdByte(1) & 0x02) == 0) {
@@ -243,7 +246,7 @@ void Disk::SynchronizeCache()
 void Disk::ReadDefectData10() const
 {
 	const size_t allocation_length = min(static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7)),
-			static_cast<size_t>(4));
+	                                     static_cast<size_t>(4));
 
 	// The defect list is empty
 	fill_n(GetController()->GetBuffer().begin(), allocation_length, 0);
@@ -255,6 +258,7 @@ void Disk::ReadDefectData10() const
 bool Disk::Eject(bool force)
 {
 	const bool status = PrimaryDevice::Eject(force);
+
 	if (status) {
 		FlushCache();
 		cache.reset();
@@ -292,8 +296,11 @@ int Disk::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
 		if (IsReady()) {
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
 			uint64_t disk_blocks = GetBlockCount();
-			if (disk_blocks > 0xFFFFFFFF)
+
+			if (disk_blocks > 0xFFFFFFFF) {
 				disk_blocks = 0xFFFFFFFF;
+			}
+
 			SetInt32(buf, 4, static_cast<uint32_t>(disk_blocks));
 			SetInt32(buf, 8, GetSectorSizeInBytes());
 		}
@@ -333,8 +340,10 @@ int Disk::ModeSense10(cdb_t cdb, vector<uint8_t>& buf) const
 			buf[7] = 0x08;
 
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-			if (disk_blocks > 0xFFFFFFFF)
+			if (disk_blocks > 0xFFFFFFFF) {
 				disk_blocks = 0xFFFFFFFF;
+			}
+
 			SetInt32(buf, 8, static_cast<uint32_t>(disk_blocks));
 			SetInt32(buf, 12, disk_size);
 
@@ -451,7 +460,7 @@ void Disk::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) const
 
 	if (IsReady()) {
 		// Set the number of cylinders (total number of blocks
-        // divided by 25 sectors/track and 8 heads)
+		// divided by 25 sectors/track and 8 heads)
 		uint64_t cylinders = GetBlockCount();
 		cylinders >>= 3;
 		cylinders /= 25;
@@ -530,6 +539,7 @@ void Disk::Seek()
 void Disk::Seek6()
 {
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(SEEK6);
+
 	if (valid) {
 		CheckReady();
 	}
@@ -540,6 +550,7 @@ void Disk::Seek6()
 void Disk::Seek10()
 {
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(SEEK10);
+
 	if (valid) {
 		CheckReady();
 	}
@@ -564,6 +575,7 @@ void Disk::ReadCapacity10()
 	if (capacity > 4294967295) {
 		capacity = -1;
 	}
+
 	SetInt32(buf, 0, static_cast<uint32_t>(capacity));
 
 	// Create block length (1 << size)
@@ -604,17 +616,17 @@ void Disk::ReadCapacity16_ReadLong16()
 {
 	// The service action determines the actual command
 	switch (GetController()->GetCmdByte(1) & 0x1f) {
-	case 0x10:
-		ReadCapacity16();
-		break;
+		case 0x10:
+			ReadCapacity16();
+			break;
 
-	case 0x11:
-		ReadWriteLong16();
-		break;
+		case 0x11:
+			ReadWriteLong16();
+			break;
 
-	default:
-		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
-		break;
+		default:
+			throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+			break;
 	}
 }
 
@@ -624,7 +636,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 
 	if (block > GetBlockCount()) {
 		LogTrace("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
-				+ to_string(block));
+		         + to_string(block));
 		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 }
@@ -638,8 +650,9 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 		start = GetInt24(GetController()->GetCmd(), 1);
 
 		count = GetController()->GetCmdByte(4);
+
 		if (!count) {
-			count= 0x100;
+			count = 0x100;
 		}
 	}
 	else {
@@ -663,7 +676,7 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {
 		LogTrace("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
-				+ to_string(start) + ", block count " + to_string(count));
+		         + to_string(start) + ", block count " + to_string(count));
 		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 
@@ -681,7 +694,7 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_size)
 		return false;
 	}
 
-    configured_sector_size = configured_size;
+	configured_sector_size = configured_size;
 
 	return true;
 }

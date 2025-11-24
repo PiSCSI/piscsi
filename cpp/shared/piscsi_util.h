@@ -18,41 +18,43 @@ using namespace std;
 
 namespace piscsi_util
 {
-	// Separator for compound options like ID:LUN
-	static const char COMPONENT_SEPARATOR = ':';
+// Separator for compound options like ID:LUN
+static const char COMPONENT_SEPARATOR = ':';
 
-	struct StringHash {
-	  using is_transparent = void;
+struct StringHash {
+	using is_transparent = void;
 
-	  size_t operator()(string_view sv) const {
-	    hash<string_view> hasher;
-	    return hasher(sv);
-	  }
-	};
+	size_t operator()(string_view sv) const
+	{
+		hash<string_view> hasher;
+		return hasher(sv);
+	}
+};
 
-	string Join(const auto& collection, const string_view separator = ", ") {
-		ostringstream s;
+string Join(const auto& collection, const string_view separator = ", ")
+{
+	ostringstream s;
 
-		for (const auto& element : collection) {
-			if (s.tellp()) {
-				s << separator;
-			}
-
-			s << element;
+	for (const auto& element : collection) {
+		if (s.tellp()) {
+			s << separator;
 		}
 
-		return s.str();
+		s << element;
 	}
 
-	vector<string> Split(const string&, char, int = INT_MAX);
-	string GetLocale();
-	bool GetAsUnsignedInt(const string&, int&);
-	string ProcessId(const string&, int&, int&);
-	string Banner(string_view);
+	return s.str();
+}
 
-	string GetExtensionLowerCase(string_view);
+vector<string> Split(const string&, char, int = INT_MAX);
+string GetLocale();
+bool GetAsUnsignedInt(const string&, int&);
+string ProcessId(const string&, int&, int&);
+string Banner(string_view);
 
-	void LogErrno(const string&);
+string GetExtensionLowerCase(string_view);
 
-	void FixCpu(int);
+void LogErrno(const string&);
+
+void FixCpu(int);
 }

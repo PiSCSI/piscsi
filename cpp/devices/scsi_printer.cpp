@@ -115,7 +115,7 @@ void SCSIPrinter::Print()
 
 	if (length > GetController()->GetBuffer().size()) {
 		LogError("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
-				" bytes, " + to_string(length) + " bytes expected");
+		         " bytes, " + to_string(length) + " bytes expected");
 
 		++print_error_count;
 
@@ -175,6 +175,7 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 
 		// There is no C++ API that generates a file with a unique name
 		const int fd = mkstemp(f.data());
+
 		if (fd == -1) {
 			LogError("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
 
@@ -182,11 +183,13 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 
 			return false;
 		}
+
 		close(fd);
 
 		filename = f.data();
 
 		out.open(filename, ios::binary);
+
 		if (out.fail()) {
 			++print_error_count;
 
@@ -201,6 +204,7 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 	out.write((const char *)buf.data(), buf.size());
 
 	const bool status = out.fail();
+
 	if (status) {
 		++print_error_count;
 	}

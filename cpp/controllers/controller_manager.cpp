@@ -55,7 +55,7 @@ bool ControllerManager::DeleteController(const AbstractController& controller)
 void ControllerManager::DeleteAllControllers()
 {
 	unordered_set<shared_ptr<AbstractController>> values;
-	ranges::transform(controllers, inserter(values, values.begin()), [] (const auto& controller) { return controller.second; } );
+	ranges::transform(controllers, inserter(values, values.begin()), [] (const auto & controller) { return controller.second; } );
 
 	for (const auto& controller : values) {
 		DeleteController(*controller);
@@ -66,8 +66,8 @@ void ControllerManager::DeleteAllControllers()
 
 AbstractController::piscsi_shutdown_mode ControllerManager::ProcessOnController(int id_data) const
 {
-	if (const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
-		it != controllers.end()) {
+	if (const auto& it = ranges::find_if(controllers, [&] (const auto & c) { return (id_data & (1 << c.first)); } );
+	it != controllers.end()) {
 		(*it).second->ProcessOnController(id_data);
 
 		return (*it).second->GetShutdownMode();
@@ -82,7 +82,8 @@ shared_ptr<AbstractController> ControllerManager::FindController(int target_id) 
 	return it == controllers.end() ? nullptr : it->second;
 }
 
-bool ControllerManager::HasController(int target_id) const {
+bool ControllerManager::HasController(int target_id) const
+{
 	return controllers.contains(target_id);
 }
 
