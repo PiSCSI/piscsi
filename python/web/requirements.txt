@@ -1,6 +1,6 @@
 babel==2.17.0
 bjoern==3.2.2
-blinker==1.6.3
+blinker==1.9.0
 certifi==2025.11.12
 charset-normalizer==2.1.1
 click==8.1.8
