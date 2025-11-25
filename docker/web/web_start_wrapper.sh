@@ -3,9 +3,9 @@
 if ! [[ -f "/home/pi/piscsi/python/common/src/piscsi_interface_pb2.py" ]]; then
     # Build piscsi_interface_pb2.py with the protobuf compiler
     protoc \
-        -I=/home/pi/piscsi/cpp \
         --python_out=/home/pi/piscsi/python/common/src \
-        piscsi_interface.proto
+        --proto_path=/home/pi/piscsi/proto \
+        /home/pi/piscsi/proto/piscsi_interface.proto
 fi
 
 # Start Nginx service
