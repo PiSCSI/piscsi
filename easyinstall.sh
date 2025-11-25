@@ -57,7 +57,6 @@ elif [ $CORES -lt 1 ]; then
 fi
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
-CPP_PATH="$BASE/cpp"
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/piscsi"
 WEB_INSTALL_PATH="$BASE/python/web"
@@ -161,7 +160,7 @@ function installPackagesWeb() {
 
 # compile the PiSCSI binaries
 function compilePiscsi() {
-    cd "$CPP_PATH" || exit 1
+    cd "$BASE/cpp" || exit 1
 
     echo "Compiling $CONNECT_TYPE with $COMPILER on $CORES simultaneous cores..."
     if [[ $SKIP_MAKE_CLEAN ]]; then
@@ -197,7 +196,7 @@ function preparePythonCommon() {
     deleteFile "$PYTHON_COMMON_PATH/src" "$PISCSI_PYTHON_PROTO"
 
     echo "Compiling the Python protobuf library $PISCSI_PYTHON_PROTO..."
-    protoc -I="$CPP_PATH" --python_out="$PYTHON_COMMON_PATH/src" piscsi_interface.proto
+    protoc --python_out="$PYTHON_COMMON_PATH/src" --proto_path="$BASE/proto" "$BASE/proto/piscsi_interface.proto"
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)

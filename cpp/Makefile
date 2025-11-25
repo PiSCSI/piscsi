@@ -74,7 +74,7 @@ ifeq ($(CONNECT_TYPE), FULLSPEC)
 	BIN_ALL += $(BINDIR)/$(SCSIDUMP)
 endif
 
-SRC_PROTOC = piscsi_interface.proto
+SRC_PROTOC = ../proto/piscsi_interface.proto
 
 SRC_GENERATED = $(GENERATED_DIR)/piscsi_interface.pb.cpp
 
@@ -170,7 +170,7 @@ $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 $(SRC_GENERATED) : $(SRC_PROTOC)
 	@echo "-- Generating protobuf-based source files"
 	mkdir -p $(GENERATED_DIR)
-	protoc --cpp_out=$(GENERATED_DIR) $(SRC_PROTOC)
+	protoc --cpp_out=$(GENERATED_DIR) --proto_path=../proto $(SRC_PROTOC)
 	mv $(GENERATED_DIR)/piscsi_interface.pb.cc $@
 
 $(OBJ_GENERATED) : $(SRC_GENERATED) | $(OBJDIR)

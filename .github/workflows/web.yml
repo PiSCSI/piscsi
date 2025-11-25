@@ -55,7 +55,7 @@ jobs:
       - name: Set backend container image name
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_TAG=$(git ls-files -s cpp python .github/workflows/web.yml | git hash-object --stdin)
+          IMAGE_TAG=$(git ls-files -s cpp proto .github/workflows/web.yml | git hash-object --stdin)
           echo "GHCR_IMAGE=ghcr.io/${REPO_LOWER}/backend-standalone:${IMAGE_TAG}" >> $GITHUB_ENV
 
       - name: Login to container registry

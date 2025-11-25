@@ -4,10 +4,11 @@
 # Paths to include
 !/docker/backend/piscsi_wrapper.sh
 !/docker/web/web_start_wrapper.sh
-!/doc
-!/python
 !/cpp
+!/doc
 !/os_integration
+!/proto
+!/python
 !/test
 !/easyinstall.sh
 !/LICENCE

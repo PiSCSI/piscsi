@@ -26,7 +26,7 @@ WORKDIR /home/pi/piscsi
 
 COPY --chown=pi:pi easyinstall.sh .
 COPY --chown=pi:pi os_integration os_integration
-COPY --chown=pi:pi cpp/piscsi_interface.proto cpp/piscsi_interface.proto
+COPY --chown=pi:pi proto proto
 COPY --chown=pi:pi python/web python/web
 COPY --chown=pi:pi python/common python/common
 
