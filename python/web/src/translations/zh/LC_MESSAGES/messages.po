@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2024-04-30 16:53+0900\n"
+"POT-Creation-Date: 2025-11-25 21:06+0100\n"
 "PO-Revision-Date: 2023-11-11 20:54+0900\n"
 "Last-Translator: Tony Kuker <akuker@gmail.com>\n"
 "Language: zh\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.13.1\n"
+"Generated-By: Babel 2.17.0\n"
 
 #: src/return_code_mapper.py:14
 #, python-format
@@ -165,7 +165,7 @@ msgid ""
 "reboot.  Ensure sufficient airflow/cooling."
 msgstr "潜在的不稳定 - 自上次重新启动以来出现软温度限制。 确保足够的气流/冷却。"
 
-#: src/socket_cmds_flask.py:42
+#: src/socket_cmds_flask.py:37
 #, python-format
 msgid ""
 "The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s"
@@ -175,234 +175,234 @@ msgstr ""
 "PiSCSI Web 界面无法连接到 %(host)s:%(port)s 处的 PiSCSI。 错误信息：%(error_msg)s。 "
 "PiSCSI 进程未运行或可能已崩溃。"
 
-#: src/socket_cmds_flask.py:54
+#: src/socket_cmds_flask.py:55
 msgid ""
 "The PiSCSI Web Interface lost connection to PiSCSI. Please go back and "
 "try again. If the issue persists, please report a bug."
 msgstr "PiSCSI Web 界面与 PiSCSI 失去连接，请返回重试。 如果问题仍然存在，请报告错误。"
 
-#: src/socket_cmds_flask.py:64
+#: src/socket_cmds_flask.py:65
 msgid ""
 "The PiSCSI Web Interface did not get a valid response from PiSCSI. Please"
 " go back and try again. If the issue persists, please report a bug."
 msgstr "PiSCSI Web 界面未从 PiSCSI 获得有效响应，请返回重试。 如果问题仍然存在，请报告错误。"
 
-#: src/web.py:263
+#: src/web.py:270
 msgid "PiSCSI Control Page"
 msgstr "PiSCSI 控制页面"
 
-#: src/web.py:310
+#: src/web.py:317
 msgid "PiSCSI Create Drive"
 msgstr "PiSCSI 创建驱动器"
 
-#: src/web.py:325
+#: src/web.py:332
 msgid "PiSCSI System Administration"
 msgstr "PiSCSI 系统管理"
 
-#: src/web.py:346
+#: src/web.py:354
 msgid "PiSCSI File Upload"
 msgstr "PiSCSI 文件上传"
 
-#: src/web.py:373
+#: src/web.py:382
 #, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
 msgstr "您必须使用 '%(group)s' 组中用户的有效身份凭证登录"
 
-#: src/web.py:426 src/web.py:471
+#: src/web.py:434 src/web.py:479
 #, python-format
 msgid "No properties data for drive %(drive_name)s"
 msgstr "驱动器 %(drive_name)s 中没有属性数据"
 
-#: src/web.py:448
+#: src/web.py:457
 #, python-format
 msgid "Image file with properties created: %(file_name)s"
 msgstr "已创建含属性的映像文件：%(file_name)s"
 
-#: src/web.py:548
+#: src/web.py:556
 msgid "PiSCSI Image Info"
 msgstr "PiSCSI 映像信息"
 
-#: src/web.py:555
+#: src/web.py:563
 #, python-format
 msgid "An error occurred when getting disk info: %(error)s"
 msgstr "获取磁盘信息时产生错误：%(error)s"
 
-#: src/web.py:569
+#: src/web.py:577
 #, python-format
 msgid "%(app)s is not a recognized PiSCSI app"
 msgstr "%(app)s不是可识别的 PiSCSI 应用程序"
 
-#: src/web.py:596
+#: src/web.py:604
 msgid "PiSCSI Manual"
 msgstr "PiSCSI 手册"
 
-#: src/web.py:603
+#: src/web.py:611
 #, python-format
 msgid "An error occurred when accessing manual page: %(error)s"
 msgstr "获取帮助页面时产生错误：%(error)s"
 
-#: src/web.py:619
+#: src/web.py:627
 msgid "PiSCSI System Logs"
 msgstr "PiSCSI 系统日志"
 
-#: src/web.py:627
+#: src/web.py:635
 #, python-format
 msgid "An error occurred when fetching logs: %(error)s"
 msgstr "获取日志时产生错误：%(error)s"
 
-#: src/web.py:641
+#: src/web.py:649
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "日志级别设置为 %(value)s"
 
-#: src/web.py:659
+#: src/web.py:667
 msgid "No SCSI ID specified"
 msgstr "未指定 SCSI ID"
 
-#: src/web.py:737
+#: src/web.py:745
 msgid "Detached all SCSI devices"
 msgstr "已断开所有 SCSI 设备"
 
-#: src/web.py:753
+#: src/web.py:762
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "断开 SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:775
+#: src/web.py:784
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "已弹出 SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:794
+#: src/web.py:802
 msgid "PiSCSI Device Info"
 msgstr "PiSCSI 设备信息"
 
-#: src/web.py:798
+#: src/web.py:806
 msgid "No devices attached"
 msgstr "没有连接任何设备"
 
-#: src/web.py:814
+#: src/web.py:822
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "保留的 SCSI ID %(id_number)s"
 
-#: src/web.py:832
+#: src/web.py:840
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "释放了对 SCSI ID %(id_number)s 的预留"
 
-#: src/web.py:851
+#: src/web.py:859
 #, python-format
 msgid "System name changed to '%(name)s'."
 msgstr "系统名称更改为 %(name)s."
 
-#: src/web.py:852
+#: src/web.py:860
 msgid "System name reset to default."
 msgstr "系统名称重置为默认值."
 
-#: src/web.py:854
+#: src/web.py:862
 msgid "Failed to change system name."
 msgstr "更改系统名称失败."
 
-#: src/web.py:928
+#: src/web.py:936
 #, python-format
 msgid "%(iso_type)s is not a valid CD-ROM format."
 msgstr "%(iso_type)s 不是有效的 CD-ROM 格式."
 
-#: src/web.py:943
+#: src/web.py:952
 #, python-format
 msgid "The following error occurred when creating the CD-ROM image: %(error)s"
 msgstr "创建光盘镜像时出现如下错误：%(error)s"
 
-#: src/web.py:950
+#: src/web.py:959
 #, python-format
 msgid "CD-ROM image %(file_name)s with type %(iso_type)s was created."
 msgstr "创建了类型为 %(iso_type)s 的 CD-ROM 映像%(file_name)s。"
 
-#: src/web.py:980 src/web.py:1024
+#: src/web.py:988 src/web.py:1032 src/web.py:1101
 msgid "Unknown destination"
 msgstr "文件存放目的位置未知"
 
-#: src/web.py:989
+#: src/web.py:998
 #, python-format
 msgid "The following error occurred when downloading: %(error)s"
 msgstr "下载时产生以下错误：%(error)s"
 
-#: src/web.py:1038
+#: src/web.py:1046
 msgid "The file already exists!"
 msgstr "文件已经存在！"
 
-#: src/web.py:1050
+#: src/web.py:1058
 msgid "Unable to write the file to disk!"
 msgstr "无法将文件写入磁盘！"
 
-#: src/web.py:1058
+#: src/web.py:1066
 msgid "Transferred file corrupted!"
 msgstr "传输的文件已损坏！"
 
-#: src/web.py:1062
+#: src/web.py:1070
 msgid "Unable to rename temporary file!"
 msgstr "无法重命名临时文件！"
 
-#: src/web.py:1064
+#: src/web.py:1072
 msgid "File upload successful!"
 msgstr "文件上传成功！"
 
-#: src/web.py:1106 src/web.py:1119
+#: src/web.py:1162 src/web.py:1175
 #, python-format
 msgid "%(drive_format)s is not a valid hard disk format."
 msgstr "%(drive_format)s 不是有效的硬盘格式。"
 
-#: src/web.py:1164
+#: src/web.py:1220
 #, python-format
 msgid "Image file with properties created: %(file_name)s%(drive_format)s"
 msgstr "已创建带属性的映像文件：%(file_name)s%(drive_format)s"
 
-#: src/web.py:1174
+#: src/web.py:1230
 #, python-format
 msgid "Image file created: %(file_name)s%(drive_format)s"
 msgstr "已创建映像文件：%(file_name)s%(drive_format)s"
 
-#: src/web.py:1235
+#: src/web.py:1289
 #, python-format
 msgid "Image file with properties deleted: %(file_name)s"
 msgstr "已删除带属性的映像文件：%(file_name)s"
 
-#: src/web.py:1244
+#: src/web.py:1298
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "映像文件已删除：%(file_name)s"
 
-#: src/web.py:1282
+#: src/web.py:1336
 #, python-format
 msgid "Image file with properties renamed to: %(file_name)s"
 msgstr "带属性的映像文件已重命名为：%(file_name)s"
 
-#: src/web.py:1291
+#: src/web.py:1345
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "映像文件重命名为：%(file_name)s"
 
-#: src/web.py:1329
+#: src/web.py:1383
 #, python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
 msgstr "已保存带属性映像文件的拷贝：%(file_name)s"
 
-#: src/web.py:1338
+#: src/web.py:1392
 #, python-format
 msgid "Copy of image file saved as: %(file_name)s"
 msgstr "已保存映像文件的拷贝：%(file_name)s"
 
-#: src/web.py:1391
+#: src/web.py:1446
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Web 界面语言已更改为 %(locale)s"
 
-#: src/web.py:1402
+#: src/web.py:1457
 msgid "The requested theme does not exist."
 msgstr "请求的主题不存在."
 
-#: src/web.py:1405
+#: src/web.py:1460
 #, python-format
 msgid "Theme changed to '%(theme)s'."
 msgstr "主题更改为 '%(theme)s'."
@@ -424,20 +424,20 @@ msgid "CD/DVD Drive"
 msgstr "光驱"
 
 #: src/web_utils.py:106
-msgid "Host Bridge"
-msgstr "主机桥"
-
-#: src/web_utils.py:108
 msgid "Ethernet Adapter"
 msgstr "以太网适配器"
 
-#: src/web_utils.py:110
+#: src/web_utils.py:108
 msgid "Printer"
 msgstr "打印机"
 
-#: src/web_utils.py:112
+#: src/web_utils.py:110
 msgid "Host Services"
 msgstr "主机服务"
+
+#: src/web_utils.py:112
+msgid "Streamer (Tape) Drive"
+msgstr "磁带机"
 
 #: src/web_utils.py:135
 msgid "Hard Disk Image (Generic)"
@@ -463,41 +463,49 @@ msgstr "可移动磁盘映像"
 msgid "Magneto-Optical Disk Image"
 msgstr "磁光盘图像"
 
-#: src/web_utils.py:249
+#: src/web_utils.py:147
+msgid "Tape Image"
+msgstr "磁带映像"
+
+#: src/web_utils.py:149
+msgid "Tape Archive"
+msgstr "磁带归档"
+
+#: src/web_utils.py:256
 msgid "You must log in to use this function"
 msgstr "您必须登录才能使用此功能"
 
-#: src/web_utils.py:266
+#: src/web_utils.py:273
 #, python-format
 msgid "Wireless network bridge enabled for %(interface)s"
 msgstr "请首先为界面 %(interface)s 配置网桥"
 
-#: src/web_utils.py:272
+#: src/web_utils.py:279
 #, python-format
 msgid "Wired network bridge enabled for %(interface)s"
 msgstr "请首先为界面 %(interface)s 配置网桥"
 
-#: src/web_utils.py:278
+#: src/web_utils.py:286
 #, python-format
 msgid ""
 "Unable to detect if %(interface)s is Ethernet or WiFi. Make sure that the"
 " correct network bridge is configured."
 msgstr "无法检测%(interface)s是以太网还是WiFi。确保配置了正确的网桥。"
 
-#: src/web_utils.py:285
+#: src/web_utils.py:293
 #, python-format
 msgid "Configure the network bridge for %(interface)s first: "
 msgstr "请首先为界面 %(interface)s 配置网桥: "
 
-#: src/web_utils.py:300
+#: src/web_utils.py:307
 msgid "Path must not be absolute"
 msgstr "路径不能是绝对路径"
 
-#: src/web_utils.py:302
+#: src/web_utils.py:309
 msgid "Path must not traverse the file system"
 msgstr "路径不得遍历文件系统"
 
-#: src/web_utils.py:304
+#: src/web_utils.py:311
 msgid "Path must not start in the home directory"
 msgstr "路径不得从主目录中开始"
 
@@ -550,139 +558,136 @@ msgid ""
 msgstr "如果您没有设置一个“好听”的主机名，则系统会自动返回到其“常规”的主机名。"
 
 #: src/templates/admin.html:70
-#, python-format
-msgid "The current theme is \"%(theme)s\"."
-msgstr "目前的主题是“%(theme)s”。"
+msgid "Theme:"
+msgstr "主题："
 
-#: src/templates/admin.html:72 src/templates/admin.html:74
-#, python-format
-msgid "Switch to the <a href=\"/theme?name=%(theme)s\">%(theme)s theme</a>"
-msgstr "切换到 <a href=\"/theme?name=%(theme)s\">%(theme)s 主题</a>"
+#: src/templates/admin.html:82
+msgid "Change Theme"
+msgstr "更改主题"
 
-#: src/templates/admin.html:79
+#: src/templates/admin.html:88
 msgid "Language:"
 msgstr "语言："
 
-#: src/templates/admin.html:91
+#: src/templates/admin.html:100
 msgid "Change Language"
 msgstr "改变语言"
 
-#: src/templates/admin.html:97 src/templates/base.html:67
+#: src/templates/admin.html:106 src/templates/base.html:67
 msgid "System Name:"
 msgstr "系统名:"
 
-#: src/templates/admin.html:99 src/templates/index.html:349
+#: src/templates/admin.html:108 src/templates/index.html:353
 msgid "Rename"
 msgstr "重命名"
 
-#: src/templates/admin.html:103
+#: src/templates/admin.html:112
 msgid "Reset"
 msgstr "重置"
 
-#: src/templates/admin.html:113
+#: src/templates/admin.html:122
 msgid "Companion Services"
 msgstr "陪伴服务"
 
-#: src/templates/admin.html:116
+#: src/templates/admin.html:125
 msgid ""
 "If you want to add a service, run the easyinstall.sh script and choose "
 "the one to install."
 msgstr "如果要添加服务，请运行 easyinstall.sh 脚本并选择要安装的服务。"
 
-#: src/templates/admin.html:117
+#: src/templates/admin.html:126
 msgid ""
 "In order to manage the services in the Web UI, you may install Webmin as "
 "well."
 msgstr "为了在 Web 界面中管理服务，您也可以安装 Webmin。"
 
-#: src/templates/admin.html:118
+#: src/templates/admin.html:127
 #, python-format
 msgid ""
 "To browse the modern web, install a vintage web proxy such as <a "
 "href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 msgstr "要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>。"
 
-#: src/templates/admin.html:125
+#: src/templates/admin.html:134
 msgid "Mac AFP file sharing is enabled."
 msgstr "Mac AFP 文件共享已启用。"
 
-#: src/templates/admin.html:128
+#: src/templates/admin.html:137
 msgid "Mac AFP file sharing is disabled."
 msgstr "Mac AFP 文件共享已禁用。"
 
-#: src/templates/admin.html:134
+#: src/templates/admin.html:143
 msgid "Manage the AFP server"
 msgstr "管理 AFP 服务器"
 
-#: src/templates/admin.html:140
+#: src/templates/admin.html:149
 msgid "Windows SMB file sharing is enabled."
 msgstr "Windows SMB 文件共享已启用。"
 
-#: src/templates/admin.html:143
+#: src/templates/admin.html:152
 msgid "Windows SMB file sharing is disabled."
 msgstr "Windows SMB 文件共享已禁用。"
 
-#: src/templates/admin.html:149
+#: src/templates/admin.html:158
 msgid "Manage the SMB server"
 msgstr "管理 SMB 服务器"
 
-#: src/templates/admin.html:155
+#: src/templates/admin.html:164
 msgid "FTP file sharing is enabled."
 msgstr "已启用 FTP 文件共享。"
 
-#: src/templates/admin.html:158
+#: src/templates/admin.html:167
 msgid "FTP file sharing is disabled."
 msgstr "FTP 文件共享已禁用。"
 
-#: src/templates/admin.html:164
-#, fuzzy
-msgid "Manage the FTP server"
-msgstr "管理 AFP 服务器"
-
-#: src/templates/admin.html:170
-#, python-format
-msgid "Vintage web proxy is running at %(ip_addr)s (default port 5000)"
-msgstr "老式 Web 代理 正在 %(ip_addr)s（默认端口 5000）上运行"
-
 #: src/templates/admin.html:173
+msgid "Manage the FTP server"
+msgstr "管理 FTP 服务器"
+
+#: src/templates/admin.html:179
+#, python-format
+msgid "Vintage web proxy is running at %(ip_addr)s (default port 5001)"
+msgstr "老式 Web 代理 正在 %(ip_addr)s（默认端口 5001）上运行"
+
+#: src/templates/admin.html:182
 msgid "Vintage web proxy is disabled."
 msgstr "老式 Web 代理已禁用。"
 
-#: src/templates/admin.html:178
+#: src/templates/admin.html:187
 msgid "Manage PiSCSI services & Linux with Webmin"
-msgstr ""
+msgstr "使用 Webmin 管理 PiSCSI 服务和 Linux"
 
-#: src/templates/admin.html:189
+#: src/templates/admin.html:198
 msgid "System Operations"
 msgstr "系统操作"
 
-#: src/templates/admin.html:192
+#: src/templates/admin.html:201
 msgid ""
 "IMPORTANT: Always shut down the system before turning off the power. "
 "Failing to do so may lead to data loss."
 msgstr "重要提示：务必在切断电源之前先关闭系统，否则可能会导致数据丢失。"
 
-#: src/templates/admin.html:197
+#: src/templates/admin.html:206
 msgid "Reboot the System?"
 msgstr "重启系统？"
 
-#: src/templates/admin.html:197
+#: src/templates/admin.html:206
 msgid "Rebooting the system..."
 msgstr "正在重启系统..."
 
-#: src/templates/admin.html:198
+#: src/templates/admin.html:207
 msgid "Reboot System"
 msgstr "重启系统"
 
-#: src/templates/admin.html:200
+#: src/templates/admin.html:209
 msgid "Shut Down the System?"
 msgstr "关闭系统?"
 
-#: src/templates/admin.html:200
+#: src/templates/admin.html:209
 msgid "Shutting down the system..."
 msgstr "正在关闭系统..."
 
-#: src/templates/admin.html:201
+#: src/templates/admin.html:210
 msgid "Shut Down System"
 msgstr "关闭系统"
 
@@ -720,8 +725,8 @@ msgid "Control Page"
 msgstr "控制页面"
 
 #: src/templates/base.html:104
-msgid "Go to Home"
-msgstr "回到主页"
+msgid "Return"
+msgstr "返回"
 
 #: src/templates/base.html:109
 msgid "Read the PiSCSI Manual"
@@ -732,7 +737,7 @@ msgid "PiSCSI software version:"
 msgstr "PiSCSI 软件版本："
 
 #: src/templates/base.html:115
-msgid "Hardware and OS:"
+msgid "Hardware, OS:"
 msgstr "硬件和操作系统："
 
 #: src/templates/base.html:118
@@ -748,11 +753,11 @@ msgid "SCSI ID"
 msgstr "SCSI ID"
 
 #: src/templates/deviceinfo.html:9 src/templates/index.html:71
-#: src/templates/index.html:323 src/templates/index.html:531
+#: src/templates/index.html:327 src/templates/index.html:546
 msgid "LUN"
 msgstr "LUN"
 
-#: src/templates/deviceinfo.html:10 src/templates/index.html:329
+#: src/templates/deviceinfo.html:10 src/templates/index.html:333
 msgid "Type"
 msgstr "类型"
 
@@ -760,7 +765,7 @@ msgstr "类型"
 msgid "Status"
 msgstr "状态"
 
-#: src/templates/deviceinfo.html:12 src/templates/index.html:231
+#: src/templates/deviceinfo.html:12 src/templates/index.html:235
 msgid "File"
 msgstr "文件"
 
@@ -815,31 +820,34 @@ msgid "Hard Disk Drives"
 msgstr "硬盘驱动器"
 
 #: src/templates/drives.html:11 src/templates/drives.html:47
-#: src/templates/drives.html:86
+#: src/templates/drives.html:86 src/templates/drives.html:119
 msgid "Name"
 msgstr "名称"
 
 #: src/templates/drives.html:12 src/templates/drives.html:87
+#: src/templates/drives.html:120
 msgid "Size (MiB)"
 msgstr "大小 (MB)"
 
 #: src/templates/drives.html:13 src/templates/drives.html:48
-#: src/templates/drives.html:88
+#: src/templates/drives.html:88 src/templates/drives.html:121
 msgid "Description"
 msgstr "描述"
 
 #: src/templates/drives.html:14 src/templates/drives.html:49
-#: src/templates/drives.html:89
+#: src/templates/drives.html:89 src/templates/drives.html:122
 msgid "Action"
 msgstr "操作"
 
 #: src/templates/drives.html:30 src/templates/drives.html:105
+#: src/templates/drives.html:138
 msgid "Save as:"
 msgstr "另存为："
 
 #: src/templates/drives.html:32 src/templates/drives.html:72
-#: src/templates/drives.html:107 src/templates/index.html:652
-#: src/templates/index.html:698 src/templates/index.html:730
+#: src/templates/drives.html:107 src/templates/drives.html:140
+#: src/templates/index.html:667 src/templates/index.html:713
+#: src/templates/index.html:745
 msgid "Create"
 msgstr "创建"
 
@@ -861,7 +869,11 @@ msgstr "创建对象："
 msgid "Removable Disk Drives"
 msgstr "可移动磁盘"
 
-#: src/templates/drives.html:114
+#: src/templates/drives.html:115
+msgid "Tape Drives"
+msgstr "磁带驱动器"
+
+#: src/templates/drives.html:148
 #, python-format
 msgid "%(disk_space)s MiB disk space remaining on the Pi"
 msgstr "在 Pi 上剩余%(disk_space)s MB 磁盘空间"
@@ -895,10 +907,9 @@ msgid ""
 "it as <em>default</em>."
 msgstr "若需在 PiSCSI 启动时加载特定的设备配置，请将其保存为<em>default</em>."
 
-#: src/templates/index.html:30 src/templates/index.html:52
-#: src/templates/index.html:611
-msgid "File Name:"
-msgstr "文件名："
+#: src/templates/index.html:30
+msgid "Config File:"
+msgstr "配置文件："
 
 #: src/templates/index.html:40
 msgid "No saved configurations"
@@ -912,7 +923,7 @@ msgstr "加载"
 msgid "Detach all current device and Load configuration?"
 msgstr "断开所有当前设备和加载配置？"
 
-#: src/templates/index.html:45 src/templates/index.html:358
+#: src/templates/index.html:45 src/templates/index.html:362
 msgid "Delete"
 msgstr "删除"
 
@@ -920,9 +931,13 @@ msgstr "删除"
 msgid "Delete configuration file?"
 msgstr "删除配置文件？"
 
-#: src/templates/index.html:46 src/templates/index.html:581
+#: src/templates/index.html:46 src/templates/index.html:596
 msgid "Download"
 msgstr "下载"
+
+#: src/templates/index.html:52
+msgid "Save As:"
+msgstr "另存为："
 
 #: src/templates/index.html:55
 msgid "Save"
@@ -930,346 +945,344 @@ msgstr "保存"
 
 #: src/templates/index.html:61
 msgid "Please create the PiSCSI configuration dir to use configurations:"
-msgstr ""
+msgstr "请创建 PiSCSI 配置目录以使用配置："
 
-#: src/templates/index.html:69 src/templates/index.html:315
-#: src/templates/index.html:523
+#: src/templates/index.html:69 src/templates/index.html:319
+#: src/templates/index.html:538
 msgid "ID"
 msgstr "ID"
 
-#: src/templates/index.html:73 src/templates/index.html:415
+#: src/templates/index.html:73 src/templates/index.html:419
 msgid "Device"
 msgstr "设备"
 
-#: src/templates/index.html:76 src/templates/index.html:233
-#: src/templates/index.html:417
+#: src/templates/index.html:76 src/templates/index.html:237
+#: src/templates/index.html:421
 msgid "Actions"
 msgstr "操作"
 
 #: src/templates/index.html:95
-#, fuzzy
 msgid "File:"
-msgstr "文件"
+msgstr "文件："
 
-#: src/templates/index.html:116
-#, fuzzy
+#: src/templates/index.html:120
 msgid "Insert"
-msgstr "正在使用"
+msgstr "插入"
 
-#: src/templates/index.html:130
+#: src/templates/index.html:134
 msgid "Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!"
 msgstr "弹出磁盘？ 警告：如果是您使用的是Mac OS，请在 Finder 中弹出磁盘！"
 
-#: src/templates/index.html:135
+#: src/templates/index.html:139
 msgid "Eject"
 msgstr "弹出"
 
-#: src/templates/index.html:152
+#: src/templates/index.html:156
 msgid "Detach Device?"
 msgstr "断开设备？"
 
-#: src/templates/index.html:155
+#: src/templates/index.html:159
 msgid "Detach"
 msgstr "断开"
 
-#: src/templates/index.html:158
+#: src/templates/index.html:162
 msgid "Enter a memo for this reservation"
 msgstr "为此预订输入备注"
 
-#: src/templates/index.html:161
+#: src/templates/index.html:165
 msgid "Reserve"
 msgstr "预订"
 
-#: src/templates/index.html:170
+#: src/templates/index.html:174
 msgid "Reserved ID"
 msgstr "预订 ID"
 
-#: src/templates/index.html:176
+#: src/templates/index.html:180
 msgid "Release"
 msgstr "释放"
 
-#: src/templates/index.html:186
+#: src/templates/index.html:190
 msgid "Detach all SCSI Devices?"
 msgstr "断开所有 SCSI 设备？"
 
-#: src/templates/index.html:187
+#: src/templates/index.html:191
 msgid "Detach All Devices"
 msgstr "断开所有设备"
 
-#: src/templates/index.html:190
+#: src/templates/index.html:194
 msgid "Show Device Info"
 msgstr "显示设备信息"
 
-#: src/templates/index.html:200
+#: src/templates/index.html:204
 msgid "Image File Management"
 msgstr "映像文件管理"
 
-#: src/templates/index.html:203
+#: src/templates/index.html:207
 #, python-format
 msgid ""
 "Manage image files in the active PiSCSI image directory: "
 "<tt>%(directory)s</tt> with a scan depth of %(scan_depth)s."
 msgstr "管理PiSCSI映像目录中的活动映像文件：<tt>%(directory)s</tt>，扫描深度为 %(scan_depth)s。"
 
-#: src/templates/index.html:204
+#: src/templates/index.html:208
 #, python-format
 msgid ""
 "Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> "
 "to attach to. Unless you know what you're doing, always use LUN 0."
 msgstr "选择一个有效的 SCSI ID 和要加载的 <a href=\"%(url)s\">LUN</a>。如果不确定，请使用 LUN 0。"
 
-#: src/templates/index.html:207
+#: src/templates/index.html:211
 msgid "Recognized image file types:"
 msgstr "识别的图像文件类型："
 
-#: src/templates/index.html:212
+#: src/templates/index.html:216
 msgid "Recognized archive file types:"
 msgstr "识别到的存档文件类型："
 
-#: src/templates/index.html:232
+#: src/templates/index.html:236
 msgid "Size"
 msgstr "大小"
 
-#: src/templates/index.html:249
+#: src/templates/index.html:253
 msgid "Properties File"
 msgstr "属性文件"
 
-#: src/templates/index.html:271 src/templates/index.html:283
-#: src/templates/index.html:310
+#: src/templates/index.html:275 src/templates/index.html:287
+#: src/templates/index.html:314
 msgid "Extract"
 msgstr "解压"
 
-#: src/templates/index.html:271 src/templates/index.html:283
+#: src/templates/index.html:275 src/templates/index.html:287
 msgid "Extracting a single file..."
 msgstr "解压单个文件..."
 
-#: src/templates/index.html:298 src/templates/index.html:622
-#: src/templates/upload.html:76
+#: src/templates/index.html:302 src/templates/index.html:637
+#: src/templates/upload.html:88
 msgid "MiB"
 msgstr "MiB"
 
-#: src/templates/index.html:303
+#: src/templates/index.html:307
 msgid "In use"
 msgstr "正在使用"
 
-#: src/templates/index.html:310
+#: src/templates/index.html:314
 msgid "Extracting all files..."
 msgstr "正在解压所有文件..."
 
-#: src/templates/index.html:332
+#: src/templates/index.html:336
 msgid "Unknown"
 msgstr "未知"
 
-#: src/templates/index.html:343 src/templates/index.html:533
+#: src/templates/index.html:347 src/templates/index.html:548
 msgid "Attach"
 msgstr "挂载"
 
-#: src/templates/index.html:346
+#: src/templates/index.html:350
 msgid "Enter a new file name:"
 msgstr "输入新文件名："
 
-#: src/templates/index.html:351
+#: src/templates/index.html:355
 msgid "Enter a file name for the copy:"
 msgstr "输入副本的文件名："
 
-#: src/templates/index.html:354
+#: src/templates/index.html:358
 msgid "Copy"
 msgstr "复制"
 
-#: src/templates/index.html:356
+#: src/templates/index.html:360
 #, python-format
 msgid "Delete file: %(file_name)s?"
 msgstr "删除文件：%(file_name)s？"
 
-#: src/templates/index.html:364
+#: src/templates/index.html:368
 msgid "?"
 msgstr "?"
 
-#: src/templates/index.html:364
+#: src/templates/index.html:368
 msgid "Info"
 msgstr "信息"
 
-#: src/templates/index.html:379
+#: src/templates/index.html:383
 msgid "The images directory is currently empty."
 msgstr "图片目录当前为空。"
 
-#: src/templates/index.html:383
+#: src/templates/index.html:387
 #, python-format
 msgid "%(disk_space)s MiB disk space remaining for images"
 msgstr "%(disk_space)s MiB 剩余磁盘空间用于图片"
 
-#: src/templates/index.html:389
+#: src/templates/index.html:393
 msgid "Please create the PiSCSI images dir to work with disk images:"
-msgstr ""
+msgstr "请创建 PiSCSI 映像目录以使用磁盘映像："
 
-#: src/templates/index.html:400
-#, fuzzy
+#: src/templates/index.html:404
 msgid "Attach Device"
-msgstr "断开设备？"
+msgstr "连接设备"
 
-#: src/templates/index.html:405
+#: src/templates/index.html:409
 msgid ""
 "The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
 "by an emulated network adapter!"
 msgstr "<tt>piscsi_bridge</tt> 网桥处于活动状态，可供虚拟网络适配器使用！"
 
-#: src/templates/index.html:407
+#: src/templates/index.html:411
 msgid ""
 "Please configure the <tt>piscsi_bridge</tt> network bridge before "
 "attaching an emulated network adapter!"
 msgstr "在连接虚拟网络适配器前，请配置 <tt>piscsi_bridge</tt> 网桥!"
 
-#: src/templates/index.html:409
+#: src/templates/index.html:413
 #, python-format
 msgid ""
 "Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
 "types</a> on the wiki."
 msgstr "请查看wiki页面<a href=\"%(url)s\" target=\"_blank\">支持的设备类型</a>了解更多信息。"
 
-#: src/templates/index.html:416
+#: src/templates/index.html:420
 msgid "Key"
 msgstr "秘钥"
 
-#: src/templates/index.html:424
-#, fuzzy
-msgid "Unknown Removable Disk Drive"
-msgstr "可移动磁盘"
-
-#: src/templates/index.html:426
-#, fuzzy
-msgid "Unknown Fixed Disk Drive"
-msgstr "硬盘"
-
 #: src/templates/index.html:428
-#, fuzzy
+msgid "Unknown Removable Disk Drive"
+msgstr "未知的可移动磁盘驱动器"
+
+#: src/templates/index.html:430
+msgid "Unknown Fixed Disk Drive"
+msgstr "未知的固定磁盘驱动器"
+
+#: src/templates/index.html:432
 msgid "Unknown Device"
-msgstr "文件存放目的位置未知"
+msgstr "未知设备"
 
-#: src/templates/index.html:457 src/templates/index.html:623
+#: src/templates/index.html:461 src/templates/index.html:638
 msgid "Identify as:"
-msgstr ""
+msgstr "识别为："
 
-#: src/templates/index.html:460 src/templates/index.html:626
-#, fuzzy
+#: src/templates/index.html:464 src/templates/index.html:641
 msgid "Generic device"
-msgstr "断开设备？"
+msgstr "通用设备"
 
-#: src/templates/index.html:491
-#, fuzzy
+#: src/templates/index.html:502
 msgid "Image file:"
-msgstr "磁盘映像大小"
+msgstr "映像文件："
 
-#: src/templates/index.html:495
+#: src/templates/index.html:506
 msgid "None"
 msgstr "空"
 
-#: src/templates/index.html:497
-#, fuzzy
+#: src/templates/index.html:508
 msgid "Choose a file..."
-msgstr "正在下载文件..."
+msgstr "选择一个文件..."
 
-#: src/templates/index.html:546
+#: src/templates/index.html:561
 msgid "Transfer Files to the PiSCSI"
 msgstr "将文件传输至PiSCSI"
 
-#: src/templates/index.html:549 src/templates/index.html:561
-#: src/templates/upload.html:7 src/templates/upload.html:17
+#: src/templates/index.html:564 src/templates/index.html:576
+#: src/templates/upload.html:7 src/templates/upload.html:22
+#: src/templates/upload.html:100
 msgid "Disk Images"
 msgstr "磁盘映像"
 
-#: src/templates/index.html:551 src/templates/index.html:571
-#: src/templates/upload.html:9 src/templates/upload.html:27
+#: src/templates/index.html:566 src/templates/index.html:586
+#: src/templates/upload.html:9 src/templates/upload.html:32
+#: src/templates/upload.html:110
 msgid "Shared Files"
 msgstr "文件共享"
 
-#: src/templates/index.html:553
+#: src/templates/index.html:568
 msgid ""
 "Install a file server and create the shared files directory in order to "
 "share files between the Pi and your vintage computers."
 msgstr "安装文件服务器并创建共享文件目录，以便在Pi和老式计算机之间共享文件。"
 
-#: src/templates/index.html:559 src/templates/index.html:675
+#: src/templates/index.html:574 src/templates/index.html:690
 msgid "Download file from URL:"
 msgstr "从网址下载文件："
 
-#: src/templates/index.html:562 src/templates/index.html:573
-#: src/templates/upload.html:19 src/templates/upload.html:29
+#: src/templates/index.html:577 src/templates/index.html:588
+#: src/templates/upload.html:24 src/templates/upload.html:34
+#: src/templates/upload.html:102 src/templates/upload.html:112
 msgid "To directory:"
 msgstr "到目录："
 
-#: src/templates/index.html:581
+#: src/templates/index.html:596
 msgid "Downloading File..."
 msgstr "正在下载文件..."
 
-#: src/templates/index.html:586
-msgid "Upload Files (new tab)"
-msgstr "上传文件（新选项卡）"
+#: src/templates/index.html:601
+msgid "Upload Files (new window)"
+msgstr "上传文件（新視窗）"
 
-#: src/templates/index.html:593 src/templates/upload.html:86
+#: src/templates/index.html:608
 msgid "The file uploading functionality requires JavaScript."
 msgstr "文件上传功能需要 JavaScript。"
 
-#: src/templates/index.html:602
+#: src/templates/index.html:617
 msgid "Create Empty Disk Image"
 msgstr "创建空磁盘映像文件"
 
-#: src/templates/index.html:605
+#: src/templates/index.html:620
 #, python-format
 msgid ""
 "Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
 "documentation</a> to learn more about the supported image file types."
 msgstr "请查看<a href=\"%(url)s\" target=\"_blank\">wiki文档</a>了解关于支持的映像文件类型。"
 
-#: src/templates/index.html:606
+#: src/templates/index.html:621
 msgid ""
 "It is not recommended to use the Lido hard disk driver with the Macintosh"
 " Plus."
 msgstr "不建议在Macintosh Plus上使用Lido硬盘驱动。"
 
-#: src/templates/index.html:613 src/templates/index.html:677
-#: src/templates/index.html:709
+#: src/templates/index.html:626
+msgid "File Name:"
+msgstr "文件名："
+
+#: src/templates/index.html:628 src/templates/index.html:692
+#: src/templates/index.html:724
 msgid "Type:"
 msgstr "类型:"
 
-#: src/templates/index.html:621
+#: src/templates/index.html:636
 msgid "Size:"
 msgstr "大小："
 
-#: src/templates/index.html:634
+#: src/templates/index.html:649
 msgid "Format as:"
 msgstr "格式为："
 
-#: src/templates/index.html:637
+#: src/templates/index.html:652
 msgid "Unformatted"
-msgstr ""
+msgstr "未格式化"
 
-#: src/templates/index.html:657
+#: src/templates/index.html:672
 msgid "Create Disk Image With Properties"
 msgstr "创建带属性的磁盘映像"
 
-#: src/templates/index.html:665
+#: src/templates/index.html:680
 msgid "Create CD-ROM Image"
 msgstr "创建光盘映像"
 
-#: src/templates/index.html:668
+#: src/templates/index.html:683
 msgid "HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX."
 msgstr "HFS 适用于 Mac OS，Joliet 适用于 Windows，Rock Ridge 适用于 POSIX。"
 
-#: src/templates/index.html:669
+#: src/templates/index.html:684
 msgid ""
 "If the downloaded file is a zip archive, we will attempt to unzip it and "
 "store the resulting files."
 msgstr "如果下载的文件是 zip 存档，我们将尝试解压缩它并存储生成的文件。"
 
-#: src/templates/index.html:698
+#: src/templates/index.html:713
 msgid "Downloading file and generating CD-ROM image..."
 msgstr "正在下载文件并生成光盘映像..."
 
-#: src/templates/index.html:703
+#: src/templates/index.html:718
 msgid "Use local file:"
 msgstr "使用本地文件："
 
-#: src/templates/index.html:730
+#: src/templates/index.html:745
 msgid "Generating CD-ROM image..."
 msgstr "正在生成光盘映像..."
 
@@ -1294,111 +1307,77 @@ msgid ""
 " other file transfer means for larger files."
 msgstr "此表单接受的最大文件大小为 %(max_file_size)s MiB。对更大的文件请使用其他文件传输方式."
 
-#: src/templates/upload.html:11 src/templates/upload.html:38
+#: src/templates/upload.html:11 src/templates/upload.html:43
+#: src/templates/upload.html:121
 msgid "PiSCSI Config"
 msgstr "PiSCSI 配置"
 
-#: src/templates/upload.html:16
+#: src/templates/upload.html:21 src/templates/upload.html:99
 msgid "Destination"
 msgstr "文件存放位置"
 
-#: src/templates/upload.html:62
+#: src/templates/upload.html:74
 msgid "Drop files here to upload"
 msgstr "将文件拖放到此处以上传"
 
-#: src/templates/upload.html:63
+#: src/templates/upload.html:75
 msgid "Your browser does not support drag'n'drop file uploads."
 msgstr "您的浏览器不支持拖放文件上传。"
 
-#: src/templates/upload.html:64
+#: src/templates/upload.html:76
 msgid ""
 "Please use the fallback form below to upload your files like in the olden"
 " days."
 msgstr "请和老时候一样使用下面的后备表格上传您的文件。"
 
-#: src/templates/upload.html:65
+#: src/templates/upload.html:77
 msgid "File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB."
 msgstr "文件太大：{{filesize}}MiB。最大可允许的大小为：{{maxFilesize}}MiB。"
 
-#: src/templates/upload.html:66
+#: src/templates/upload.html:78
 msgid "You can't upload files of this type."
 msgstr "您不能上传这种类型的文件。"
 
-#: src/templates/upload.html:67
+#: src/templates/upload.html:79
 msgid "Server responded with code: {{statusCode}}"
 msgstr "服务器响应代码：{{statusCode}}"
 
-#: src/templates/upload.html:68
+#: src/templates/upload.html:80
 msgid "Cancel upload"
 msgstr "取消上传"
 
-#: src/templates/upload.html:69
+#: src/templates/upload.html:81
 msgid "Upload canceled."
 msgstr "上传已取消。"
 
-#: src/templates/upload.html:70
+#: src/templates/upload.html:82
 msgid "Are you sure you want to cancel this upload?"
 msgstr "您确定要取消此上传吗？"
 
-#: src/templates/upload.html:71
+#: src/templates/upload.html:83
 msgid "Dismiss"
 msgstr "取消"
 
-#: src/templates/upload.html:72
+#: src/templates/upload.html:84
 msgid "You can not upload any more files."
 msgstr "您不能再上传任何文件。"
 
-#: src/templates/upload.html:74
+#: src/templates/upload.html:86
 msgid "TiB"
 msgstr "TiB"
 
-#: src/templates/upload.html:75
+#: src/templates/upload.html:87
 msgid "GiB"
 msgstr "GiB"
 
-#: src/templates/upload.html:77
+#: src/templates/upload.html:89
 msgid "KiB"
 msgstr "KiB"
 
-#: src/templates/upload.html:78
+#: src/templates/upload.html:90
 msgid "B"
 msgstr "B"
 
-#~ msgid "%(file_name)s downloaded to %(save_dir)s"
-#~ msgstr "%(file_name)s 下载到 %(save_dir)s"
-
-#~ msgid ""
-#~ "You have to manually clean up "
-#~ "partially uploaded files, as a result"
-#~ " of cancelling the upload or closing"
-#~ " this page."
-#~ msgstr "取消上传或关闭此页面."
-
-#~ msgid "No image file to insert"
-#~ msgstr "没有要插入的图像文件"
-
-#~ msgid ""
-#~ "Attached %(file_name)s as %(device_type)s to"
-#~ " SCSI ID %(id_number)s LUN %(unit_number)s"
-#~ msgstr ""
-#~ "将%(file_name)s作为%(device_type)s附加到 SCSI ID "
-#~ "%(id_number)s LUN %(unit_number)s"
-
-#~ msgid "Web Interface Authentication Disabled"
-#~ msgstr "Web 界面身份验证已禁用"
-
-#~ msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
-#~ msgstr "查看<a href=\"%(url)s\" target=\"_blank\">Wiki</a>以了解更多信息"
-
-#~ msgid "File name"
-#~ msgstr "文件名"
-
-#~ msgid "Masquerade as:"
-#~ msgstr "伪装为："
-
-#~ msgid "Attach Peripheral Device"
-#~ msgstr "连接外围设备"
-
-#~ msgid "Parameters and Actions"
-#~ msgstr "参数和操作"
+#~ msgid "Go to Home"
+#~ msgstr "回到主页"
 
