@@ -5,11 +5,11 @@ cd "$(dirname "$0")"
 
 # Create the venv if it doesn't exist
 if ! test -e venv; then
-    echo "Creating python venv for PiSCSI-Web"
+    echo "Creating python venv for PiSCSI-Web development"
     python3 -m venv venv
     echo "Activating venv"
     source venv/bin/activate
-    echo "Installing requirements.txt"
+    echo "Installing requirements-dev.txt"
     pip3 install wheel
     pip3 install -r requirements.txt
 fi
