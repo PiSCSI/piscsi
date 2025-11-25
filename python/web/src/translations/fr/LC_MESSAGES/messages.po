@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/PISCSI/issues\n"
-"POT-Creation-Date: 2024-04-30 16:53+0900\n"
+"POT-Creation-Date: 2025-11-25 21:06+0100\n"
 "PO-Revision-Date: 2023-11-11 20:55+0900\n"
 "Last-Translator: Kamel Makhloufi <melkalehun@gmail.com>\n"
 "Language: fr\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.13.1\n"
+"Generated-By: Babel 2.17.0\n"
 
 #: src/return_code_mapper.py:14
 #, python-format
@@ -187,7 +187,7 @@ msgstr ""
 "depuis le dernier redémarrage. Assurez-vous d’avoir un débit d’air / "
 "refroidissement suffisant."
 
-#: src/socket_cmds_flask.py:42
+#: src/socket_cmds_flask.py:37
 #, python-format
 msgid ""
 "The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s"
@@ -198,7 +198,7 @@ msgstr ""
 "%(host)s:%(port)s avec l’erreur : %(error_msg)s. Le processus PiSCSI "
 "n’est peut-être pas en cours d’exécution ou a planté."
 
-#: src/socket_cmds_flask.py:54
+#: src/socket_cmds_flask.py:55
 msgid ""
 "The PiSCSI Web Interface lost connection to PiSCSI. Please go back and "
 "try again. If the issue persists, please report a bug."
@@ -206,7 +206,7 @@ msgstr ""
 "L’interface web PiSCSI à perdu la connexion à PiSCSI. Merci de réessayer."
 " Si le problème persiste, merci de faire remonter un bug."
 
-#: src/socket_cmds_flask.py:64
+#: src/socket_cmds_flask.py:65
 msgid ""
 "The PiSCSI Web Interface did not get a valid response from PiSCSI. Please"
 " go back and try again. If the issue persists, please report a bug."
@@ -214,230 +214,230 @@ msgstr ""
 "L’interface web PiSCSI à reçu une réponse invalide de PiSCSI. Merci de "
 "réessayer. Si le problème persiste, merci de faire remonter un bug."
 
-#: src/web.py:263
+#: src/web.py:270
 msgid "PiSCSI Control Page"
 msgstr "Page de contrôle de PiSCSI"
 
-#: src/web.py:310
+#: src/web.py:317
 msgid "PiSCSI Create Drive"
 msgstr "PiSCSI Créer un lecteur"
 
-#: src/web.py:325
+#: src/web.py:332
 msgid "PiSCSI System Administration"
 msgstr "Administration du système PiSCSI"
 
-#: src/web.py:346
+#: src/web.py:354
 msgid "PiSCSI File Upload"
 msgstr "Téléversement de fichier PiSCSI"
 
-#: src/web.py:373
+#: src/web.py:382
 #, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
 msgstr ""
 "Vous devez vous connecter avec les identifiants d’un utilisateur "
 "appartenant au groupe '%(group)s'"
 
-#: src/web.py:426 src/web.py:471
+#: src/web.py:434 src/web.py:479
 #, python-format
 msgid "No properties data for drive %(drive_name)s"
 msgstr "Aucune donnée de propriétés pour le lecteur %(drive_name)s"
 
-#: src/web.py:448
+#: src/web.py:457
 #, python-format
 msgid "Image file with properties created: %(file_name)s"
 msgstr "Fichier image avec propriétés créé : %(file_name)s"
 
-#: src/web.py:548
+#: src/web.py:556
 msgid "PiSCSI Image Info"
 msgstr "Informations sur l'image PiSCSI"
 
-#: src/web.py:555
+#: src/web.py:563
 #, python-format
 msgid "An error occurred when getting disk info: %(error)s"
 msgstr ""
 "Une erreur s'est produite lors de l'obtention des informations du disque "
 ": %(error)s"
 
-#: src/web.py:569
+#: src/web.py:577
 #, python-format
 msgid "%(app)s is not a recognized PiSCSI app"
 msgstr "%(app)s n'est pas une application PiSCSI reconnue"
 
-#: src/web.py:596
+#: src/web.py:604
 msgid "PiSCSI Manual"
 msgstr "Manuel PiSCSI"
 
-#: src/web.py:603
+#: src/web.py:611
 #, python-format
 msgid "An error occurred when accessing manual page: %(error)s"
 msgstr "Une erreur s'est produite lors de l'accès à la page du manuel : %(error)s"
 
-#: src/web.py:619
+#: src/web.py:627
 msgid "PiSCSI System Logs"
 msgstr "Journaux système PiSCSI"
 
-#: src/web.py:627
+#: src/web.py:635
 #, python-format
 msgid "An error occurred when fetching logs: %(error)s"
 msgstr ""
 "Une erreur s'est produite lors de la récupération des fichiers logs : "
 "%(error)s"
 
-#: src/web.py:641
+#: src/web.py:649
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "Niveau de journalisation défini sur %(value)s"
 
-#: src/web.py:659
+#: src/web.py:667
 msgid "No SCSI ID specified"
 msgstr "Aucun ID SCSI spécifié"
 
-#: src/web.py:737
+#: src/web.py:745
 msgid "Detached all SCSI devices"
 msgstr "Tout les périphériques SCSI ont été détachés"
 
-#: src/web.py:753
+#: src/web.py:762
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Périphérique SCSI ID %(id_number)s LUN %(unit_number)s détaché"
 
-#: src/web.py:775
+#: src/web.py:784
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "SCSI ID %(id_number)s LUN %(unit_number)s éjecté"
 
-#: src/web.py:794
+#: src/web.py:802
 msgid "PiSCSI Device Info"
 msgstr "Informations sur le périphérique PiSCSI"
 
-#: src/web.py:798
+#: src/web.py:806
 msgid "No devices attached"
 msgstr "Aucun appareil connecté"
 
-#: src/web.py:814
+#: src/web.py:822
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "ID SCSI réservés %(id_number)s"
 
-#: src/web.py:832
+#: src/web.py:840
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Réservation libérée pour SCSI ID %(id_number)s"
 
-#: src/web.py:851
+#: src/web.py:859
 #, python-format
 msgid "System name changed to '%(name)s'."
 msgstr "Nom du système a été remplacé par '%(name)s'."
 
-#: src/web.py:852
+#: src/web.py:860
 msgid "System name reset to default."
 msgstr "Nom du système réinitialisé par défaut."
 
-#: src/web.py:854
+#: src/web.py:862
 msgid "Failed to change system name."
 msgstr "Echec du changement de nom du système."
 
-#: src/web.py:928
+#: src/web.py:936
 #, python-format
 msgid "%(iso_type)s is not a valid CD-ROM format."
 msgstr "%(iso_type)s n'est pas un format de CD-ROM valide."
 
-#: src/web.py:943
+#: src/web.py:952
 #, python-format
 msgid "The following error occurred when creating the CD-ROM image: %(error)s"
 msgstr ""
 "L'erreur suivante s'est produite lors de la création de l'image du CD-ROM"
 " : %(error)s"
 
-#: src/web.py:950
+#: src/web.py:959
 #, python-format
 msgid "CD-ROM image %(file_name)s with type %(iso_type)s was created."
 msgstr "L'image du CD-ROM %(file_name)s avec le type %(iso_type)s a été créée."
 
-#: src/web.py:980 src/web.py:1024
+#: src/web.py:988 src/web.py:1032 src/web.py:1101
 msgid "Unknown destination"
 msgstr "Destination inconnue"
 
-#: src/web.py:989
+#: src/web.py:998
 #, python-format
 msgid "The following error occurred when downloading: %(error)s"
 msgstr "L'erreur suivante s'est produite lors du téléchargement : %(error)s"
 
-#: src/web.py:1038
+#: src/web.py:1046
 msgid "The file already exists!"
 msgstr "Le fichier existe déjà !"
 
-#: src/web.py:1050
+#: src/web.py:1058
 msgid "Unable to write the file to disk!"
 msgstr "Echec d’écriture du fichier sur le disque !"
 
-#: src/web.py:1058
+#: src/web.py:1066
 msgid "Transferred file corrupted!"
 msgstr "Fichier transféré corrompu !"
 
-#: src/web.py:1062
+#: src/web.py:1070
 msgid "Unable to rename temporary file!"
 msgstr "Impossible de renommer le fichier temporaire !"
 
-#: src/web.py:1064
+#: src/web.py:1072
 msgid "File upload successful!"
 msgstr "Transfert de fichier réussi !"
 
-#: src/web.py:1106 src/web.py:1119
+#: src/web.py:1162 src/web.py:1175
 #, python-format
 msgid "%(drive_format)s is not a valid hard disk format."
 msgstr "%(drive_format)s n'est pas un format de disque dur valide."
 
-#: src/web.py:1164
+#: src/web.py:1220
 #, python-format
 msgid "Image file with properties created: %(file_name)s%(drive_format)s"
 msgstr "Fichier image avec propriétés créé : %(file_name)s%(drive_format)s"
 
-#: src/web.py:1174
+#: src/web.py:1230
 #, python-format
 msgid "Image file created: %(file_name)s%(drive_format)s"
 msgstr "Fichier image créé : %(file_name)s%(drive_format)s"
 
-#: src/web.py:1235
+#: src/web.py:1289
 #, python-format
 msgid "Image file with properties deleted: %(file_name)s"
 msgstr "Fichier image avec propriétés supprimé : %(file_name)s"
 
-#: src/web.py:1244
+#: src/web.py:1298
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Fichier image supprimé : %(file_name)s"
 
-#: src/web.py:1282
+#: src/web.py:1336
 #, python-format
 msgid "Image file with properties renamed to: %(file_name)s"
 msgstr "Fichier image avec propriétés renommé en : %(file_name)s"
 
-#: src/web.py:1291
+#: src/web.py:1345
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Fichier image renommé en : %(file_name)s"
 
-#: src/web.py:1329
+#: src/web.py:1383
 #, python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
 msgstr "Copie du fichier image avec propriétés enregistrée sous : %(file_name)s"
 
-#: src/web.py:1338
+#: src/web.py:1392
 #, python-format
 msgid "Copy of image file saved as: %(file_name)s"
 msgstr "Copie du fichier image enregistré sous : %(file_name)s"
 
-#: src/web.py:1391
+#: src/web.py:1446
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Langue de l’interface web changée en %(locale)s"
 
-#: src/web.py:1402
+#: src/web.py:1457
 msgid "The requested theme does not exist."
 msgstr "Le thème demandé n'existe pas."
 
-#: src/web.py:1405
+#: src/web.py:1460
 #, python-format
 msgid "Theme changed to '%(theme)s'."
 msgstr "Thème remplacé par '%(theme)s’."
@@ -459,20 +459,20 @@ msgid "CD/DVD Drive"
 msgstr "Lecteur CD/DVD"
 
 #: src/web_utils.py:106
-msgid "Host Bridge"
-msgstr "Pont Hôte"
-
-#: src/web_utils.py:108
 msgid "Ethernet Adapter"
 msgstr "Adaptateur Ethernet"
 
-#: src/web_utils.py:110
+#: src/web_utils.py:108
 msgid "Printer"
 msgstr "Imprimante"
 
-#: src/web_utils.py:112
+#: src/web_utils.py:110
 msgid "Host Services"
 msgstr "Services Hôte"
+
+#: src/web_utils.py:112
+msgid "Streamer (Tape) Drive"
+msgstr "Lecteur de bande"
 
 #: src/web_utils.py:135
 msgid "Hard Disk Image (Generic)"
@@ -498,21 +498,29 @@ msgstr "Disque amovible"
 msgid "Magneto-Optical Disk Image"
 msgstr "Image de disque magnéto-optique"
 
-#: src/web_utils.py:249
+#: src/web_utils.py:147
+msgid "Tape Image"
+msgstr "Image de bande"
+
+#: src/web_utils.py:149
+msgid "Tape Archive"
+msgstr "Archive de bande"
+
+#: src/web_utils.py:256
 msgid "You must log in to use this function"
 msgstr "Vous devez vous connecter pour utiliser cette fonctionnalité"
 
-#: src/web_utils.py:266
+#: src/web_utils.py:273
 #, python-format
 msgid "Wireless network bridge enabled for %(interface)s"
 msgstr "Configurez d'abord le pont réseau pour %(interface)s"
 
-#: src/web_utils.py:272
+#: src/web_utils.py:279
 #, python-format
 msgid "Wired network bridge enabled for %(interface)s"
 msgstr "Configurez d'abord le pont réseau pour %(interface)s"
 
-#: src/web_utils.py:278
+#: src/web_utils.py:286
 #, python-format
 msgid ""
 "Unable to detect if %(interface)s is Ethernet or WiFi. Make sure that the"
@@ -521,20 +529,20 @@ msgstr ""
 "Impossible de détecter si %(interface)s est Ethernet ou WiFi. Assurez-"
 "vous que le pont réseau correct soit configuré."
 
-#: src/web_utils.py:285
+#: src/web_utils.py:293
 #, python-format
 msgid "Configure the network bridge for %(interface)s first: "
 msgstr "Configurez d'abord le pont réseau pour %(interface)s : "
 
-#: src/web_utils.py:300
+#: src/web_utils.py:307
 msgid "Path must not be absolute"
 msgstr "Le chemin ne doit pas être absolu"
 
-#: src/web_utils.py:302
+#: src/web_utils.py:309
 msgid "Path must not traverse the file system"
 msgstr "Le chemin ne doit pas traverser le système de fichiers"
 
-#: src/web_utils.py:304
+#: src/web_utils.py:311
 msgid "Path must not start in the home directory"
 msgstr "Le chemin d’accès ne doit pas démarrer dans le répertoire de base"
 
@@ -591,40 +599,38 @@ msgstr ""
 "solution de replis vers un nom d'hôte normal."
 
 #: src/templates/admin.html:70
-#, python-format
-msgid "The current theme is \"%(theme)s\"."
-msgstr "Le thème actuel est \"%(theme)s\"."
+msgid "Theme:"
+msgstr "Thème :"
 
-#: src/templates/admin.html:72 src/templates/admin.html:74
-#, python-format
-msgid "Switch to the <a href=\"/theme?name=%(theme)s\">%(theme)s theme</a>"
-msgstr "Passer au <a href=\"/theme?name=%(theme)s\">thème %(theme)s</a>"
+#: src/templates/admin.html:82
+msgid "Change Theme"
+msgstr "Changer le thème"
 
-#: src/templates/admin.html:79
+#: src/templates/admin.html:88
 msgid "Language:"
 msgstr "Langue :"
 
-#: src/templates/admin.html:91
+#: src/templates/admin.html:100
 msgid "Change Language"
 msgstr "Changer la langue"
 
-#: src/templates/admin.html:97 src/templates/base.html:67
+#: src/templates/admin.html:106 src/templates/base.html:67
 msgid "System Name:"
 msgstr "Nom du système :"
 
-#: src/templates/admin.html:99 src/templates/index.html:349
+#: src/templates/admin.html:108 src/templates/index.html:353
 msgid "Rename"
 msgstr "Renommer"
 
-#: src/templates/admin.html:103
+#: src/templates/admin.html:112
 msgid "Reset"
 msgstr "Réinitialiser"
 
-#: src/templates/admin.html:113
+#: src/templates/admin.html:122
 msgid "Companion Services"
 msgstr "Services d’accompagnement"
 
-#: src/templates/admin.html:116
+#: src/templates/admin.html:125
 msgid ""
 "If you want to add a service, run the easyinstall.sh script and choose "
 "the one to install."
@@ -632,7 +638,7 @@ msgstr ""
 "Si vous souhaitez ajouter un service, exécutez le script easyinstall.sh "
 "et choisissez celui à installer."
 
-#: src/templates/admin.html:117
+#: src/templates/admin.html:126
 msgid ""
 "In order to manage the services in the Web UI, you may install Webmin as "
 "well."
@@ -640,7 +646,7 @@ msgstr ""
 "Afin de gérer les services dans l’interface utilisateur Web, vous pouvez "
 "également installer Webmin."
 
-#: src/templates/admin.html:118
+#: src/templates/admin.html:127
 #, python-format
 msgid ""
 "To browse the modern web, install a vintage web proxy such as <a "
@@ -649,61 +655,60 @@ msgstr ""
 "Pour naviguer sur le Web moderne, installez un proxy Web vintage tel que "
 "<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 
-#: src/templates/admin.html:125
+#: src/templates/admin.html:134
 msgid "Mac AFP file sharing is enabled."
 msgstr "Le partage de fichiers AFP Mac est activé."
 
-#: src/templates/admin.html:128
+#: src/templates/admin.html:137
 msgid "Mac AFP file sharing is disabled."
 msgstr "Le partage de fichiers AFP Mac est désactivé."
 
-#: src/templates/admin.html:134
+#: src/templates/admin.html:143
 msgid "Manage the AFP server"
 msgstr "Gérer le serveur AFP"
 
-#: src/templates/admin.html:140
+#: src/templates/admin.html:149
 msgid "Windows SMB file sharing is enabled."
 msgstr "Le partage de fichiers Windows SMB est activé."
 
-#: src/templates/admin.html:143
+#: src/templates/admin.html:152
 msgid "Windows SMB file sharing is disabled."
 msgstr "Le partage de fichiers Windows SMB est désactivé."
 
-#: src/templates/admin.html:149
+#: src/templates/admin.html:158
 msgid "Manage the SMB server"
 msgstr "Gérer le serveur SMB"
 
-#: src/templates/admin.html:155
+#: src/templates/admin.html:164
 msgid "FTP file sharing is enabled."
 msgstr "Le partage de fichiers FTP est activé."
 
-#: src/templates/admin.html:158
+#: src/templates/admin.html:167
 msgid "FTP file sharing is disabled."
 msgstr "Le partage de fichiers FTP est désactivé."
 
-#: src/templates/admin.html:164
-#, fuzzy
-msgid "Manage the FTP server"
-msgstr "Gérer le serveur AFP"
-
-#: src/templates/admin.html:170
-#, python-format
-msgid "Vintage web proxy is running at %(ip_addr)s (default port 5000)"
-msgstr "Le proxy Web vintage s’exécute à %(ip_addr)s (port 5000 par défaut)"
-
 #: src/templates/admin.html:173
+msgid "Manage the FTP server"
+msgstr "Gérer le serveur FTP"
+
+#: src/templates/admin.html:179
+#, python-format
+msgid "Vintage web proxy is running at %(ip_addr)s (default port 5001)"
+msgstr "Le proxy Web vintage s’exécute à %(ip_addr)s (port 5001 par défaut)"
+
+#: src/templates/admin.html:182
 msgid "Vintage web proxy is disabled."
 msgstr "Le proxy Web vintage est désactivé."
 
-#: src/templates/admin.html:178
+#: src/templates/admin.html:187
 msgid "Manage PiSCSI services & Linux with Webmin"
-msgstr ""
+msgstr "Gérer les services PiSCSI et Linux avec Webmin"
 
-#: src/templates/admin.html:189
+#: src/templates/admin.html:198
 msgid "System Operations"
 msgstr "Opérations système"
 
-#: src/templates/admin.html:192
+#: src/templates/admin.html:201
 msgid ""
 "IMPORTANT: Always shut down the system before turning off the power. "
 "Failing to do so may lead to data loss."
@@ -711,27 +716,27 @@ msgstr ""
 "IMPORTANT: Éteignez toujours le système avant de couper l'alimentation. "
 "Ne pas le faire peut entraîner une perte de données."
 
-#: src/templates/admin.html:197
+#: src/templates/admin.html:206
 msgid "Reboot the System?"
 msgstr "Redémarrer le système ?"
 
-#: src/templates/admin.html:197
+#: src/templates/admin.html:206
 msgid "Rebooting the system..."
 msgstr "Redémarrage du système..."
 
-#: src/templates/admin.html:198
+#: src/templates/admin.html:207
 msgid "Reboot System"
 msgstr "Redémarrer le système"
 
-#: src/templates/admin.html:200
+#: src/templates/admin.html:209
 msgid "Shut Down the System?"
 msgstr "Éteindre le système ?"
 
-#: src/templates/admin.html:200
+#: src/templates/admin.html:209
 msgid "Shutting down the system..."
 msgstr "Le système est en cours d’extinction..."
 
-#: src/templates/admin.html:201
+#: src/templates/admin.html:210
 msgid "Shut Down System"
 msgstr "Éteindre le système"
 
@@ -769,8 +774,8 @@ msgid "Control Page"
 msgstr "Page de contrôle"
 
 #: src/templates/base.html:104
-msgid "Go to Home"
-msgstr "Aller à l'accueil"
+msgid "Return"
+msgstr "Retour"
 
 #: src/templates/base.html:109
 msgid "Read the PiSCSI Manual"
@@ -781,8 +786,8 @@ msgid "PiSCSI software version:"
 msgstr "Version PiSCSI :"
 
 #: src/templates/base.html:115
-msgid "Hardware and OS:"
-msgstr "Hardware et système d'exploitation :"
+msgid "Hardware, OS:"
+msgstr "Hardware, système d'exploitation :"
 
 #: src/templates/base.html:118
 msgid "Network Address:"
@@ -797,11 +802,11 @@ msgid "SCSI ID"
 msgstr "ID SCSI"
 
 #: src/templates/deviceinfo.html:9 src/templates/index.html:71
-#: src/templates/index.html:323 src/templates/index.html:531
+#: src/templates/index.html:327 src/templates/index.html:546
 msgid "LUN"
 msgstr "LUN"
 
-#: src/templates/deviceinfo.html:10 src/templates/index.html:329
+#: src/templates/deviceinfo.html:10 src/templates/index.html:333
 msgid "Type"
 msgstr "Type"
 
@@ -809,7 +814,7 @@ msgstr "Type"
 msgid "Status"
 msgstr "Statut"
 
-#: src/templates/deviceinfo.html:12 src/templates/index.html:231
+#: src/templates/deviceinfo.html:12 src/templates/index.html:235
 msgid "File"
 msgstr "Fichier"
 
@@ -870,31 +875,34 @@ msgid "Hard Disk Drives"
 msgstr "Disques durs"
 
 #: src/templates/drives.html:11 src/templates/drives.html:47
-#: src/templates/drives.html:86
+#: src/templates/drives.html:86 src/templates/drives.html:119
 msgid "Name"
 msgstr "Nom"
 
 #: src/templates/drives.html:12 src/templates/drives.html:87
+#: src/templates/drives.html:120
 msgid "Size (MiB)"
 msgstr "Taille (Mio)"
 
 #: src/templates/drives.html:13 src/templates/drives.html:48
-#: src/templates/drives.html:88
+#: src/templates/drives.html:88 src/templates/drives.html:121
 msgid "Description"
 msgstr "Description"
 
 #: src/templates/drives.html:14 src/templates/drives.html:49
-#: src/templates/drives.html:89
+#: src/templates/drives.html:89 src/templates/drives.html:122
 msgid "Action"
 msgstr "Action"
 
 #: src/templates/drives.html:30 src/templates/drives.html:105
+#: src/templates/drives.html:138
 msgid "Save as:"
 msgstr "Sauvegarder sous :"
 
 #: src/templates/drives.html:32 src/templates/drives.html:72
-#: src/templates/drives.html:107 src/templates/index.html:652
-#: src/templates/index.html:698 src/templates/index.html:730
+#: src/templates/drives.html:107 src/templates/drives.html:140
+#: src/templates/index.html:667 src/templates/index.html:713
+#: src/templates/index.html:745
 msgid "Create"
 msgstr "Créer"
 
@@ -918,7 +926,11 @@ msgstr "Créer pour :"
 msgid "Removable Disk Drives"
 msgstr "Disques amovibles"
 
-#: src/templates/drives.html:114
+#: src/templates/drives.html:115
+msgid "Tape Drives"
+msgstr "Lecteurs de bande"
+
+#: src/templates/drives.html:148
 #, python-format
 msgid "%(disk_space)s MiB disk space remaining on the Pi"
 msgstr "%(disk_space)s Mio d'espace disque restant sur le Pi"
@@ -960,10 +972,9 @@ msgstr ""
 "Pour avoir une configuration de périphérique en particulier chargée au "
 "démarrage de PiSCSI, sauvegardez la en tant que <em>default</em>."
 
-#: src/templates/index.html:30 src/templates/index.html:52
-#: src/templates/index.html:611
-msgid "File Name:"
-msgstr "Nom de fichier :"
+#: src/templates/index.html:30
+msgid "Config File:"
+msgstr "Fichier de configuration :"
 
 #: src/templates/index.html:40
 msgid "No saved configurations"
@@ -977,7 +988,7 @@ msgstr "Charger"
 msgid "Detach all current device and Load configuration?"
 msgstr "Détacher tout les périphériques actuels et charger la configuration ?"
 
-#: src/templates/index.html:45 src/templates/index.html:358
+#: src/templates/index.html:45 src/templates/index.html:362
 msgid "Delete"
 msgstr "Supprimer"
 
@@ -985,9 +996,13 @@ msgstr "Supprimer"
 msgid "Delete configuration file?"
 msgstr "Supprimer le fichier de configuration ?"
 
-#: src/templates/index.html:46 src/templates/index.html:581
+#: src/templates/index.html:46 src/templates/index.html:596
 msgid "Download"
 msgstr "Transférer"
+
+#: src/templates/index.html:52
+msgid "Save As:"
+msgstr "Sauvegarder sous :"
 
 #: src/templates/index.html:55
 msgid "Save"
@@ -996,82 +1011,82 @@ msgstr "Sauvegarder"
 #: src/templates/index.html:61
 msgid "Please create the PiSCSI configuration dir to use configurations:"
 msgstr ""
+"Veuillez créer le répertoire de configuration PiSCSI pour utiliser les "
+"configurations :"
 
-#: src/templates/index.html:69 src/templates/index.html:315
-#: src/templates/index.html:523
+#: src/templates/index.html:69 src/templates/index.html:319
+#: src/templates/index.html:538
 msgid "ID"
 msgstr "ID"
 
-#: src/templates/index.html:73 src/templates/index.html:415
+#: src/templates/index.html:73 src/templates/index.html:419
 msgid "Device"
 msgstr "Périphérique"
 
-#: src/templates/index.html:76 src/templates/index.html:233
-#: src/templates/index.html:417
+#: src/templates/index.html:76 src/templates/index.html:237
+#: src/templates/index.html:421
 msgid "Actions"
 msgstr "Actions"
 
 #: src/templates/index.html:95
-#, fuzzy
 msgid "File:"
-msgstr "Fichier"
+msgstr "Fichier :"
 
-#: src/templates/index.html:116
-#, fuzzy
+#: src/templates/index.html:120
 msgid "Insert"
-msgstr "Utilisé"
+msgstr "Insérer"
 
-#: src/templates/index.html:130
+#: src/templates/index.html:134
 msgid "Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!"
 msgstr ""
 "Ejecter le disque ? ATTENTION : Sur Mac OS, préférez éjecter le disque "
 "depuis le Finder !"
 
-#: src/templates/index.html:135
+#: src/templates/index.html:139
 msgid "Eject"
 msgstr "Ejecter"
 
-#: src/templates/index.html:152
+#: src/templates/index.html:156
 msgid "Detach Device?"
 msgstr "Détacher le périphérique ?"
 
-#: src/templates/index.html:155
+#: src/templates/index.html:159
 msgid "Detach"
 msgstr "Détacher"
 
-#: src/templates/index.html:158
+#: src/templates/index.html:162
 msgid "Enter a memo for this reservation"
 msgstr "Entrez un mémo pour cette réservation"
 
-#: src/templates/index.html:161
+#: src/templates/index.html:165
 msgid "Reserve"
 msgstr "Réserver"
 
-#: src/templates/index.html:170
+#: src/templates/index.html:174
 msgid "Reserved ID"
 msgstr "ID réservé"
 
-#: src/templates/index.html:176
+#: src/templates/index.html:180
 msgid "Release"
 msgstr "Détacher"
 
-#: src/templates/index.html:186
+#: src/templates/index.html:190
 msgid "Detach all SCSI Devices?"
 msgstr "Détacher tout les périphériques SCSI ?"
 
-#: src/templates/index.html:187
+#: src/templates/index.html:191
 msgid "Detach All Devices"
 msgstr "Détacher tout les périphériques"
 
-#: src/templates/index.html:190
+#: src/templates/index.html:194
 msgid "Show Device Info"
 msgstr "Afficher les informations du périphérique"
 
-#: src/templates/index.html:200
+#: src/templates/index.html:204
 msgid "Image File Management"
 msgstr "Gestion des fichiers d'image"
 
-#: src/templates/index.html:203
+#: src/templates/index.html:207
 #, python-format
 msgid ""
 "Manage image files in the active PiSCSI image directory: "
@@ -1080,7 +1095,7 @@ msgstr ""
 "Gérer les fichiers image dans le dossier image PiSCSI actif : "
 "<tt>%(directory)s</tt> avec une profondeur de scan de %(scan_depth)s."
 
-#: src/templates/index.html:204
+#: src/templates/index.html:208
 #, python-format
 msgid ""
 "Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> "
@@ -1090,96 +1105,97 @@ msgstr ""
 "target=\"_blank\">LUN</a> valides.À moins que vous ne sachiez ce que vous"
 " faites, utilisez toujours LUN 0."
 
-#: src/templates/index.html:207
+#: src/templates/index.html:211
 msgid "Recognized image file types:"
 msgstr "Types de fichiers image reconnus :"
 
-#: src/templates/index.html:212
+#: src/templates/index.html:216
 msgid "Recognized archive file types:"
 msgstr "Types de fichiers d'archive reconnus :"
 
-#: src/templates/index.html:232
+#: src/templates/index.html:236
 msgid "Size"
 msgstr "Taille"
 
-#: src/templates/index.html:249
+#: src/templates/index.html:253
 msgid "Properties File"
 msgstr "Fichier de propriétés"
 
-#: src/templates/index.html:271 src/templates/index.html:283
-#: src/templates/index.html:310
+#: src/templates/index.html:275 src/templates/index.html:287
+#: src/templates/index.html:314
 msgid "Extract"
 msgstr "Décompresser"
 
-#: src/templates/index.html:271 src/templates/index.html:283
+#: src/templates/index.html:275 src/templates/index.html:287
 msgid "Extracting a single file..."
 msgstr "Décompression d'un fichier unique..."
 
-#: src/templates/index.html:298 src/templates/index.html:622
-#: src/templates/upload.html:76
+#: src/templates/index.html:302 src/templates/index.html:637
+#: src/templates/upload.html:88
 msgid "MiB"
 msgstr "Mio"
 
-#: src/templates/index.html:303
+#: src/templates/index.html:307
 msgid "In use"
 msgstr "Utilisé"
 
-#: src/templates/index.html:310
+#: src/templates/index.html:314
 msgid "Extracting all files..."
 msgstr "Décompression de tous les fichiers..."
 
-#: src/templates/index.html:332
+#: src/templates/index.html:336
 msgid "Unknown"
 msgstr "Inconnu"
 
-#: src/templates/index.html:343 src/templates/index.html:533
+#: src/templates/index.html:347 src/templates/index.html:548
 msgid "Attach"
 msgstr "Attacher"
 
-#: src/templates/index.html:346
+#: src/templates/index.html:350
 msgid "Enter a new file name:"
 msgstr "Entrez un nouveau nom de fichier :"
 
-#: src/templates/index.html:351
+#: src/templates/index.html:355
 msgid "Enter a file name for the copy:"
 msgstr "Entrez un nom de fichier pour la copie :"
 
-#: src/templates/index.html:354
+#: src/templates/index.html:358
 msgid "Copy"
 msgstr "Copier"
 
-#: src/templates/index.html:356
+#: src/templates/index.html:360
 #, python-format
 msgid "Delete file: %(file_name)s?"
 msgstr "Supprimer le fichier : %(file_name)s ?"
 
-#: src/templates/index.html:364
+#: src/templates/index.html:368
 msgid "?"
 msgstr "?"
 
-#: src/templates/index.html:364
+#: src/templates/index.html:368
 msgid "Info"
 msgstr "Info"
 
-#: src/templates/index.html:379
+#: src/templates/index.html:383
 msgid "The images directory is currently empty."
 msgstr "Le répertoire des images est actuellement vide."
 
-#: src/templates/index.html:383
+#: src/templates/index.html:387
 #, python-format
 msgid "%(disk_space)s MiB disk space remaining for images"
 msgstr "%(disk_space)s Mio d'espace disque restant pour les image"
 
-#: src/templates/index.html:389
+#: src/templates/index.html:393
 msgid "Please create the PiSCSI images dir to work with disk images:"
 msgstr ""
+"Veuillez créer le répertoire des images PiSCSI pour travailler avec les "
+"images disque :"
 
-#: src/templates/index.html:400
-#, fuzzy
+#: src/templates/index.html:404
 msgid "Attach Device"
-msgstr "Détacher le périphérique ?"
+msgstr "Attacher le périphérique"
 
-#: src/templates/index.html:405
+#: src/templates/index.html:409
 msgid ""
 "The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
 "by an emulated network adapter!"
@@ -1187,7 +1203,7 @@ msgstr ""
 "L'interface <tt>piscsi_bridge</tt> est active et prête à être utilisée "
 "par un adaptateur réseau émulé !"
 
-#: src/templates/index.html:407
+#: src/templates/index.html:411
 msgid ""
 "Please configure the <tt>piscsi_bridge</tt> network bridge before "
 "attaching an emulated network adapter!"
@@ -1195,7 +1211,7 @@ msgstr ""
 "Veuillez configurer le pont réseau <tt>piscsi_bridge</tt> avant de "
 "connecter une carte réseau virtuelle !"
 
-#: src/templates/index.html:409
+#: src/templates/index.html:413
 #, python-format
 msgid ""
 "Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
@@ -1204,63 +1220,59 @@ msgstr ""
 "En savoir plus sur les <a href=\"%(url)s\" target=\"_blank\">appareils "
 "pris en chargetypes</a> sur le wiki."
 
-#: src/templates/index.html:416
+#: src/templates/index.html:420
 msgid "Key"
 msgstr "Clé"
 
-#: src/templates/index.html:424
-#, fuzzy
-msgid "Unknown Removable Disk Drive"
-msgstr "Disque amovible"
-
-#: src/templates/index.html:426
-#, fuzzy
-msgid "Unknown Fixed Disk Drive"
-msgstr "Disque dur"
-
 #: src/templates/index.html:428
-#, fuzzy
+msgid "Unknown Removable Disk Drive"
+msgstr "Disque amovible inconnu"
+
+#: src/templates/index.html:430
+msgid "Unknown Fixed Disk Drive"
+msgstr "Disque fixe inconnu"
+
+#: src/templates/index.html:432
 msgid "Unknown Device"
-msgstr "Destination inconnue"
+msgstr "Périphérique inconnu"
 
-#: src/templates/index.html:457 src/templates/index.html:623
+#: src/templates/index.html:461 src/templates/index.html:638
 msgid "Identify as:"
-msgstr ""
+msgstr "Identifier en tant que :"
 
-#: src/templates/index.html:460 src/templates/index.html:626
-#, fuzzy
+#: src/templates/index.html:464 src/templates/index.html:641
 msgid "Generic device"
-msgstr "Détacher le périphérique ?"
+msgstr "Périphérique générique"
 
-#: src/templates/index.html:491
-#, fuzzy
+#: src/templates/index.html:502
 msgid "Image file:"
-msgstr "Taille de l'image"
+msgstr "Fichier image :"
 
-#: src/templates/index.html:495
+#: src/templates/index.html:506
 msgid "None"
 msgstr "Aucun"
 
-#: src/templates/index.html:497
-#, fuzzy
+#: src/templates/index.html:508
 msgid "Choose a file..."
-msgstr "Téléchargement du fichier..."
+msgstr "Choisissez un fichier..."
 
-#: src/templates/index.html:546
+#: src/templates/index.html:561
 msgid "Transfer Files to the PiSCSI"
 msgstr "Transférer des fichiers vers le PiSCSI"
 
-#: src/templates/index.html:549 src/templates/index.html:561
-#: src/templates/upload.html:7 src/templates/upload.html:17
+#: src/templates/index.html:564 src/templates/index.html:576
+#: src/templates/upload.html:7 src/templates/upload.html:22
+#: src/templates/upload.html:100
 msgid "Disk Images"
 msgstr "Images Disque"
 
-#: src/templates/index.html:551 src/templates/index.html:571
-#: src/templates/upload.html:9 src/templates/upload.html:27
+#: src/templates/index.html:566 src/templates/index.html:586
+#: src/templates/upload.html:9 src/templates/upload.html:32
+#: src/templates/upload.html:110
 msgid "Shared Files"
 msgstr "Fichiers Partagés"
 
-#: src/templates/index.html:553
+#: src/templates/index.html:568
 msgid ""
 "Install a file server and create the shared files directory in order to "
 "share files between the Pi and your vintage computers."
@@ -1269,32 +1281,33 @@ msgstr ""
 "partagés afin de partager des fichiers entre le Pi et vos ordinateurs "
 "anciens."
 
-#: src/templates/index.html:559 src/templates/index.html:675
+#: src/templates/index.html:574 src/templates/index.html:690
 msgid "Download file from URL:"
 msgstr "Télécharger le fichier à partir de l'URL:"
 
-#: src/templates/index.html:562 src/templates/index.html:573
-#: src/templates/upload.html:19 src/templates/upload.html:29
+#: src/templates/index.html:577 src/templates/index.html:588
+#: src/templates/upload.html:24 src/templates/upload.html:34
+#: src/templates/upload.html:102 src/templates/upload.html:112
 msgid "To directory:"
 msgstr "Vers le répertoire :"
 
-#: src/templates/index.html:581
+#: src/templates/index.html:596
 msgid "Downloading File..."
 msgstr "Téléchargement du fichier..."
 
-#: src/templates/index.html:586
-msgid "Upload Files (new tab)"
-msgstr "Télécharger des fichiers (nouvel onglet)"
+#: src/templates/index.html:601
+msgid "Upload Files (new window)"
+msgstr "Télécharger des fichiers (nouvelle fenêtre)"
 
-#: src/templates/index.html:593 src/templates/upload.html:86
+#: src/templates/index.html:608
 msgid "The file uploading functionality requires JavaScript."
 msgstr "La fonctionnalité de téléchargement de fichiers nécessite JavaScript."
 
-#: src/templates/index.html:602
+#: src/templates/index.html:617
 msgid "Create Empty Disk Image"
 msgstr "Créer un fichier d’image disque vide"
 
-#: src/templates/index.html:605
+#: src/templates/index.html:620
 #, python-format
 msgid ""
 "Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
@@ -1303,7 +1316,7 @@ msgstr ""
 "Veuillez consulter <a href=\"%(url)s\" target=\"_blank\">wiki</a> pour en"
 " savoir plus sur les types de fichiers image pris en charge."
 
-#: src/templates/index.html:606
+#: src/templates/index.html:621
 msgid ""
 "It is not recommended to use the Lido hard disk driver with the Macintosh"
 " Plus."
@@ -1311,36 +1324,40 @@ msgstr ""
 "Il n'est pas recommandé d'utiliser le pilote de disque dur Lido avec le "
 "Macintosh Plus."
 
-#: src/templates/index.html:613 src/templates/index.html:677
-#: src/templates/index.html:709
+#: src/templates/index.html:626
+msgid "File Name:"
+msgstr "Nom de fichier :"
+
+#: src/templates/index.html:628 src/templates/index.html:692
+#: src/templates/index.html:724
 msgid "Type:"
 msgstr "Type :"
 
-#: src/templates/index.html:621
+#: src/templates/index.html:636
 msgid "Size:"
 msgstr "Taille :"
 
-#: src/templates/index.html:634
+#: src/templates/index.html:649
 msgid "Format as:"
 msgstr "Formater comme :"
 
-#: src/templates/index.html:637
+#: src/templates/index.html:652
 msgid "Unformatted"
-msgstr ""
+msgstr "Non formaté"
 
-#: src/templates/index.html:657
+#: src/templates/index.html:672
 msgid "Create Disk Image With Properties"
 msgstr "Créer une image disque avec propriétés"
 
-#: src/templates/index.html:665
+#: src/templates/index.html:680
 msgid "Create CD-ROM Image"
 msgstr "Créer une image de CD-ROM"
 
-#: src/templates/index.html:668
+#: src/templates/index.html:683
 msgid "HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX."
 msgstr "HFS est pour Mac OS, Joliet pour Windows, et Rock Ridge pour POSIX."
 
-#: src/templates/index.html:669
+#: src/templates/index.html:684
 msgid ""
 "If the downloaded file is a zip archive, we will attempt to unzip it and "
 "store the resulting files."
@@ -1348,15 +1365,15 @@ msgstr ""
 "Si le fichier téléchargé est une archive zip, nous allons tenter de la "
 "décompresser et de stocker les fichiers résultants."
 
-#: src/templates/index.html:698
+#: src/templates/index.html:713
 msgid "Downloading file and generating CD-ROM image..."
 msgstr "Téléchargement du fichier et génération de l’image CD-ROM..."
 
-#: src/templates/index.html:703
+#: src/templates/index.html:718
 msgid "Use local file:"
 msgstr "Utilisez un fichier local :"
 
-#: src/templates/index.html:730
+#: src/templates/index.html:745
 msgid "Generating CD-ROM image..."
 msgstr "Génération de l'image du CD-ROM..."
 
@@ -1384,23 +1401,24 @@ msgstr ""
 "%(max_file_size)s Mio. Veuillez utiliser d'autres moyens de transfert de "
 "fichiers pour les fichiers plus volumineux."
 
-#: src/templates/upload.html:11 src/templates/upload.html:38
+#: src/templates/upload.html:11 src/templates/upload.html:43
+#: src/templates/upload.html:121
 msgid "PiSCSI Config"
 msgstr "Configuration PiSCSI"
 
-#: src/templates/upload.html:16
+#: src/templates/upload.html:21 src/templates/upload.html:99
 msgid "Destination"
 msgstr "Destination"
 
-#: src/templates/upload.html:62
+#: src/templates/upload.html:74
 msgid "Drop files here to upload"
 msgstr "Déposez le fichier ici pour le transférer"
 
-#: src/templates/upload.html:63
+#: src/templates/upload.html:75
 msgid "Your browser does not support drag'n'drop file uploads."
 msgstr "Votre navigateur ne supporte pas l'envoi de fichier par glisser-déposer."
 
-#: src/templates/upload.html:64
+#: src/templates/upload.html:76
 msgid ""
 "Please use the fallback form below to upload your files like in the olden"
 " days."
@@ -1408,84 +1426,56 @@ msgstr ""
 "Merci d'utiliser le formulaire de replis ci-dessous pour transférer vos "
 "fichiers de manière classique."
 
-#: src/templates/upload.html:65
+#: src/templates/upload.html:77
 msgid "File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB."
 msgstr ""
 "Le fichier est trop volumineux: {{filesize}}Mio. Taille maximale du "
 "fichier: {{maxFilesize}}Mio."
 
-#: src/templates/upload.html:66
+#: src/templates/upload.html:78
 msgid "You can't upload files of this type."
 msgstr "Vous ne pouvez pas transférer de fichiers de ce type."
 
-#: src/templates/upload.html:67
+#: src/templates/upload.html:79
 msgid "Server responded with code: {{statusCode}}"
 msgstr "Le serveur à répondu avec le code : {{statusCode}}"
 
-#: src/templates/upload.html:68
+#: src/templates/upload.html:80
 msgid "Cancel upload"
 msgstr "Annuler le transfert"
 
-#: src/templates/upload.html:69
+#: src/templates/upload.html:81
 msgid "Upload canceled."
 msgstr "Transfert annulé."
 
-#: src/templates/upload.html:70
+#: src/templates/upload.html:82
 msgid "Are you sure you want to cancel this upload?"
 msgstr "Êtes vous sûr de vouloir annuler ce transfert ?"
 
-#: src/templates/upload.html:71
+#: src/templates/upload.html:83
 msgid "Dismiss"
 msgstr "Rejeter"
 
-#: src/templates/upload.html:72
+#: src/templates/upload.html:84
 msgid "You can not upload any more files."
 msgstr "Vous ne pouvez plus transférer d'autres fichiers."
 
-#: src/templates/upload.html:74
+#: src/templates/upload.html:86
 msgid "TiB"
 msgstr "Tio"
 
-#: src/templates/upload.html:75
+#: src/templates/upload.html:87
 msgid "GiB"
 msgstr "Gio"
 
-#: src/templates/upload.html:77
+#: src/templates/upload.html:89
 msgid "KiB"
 msgstr "Kio"
 
-#: src/templates/upload.html:78
+#: src/templates/upload.html:90
 msgid "B"
 msgstr "o"
 
-#~ msgid "No image file to insert"
-#~ msgstr "Aucun fichier image à insérer"
-
-#~ msgid ""
-#~ "Attached %(file_name)s as %(device_type)s to"
-#~ " SCSI ID %(id_number)s LUN %(unit_number)s"
-#~ msgstr ""
-#~ "%(file_name)s attaché en tant que "
-#~ "%(device_type)s au SCSI ID %(id_number)s "
-#~ "LUN %(unit_number)s"
-
-#~ msgid "Web Interface Authentication Disabled"
-#~ msgstr "Authentification sur l’interface web desactivée"
-
-#~ msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
-#~ msgstr ""
-#~ "Voir le <a href=\"%(url)s\" "
-#~ "target=\"_blank\">Wiki</a> pour plus d’informations"
-
-#~ msgid "File name"
-#~ msgstr "Nom de fichier"
-
-#~ msgid "Masquerade as:"
-#~ msgstr "Se faire passer pour :"
-
-#~ msgid "Attach Peripheral Device"
-#~ msgstr "Attacher le Périphérique"
-
-#~ msgid "Parameters and Actions"
-#~ msgstr "Paramètres et Actions"
+#~ msgid "Go to Home"
+#~ msgstr "Aller à l'accueil"
 
