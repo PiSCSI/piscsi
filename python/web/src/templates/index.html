@@ -27,7 +27,7 @@
 {% if env["cfg_dir_exists"] %}
 <p>
 <form action="/config/action" method="post" id="config-actions">
-    <label for="config_load_name">{{ _("File Name:") }}</label>
+    <label for="config_load_name">{{ _("Config File:") }}</label>
     <select name="name" id="config_load_name" required="" width="14">
         {% if config_files %}
         {% for config in config_files|sort %}
@@ -49,7 +49,7 @@
 
 <p>
 <form action="/config/save" method="post" id="config-save">
-    <label for="config_save_name">{{ _("File Name:") }}</label>
+    <label for="config_save_name">{{ _("Save As:") }}</label>
     <input type="text" name="name" id="config_save_name" value="default" size="20">
     .{{ CONFIG_FILE_SUFFIX }}
     <input type="submit" value="{{ _("Save") }}">
