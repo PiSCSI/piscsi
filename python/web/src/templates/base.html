@@ -101,7 +101,7 @@
     </div>
     {% if not is_root_page %}
     <div class="content">
-        <a class="back" href="/"><span class="separator">&lt;&lt; </span>{{ _("Go to Home") }}</a>
+        <a class="back" href="/"><span class="separator">&lt;&lt; </span>{{ _("Return") }}</a>
     </div>
     {% endif %}
     <div align="center" class="footer">
@@ -112,7 +112,7 @@
             {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
         </div>
         <div>
-            {{ _("Hardware and OS:") }} {{ env["running_env"]["env"] }}
+            {{ _("Hardware, OS:") }} {{ env["running_env"]["env"] }}
         </div>
         <div>
             {{ _("Network Address:") }} {{ env["host"] }} ({{ env["ip_addr"] }})
