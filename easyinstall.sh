@@ -76,7 +76,7 @@ FILE_SHARE_NAME="Pi File Server"
 APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils ca-certificates rsyslog"
 APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang"
 APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
-APT_PACKAGES_WEB="nginx-light genisoimage man2html hfsutils dosfstools kpartx unzip unar disktype gettext"
+APT_PACKAGES_WEB="nginx-light genisoimage man2html dosfstools kpartx unzip unar disktype gettext"
 APT_PACKAGES_SCREEN="libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config"
 APT_PACKAGES_CTRLB="python3-rpi.gpio python3-cbor2 python3-smbus python3-spidev"
 
@@ -122,21 +122,8 @@ function deleteDir() {
     fi
 }
 
-# install all dependency packages for PiSCSI Service
-function installPackages() {
-    if [[ $SKIP_PACKAGES ]]; then
-        echo "Skipping package installation"
-        return 0
-    fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
-        $APT_PACKAGES_COMMON \
-        $APT_PACKAGES_BACKEND \
-        $APT_PACKAGES_PYTHON \
-        $APT_PACKAGES_WEB
-}
-
-# install Debian packages for PiSCSI standalone
-function installPackagesStandalone() {
+# install Debian packages for PiSCSI backend
+function installPackagesBackend() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
         return 0
@@ -146,7 +133,7 @@ function installPackagesStandalone() {
         $APT_PACKAGES_BACKEND
 }
 
-# install Debian packages for PiSCSI web UI standalone
+# install Debian packages for PiSCSI web UI
 function installPackagesWeb() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
@@ -156,6 +143,10 @@ function installPackagesWeb() {
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_PYTHON \
         $APT_PACKAGES_WEB
+
+    if ! sudo apt-get install --no-install-recommends --assume-yes -qq hfsutils; then
+        echo "WARNING: Failed to install 'hfsutils'. HFS disk image support may be unavailable."
+    fi
 }
 
 # compile the PiSCSI binaries
@@ -1095,7 +1086,8 @@ function runChoice() {
               createImagesDir
               createCfgDir
               stopService "piscsi-web"
-              installPackages
+              installPackagesBackend
+              installPackagesWeb
               installHfdisk
               fetchHardDiskDrivers
               stopService "piscsi-ctrlboard"
@@ -1136,7 +1128,7 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              installPackagesStandalone
+              installPackagesBackend
               stopService "piscsi-ctrlboard"
               stopService "piscsi-oled"
               stopService "piscsi"
@@ -1254,7 +1246,7 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
-              installPackagesStandalone
+              installPackagesBackend
               stopService "piscsi"
               compilePiscsi
               installPiscsi
@@ -1302,7 +1294,7 @@ function runChoice() {
               echo "Configuring AFP File Server - Complete!"
           ;;
           16)
-              installPackagesStandalone
+              installPackagesBackend
               compilePiscsi
           ;;
           17)
@@ -1321,7 +1313,8 @@ function runChoice() {
               sudoCache
               createImagesDir
               createCfgDir
-              installPackages
+              installPackagesBackend
+              installPackagesWeb
               installHfdisk
               fetchHardDiskDrivers
               compilePiscsi
