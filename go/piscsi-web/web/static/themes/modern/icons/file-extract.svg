@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link">
+  <path
+     style="fill:none;stroke-width:1.907;stroke-linecap:square;stroke-dasharray:none"
+     d="m 10.472593,12.006947 c 1.619812,0.0021 2.680897,-0.01091 2.320369,-0.01091 l 1.774638,-4.08723 5.806479,0.031907 0.872652,4.115903 0.738935,-0.04595 v 9.8432 H 1.9679509 v -9.8432 c 1.3617088,0.0077 -0.7186182,6e-4 1.1392219,-0.003" />
+  <path
+     style="display:inline;fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:3.9;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#TriangleStart)"
+     d="M 6.790958,16.066421 6.8102115,4.525148" />
+  <path
+     style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.7187;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:3.9;stroke-dasharray:none;stroke-opacity:1"
+     d="m 13.293171,12.100359 h 7.220108" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:1.907;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:3.9"
+     d="M 6.8243727,1.6917562 3.0681003,8.2867384 6.7670251,3.8136202 10.408603,8.0286739 Z" />
+</svg>

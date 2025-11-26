@@ -81,8 +81,8 @@ OPTIONS
 
        -F FOLDER
                The  default folder for image files. For files in this folder no
-               absolute path needs to be specified. The initial default  folder
-               is '~/images'.
+               absolute path needs to be specified. The folder must already ex‐
+               ist.  The initial default folder is '/var/lib/piscsi/images'.
 
        -h      Show a help page.
 

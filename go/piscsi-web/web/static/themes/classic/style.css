@@ -1,0 +1,166 @@
+body {
+  color: black;
+  background-color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  text-decoration: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+form {
+  display: inline;
+}
+
+table,
+tr,
+td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+th {
+  color: white;
+  background-color: black;
+}
+
+h1 {
+  color: white;
+  font-size: 20px;
+}
+
+h2 {
+  color: black;
+  font-size: large;
+  font-weight: bold;
+  margin: 3px;
+}
+
+summary.heading {
+  color: black;
+  font-size: large;
+  font-weight: bold;
+  margin: 3px;
+}
+
+div.header {
+  color: white;
+  background-color: black;
+}
+
+div.footer {
+  font-family: monospace;
+}
+
+div.footer div.theme-change-hint {
+  margin-bottom: 15px;
+}
+
+body.page-diskinfo div.text-container pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+div.header-actions {
+  text-align: right;
+}
+
+div.header-actions a {
+  color: white;
+  text-decoration: underline;
+}
+
+input.lun {
+  width: 36px;
+}
+
+div.flash {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+div.flash div {
+  color: white;
+  padding: 2px 5px;
+  font-size: 18px;
+}
+
+div.flash div div {
+  white-space: pre-line;
+}
+
+div.flash div.success {
+  background-color: green;
+}
+
+div.flash div.warning {
+  background-color: orange;
+  color: black;
+}
+
+div.flash div.error {
+  background-color: red;
+}
+
+div.flash div.info {
+  background-color: #0d6efd;
+}
+
+div.flash > div a {
+  display: none;
+}
+
+td.inactive {
+  text-align: center;
+  background-color: tan;
+}
+
+ul.inline-list {
+  list-style: none;
+}
+
+summary.dirname {
+  text-decoration: underline;
+  font-family: monospace;
+}
+
+summary.filename {
+  text-decoration: underline;
+}
+
+div.throttle-notice > div {
+  display: grid;
+  align-items: center;
+  background-color: #efefef;
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  background-size: 1rem;
+  font-size: x-small;
+  font-weight: bold;
+  justify-content: center;
+}
+
+div.throttle-notice > div.error {
+  background-color: #dc3545;
+  align-items: center;
+}
+
+div.throttle-notice > div.warning {
+  background-color: #ffc107;
+  align-items: center;
+}
+
+div.throttle-notice > div a {
+  color: black;
+  text-decoration: none;
+}
+
+div.throttle-notice > div a:hover {
+  text-decoration: underline;
+}
+
+label.hidden {
+  display: none;
+}

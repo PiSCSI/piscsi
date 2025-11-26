@@ -1,0 +1,614 @@
+{{define "index.html"}}
+{{template "document-head" .}}
+<body>
+{{template "page-header" .}}
+
+    <div class="content">
+
+<script type="application/javascript">
+    var processNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class=\"info\"><div>" + Notification + " This process may take a while, and will continue in the background if you navigate away from this page.</div></div>";
+        window.scrollTo(0,0);
+    }
+
+    var shutdownNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class=\"warning\"><div>" + Notification + " The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.</div></div>";
+        window.scrollTo(0,0);
+    }
+</script>
+
+<section id="current-config">
+<details>
+    <summary class="heading">
+        Current PiSCSI Configuration
+    </summary>
+    <ul>
+        <li>Save and load device configurations, stored as json files in <tt>{{.ConfigDir}}</tt></li>
+        <li>To have a particular device configuration load when PiSCSI starts, save it as <em>default</em>.</li>
+    </ul>
+</details>
+
+{{if .ConfigDirExists}}
+<p>
+<form action="/config/action" method="post" id="config-actions">
+    <label for="config_load_name">File Name:</label>
+    <select name="name" id="config_load_name" required="" width="14">
+        {{if .ConfigFiles}}
+        {{range .ConfigFiles}}
+        <option value="{{.}}">
+            {{.}}
+        </option>
+        {{end}}
+        {{else}}
+        <option disabled>
+        No saved configurations
+        </option>
+        {{end}}
+    </select>
+    <input name="load" type="submit" value="Load" onclick="return confirm('Detach all current device and Load configuration?')">
+    <input name="delete" type="submit" value="Delete" onclick="return confirm('Delete configuration file?')">
+    <input name="send" type="submit" value="Download">
+</form>
+</p>
+
+<p>
+<form action="/config/save" method="post" id="config-save">
+    <label for="config_save_name">File Name:</label>
+    <input type="text" name="name" id="config_save_name" value="default" size="20">
+    .json
+    <input type="submit" value="Save">
+</form>
+</p>
+{{else}}
+
+<div class="notice">
+Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
+</div>
+
+{{end}}
+
+<table id="attached-devices" border="black" cellpadding="3" summary="List of attached devices">
+    <tbody>
+        <tr>
+            <th class="id" scope="col">ID</th>
+            {{if .ShowUnits}}
+            <th class="unit" scope="col">LUN</th>
+            {{end}}
+            <th class="name" scope="col">Device</th>
+            <th class="parameters" scope="col">Parameters</th>
+            <th class="product" scope="col">Product</th>
+            <th class="actions" scope="col">Actions</th>
+        </tr>
+        {{range .Devices}}
+        {{if .Reserved}}
+        <tr class="reserved">
+        {{else if .DeviceType}}
+        <tr class="device-assigned device-{{.DeviceType}}">
+        {{else}}
+        <tr class="free">
+        {{end}}
+            {{if not .Reserved}}
+            <td class="id" align="center">{{.ID}}</td>
+            {{if $.ShowUnits}}
+            <td class="unit" align="center">{{.Unit}}</td>
+            {{end}}
+            <td class="name" align="center">{{.DeviceName}}</td>
+            <td class="parameters">
+            {{if .NoMedia}}
+                <form action="/scsi/attach" method="post">
+                    <label for="device_list_file_name_{{.ID}}_{{.Unit}}">File:</label>
+                    <input name="scsi_id" type="hidden" value="{{.ID}}">
+                    <input name="unit" type="hidden" value="{{.Unit}}">
+                    <input name="type" type="hidden" value="{{.DeviceType}}">
+                    <select type="select" name="file_name" id="device_list_file_name_{{.ID}}_{{.Unit}}">
+                    {{range $.Files}}
+                    <option value="{{.Name}}">{{.Name}}</option>
+                    {{end}}
+                    </select>
+                    <input type="submit" value="Insert">
+                </form>
+            {{else}}
+                {{if .File}}
+                <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?  WARNING: You may need to eject the disk from the guest OS first to avoid data loss!')">
+                    <label>{{.File}}</label>
+                    {{if .Removable}}
+                    <input name="scsi_id" type="hidden" value="{{.ID}}">
+                    <input name="unit" type="hidden" value="{{.Unit}}">
+                    <input type="submit" value="Eject">
+                    {{end}}
+                </form>
+                {{end}}
+            {{end}}
+            </td>
+            <td class="product" align="center">
+                {{if ne .Vendor "PiSCSI"}}
+                {{.Vendor}}
+                {{end}}
+                {{.Product}}
+                {{if ne .Vendor "PiSCSI"}}
+                {{.Revision}}
+                {{end}}
+            </td>
+            <td class="actions" align="center">
+                {{if .Occupied}}
+                <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Device?')">
+                    <input name="scsi_id" type="hidden" value="{{.ID}}">
+                    <input name="unit" type="hidden" value="{{.Unit}}">
+                    <input type="submit" value="Detach">
+                </form>
+                {{else}}
+                <form action="/scsi/reserve" method="post">
+                    <input name="scsi_id" type="hidden" value="{{.ID}}">
+                    <input type="submit" value="Reserve">
+                </form>
+                {{end}}
+            </td>
+            {{else}}
+            <td class="id inactive">{{.ID}}</td>
+            {{if $.ShowUnits}}
+            <td class="units inactive"></td>
+            {{end}}
+            <td class="name inactive">Reserved ID</td>
+            <td class="parameters inactive"></td>
+            <td class="product inactive"></td>
+            <td class="actions inactive">
+                <form action="/scsi/release" method="post">
+                    <input name="scsi_id" type="hidden" value="{{.ID}}">
+                    <input type="submit" value="Release">
+                </form>
+            </td>
+            {{end}}
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+<p>
+    <form action="/scsi/detach_all" method="post" id="detach-all-devices" onsubmit="return confirm('Detach all SCSI Devices?')">
+        <input type="submit" value="Detach All Devices">
+    </form>
+    <form action="/scsi/info" method="post" id="show-device-info">
+        <input type="submit" value="Show Device Info">
+    </form>
+</p>
+</section>
+
+<hr/>
+
+<section id="files">
+<details>
+    <summary class="heading">
+        Image File Management
+    </summary>
+    <ul>
+        <li>Manage image files in the active PiSCSI image directory: <tt>{{.ImageDir}}</tt> with a scan depth of {{.ScanDepth}}.</li>
+        <li>Select a valid SCSI ID and <a href="https://en.wikipedia.org/wiki/Logical_unit_number" target="_blank">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.</li>
+        <li>
+            Recognized image file types: {{range $i, $ext := .ValidImageSuffixes}}{{if $i}}, {{end}}.{{$ext}}{{end}}
+        </li>
+        <li>
+            Recognized archive file types: {{range $i, $ext := .ArchiveSuffixes}}{{if $i}}, {{end}}.{{$ext}}{{end}}
+        </li>
+    </ul>
+</details>
+
+{{if .ImageDirExists}}
+{{if .Files}}
+<div>
+{{range $subdir, $files := .FilesBySubdir}}
+
+<details class="subdir"{{if eq $subdir $.ImageRootDir}} open{{end}}>
+    <summary class="dirname">
+        {{$subdir}}
+    </summary>
+<table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
+    <tbody>
+        <tr>
+            <th scope="col">File</th>
+            <th scope="col">Size</th>
+            <th scope="col">Actions</th>
+        </tr>
+        {{range $files}}
+        {{$file := .}}
+        <tr>
+            <td>
+                {{if .ArchiveContents}}
+                <details class="contents">
+                    <summary class="filename">{{.Name}}</summary>
+                    <ul class="inline_list">
+                        {{range .ArchiveContents}}
+                        {{if not .IsPropertiesFile}}
+                        <li>
+                            {{if .RelatedPropertiesFile}}
+                            <details class="contents">
+                                <summary class="filename">
+                                    <label>{{.Path}}</label>
+                                    <form action="/files/extract_image" method="post" class="file-extract">
+                                        <input name="archive_file" type="hidden" value="{{$file.Name}}">
+                                        <input name="archive_members" type="hidden" value="{{.Path}}|{{.RelatedPropertiesFile}}">
+                                        <input type="submit" value="Extract" title="Extract" onclick="processNotify('Extracting a single file...')">
+                                    </form>
+                                </summary>
+                                <ul class="inline_list"><li>{{.RelatedPropertiesFile}}</li></ul>
+                            </details>
+                            {{else}}
+                            <label>{{.Path}}</label>
+                            <form action="/files/extract_image" method="post" class="file-extract">
+                                <input name="archive_file" type="hidden" value="{{$file.Name}}">
+                                <input name="archive_members" type="hidden" value="{{.Path}}">
+                                <input type="submit" value="Extract" title="Extract" onclick="processNotify('Extracting a single file...')">
+                            </form>
+                            {{end}}
+                        </li>
+                        {{end}}
+                        {{end}}
+                    </ul>
+                </details>
+                {{else if .Properties}}
+                <details class="contents">
+                    <summary class="filename">{{.Name}}</summary>
+                    <ul class="inline_list">
+                        {{range .Properties}}
+                        <li>{{.Name}}: {{.Value}}</li>
+                        {{end}}
+                        <li>
+                            <form action="/files/download_image" method="get">
+                                <input name="source" type="hidden" value="config">
+                                <input name="file" type="hidden" value="{{.PropertiesFile}}">
+                                <input type="submit" value="Properties File &#8595;">
+                            </form>
+                        </li>
+                    </ul>
+                </details>
+                {{else}}
+                {{.Name}}
+                {{if .ArchiveError}}
+                <small class="warning" title="{{.ArchiveError}}">Archive contents unavailable</small>
+                {{end}}
+                {{end}}
+            </td>
+            <td align="center">
+                <form action="/files/download_image" method="get">
+                    <input name="file" type="hidden" value="{{.Name}}">
+                    <input type="submit" value="{{.DisplaySize}} &#8595;">
+                </form>
+            </td>
+            <td>
+                {{if .InUse}}
+                    In use
+                {{else}}
+                {{if .IsArchive}}
+                {{if .ArchiveContents}}
+                <form action="/files/extract_image" method="post" class="file-extract">
+                    <input name="archive_file" type="hidden" value="{{.Name}}">
+                    <input name="archive_members" type="hidden" value="{{range $i, $member := .ArchiveContents}}{{if $i}}|{{end}}{{$member.Path}}{{end}}">
+                    <input type="submit" value="Extract" title="Extract" onclick="processNotify('Extracting all files...')">
+                </form>
+                {{else}}
+                <span class="warning" title="{{.ArchiveError}}">Archive inspection failed</span>
+                {{end}}
+                {{else}}
+                <form action="/scsi/attach" method="post" class="file-attach">
+                    <input name="file" type="hidden" value="{{.Name}}">
+                    <label for="image_list_scsi_id_{{.Name}}">ID</label>
+                    <select name="scsi_id" id="image_list_scsi_id_{{.Name}}">
+                        {{range $.ValidScsiIds}}
+                        <option name="id" value="{{.}}"{{if eq . $.RecommendedScsiId}} selected{{end}}>
+                            {{.}}
+                        </option>
+                        {{end}}
+                    </select>
+                    <label for="image_list_unit_{{.Name}}">LUN</label>
+                    <input class="lun" name="unit" id="image_list_unit_{{.Name}}" type="number" value="0" min="0" max="31" step="1" size="3">
+                    {{if .DetectedType}}
+                        <input name="type" type="hidden" value="{{.DetectedType}}">
+                        {{.DetectedTypeName}}
+                    {{else}}
+                        <label for="image_list_type_{{.Name}}">Type</label>
+                        <select name="type" id="image_list_type_{{.Name}}">
+                        <option selected disabled value="">
+                        Unknown
+                        </option>
+                        {{range $.DeviceTypes}}
+                        <option value="{{.Key}}">
+                            {{.Name}}
+                        </option>
+                        {{end}}
+                        </select>
+                    {{end}}
+                    <input type="submit" value="Attach" title="Attach">
+                </form>
+                {{end}}
+                <form action="/files/rename" method="post" class="file-rename" onsubmit="var new_file_name = prompt('Enter a new file name:', '{{.Name}}'); if (new_file_name === null) event.preventDefault(); document.getElementById('new_file_name_{{$subdir}}_{{.Name}}').value = new_file_name;">
+                    <input name="file_name" type="hidden" value="{{.Name}}">
+                    <input name="new_file_name" id="new_file_name_{{$subdir}}_{{.Name}}" type="hidden" value="">
+                    <input type="submit" value="Rename" title="Rename">
+                </form>
+                <form action="/files/copy" method="post" class="file-copy" onsubmit="var copy_file_name = prompt('Enter a file name for the copy:', '{{.Name}}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{$subdir}}_{{.Name}}').value = copy_file_name;">
+                    <input name="file_name" type="hidden" value="{{.Name}}">
+                    <input name="copy_file_name" id="copy_file_name_{{$subdir}}_{{.Name}}" type="hidden" value="">
+                    <input type="submit" value="Copy" title="Copy">
+                </form>
+                <form action="/files/delete" method="post" class="file-delete" onsubmit="return confirm('Delete file: {{.Name}}?')">
+                    <input name="file_name" type="hidden" value="{{.Name}}">
+                    <input type="submit" value="Delete" title="Delete">
+                </form>
+                {{if not .IsArchive}}
+                <form action="/files/diskinfo" method="post" class="file-info">
+                    <input name="file_name" type="hidden" value="{{.Name}}">
+                    <input type="submit" value="?" title="Info">
+                </form>
+                {{end}}
+                {{end}}
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+</details>
+{{end}}
+</div>
+
+{{else}}
+
+<div class="notice">
+    The images directory is currently empty.
+</div>
+{{end}}
+<p>
+    <small>{{.FreeDiskSpace}} MiB disk space remaining for images</small>
+</p>
+
+{{else}}
+
+<div class="notice">
+    Please create the PiSCSI images dir to work with disk images: {{.ImageDir}}
+</div>
+
+{{end}}
+</section>
+
+<hr/>
+
+<section id="attach-devices">
+<details>
+    <summary class="heading">
+        Attach Device
+    </summary>
+    <ul>
+        {{if .BridgeConfigured}}
+        <li>The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter.</li>
+        {{else}}
+        <li>Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an emulated network adapter.</li>
+        {{end}}
+        <li>Read more about <a href="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types" target="_blank">supported device types</a> on the wiki.</li>
+    </ul>
+</details>
+<table border="black" cellpadding="3" summary="List of peripheral devices">
+    <tr>
+        <th scope="col">Device</th>
+        <th scope="col">Key</th>
+        <th scope="col">Actions</th>
+    </tr>
+    {{range .DeviceTypes}}
+    {{$device := .}}
+    <tr>
+        <td>
+            <div>{{.Name}}</div>
+        </td>
+        <td>
+            <div>{{.Key}}</div>
+        </td>
+        <td>
+            <form action="/scsi/attach" method="post" class="device-attach">
+                <input name="type" type="hidden" value="{{.Key}}">
+                {{range .Parameters}}
+                <label for="param_{{$device.Key}}_{{.Key}}">{{.Key}}:</label>
+                {{if eq .Kind "number"}}
+                <input name="param_{{.Key}}" id="param_{{$device.Key}}_{{.Key}}" type="number" value="{{.Default}}">
+                {{else if eq .Kind "interface"}}
+                <select name="param_{{.Key}}" id="param_{{$device.Key}}_{{.Key}}">
+                    {{range .Options}}
+                    <option value="{{.}}">{{.}}</option>
+                    {{end}}
+                </select>
+                {{else}}
+                <input name="param_{{.Key}}" id="param_{{$device.Key}}_{{.Key}}" type="text" value="{{.Default}}" placeholder="{{.Default}}">
+                {{end}}
+                {{end}}
+                {{if .SupportsFile}}
+                <label for="{{.Key}}_drive_name">Identify as:</label>
+                <select name="drive_name" id="{{.Key}}_drive_name" class="table-dropdown">
+                    <option value="">Generic device</option>
+                    {{range .DriveProfiles}}
+                    <option value="{{.}}">{{.}}</option>
+                    {{end}}
+                </select>
+                <label for="{{.Key}}_image_file_name">Image file:</label>
+                <select name="file_name" id="{{.Key}}_image_file_name" class="table-dropdown"{{if not .Removable}} required{{end}}>
+                    <option value="" selected{{if not .Removable}} disabled{{end}}>
+                        {{if .Removable}}None{{else}}Choose a file...{{end}}
+                    </option>
+                    {{range .Files}}
+                    <option value="{{.Name}}">{{.Name}}</option>
+                    {{end}}
+                </select>
+                {{end}}
+                <label for="{{.Key}}_scsi_id">ID</label>
+                <select name="scsi_id" id="{{.Key}}_scsi_id">
+                {{range $.ValidScsiIds}}
+                    <option value="{{.}}"{{if eq . $.RecommendedScsiId}} selected{{end}}>
+                        {{.}}
+                    </option>
+                {{end}}
+                </select>
+                <label for="{{.Key}}_unit">LUN</label>
+                <input class="lun" name="unit" id="{{.Key}}_unit" type="number" value="0" min="0" max="31" step="1" size="3">
+                <input type="submit" value="Attach" title="Attach">
+            </form>
+        </td>
+    </tr>
+    {{end}}
+</table>
+</section>
+
+<hr/>
+
+<section id="download-url">
+<details>
+    <summary class="heading">
+        Transfer Files to the PiSCSI
+    </summary>
+    <ul>
+        <li>Disk Images = {{.ImageDir}}</li>
+        {{if .FileServerDirExists}}
+        <li>Shared Files = {{.SharedDir}}</li>
+        {{end}}
+    </ul>
+</details>
+
+<form action="/files/download_url" method="post">
+    <label for="download_url">Download file from URL:</label>
+    <input name="url" id="download_url" required="" type="url">
+    <label for="disk_images" class="hidden">Disk Images</label>
+    <label for="images_subdir">To directory:</label>
+    <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
+    <select name="images_subdir" id="images_subdir">
+    {{range .ImagesSubdirs}}
+    <option value="{{.}}">{{$.ImageRootDir}}/{{.}}</option>
+    {{end}}
+    <option value="" selected>{{.ImageRootDir}}/</option>
+    </select>
+    {{if .FileServerDirExists}}
+    <label for="shared_files" class="hidden">Shared Files</label>
+    <input type="radio" name="destination" id="shared_files" value="shared_files">
+    <label for="shared_subdir" class="hidden">To directory:</label>
+    <select name="shared_subdir" id="shared_subdir">
+    {{range .SharedSubdirs}}
+    <option value="{{.}}">{{$.SharedRootDir}}/{{.}}</option>
+    {{end}}
+    <option value="" selected>{{.SharedRootDir}}/</option>
+    </select>
+    {{end}}
+    <input type="submit" value="Download" onclick="processNotify('Downloading File...')">
+</form>
+</section>
+
+<section id="upload">
+    <a href="/upload" target="_blank"><p>Upload Files (new window)</p></a>
+</section>
+<noscript>
+    <style type="text/css">
+        section#upload { display: none; }
+    </style>
+    <div class="notice">
+        The file uploading functionality requires JavaScript.
+    </div>
+</noscript>
+
+<hr/>
+
+<section id="create-image">
+<details>
+    <summary class="heading">
+        Create Empty Disk Image
+    </summary>
+    <ul>
+        <li>Please refer to <a href="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types#image-types" target="_blank">wiki documentation</a> to learn more about the supported image file types.</li>
+        <li>It is not recommended to use the Lido hard disk driver with the Macintosh Plus.</li>
+    </ul>
+</details>
+
+<form action="/files/create" method="post">
+    <label for="image_create_file_name">File Name:</label>
+    <input name="file_name" id="image_create_file_name" required="" type="text">
+    <label for="image_create_type">Type:</label>
+    <select name="type" id="image_create_type">
+        {{range .CreatableImageSuffixes}}
+        <option value="{{.Suffix}}">{{.Description}} [.{{.Suffix}}]</option>
+        {{end}}
+    </select>
+    <label for="image_create_size">Size:</label>
+    <input name="size" id="image_create_size" type="number" placeholder="MiB" min="1" max="262144" required>
+    <label for="image_create_drive_name">Identify as:</label>
+    <select name="drive_name" id="image_create_drive_name">
+        <option value="">Generic device</option>
+        {{range .HardDiskDriveProfiles}}
+        <option value="{{.}}">{{.}}</option>
+        {{end}}
+    </select>
+    <label for="drive_format">Format as:</label>
+    <select name="drive_format" id="drive_format">
+        <option value="">Unformatted</option>
+        <option value="Lido 7.56">HFS + Lido</option>
+        <option value="SpeedTools 3.6">HFS + SpeedTools</option>
+        <option value="FAT16">FAT16</option>
+        <option value="FAT32">FAT32</option>
+    </select>
+    <input type="submit" value="Create">
+</form>
+</section>
+
+<section id="create-drive">
+    <a href="/drive/list"><p>Create Disk Image With Properties</p></a>
+</section>
+
+<hr/>
+
+<section id="create-iso">
+<details>
+    <summary class="heading">
+        Create CD-ROM Image
+    </summary>
+    <ul>
+        <li>HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.</li>
+        <li>If the downloaded file is a zip archive, we will attempt to unzip it and store the resulting files.</li>
+    </ul>
+</details>
+
+<div>
+<form action="/files/create_iso" method="post">
+    <label for="iso_url">Download file from URL:</label>
+    <input name="url" id="iso_url" required="" type="url">
+    <label for="iso_url_type">Type:</label>
+    <select name="type" id="iso_url_type">
+        <option value="HFS">HFS</option>
+        <option value="ISO-9660 Level 1">ISO-9660 Level 1</option>
+        <option value="ISO-9660 Level 2">ISO-9660 Level 2</option>
+        <option value="ISO-9660 Level 3">ISO-9660 Level 3</option>
+        <option value="Joliet">Joliet</option>
+        <option value="Rock Ridge">Rock Ridge</option>
+    </select>
+    <input type="submit" value="Create" onclick="processNotify('Downloading file and generating CD-ROM image...')">
+</form>
+</div>
+<div>
+<form action="/files/create_iso" method="post">
+    <label for="iso_file">Use local file:</label>
+    <select name="file" id="iso_file">
+        {{range .Files}}
+        <option value="{{.Name}}">{{.Name}}</option>
+        {{end}}
+    </select>
+    <label for="iso_file_type">Type:</label>
+    <select name="type" id="iso_file_type">
+        <option value="HFS">HFS</option>
+        <option value="ISO-9660 Level 1">ISO-9660 Level 1</option>
+        <option value="ISO-9660 Level 2">ISO-9660 Level 2</option>
+        <option value="ISO-9660 Level 3">ISO-9660 Level 3</option>
+        <option value="Joliet">Joliet</option>
+        <option value="Rock Ridge">Rock Ridge</option>
+    </select>
+    <input type="submit" value="Create" onclick="processNotify('Generating CD-ROM image...')">
+</form>
+</div>
+</section>
+
+<hr/>
+
+    </div>
+
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

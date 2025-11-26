@@ -26,7 +26,7 @@ If you are operating in restore mode, scsidump will copy the data from a local b
 .Nm
 requires either a direct connection (one without transceivers) or a FULLSPEC PiSCSI/RaSCSI board.
 .Pp
-If the generated drive image is intended to be used with PiSCSI, the drive image should be moved by the user to ~/images (or the location specified to the piscsi service).
+If the generated drive image is intended to be used with PiSCSI, the drive image should be moved to /var/lib/piscsi/images (or the location specified to the piscsi service).
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl I Ar ID Ns Oo : Ar LUN Oc

@@ -8,6 +8,11 @@ CROSS_COMPILE ?=
 
 CXX = $(CROSS_COMPILE)g++
 
+## DEFAULT_IMAGE_FOLDER : Default directory for PiSCSI disk images.
+##                        Override at build time, e.g.
+##                        make DEFAULT_IMAGE_FOLDER=/srv/piscsi/images
+DEFAULT_IMAGE_FOLDER ?= /var/lib/piscsi/images
+
 ##   DEBUG=1  : A Debug build includes the debugger symbols
 ##              and disables compiler optimization. Typically,
 ##              this is only used by developers.
@@ -24,7 +29,7 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
-CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -DSPDLOG_FMT_EXTERNAL -MD -MP
+CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -DSPDLOG_FMT_EXTERNAL -DPISCSI_DEFAULT_IMAGE_FOLDER=\"$(DEFAULT_IMAGE_FOLDER)\" -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)
@@ -299,4 +304,3 @@ help : Makefile
 ##   Debug    : Same as 'all'. Useful when using a debugger.
 .PHONY: Debug
 Debug: all
-

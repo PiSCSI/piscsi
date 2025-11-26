@@ -1,0 +1,20 @@
+{{define "manpage.html"}}
+{{template "document-head" .}}
+<body class="page-manpage">
+{{template "page-header" .}}
+
+    <div class="content">
+        <h2>Manual for {{ .App }}</h2>
+
+        <div id="manpage-content">
+        {{ .Manpage }}
+        </div>
+
+        <hr/>
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

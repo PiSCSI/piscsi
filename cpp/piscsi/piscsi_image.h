@@ -18,9 +18,15 @@ using namespace std;
 using namespace filesystem;
 using namespace piscsi_interface;
 
+#ifndef PISCSI_DEFAULT_IMAGE_FOLDER
+#define PISCSI_DEFAULT_IMAGE_FOLDER "/var/lib/piscsi/images"
+#endif
+
 class PiscsiImage
 {
 public:
+
+	static constexpr const char *DEFAULT_IMAGE_FOLDER = PISCSI_DEFAULT_IMAGE_FOLDER;
 
 	PiscsiImage();
 	~PiscsiImage() = default;
@@ -46,7 +52,6 @@ private:
 	static bool IsValidSrcFilename(string_view);
 	static bool IsValidDstFilename(string_view);
 	static bool ChangeOwner(const CommandContext&, const path&, bool);
-	static string GetHomeDir();
 	static pair<int, int> GetUidAndGid();
 
 	string default_folder;

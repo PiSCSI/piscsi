@@ -1,0 +1,18 @@
+# Binaries
+mock-piscsi
+piscsi-web
+piscsi-web-arm64
+piscsi-web-armv7
+
+# Generated from ../../proto/piscsi_interface.proto during Go builds
+proto/piscsi_interface.pb.go
+
+# Go build cache
+go.work
+go.work.sum
+
+# The generated gettext template
+messages.pot
+
+# Test coverage file
+coverage.txt

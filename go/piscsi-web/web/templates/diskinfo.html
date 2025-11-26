@@ -1,0 +1,17 @@
+{{define "diskinfo.html"}}
+{{template "document-head" .}}
+<body class="page-diskinfo">
+{{template "page-header" .}}
+
+    <div class="content">
+        <h2>Disk Image Details: {{ .FileName }}</h2>
+        <div class="text-container"><pre><samp>{{ .DiskInfo }}</samp></pre></div>
+
+        <hr/>
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

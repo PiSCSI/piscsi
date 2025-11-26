@@ -1,0 +1,48 @@
+{{define "deviceinfo.html"}}
+{{template "document-head" .}}
+<body>
+{{template "page-header" .}}
+
+    <div class="content">
+<h2>Detailed Info for Attached Devices</h2>
+<p>
+<table border="black" cellpadding="3" summary="Detailed information for attached devices">
+<tr>
+    <th scope="row">SCSI ID</th>
+    <th scope="row">LUN</th>
+    <th scope="row">Type</th>
+    <th scope="row">Status</th>
+    <th scope="row">File</th>
+    <th scope="row">Parameters</th>
+    <th scope="row">Vendor</th>
+    <th scope="row">Product</th>
+    <th scope="row">Revision</th>
+    <th scope="row">Block Size</th>
+    <th scope="row">Image Size</th>
+</tr>
+{{ range .Devices }}
+<tr>
+    <td>{{ .ID }}</td>
+    <td>{{ .Unit }}</td>
+    <td>{{ .DeviceType }}</td>
+    <td>{{ .Status }}</td>
+    <td>{{ .Image }}</td>
+    <td>{{ .Params }}</td>
+    <td>{{ .Vendor }}</td>
+    <td>{{ .Product }}</td>
+    <td>{{ .Revision }}</td>
+    <td>{{ .BlockSize }}</td>
+    <td>{{ .Size }}</td>
+</tr>
+{{ end }}
+</table>
+</p>
+
+<hr/>
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}
