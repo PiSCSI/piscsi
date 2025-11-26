@@ -1,0 +1,222 @@
+{{define "admin.html"}}
+{{template "document-head" .}}
+<body>
+{{template "page-header" .}}
+
+    <div class="content">
+
+<script type="application/javascript">
+    var shutdownNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class=\"warning\"><div>" + Notification + " The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.</div></div>";
+        window.scrollTo(0,0);
+    }
+</script>
+
+<section id="logging">
+<details>
+    <summary class="heading">
+        Logging
+    </summary>
+    <ul>
+        <li>The current dropdown selection indicates the active log level.</li>
+    </ul>
+</details>
+
+<div>
+<form action="/logs/show" method="post">
+    <label for="log_lines">Log Lines:</label>
+    <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
+    <label for="log_scope">Scope:</label>
+    <select name="scope" id="log_scope">
+        <option value="">
+            All logs
+        </option>
+        <option value="piscsi">
+            piscsi
+        </option>
+        <option value="piscsi-web">
+            piscsi-web
+        </option>
+        <option value="piscsi-oled">
+            piscsi-oled
+        </option>
+        <option value="piscsi-ctrlboard">
+            piscsi-ctrlboard
+        </option>
+    </select>
+    <input type="submit" value="Show Logs">
+</form>
+</div>
+
+<div>
+<form action="/logs/level" method="post">
+    <label for="log_level">Log Level:</label>
+    <select name="level" id="log_level">
+    {{ range .LogLevels }}
+        <option value="{{ . }}"{{ if eq . $.CurrentLogLevel }} selected{{ end }}>
+            {{ . }}
+        </option>
+    {{ end }}
+    </select>
+    <input type="submit" value="Set Log Level">
+</form>
+</div>
+</section>
+
+<hr/>
+
+<section id="appearance">
+<details>
+    <summary class="heading">
+        Appearance
+    </summary>
+    <ul>
+        <li>Theme and language are auto-detected for your user agent. Here you can change the default.</li>
+    </ul>
+</details>
+
+<div class="theme-change-hint">
+<form action="/theme" method="post">
+    <label for="theme">Theme:</label>
+    <select name="theme" id="theme">
+    {{ range .Themes }}
+        {{ if eq . $.CurrentTheme }}
+            <option value="{{ . }}" selected>
+        {{ else }}
+            <option value="{{ . }}">
+        {{ end }}
+        {{ . }}
+        </option>
+    {{ end }}
+    </select>
+    <input type="submit" value="Change Theme">
+</form>
+</div>
+
+<div>
+<form action="/language" method="post">
+    <label for="locale">Language:</label>
+    <select name="locale" id="locale">
+    {{ range .Locales }}
+        {{ if eq .Language $.CurrentLocale }}
+            <option value="{{ .Language }}" selected>
+        {{ else }}
+            <option value="{{ .Language }}">
+        {{ end }}
+        {{ .Language }} - {{ .DisplayName }}
+        </option>
+    {{ end }}
+    </select>
+    <input type="submit" value="Change Language">
+</form>
+</div>
+
+</section>
+
+<hr/>
+
+<section id="services">
+<details>
+    <summary class="heading">
+        Companion Services
+    </summary>
+    <ul>
+        <li>If you want to add a service, run the easyinstall.sh script and choose the one to install.</li>
+        <li>In order to manage the services in the Web UI, you may install Webmin as well.</li>
+        <li>To browse the modern web, install a vintage web proxy such as <a href="https://github.com/PiSCSI/piscsi/wiki/Vintage-Web-Proxy#macproxy" target="_blank">Macproxy</a>.
+        </li>
+    </ul>
+</details>
+<ul class="service_status">
+    {{ if .NetatalkConfigured }}
+    <li class="service-item enabled">
+      Mac AFP file sharing is enabled.
+    {{ else }}
+    <li class="service-item disabled">
+        Mac AFP file sharing is disabled.
+    {{ end }}
+    </li>
+    {{ if .WebminConfigured }}
+    <ul>
+      <li class="service-item extlink">
+        <a href="https://{{ .IPAddress }}:10000/netatalk2/" target="_blank">Manage the AFP server</a>
+      </li>
+    </ul>
+    {{ end }}
+    {{ if .SambaConfigured }}
+    <li class="service-item enabled">
+        Windows SMB file sharing is enabled.
+    {{ else }}
+    <li class="service-item disabled">
+        Windows SMB file sharing is disabled.
+    {{ end }}
+    </li>
+    {{ if .WebminConfigured }}
+    <ul>
+      <li class="service-item extlink">
+        <a href="https://{{ .IPAddress }}:10000/samba/" target="_blank">Manage the SMB server</a>
+      </li>
+    </ul>
+    {{ end }}
+    {{ if .FtpConfigured }}
+    <li class="service-item enabled">
+        FTP file sharing is enabled.
+    {{ else }}
+    <li class="service-item disabled">
+        FTP file sharing is disabled.
+    {{ end }}
+    </li>
+    {{ if .WebminConfigured }}
+    <ul>
+      <li class="service-item extlink">
+        <a href="https://{{ .IPAddress }}:10000/vsftpd/" target="_blank">Manage the FTP server</a>
+      </li>
+    </ul>
+    {{ end }}
+    {{ if .MacproxyConfigured }}
+    <li class="service-item enabled">
+        Vintage web proxy is running at {{ .IPAddress }} (default port 5001)
+    {{ else }}
+    <li class="service-item disabled">
+        Vintage web proxy is disabled.
+    {{ end }}
+    </li>
+    {{ if .WebminConfigured }}
+    <li class="service-item extlink">
+      <a href="https://{{ .IPAddress }}:10000/" target="_blank">Manage PiSCSI services & Linux with Webmin</a>
+    </li>
+    {{ end }}
+</ul>
+</section>
+
+<hr/>
+
+<section id="system">
+<details>
+    <summary class="heading">
+        System Operations
+    </summary>
+    <ul>
+        <li>IMPORTANT: Always shut down the system before turning off the power. Failing to do so may lead to data loss.</li>
+    </ul>
+</details>
+
+<div class="power-control">
+<form action="/sys/reboot" method="post" onclick="if (confirm('Reboot the System?')) shutdownNotify('Rebooting the system...'); else event.preventDefault();">
+    <input type="submit" value="Reboot System">
+</form>
+<form action="/sys/shutdown" method="post" onclick="if (confirm('Shut Down the System?')) shutdownNotify('Shutting down the system...'); else event.preventDefault();">
+    <input type="submit" value="Shut Down System">
+</form>
+</div>
+</section>
+
+<hr/>
+
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

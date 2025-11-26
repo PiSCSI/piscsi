@@ -164,7 +164,7 @@ EXAMPLES
              +----+-----+------+-------------------------------------
              | ID | LUN | TYPE | IMAGE FILE
              +----+-----+------+-------------------------------------
-             |  0 |   1 | SCHD | /home/pi/harddisk.hda
+             |  0 |   1 | SCHD | /var/lib/piscsi/images/harddisk.hda
              +----+-----+------+-------------------------------------
 
        Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0  with

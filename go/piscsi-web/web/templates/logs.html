@@ -1,0 +1,42 @@
+{{define "logs.html"}}
+{{template "document-head" .}}
+<body>
+{{template "page-header" .}}
+
+    <div class="content">
+<h2>System Logs: {{ .Scope }} {{ .Lines }} lines</h2>
+<div>
+<form action="/logs/show" method="post">
+    <label for="log_lines">Log Lines:</label>
+    <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
+    <label for="log_scope">Scope:</label>
+    <select name="scope" id="log_scope">
+        <option value="">
+            All logs
+        </option>
+        <option value="piscsi">
+            piscsi
+        </option>
+        <option value="piscsi-web">
+            piscsi-web
+        </option>
+        <option value="piscsi-oled">
+            piscsi-oled
+        </option>
+        <option value="piscsi-ctrlboard">
+            piscsi-ctrlboard
+        </option>
+    </select>
+    <input type="submit" value="Show Logs">
+</form>
+</div>
+<p><pre>{{ .Logs }}</pre></p>
+
+<hr/>
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

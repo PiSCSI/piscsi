@@ -1,0 +1,158 @@
+{{define "drives.html"}}
+{{template "document-head" .}}
+<body>
+{{template "page-header" .}}
+
+    <div class="content">
+<h2>Disclaimer</h2>
+<p>These device profiles are provided as-is with no guarantee to work equally to the actual physical device they are named after. You may need to provide appropirate device drivers and/or configuration parameters for them to function properly. If you would like to see data modified, or have additional devices to add to the list, please raise an issue ticket at <a href="https://github.com/PiSCSI/piscsi/issues">GitHub</a>.</p>
+<h2>Hard Disk Drives</h2>
+
+<table cellpadding="3" border="black" summary="List of hard drives">
+<tbody>
+<tr>
+    <th scope="col">Name</th>
+    <th scope="col">Size (MiB)</th>
+    <th scope="col">Description</th>
+    <th scope="col">Action</th>
+</tr>
+{{ range .HardDrives }}
+<tr>
+    <td align="center">
+        {{ if .URL }}
+        <a href="{{ .URL }}">{{ .Name }}</a>
+        {{ else }}
+        {{ .Name }}
+        {{ end }}
+    </td>
+    <td align="center">{{ .SizeMB }}</td>
+    <td>{{ .Description }}</td>
+    <td>
+    <form action="/drive/create" method="post">
+        <input type="hidden" name="drive_name" value="{{ .Name }}">
+        <label for="file_name_{{ .Name }}">Save as:</label>
+        <input type="text" name="file_name" id="file_name_{{ .Name }}" value="{{ .SecureName }}" required />.{{ .FileType }}
+    <input type="submit" value="Create" />
+    </form>
+    </td>
+</tr>
+{{ end }}
+</tbody>
+</table>
+
+<hr/>
+
+<h2>CD/DVD Drives</h2>
+<p><em>This will create a properties file for the given CD-ROM or DVD image. No new image file will be created.</em></p>
+<table cellpadding="3" border="black" summary="List of CD-ROM or DVD drives">
+<tbody>
+<tr>
+    <th scope="col">Name</th>
+    <th scope="col">Description</th>
+    <th scope="col">Action</th>
+</tr>
+{{ range .CDROMDrives }}
+<tr>
+    <td align="center">
+        {{ if .URL }}
+        <a href="{{ .URL }}">{{ .Name }}</a>
+        {{ else }}
+        {{ .Name }}
+        {{ end }}
+    </td>
+    <td>{{ .Description }}</td>
+    <td>
+    <form action="/drive/cdrom" method="post">
+        <input type="hidden" name="drive_name" value="{{ .Name }}">
+        <label for="file_name_{{ .Name }}">Create for:</label>
+        <select type="select" name="file_name" id="file_name_{{ .Name }}">
+        {{ range $.CDImageFiles }}
+        <option value="{{ . }}">{{ . }}</option>
+        {{ end }}
+        </select>
+    <input type="submit" value="Create" />
+    </form>
+    </td>
+</tr>
+{{ end }}
+</tbody>
+</table>
+
+<hr/>
+
+<h2>Removable Disk Drives</h2>
+<table cellpadding="3" border="black" summary="List of removable disk drives">
+<tbody>
+<tr>
+    <th scope="col">Name</th>
+    <th scope="col">Size (MiB)</th>
+    <th scope="col">Description</th>
+    <th scope="col">Action</th>
+</tr>
+{{ range .RemovableDrives }}
+<tr>
+    <td align="center">
+        {{ if .URL }}
+        <a href="{{ .URL }}">{{ .Name }}</a>
+        {{ else }}
+        {{ .Name }}
+        {{ end }}
+    </td>
+    <td align="center">{{ .SizeMB }}</td>
+    <td>{{ .Description }}</td>
+    <td>
+    <form action="/drive/create" method="post">
+        <input type="hidden" name="drive_name" value="{{ .Name }}">
+        <label for="file_name_{{ .Name }}">Save as:</label>
+        <input type="text" name="file_name" id="file_name_{{ .Name }}" value="{{ .SecureName }}" required />.{{ .FileType }}
+        <input type="submit" value="Create" />
+    </form>
+    </td>
+</tr>
+{{ end }}
+</tbody>
+</table>
+
+<h2>Tape Drives</h2>
+<table cellpadding="3" border="black" summary="List of tape drives">
+<tbody>
+<tr>
+    <th scope="col">Name</th>
+    <th scope="col">Size (MiB)</th>
+    <th scope="col">Description</th>
+    <th scope="col">Action</th>
+</tr>
+{{ range .TapeDrives }}
+<tr>
+    <td align="center">
+        {{ if .URL }}
+        <a href="{{ .URL }}">{{ .Name }}</a>
+        {{ else }}
+        {{ .Name }}
+        {{ end }}
+    </td>
+    <td align="center">{{ .SizeMB }}</td>
+    <td>{{ .Description }}</td>
+    <td>
+    <form action="/drive/create" method="post">
+        <input type="hidden" name="drive_name" value="{{ .Name }}">
+        <label for="file_name_{{ .Name }}">Save as:</label>
+        <input type="text" name="file_name" id="file_name_{{ .Name }}" value="{{ .SecureName }}" required />.{{ .FileType }}
+        <input type="submit" value="Create" />
+    </form>
+    </td>
+</tr>
+{{ end }}
+</tbody>
+</table>
+
+<p><small>{{ .FreeDiskSpace }} MiB disk space remaining on the Pi</small></p>
+
+<hr/>
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

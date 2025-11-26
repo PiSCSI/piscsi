@@ -23,8 +23,7 @@ using namespace protobuf_util;
 
 PiscsiImage::PiscsiImage()
 {
-	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
-	default_folder = GetHomeDir() + "/images";
+	default_folder = DEFAULT_IMAGE_FOLDER;
 }
 
 bool PiscsiImage::CheckDepth(string_view filename) const
@@ -59,14 +58,13 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 		return "Can't set default image folder: Missing folder name";
 	}
 
-	// If a relative path is specified, the path is assumed to be relative to the user's home directory
 	path folder(f);
 	if (folder.is_relative()) {
-		folder = path(GetHomeDir() + "/" + folder.string());
-	}
-
-	if (path home_root = path(GetHomeDir()).parent_path(); !folder.string().starts_with(home_root.string())) {
-		return "Default image folder must be located in '" + home_root.string() + "'";
+		error_code error;
+		folder = absolute(folder, error);
+		if (error) {
+			return "Can't resolve default image folder '" + folder.string() + "': " + error.message();
+		}
 	}
 
 	// Resolve a potential symlink
@@ -78,7 +76,7 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 		return string("'") + folder.string() + "' is not a valid image folder";
 	}
 
-	default_folder = folder.string();
+	default_folder = folder.lexically_normal().string();
 
 	spdlog::info("Default image folder set to '" + default_folder + "'");
 
@@ -387,22 +385,6 @@ bool PiscsiImage::ChangeOwner(const CommandContext& context, const path& filenam
 			perms::owner_write | perms::group_write);
 
 	return true;
-}
-
-string PiscsiImage::GetHomeDir()
-{
-	const auto [uid, gid] = GetUidAndGid();
-
-	passwd pwd = {};
-	passwd *p_pwd;
-	array<char, 256> pwbuf;
-
-	if (uid && !getpwuid_r(uid, &pwd, pwbuf.data(), pwbuf.size(), &p_pwd)) {
-		return pwd.pw_dir;
-	}
-	else {
-		return "/home/pi";
-	}
 }
 
 pair<int, int> PiscsiImage::GetUidAndGid()

@@ -1,0 +1,150 @@
+name: Go Web Interface
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - '.github/workflows/go-web.yml'
+      - 'go/piscsi-web/**'
+      - 'proto/**'
+  pull_request:
+    branches:
+      - develop
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - '.github/workflows/go-web.yml'
+      - 'go/piscsi-web/**'
+      - 'proto/**'
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: '1.25.12'
+
+jobs:
+  quality:
+    name: Test and analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go/piscsi-web
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go/piscsi-web/go.sum
+
+      - name: Install build and test dependencies
+        run: sudo apt-get update && sudo apt-get install --yes groff protobuf-compiler
+
+      - name: Install Go protobuf generator
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Generate protobuf bindings
+        run: make proto
+
+      - name: Verify module files are tidy
+        run: go mod tidy -diff
+
+      - name: Test
+        run: make test-race
+
+      - name: Vet
+        run: go vet -tags nomsgpack ./...
+
+      - name: Vulnerability scan
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.6.0 -tags nomsgpack ./...
+
+      - name: Build binaries
+        run: make build mock
+
+  trixie:
+    name: Trixie build (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: arm64
+            platform: linux/arm64
+          - name: armv7
+            platform: linux/arm/v7
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64,arm
+
+      - name: Build in the target distribution
+        working-directory: go/piscsi-web
+        run: |
+          docker run --rm --platform "${{ matrix.platform }}" \
+            --env DEBIAN_FRONTEND=noninteractive \
+            --volume "${{ github.workspace }}:/workspace" \
+            --workdir /workspace/go/piscsi-web \
+            golang:1.25-trixie \
+            sh -c 'git config --global --add safe.directory /workspace && apt-get update && apt-get install --yes protobuf-compiler && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11 && export PATH="$(go env GOPATH)/bin:$PATH" && make proto && go build -v -tags nomsgpack -trimpath -o /tmp/piscsi-web ./cmd/piscsi-web'
+
+  arm:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-arm64
+            goarch: arm64
+            goarm: ''
+            output: piscsi-web-arm64-static
+          - name: linux-armv7
+            goarch: arm
+            goarm: '7'
+            output: piscsi-web-armv7-static
+    defaults:
+      run:
+        working-directory: go/piscsi-web
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go/piscsi-web/go.sum
+
+      - name: Install protobuf toolchain
+        run: |
+          sudo apt-get update && sudo apt-get install --yes protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Generate protobuf bindings
+        run: make proto
+
+      - name: Build static ARM release candidate
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+        run: go build -tags nomsgpack -trimpath -ldflags="-s -w" -o "${{ matrix.output }}" ./cmd/piscsi-web
+
+      - name: Verify binary
+        run: file "${{ matrix.output }}"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.name }}
+          path: go/piscsi-web/${{ matrix.output }}
+          if-no-files-found: error

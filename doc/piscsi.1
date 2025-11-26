@@ -70,7 +70,7 @@ To quit PiSCSI, press Control + C. If it is running in the background, you can k
 .It Fl b Ar BLOCK_SIZE
 The optional block size, either 512, 1024, 2048 or 4096 bytes. Default size is 512 bytes.
 .It Fl F Ar FOLDER
-The default folder for image files. For files in this folder no absolute path needs to be specified. The initial default folder is '~/images'.
+The default folder for image files. For files in this folder no absolute path needs to be specified. The folder must already exist. The initial default folder is '/var/lib/piscsi/images'.
 .It Fl h
 Show a help page.
 .It Fl L Ar LOG_LEVEL Ns Oo : Ar ID Ns Oo : Ar LUN Oc Oc

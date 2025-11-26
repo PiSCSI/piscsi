@@ -1,0 +1,54 @@
+{{define "upload.html"}}
+{{template "document-head" .}}
+<body>
+{{template "page-header" .}}
+
+    <div class="content">
+<h2>Upload File from Local Computer</h2>
+<ul>
+    <li>The largest file size accepted in this form is {{ .MaxFileSize }} MiB. Use other file transfer means for larger files.</li>
+    <li>Disk Images = {{ .ImageDir }}</li>
+    {{ if .FileServerDirExists }}
+    <li>Shared Files = {{ .SharedDir }}</li>
+    {{ end }}
+    <li>PiSCSI Config = {{ .ConfigDir }}</li>
+</ul>
+
+<form action="/files/upload" method="post" enctype="multipart/form-data">
+    <fieldset>
+        <legend>Destination</legend>
+        <label for="disk_images" class="hidden">Disk Images</label>
+        <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
+        <label for="images_subdir" class="hidden">To directory:</label>
+        <select name="images_subdir" id="images_subdir">
+        {{ range .ImagesSubdirs }}
+        <option value="{{.}}">{{ $.ImageRootDir }}/{{.}}</option>
+        {{ end }}
+        <option value="" selected>{{ .ImageRootDir }}/</option>
+        </select>
+        {{ if .FileServerDirExists }}
+        <label for="shared_files" class="hidden">Shared Files</label>
+        <input type="radio" name="destination" id="shared_files" value="shared_files">
+        <label for="shared_subdir" class="hidden">To directory:</label>
+        <select name="shared_subdir" id="shared_subdir">
+        {{ range .SharedSubdirs }}
+        <option value="{{.}}">{{ $.SharedRootDir }}/{{.}}</option>
+        {{ end }}
+        <option value="" selected>{{ .SharedRootDir }}/</option>
+        </select>
+        {{ end }}
+        <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">
+        <label for="piscsi_config">PiSCSI Config</label>
+    </fieldset>
+    <label for="file">File:</label>
+    <input type="file" name="file" id="file" required>
+    <input type="submit" value="Upload">
+</form>
+
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

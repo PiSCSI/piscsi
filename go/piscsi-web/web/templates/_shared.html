@@ -1,0 +1,107 @@
+{{define "document-head"}}
+<!doctype html>
+<html lang="en">
+<head>
+    <title>{{ .Title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/pwa/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/pwa/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/pwa/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/pwa/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/pwa/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/pwa/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/pwa/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/pwa/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/pwa/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/pwa/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/pwa/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/pwa/favicon-96x96.png">
+    <link rel="manifest" href="/pwa/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/pwa/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="/static/themes/{{ if .Theme }}{{ .Theme }}{{ else }}modern{{ end }}/style.css">
+</head>
+{{end}}
+
+{{define "page-title"}}
+    <div align="center" class="title">
+        <a href="/">
+            <h1>
+                <span>PiSCSI</span>
+                <span class="subtitle">Control Page</span>
+            </h1>
+        </a>
+    </div>
+{{end}}
+
+{{define "page-messages"}}
+    <div class="throttle-notice">
+        {{ range .ThrottleNotices }}
+        <div class="{{ .Category }}">
+            <span class="message" title="{{ .Message }}"><a href="{{ $.ThrottleHelpURL }}">{{ .Message }}</a></span>
+        </div>
+        {{ end }}
+    </div>
+
+    <div class="flash" id="flash">
+        {{ if .FlashMessage }}
+        <div class="info">
+            <div>{{ .FlashMessage }}</div>
+        </div>
+        {{ end }}
+        {{ if .ErrorMessage }}
+        <div class="error">
+            <div>{{ .ErrorMessage }}</div>
+        </div>
+        {{ end }}
+        {{ if .Error }}
+        <div class="error">
+            <div>{{ .Error }}</div>
+        </div>
+        {{ end }}
+    </div>
+{{end}}
+
+{{define "page-header"}}
+    <div class="header">
+        <div align="center" class="header-actions">
+            <span class="admin-button"><a href="/sys/admin">Settings</a></span>
+        </div>
+
+{{template "page-title" .}}
+
+        {{ if .Hostname }}
+        <div class="hostname">
+            <span class="label">System Name:</span>
+            <span>{{ .Hostname }}</span>
+        </div>
+        {{ end }}
+    </div>
+
+{{template "page-messages" .}}
+{{end}}
+
+{{define "back-link"}}
+    <div class="content">
+        <a class="back" href="/"><span class="separator">&lt;&lt; </span>Go to Home</a>
+    </div>
+{{end}}
+
+{{define "page-footer"}}
+    <div align="center" class="footer">
+        <div>
+            <a href="/sys/manpage?app=piscsi">Read the PiSCSI Manual</a>
+        </div>
+        <div>
+            PiSCSI software version: <b>{{ .Version }}</b>
+        </div>
+        <div>
+            {{ .RunningEnvironment }}
+        </div>
+        <div>
+            {{ .Hostname }}{{ if .IPAddress }} ({{ .IPAddress }}){{ end }}
+        </div>
+    </div>
+{{end}}

@@ -27,10 +27,11 @@ TEST(PiscsiImageTest, SetGetDefaultFolder)
 {
 	PiscsiImage image;
 
-	EXPECT_NE(string::npos, image.GetDefaultFolder().find("/images"));
+	EXPECT_EQ(PiscsiImage::DEFAULT_IMAGE_FOLDER, image.GetDefaultFolder());
 
 	EXPECT_TRUE(!image.SetDefaultFolder("").empty());
-	EXPECT_TRUE(!image.SetDefaultFolder("/not_in_home").empty());
+	EXPECT_TRUE(image.SetDefaultFolder(temp_directory_path().string()).empty());
+	EXPECT_EQ(temp_directory_path(), path(image.GetDefaultFolder()));
 }
 
 TEST(PiscsiImageTest, CreateImage)
