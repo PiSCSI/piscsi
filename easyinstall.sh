@@ -153,8 +153,11 @@ function installPackagesWeb() {
         $APT_PACKAGES_PYTHON \
         $APT_PACKAGES_WEB
 
-    if ! sudo apt-get install --no-install-recommends --assume-yes -qq hfsutils; then
-        echo "WARNING: Failed to install 'hfsutils'. HFS disk image support may be unavailable."
+    if ! command -v hformat >/dev/null 2>&1 ]; then
+        if ! sudo apt-get install --no-install-recommends --assume-yes -qq hfsutils; then
+            echo "hfsutils package not found in apt repositories; compiling from source..."
+            installHfsutils
+        fi
     fi
 }
 
@@ -437,6 +440,24 @@ function installHfdisk() {
 
         echo "Installed $HFDISK_BIN"
     fi
+}
+
+# Clone, compile and install 'hfsutils', HFS disk image tools
+function installHfsutils() {
+    sudo apt-get install --no-install-recommends --assume-yes -qq autoconf automake libtool m4 </dev/null
+
+    if [ -d "$BASE/hfsutils" ]; then
+        echo "hfsutils source dir already exists; deleting before re-cloning..."
+        rm -rf "$BASE/hfsutils"
+    fi
+
+    git clone https://github.com/rdmark/hfsutils.git "$BASE/hfsutils"
+    cd "$BASE/hfsutils" || exit 1
+    git checkout v2025.12.1
+    autoreconf -i
+    ./configure
+    make -j "$CORES"
+    sudo make install
 }
 
 # Fetch HFS drivers that the Web Interface uses

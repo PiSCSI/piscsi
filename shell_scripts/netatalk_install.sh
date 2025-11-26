@@ -143,10 +143,24 @@ function installNetatalk() {
                 echo "[$AFP_SHARE_NAME]"
                 echo "path = $AFP_SHARE_PATH"
                 echo "volume name = $AFP_SHARE_NAME"
-            } | sudo sudo tee -a "$AFPCONF" > /dev/null
+            } | sudo tee -a "$AFPCONF" > /dev/null
             echo "Added share section for $AFP_SHARE_NAME to afp.conf"
         else
             echo "Share section [$AFP_SHARE_NAME] already exists; not updating afp.conf"
+        fi
+    fi
+
+    if [[ "$ADDITIONAL_SHARE_NAME" && "$ADDITIONAL_SHARE_PATH" ]]; then
+        if ! grep -q "^\[$ADDITIONAL_SHARE_NAME\]" "$AFPCONF"; then
+            {
+                echo
+                echo "[$ADDITIONAL_SHARE_NAME]"
+                echo "path = $ADDITIONAL_SHARE_PATH"
+                echo "volume name = $ADDITIONAL_SHARE_NAME"
+            } | sudo tee -a "$AFPCONF" > /dev/null
+            echo "Added share section for $ADDITIONAL_SHARE_NAME to afp.conf"
+        else
+            echo "Share section [$ADDITIONAL_SHARE_NAME] already exists; not updating afp.conf"
         fi
     fi
 
