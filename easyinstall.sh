@@ -122,13 +122,22 @@ function deleteDir() {
     fi
 }
 
+# update apt repositories
+function updateAptSources() {
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package update"
+        return 0
+    fi
+    sudo apt-get update
+}
+
 # install Debian packages for PiSCSI backend
 function installPackagesBackend() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_BACKEND
 }
@@ -139,7 +148,7 @@ function installPackagesWeb() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_PYTHON \
         $APT_PACKAGES_WEB
@@ -725,7 +734,7 @@ function installMacproxy {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
+        sudo apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
     fi
 
     MACPROXY_VER="25.11.1"
@@ -756,7 +765,7 @@ function installMacproxy {
 function installFtp() {
     echo
     echo "Installing packages..."
-    sudo apt-get update && sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
+    sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
 
     echo
     echo "Connect to the FTP server with:"
@@ -787,7 +796,6 @@ function installSamba() {
 
     echo
     echo "Installing packages..."
-    sudo apt-get update || true
     sudo apt-get install samba --no-install-recommends --assume-yes </dev/null
     echo
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
@@ -883,7 +891,7 @@ function installPiscsiScreen() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install $APT_PACKAGES_SCREEN --assume-yes --no-install-recommends </dev/null
+        sudo apt-get install $APT_PACKAGES_SCREEN --assume-yes --no-install-recommends </dev/null
     fi
 
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
@@ -959,7 +967,7 @@ function installPiscsiCtrlBoard() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install $APT_PACKAGES_SCREEN $APT_PACKAGES_CTRLB --assume-yes --no-install-recommends </dev/null
+        sudo apt-get install $APT_PACKAGES_SCREEN $APT_PACKAGES_CTRLB --assume-yes --no-install-recommends </dev/null
     fi
 
     # enable i2c
@@ -1086,6 +1094,7 @@ function runChoice() {
               createImagesDir
               createCfgDir
               stopService "piscsi-web"
+              updateAptSources
               installPackagesBackend
               installPackagesWeb
               installHfdisk
@@ -1128,6 +1137,7 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
+              updateAptSources
               installPackagesBackend
               stopService "piscsi-ctrlboard"
               stopService "piscsi-oled"
@@ -1158,6 +1168,7 @@ function runChoice() {
               echo "- Add and modify systemd services"
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
+              updateAptSources
               preparePythonCommon
               installPiscsiScreen
               showServiceStatus "piscsi-oled"
@@ -1171,6 +1182,7 @@ function runChoice() {
               echo "- Stop and disable the PiSCSI OLED service if it is running"
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
+              updateAptSources
               preparePythonCommon
               installPiscsiCtrlBoard
               showServiceStatus "piscsi-ctrlboard"
@@ -1246,6 +1258,7 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
+              updateAptSources
               installPackagesBackend
               stopService "piscsi"
               compilePiscsi
@@ -1263,6 +1276,7 @@ function runChoice() {
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               createCfgDir
+              updateAptSources
               installPackagesWeb
               installHfdisk
               fetchHardDiskDrivers
@@ -1313,6 +1327,7 @@ function runChoice() {
               sudoCache
               createImagesDir
               createCfgDir
+              updateAptSources
               installPackagesBackend
               installPackagesWeb
               installHfdisk
