@@ -251,6 +251,12 @@ while [ "$1" != "" ]; do
         -p | --share-path)
             AFP_SHARE_PATH=$VALUE
             ;;
+        -N | --additional-share-name)
+            ADDITIONAL_SHARE_NAME=$VALUE
+            ;;
+        -P | --additional-share-path)
+            ADDITIONAL_SHARE_PATH=$VALUE
+            ;;
         -t | --appletalk-interface)
             APPLETALK_INTERFACE=$VALUE
             ;;
