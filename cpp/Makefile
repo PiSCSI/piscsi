@@ -203,7 +203,7 @@ lcov: test
 
 docs: $(DOC_DIR)/piscsi_man_page.txt $(DOC_DIR)/scsictl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/scsidump_man_page.txt $(DOC_DIR)/scsiloop_man_page.txt
 
-$(SRC_PISCSI_CORE) $(SRC_SCSICTL_CORE) : $(OBJ_GENERATED)
+$(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) : $(SRC_GENERATED)
 
 $(BINDIR)/$(PISCSI): $(OBJ_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf
