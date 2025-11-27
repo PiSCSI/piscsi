@@ -159,13 +159,6 @@ function installPackagesWeb() {
         $APT_PACKAGES_WEB
 }
 
-# cache the pip packages
-function cachePipPackages(){
-    pushd $WEB_INSTALL_PATH
-    sudo pip3 install -r ./requirements.txt
-    popd
-}
-
 # compile the PiSCSI binaries
 function compilePiscsi() {
     cd "$CPP_PATH" || exit 1
@@ -1283,7 +1276,6 @@ function runChoice() {
               installHfdisk
               fetchHardDiskDrivers
               preparePythonCommon
-              cachePipPackages
               installPiscsiWebInterface
               echo "Configuring PiSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
@@ -1338,7 +1330,6 @@ function runChoice() {
               configurePiscsiService
               enablePiscsiService
               preparePythonCommon
-              cachePipPackages
               installPiscsiWebInterface
               installWebInterfaceService
               echo "Automated install of the PiSCSI Service $(CONNECT_TYPE) complete!"
