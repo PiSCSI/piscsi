@@ -2,6 +2,8 @@
 set -e
 # set -x # Uncomment to Debug
 
+CACHEDIR="$HOME/.cache/piscsi"
+
 cd "$(dirname "$0")"
 # verify packages installed
 ERROR=0
@@ -65,8 +67,9 @@ if ! test -e venv; then
     echo "Activating venv"
     source venv/bin/activate
     echo "Installing requirements.txt"
-    pip3 install wheel
-    pip3 install -r requirements.txt
+    pip3 install wheel --no-index --find-links="$CACHEDIR"
+    # Reference: https://pip.pypa.io/en/latest/user_guide/#installing-from-local-packages
+    pip3 install -r requirements.txt --no-index --find-links="$CACHEDIR"
 
     if git rev-parse --is-inside-work-tree &> /dev/null; then
       git rev-parse HEAD > current
@@ -85,7 +88,7 @@ if [[ $? -eq 0 ]]; then
         git rev-parse > current
     elif [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
         echo "New version detected, updating libraries from requirements.txt"
-        pip3 install -r requirements.txt
+        pip3 install -r requirements.txt --no-index --find-links="$CACHEDIR"
         git rev-parse HEAD > current
     fi
 else
