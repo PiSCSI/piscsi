@@ -679,6 +679,12 @@ function installNetatalk() {
         fi
     fi
 
+    echo "Do you want to share the $VIRTUAL_DRIVER_PATH dir as a Netatalk volume? [y/N]"
+    read -r REPLY
+    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+        NETATALK_OPTIONS="$NETATALK_OPTIONS --additional-share-path='$VIRTUAL_DRIVER_PATH' --additional-share-name='PiSCSI Images'"
+    fi
+
     echo
     echo "Downloading tarball to $BASE/tmp..."
     mkdir -p "$BASE/tmp"
@@ -700,40 +706,7 @@ function installNetatalk() {
     [[ $SKIP_MAKE_CLEAN ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-make-clean"
 
     bash -c "$BASE/shell_scripts/netatalk_install.sh $NETATALK_OPTIONS" || exit 1
-    rm -rf "$BASE/tmp"
-}
-
-# Appends the images dir as a shared Netatalk volume
-function shareImagesWithNetatalk() {
-    APPLEVOLUMES_PATH="/etc/netatalk/AppleVolumes.default"
-    if ! [ -f "$APPLEVOLUMES_PATH" ]; then
-        echo "Could not find $APPLEVOLUMES_PATH ... is Netatalk installed?"
-        exit 1
-    fi
-
-    if [ "$(grep -c "$VIRTUAL_DRIVER_PATH" "$APPLEVOLUMES_PATH")" -ge 1 ]; then
-        echo "The $VIRTUAL_DRIVER_PATH dir is already shared in $APPLEVOLUMES_PATH"
-        echo "Do you want to turn off the sharing? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            sudo systemctl stop afpd
-            sudo sed -i '\,^'"$VIRTUAL_DRIVER_PATH"',d' "$APPLEVOLUMES_PATH"
-            echo "Sharing for $VIRTUAL_DRIVER_PATH disabled!"
-            sudo systemctl start afpd
-            exit 0
-        fi
-        exit 0
-    fi
-
-    sudo systemctl stop afpd
-    echo "Appended to AppleVolumes.default:"
-    echo "$VIRTUAL_DRIVER_PATH \"PiSCSI Images\"" | sudo tee -a "$APPLEVOLUMES_PATH"
-    sudo systemctl start afpd
-
-    echo
-    echo "WARNING: Do not inadvertently move or rename image files that are in use by PiSCSI."
-    echo "Doing so may lead to data loss."
-    echo
+    sudo rm -rf "$BASE/tmp"
 }
 
 # Downloads, compiles, and installs Macproxy (web proxy)
@@ -1325,14 +1298,10 @@ function runChoice() {
               echo "Enabling or disabling Web Interface authentication - Complete!"
           ;;
           15)
-              shareImagesWithNetatalk
-              echo "Configuring AFP File Server - Complete!"
-          ;;
-          16)
               installPackagesBackend
               compilePiscsi
           ;;
-          17)
+          16)
               echo "Install Webmin"
               echo "This script will make the following changes to your system:"
               echo "- Add a 3rd party deb repository"
@@ -1372,8 +1341,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "1" ] && ([ $choice -eq "99" ] || [ $choice -le "17" ]) ; do
-       echo -n "Enter your choice (1-17) or CTRL-C to exit: "
+   until [ $choice -ge "1" ] && ([ $choice -eq "99" ] || [ $choice -le "16" ]) ; do
+       echo -n "Enter your choice (1-16) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1409,10 +1378,8 @@ function showMenu() {
     echo " 12) Configure the PiSCSI Web Interface stand-alone"
     echo " 13) Enable or disable PiSCSI back-end authentication"
     echo " 14) Enable or disable PiSCSI Web Interface authentication"
-    echo "EXPERIMENTAL FEATURES"
-    echo " 15) Share the images dir over AFP (requires Netatalk)"
-    echo " 16) Compile PiSCSI binaries"
-    echo " 17) Install Webmin to manage the system and companion apps"
+    echo " 15) Compile PiSCSI binaries"
+    echo " 16) Install Webmin to manage the system and companion apps"
 }
 
 # parse arguments passed to the script
