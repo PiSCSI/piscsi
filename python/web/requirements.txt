@@ -3,7 +3,7 @@ bjoern==3.2.2
 blinker==1.9.0
 certifi==2025.11.12
 charset-normalizer==2.1.1
-click==8.1.8
+click==8.3.1
 flask==3.1.2
 flask-babel==4.0.0
 idna==3.11
