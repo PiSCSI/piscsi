@@ -11,7 +11,7 @@ importlib-metadata==8.7.0
 itsdangerous==2.2.0
 jinja2==3.1.6
 MarkupSafe==3.0.3
-protobuf==3.20.3
+protobuf==6.33.2
 python-pam==2.0.2
 pytz==2023.3.post1
 requests==2.32.4
