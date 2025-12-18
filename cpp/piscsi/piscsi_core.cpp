@@ -44,21 +44,13 @@ void Piscsi::Banner(span<char *> args) const
 	cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
-		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
-		cout << " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n";
-		cout << " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n";
-		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
-		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
-		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
-		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)\n";
-		cout << "  hdr : SCSI HD image (Removable generic HD image)\n";
-		cout << "  hda : SCSI HD image (Apple compatible image)\n";
-		cout << "  hdn : SCSI HD image (NEC compatible image)\n";
-		cout << "  hdi : SCSI HD image (Anex86 HD image)\n";
-		cout << "  nhd : SCSI HD image (T98Next HD image)\n";
-		cout << "  mos : SCSI MO image (MO image)\n";
-		cout << "  iso : SCSI CD image (ISO 9660 image)\n";
-		cout << "  is1 : SCSI CD image (ISO 9660 image, SCSI-1)\n" << flush;
+		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n"
+				<< " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
+				<< " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n"
+				<< " FILE is a disk image file, \"daynaport\", \"printer\" or \"services\".\n"
+				<< " Image type is detected based on file extension if no explicit type is specified.\n\n"
+				<< "See the piscsi man page for a full list of supported parameters\n"
+				<< flush;
 
 		exit(EXIT_SUCCESS);
 	}

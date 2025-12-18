@@ -76,12 +76,8 @@ void ScsiMon::ParseArguments(const vector<char *> &args)
 
 void ScsiMon::PrintHelpText(const vector<char *> &args) const
 {
-    spdlog::info(string(args[0]) + " -i [input file json] -b [buffer size] [output file]");
-    spdlog::info("       -i [input file json] - scsimon will parse the json file instead of capturing new data");
-    spdlog::info("                              If -i option is not specified, scsimon will read the gpio pins");
-	spdlog::info("       -b [buffer size]     - Override the default buffer size of " + to_string(buff_size));
-	spdlog::info("       [output file]        - Base name of the output files. The file extension (ex: .json)");
-	spdlog::info("                              will be appended to this file name");
+    spdlog::info("SCSI Target Emulator PiSCSI (SCSI Monitor Capture Tool)\n\n");
+    spdlog::info("Usage: " + string(args[0]) + " -i [input file json] -b [buffer size] [output file]\n\n");
 }
 
 void ScsiMon::Banner() const

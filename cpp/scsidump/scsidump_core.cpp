@@ -56,20 +56,14 @@ bool ScsiDump::Banner(span<char *> args) const
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
-             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
-             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
-			 << " Default is 0.\n"
-             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-             << " FILE is the dump file path.\n"
-             << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
-             << " bytes. Default is 1 MiB.\n"
-             << " -v Enable verbose logging.\n"
-             << " -r Restore instead of dump.\n"
-             << " -p Generate .properties file to be used with the PiSCSI web interface. Only valid for dump mode.\n"
-			 << " -I Display INQUIRY data of ID[:LUN].\n"
-			 << " -S Scan SCSI bus for devices.\n"
-             << flush;
+		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE\n"
+				<< " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
+				<< " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
+				<< " Default is 0.\n"
+				<< " BID is the PiSCSI board ID (0-7). Default is 7.\n"
+				<< " FILE is the dump file path.\n\n"
+				<< "See the scsidump man page for all supported parameters\n"
+				<< flush;
 
         return false;
     }
