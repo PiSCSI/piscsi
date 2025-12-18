@@ -1,29 +1,41 @@
-.TH scsimon 1
-.SH NAME
-scsimon \- Acts as a data capture tool for all traffic on the SCSI bus. Data is stored in a Value Change Dump (VCD) file.
-.SH SYNOPSIS
-.B scsimon
-.SH DESCRIPTION
-.B scsimon
-monitors all of the traffic on the SCSI bus, using a PiSCSI device. The data is cached in memory while the tool is running. A circular buffer is used so that only the most recent 1,000,000 transactions are stored. The tool will continue to run until the user presses CTRL-C, or the process receives a SIGINT signal.
-.PP
-The logged data is stored in a file called "log.vcd" in the current working directory from where scsimon was launched.
-
-Currently, scsimon doesn't accept any arguments.
-
+.Dd December 18, 2025
+.Dt SCSIMON 1
+.Os
+.Sh NAME
+.Nm scsimon
+.Nd Acts as a data capture tool for all traffic on the SCSI bus. Data is stored in a Value Change Dump (VCD) file.
+.Sh SYNOPSIS
+.Nm
+.Op Fl i Ar input_file_json
+.Op Fl b Ar buffer_size
+.Op Ar output_file
+.Sh DESCRIPTION
+.Nm
+monitors all of the traffic on the SCSI bus, using a PiSCSI device. The data is cached in memory while the tool is running. A circular buffer is used so that only the most recent transactions are stored, with a default size of 1,000,000 unless overridden by the -b option. The tool will continue to run until the user presses CTRL-C, or the process receives a SIGINT signal.
+.Pp
+If the -i option is specified, scsimon will parse the provided JSON file instead of capturing new data. If -i option is not specified, scsimon will read the GPIO pins.
+.Pp
+The logged data is stored in files with the base name specified by output_file, or "log" if not specified. The appropriate file extension (e.g., .json or .vcd) will be appended.
+.Pp
 To quit scsimon, press Control + C.
 
-.SH OPTIONS
-.TP
-None
+.Sh OPTIONS
+.Fl i Ar input_file_json
+scsimon will parse the json file instead of capturing new data. If -i option is not specified, scsimon will read the gpio pins.
+.Fl b Ar buffer_size
+Override the default buffer size of 1000000.
+.Ar output_file
+Base name of the output files. The file extension (ex: .json) will be appended to this file name.
 
-.SH EXAMPLES
+.Sh EXAMPLES
 Make sure you've stopped the piscsi service. Then launch scsimon to capture all SCSI traffic available to the PiSCSI hardware:
-   scsimon
-
+.Dl Nm scsimon
+.Pp
 If you're trying to capture a specific scenario, you'll want to wait to start scsimon until immediately before the scenario.
 
-.SH SEE ALSO
-scsictl(1), piscsi(1), scsidump(1)
- 
+.Sh SEE ALSO
+.Xr scsictl 1 ,
+.Xr piscsi 1 ,
+.Xr scsidump 1
+.Pp
 Full documentation is available at: <https://www.piscsi.com>
