@@ -31,26 +31,13 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 {
 	if (args.size() < 2) {
 		cout << piscsi_util::Banner("(Controller App)")
-				<< "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] "
-				<< "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] "
-				<< "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] "
-				<<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] "
-				<< "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-S] [-v] [-V] [-y] [-X]\n"
+				<< "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] ...\n"
 				<< " where  ID[:LUN] ID := {0-" << (ControllerManager::GetScsiIdMax() - 1) << "},"
 				<< " LUN := {0-" << (ControllerManager::GetScsiLunMax() - 1) << "}, default is 0\n"
-				<< "        CMD := {attach|detach|insert|eject|protect|unprotect|show}\n"
-				<< "        TYPE := {schd|scrm|sccd|scmo|scdp|schs|sclp|sctp}\n"
-				<< "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block\n"
-				<< "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)\n"
-				<< "        FILE|PARAM := image file path or device-specific parameter\n"
-				<< "        IMAGE_FOLDER := default location for image files, default is '~/images'\n"
-				<< "        HOST := piscsi host to connect to, default is 'localhost'\n"
-				<< "        PORT := piscsi port to connect to, default is 6868\n"
-				<< "        RESERVED_IDS := comma-separated list of IDs to reserve\n"
-				<< "        LOG_LEVEL := log level {trace|debug|info|warn|err|off}, default is 'info'\n"
-				<< " If CMD is 'attach' or 'insert' the FILE parameter is required.\n"
 				<< "Usage: " << args[0] << " -l\n"
-				<< "       Print device list.\n" << flush;
+				<< "       Print device list.\n\n"
+				<< "See the scsictl man page for all supported commands, types, and other parameters\n"
+                << flush;
 
 		exit(EXIT_SUCCESS);
 	}
