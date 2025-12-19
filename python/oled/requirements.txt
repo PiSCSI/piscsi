@@ -16,4 +16,4 @@ rpi-ws281x==5.0.0
 RPi.GPIO==0.7.1
 sysv-ipc==1.1.0
 typing-extensions==4.15.0
-Unidecode==1.3.6
+Unidecode==1.4.0
