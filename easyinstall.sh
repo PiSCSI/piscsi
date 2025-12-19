@@ -73,12 +73,12 @@ SECRET_FILE="$HOME/.config/piscsi/secret"
 FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
 
-APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils ca-certificates rsyslog"
-APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang"
-APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
-APT_PACKAGES_WEB="nginx-light genisoimage man2html dosfstools kpartx unzip unar disktype gettext"
-APT_PACKAGES_SCREEN="libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config"
-APT_PACKAGES_CTRLB="python3-rpi.gpio python3-cbor2 python3-smbus python3-spidev"
+APT_PACKAGES_COMMON="bridge-utils build-essential ca-certificates git protobuf-compiler rsyslog"
+APT_PACKAGES_BACKEND="clang libgmock-dev libpcap-dev libprotobuf-dev libspdlog-dev"
+APT_PACKAGES_PYTHON="libev-dev libevdev2 python3 python3-dev python3-pip python3-protobuf python3-setuptools python3-six python3-venv python3-wheel"
+APT_PACKAGES_WEB="disktype dosfstools genisoimage gettext kpartx man2html nginx-light unar unzip"
+APT_PACKAGES_SCREEN="i2c-tools libjpeg-dev libopenjp2-7-dev libpng-dev raspi-config python3-rpi.gpio python3-sysv-ipc python3-typing-extensions python3-unidecode"
+APT_PACKAGES_CTRLB="python3-cbor2 python3-smbus python3-spidev"
 
 set -e
 

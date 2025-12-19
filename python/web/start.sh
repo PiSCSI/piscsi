@@ -61,7 +61,7 @@ fi
 # Create the venv if it doesn't exist
 if ! test -e venv; then
     echo "Creating python venv for web server"
-    python3 -m venv venv
+    python3 -m venv venv --system-site-packages
     echo "Activating venv"
     source venv/bin/activate
     echo "Installing requirements.txt"
