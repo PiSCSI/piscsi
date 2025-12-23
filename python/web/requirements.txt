@@ -17,7 +17,7 @@ python-pam==2.0.2
 pytz==2023.3.post1
 requests==2.32.4
 # six==1.17.0
-ua-parser==0.16.1
+ua-parser==1.0.1
 urllib3==2.6.0
 vcgencmd==0.1.1
 werkzeug==3.1.4
