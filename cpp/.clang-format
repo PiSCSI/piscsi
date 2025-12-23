@@ -1,0 +1,14 @@
+BasedOnStyle: Microsoft
+AlignConsecutiveAssignments: Consecutive
+AlignEscapedNewlines: Left
+AlignTrailingComments: true
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Linux
+ColumnLimit: 120
+IncludeBlocks: Preserve
+IndentWidth: 4
+KeepEmptyLinesAtTheStartOfBlocks: false
+PointerAlignment: Left
+SortIncludes: false
