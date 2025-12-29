@@ -1,5 +1,5 @@
 # commented out packages are system python libraries
-certifi==2024.7.4
+certifi==2025.11.12
 charset-normalizer==3.3.2
 idna==3.11
 # protobuf==3.20.3
