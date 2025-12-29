@@ -1,6 +1,6 @@
 # commented out packages are system python libraries
 # cbor2==5.2.0
-luma.core==2.4.1
+luma.core==2.5.3
 luma.oled==3.14.0
 pillow==11.3.0
 # protobuf==3.20.3
