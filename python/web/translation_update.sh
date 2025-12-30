@@ -11,7 +11,7 @@ if ! test -e venv; then
     source venv/bin/activate
     echo "Installing requirements-dev.txt"
     pip3 install wheel
-    pip3 install -r requirements.txt
+    pip3 install -r requirements-dev.txt
 fi
 
 source venv/bin/activate
