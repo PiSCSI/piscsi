@@ -13,7 +13,7 @@ COPY --chown=pi:pi easyinstall.sh .
 COPY --chown=pi:pi cpp cpp
 COPY --chown=pi:pi doc doc
 COPY --chown=pi:pi proto proto
-RUN ./easyinstall.sh --run_choice=15 --cores=`nproc`
+RUN sudo ./easyinstall.sh --run_choice=15 --cores=`nproc`
 
 FROM debian:bullseye-slim AS runner
 USER root
