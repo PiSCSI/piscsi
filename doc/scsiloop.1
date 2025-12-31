@@ -1,6 +1,6 @@
 .Dd December 5, 2022
 .Dt SCSILOOP 1
-.Os
+.Os PiSCSI
 .Sh NAME
 .Nm scsiloop
 .Nd Tool for testing the PiSCSI board with a loopback adapter installed
@@ -26,14 +26,12 @@ The loopback connections for the DB25 connector are shown here:
 | 15 | C/D  | 23  | DB4  |
 | 17 | ATN  | 22  | DB2  |
 | 19 | SEL  | 21  | DB1  |
-.Ed    
-
+.Ed
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl L Ar LOG_LEVEL
 The piscsi log level (trace, debug, info, warn, err, off). The default log level is 'info'.
 .El
-
 .Sh SEE ALSO
 .Xr scsictl 1 ,
 .Xr piscsi 1 ,

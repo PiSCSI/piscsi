@@ -1,6 +1,6 @@
 .Dd December 18, 2025
 .Dt PISCSI 1
-.Os
+.Os PiSCSI
 .Sh NAME
 .Nm piscsi
 .Nd Emulates SCSI devices using the Raspberry Pi GPIO pins
@@ -57,15 +57,14 @@ If the file extension is not recognized, the device type can be specified explic
 .Pp
 For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
     sudo piscsi -ID0 /path/to/drive/hdimage.hda
-
+.Pp
 Note: PiSCSI is a fork of RaSCSI. The two cannot be run in parallel on the same system.
-
+.Pp
 Once PiSCSI starts, it will open a socket (default port is 6868) to allow external management commands.
 If another process is using this port, PiSCSI will terminate, since it is likely another instance of PiSCSI or RaSCSI.
 Once PiSCSI has initialized, the scsictl utility can be used to send commands.
-
+.Pp
 To quit PiSCSI, press Control + C. If it is running in the background, you can kill it using an INT signal.
-
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl b Ar BLOCK_SIZE
@@ -99,7 +98,6 @@ n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The 
 .Pp
 FILE is the name of the image file to use for a SCSI mass storage device. For devices that do not support an image file (SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCDP it is a prioritized list of network interfaces with an IP address and netmask, e.g. "interface=eth0,eth1,wlan0:inet=10.10.20.1/24". For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
 .El
-
 .Sh EXAMPLES
 Launch PiSCSI with no emulated drives attached:
 .Dl Nm piscsi
@@ -115,7 +113,6 @@ To create an empty, 100MiB HD image, use the following command:
 .Pp
 In case the fallocate command is available a much faster alternative to the dd command is:
 .Dl fallocate -l 104857600 /path/to/newimage.hda
-
 .Sh SEE ALSO
 .Xr scsictl 1 ,
 .Xr scsimon 1 ,
