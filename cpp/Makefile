@@ -270,7 +270,7 @@ $(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
 	@echo "!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!" > $@
 	@echo "!!   ------ The native file is $(notdir $<). Re-run 'make docs' after updating\n\n" >> $@
-	man -l $< | col -bx >> $@
+	MANWIDTH=80 man -l $< | col -bx >> $@
 
 $(SYSTEMD_CONF) : $(OS_FILES)/$(notdir $(SYSTEMD_CONF))
 	@echo "-- Copying $@"
