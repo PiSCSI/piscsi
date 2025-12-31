@@ -1,175 +1,179 @@
 !!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
-!!   ------ The native file is scsictl.1. Re-run 'make docs' after updating\n\n
-piscsi(1)                   General Commands Manual                  piscsi(1)
+!!   ------ The native file is scsictl.1. Re-run 'make docs' after updating
+
+
+SCSICTL(1)                   General Commands Manual                 SCSICTL(1)
 
 NAME
-       scsictl - Sends management commands to the piscsi process
+       scsictl — Sends management commands to the piscsi process
 
 SYNOPSIS
-       scsictl  -e | -l | -m | -o | -v | -D | -I | -L | -O | -P | -S | -T | -V
-       | -X | [-C FILENAME:FILESIZE] | [-E FILENAME] | [-F IMAGE_FOLDER] | [-R
-       CURRENT_NAME:NEW_NAME]  | [-c CMD] | [-f FILE|PARAM] | [-g LOG_LEVEL] |
-       [-h HOST] | [-i ID[:LUN]] | [-n NAME] | [-p PORT] | [-r RESERVED_IDS] |
-       [-s  [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]]  |  [-t TYPE] | [-x CUR‐
-       RENT_NAME:NEW_NAME] | [-z LOCALE]
+       scsictl  [-b  BLOCK_SIZE]  [-C FILENAME:FILESIZE] [-c CMD] [-d FILENAME]
+               [-E  FILENAME]  [-F  IMAGE_FOLDER]  [-f  FILE|PARAM]  [-h  HOST]
+               [-i   ID[: LUN]]   [-L  LOG_LEVEL]  [-n  NAME]  [-P]  [-p  PORT]
+               [-R       CURRENT_NAME:NEW_NAME]        [-r        RESERVED_IDS]
+               [-s    [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]]    [-t    TYPE]
+               [-u UNIT] [-x CURRENT_NAME:NEW_NAME] [-z LOCALE]
+       scsictl [-D | -e | -I | -l | -m | -N | -O | -o | -S | -T | -V | -v | -X]
 
 DESCRIPTION
-       scsictl sends commands to the piscsi process to make configuration  ad‐
+       scsictl sends commands to the piscsi process to make  configuration  ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
-       You  do  NOT  need root privileges to use scsictl. scsictl also runs on
+       You  do  NOT  need  root privileges to use scsictl. scsictl also runs on
        non-Pi Linux platforms.
 
-       Note: The command and type arguments are  case  insensitive.  Only  the
+       Note: The command and type arguments  are  case  insensitive.  Only  the
        first letter of the command/type is evaluated by the tool.
 
 OPTIONS
+       -b BLOCK_SIZE
+               The  optional  block size, either 512, 1024, 2048 or 4096 bytes.
+               The default size is 512 bytes.
+
        -C FILENAME:FILESIZE
-              Create an image file in the default image folder with the speci‐
-              fied name and size in bytes.
+               Create an image file in the default image folder with the speci‐
+               fied name and size in bytes.
 
-       -D     Detach all devices.
+       -c CMD  Command is the operation being requested. Options are:
+               •   a(ttach): Attach disk
+               •   d(etach): Detach disk
+               •   i(nsert): Insert media (removable media devices only)
+               •   e(ject): Eject media (removable media devices only)
+               •   p(rotect): Write protect the medium (not for CD-ROMs,  which
+                   are always read-only)
+               •   u(nprotect):  Remove  write  protection from the medium (not
+                   for CD-ROMs, which are always read-only)
+               •   s(how): Display device information
 
-       -E FILENAME
-              Display information on an image file.
+               eject, protect and unprotect are idempotent.
 
-       -F IMAGE_FOLDER
-              Set the default image folder.
-
-       -I     Gets the list of reserved device IDs.
-
-       -L LOG_LEVEL
-              Set the piscsi log level (trace, debug,  info,  warning,  error,
-              off).
-
-       -h HOST
-              The piscsi host to connect to, default is 'localhost'.
-
-       -e     List all images files in the default image folder.
-
-       -N     Lists  all  available  network interfaces provided that they are
-              up.
-
-       -O     Display the available piscsi server log levels and  the  current
-              log level.
-
-       -P     Prompt  for the access token in case piscsi requires authentica‐
-              tion.
-
-       -l     List all of the devices that are  currently  being  emulated  by
-              PiSCSI, as well as their current status.
-
-       -m     List  all  file  extensions  recognized by PiSCSI and the device
-              types they map to.
-
-       -o     Display operation meta data information.
-
-       -R CURRENT_NAME:NEW_NAME
-              Rename an image file in the default image folder.
-
-       -p PORT
-              The piscsi port to connect to, default is 6868.
-
-       -r RESERVED_IDS
-              Comma-separated list of IDs to reserve. Pass an  empty  list  in
-              order to not reserve anything.
-
-       -s [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]
-              Display  server-side settings like available images or supported
-              device types.
-
-       -S     Display statistics.
-
-       -T     Display all device types and their properties.
-
-       -v     Display the piscsi server version.
-
-       -V     Display the scsictl version.
-
-       -X     Shut down the piscsi process.
+       -D      Detach all devices.
 
        -d FILENAME
-              Delete an image file in the default image folder.
+               Delete an image file in the default image folder.
 
-       -x CURRENT_NAME:NEW_NAME
-              Copy an image file in the default image folder.
+       -E FILENAME
+               Display information on an image file.
 
-       -z LOCALE
-              Overrides the default locale for client-facing error messages.
+       -e      List all images files in the default image folder.
 
-       -i ID[:LUN]
-              The  SCSI  ID  and  optional  LUN  that  you  want  to  control.
-              (0-7:0-31)
-
-       -c CMD Command is the operation being requested. Options are:
-                 a(ttach): Attach disk
-                 d(etach): Detach disk
-                 i(nsert): Insert media (removable media devices only)
-                 e(ject): Eject media (removable media devices only)
-                 p(rotect):  Write  protect the medium (not for CD-ROMs, which
-              are always read-only)
-                 u(nprotect): Remove write protection from the medium (not for
-              CD-ROMs, which are always read-only)
-                 s(how): Display device information
-
-              eject, protect and unprotect are idempotent.
-
-       -b BLOCK_SIZE
-              The  optional  block size, either 512, 1024, 2048 or 4096 bytes.
-              The default size is 512 bytes.
+       -F IMAGE_FOLDER
+               Set the default image folder.
 
        -f FILE|PARAM
-              Device-specific: Either a path to a disk image file, or a param‐
-              eter  for a non-disk device. See the piscsi(1) man page for per‐
-              mitted file types.
+               Device-specific: Either a path to a disk image file, or a  para‐
+               meter for a non-disk device. See the piscsi(1) man page for per‐
+               mitted file types.
 
-       -t TYPE
-              Specifies the device type. This type overrides the type  derived
-              from  the  file  extension  of  the  specified  image.  See  the
-              piscsi(1) man page for the  available  device  types.  For  some
-              types there are shortcuts (only the first letter is required):
-                 hd: SCSI hard disk drive
-                 rm: SCSI removable media drive
-                 cd: CD-ROM
-                 mo: Magneto-Optical disk
-                 lp: SCSI printer
-                 bridge: Bridge device (Only applicable to the Sharp X68000)
-                 daynaport: DaynaPort network adapter
-                 services: Host services device
+       -I      Gets the list of reserved device IDs.
+
+       -i ID[: LUN]
+               The  SCSI  ID  and  optional  LUN  that  you  want  to  control.
+               (0-7:0-31)
+
+       -L LOG_LEVEL
+               Set the piscsi log level (trace, debug,  info,  warning,  error,
+               off).
+
+       -l      List  all  of  the  devices that are currently being emulated by
+               PiSCSI, as well as their current status.
+
+       -h HOST
+               The piscsi host to connect to, default is 'localhost'.
+
+       -m      List all file extensions recognized by  PiSCSI  and  the  device
+               types they map to.
+
+       -N      Lists  all  available  network interfaces provided that they are
+               up.
 
        -n VENDOR:PRODUCT:REVISION
-              The  vendor, product and revision for the device, to be returned
-              with the INQUIRY data. A complete set of name components must be
-              provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
-              to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically  applied.  Once  set  the name of a device cannot be
-              changed.
+               The vendor, product and revision for the device, to be  returned
+               with the INQUIRY data. A complete set of name components must be
+               provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
+               to 4 characters. Padding with blanks to the maxium length is au‐
+               tomatically  applied.  Once  set  the name of a device cannot be
+               changed.
+
+       -O      Display the available piscsi server log levels and  the  current
+               log level.
+
+       -o      Display operation meta data information.
+
+       -P      Prompt  for the access token in case piscsi requires authentica‐
+               tion.
+
+       -p PORT
+               The piscsi port to connect to, default is 6868.
+
+       -R CURRENT_NAME:NEW_NAME
+               Rename an image file in the default image folder.
+
+       -r RESERVED_IDS
+               Comma-separated list of IDs to reserve. Pass an  empty  list  in
+               order to not reserve anything.
+
+       -S      Display statistics.
+
+       -s [FOLDER_PATTERN:FILE_PATTERN:OPERATIONS]
+               Display  server-side settings like available images or supported
+               device types.
+
+       -T      Display all device types and their properties.
+
+       -t TYPE
+               Specifies the device type. This type overrides the type  derived
+               from  the  file  extension  of  the  specified  image.  See  the
+               piscsi(1) man page for the available device type codes, or use a
+               shorthand (only the first letter is required):
+               •   cd: CD-ROM
+               •   daynaport: DaynaPort Network Adapter
+               •   hd: Hard Disk
+               •   services: Host Services
+               •   printer: Printer
+               •   mo: Magneto-Optical Drive
+               •   removable: Removable Hard Disk
+               •   tape: Tape Drive
+
+       -V      Display the scsictl version.
+
+       -v      Display the piscsi server version.
+
+       -X      Shut down the piscsi process.
+
+       -x CURRENT_NAME:NEW_NAME
+               Copy an image file in the default image folder.
+
+       -z LOCALE
+               Overrides the default locale for client-facing error messages.
 
        -u UNIT
-              Unit number (0-31). This will default to 0. This option is  only
-              used  when there are multiple SCSI devices on a shared SCSI con‐
-              troller. (This is not common)
+               Unit number (0-31). This will default to 0. This option is  only
+               used  when there are multiple SCSI devices on a shared SCSI con‐
+               troller. (This is not common)
 
 EXAMPLES
        Show a listing of all of the SCSI devices and their current status.
-          scsictl -l
+             scsictl -l
 
        Example output:
-          +----+-----+------+-------------------------------------
-          | ID | LUN | TYPE | IMAGE FILE
-          +----+-----+------+-------------------------------------
-          |  0 |   1 | SCHD | /home/pi/harddisk.hda
-          +----+-----+------+-------------------------------------
 
-       Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0 with
+             +----+-----+------+-------------------------------------
+             | ID | LUN | TYPE | IMAGE FILE
+             +----+-----+------+-------------------------------------
+             |  0 |   1 | SCHD | /home/pi/harddisk.hda
+             +----+-----+------+-------------------------------------
+
+       Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0  with
        the contents of the file system image "HDIIMAGE0.HDS".
-          scsictl -i 0 -f HDIIMAGE0.HDS
+             scsictl -i -0 -f -HDIIMAGE0.HDS
 
 SEE ALSO
        piscsi(1), scsimon(1), scsidump(1)
 
        Full documentation is available at: <https://www.piscsi.com>
 
-                                                                     piscsi(1)
+PiSCSI                         December 18, 2025                     SCSICTL(1)

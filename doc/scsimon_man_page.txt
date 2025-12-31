@@ -2,41 +2,51 @@
 !!   ------ The native file is scsimon.1. Re-run 'make docs' after updating
 
 
-scsimon(1)                                       General Commands Manual                                      scsimon(1)
+SCSIMON(1)                   General Commands Manual                 SCSIMON(1)
 
 NAME
-       scsimon  -  Acts  as  a  data capture tool for all traffic on the SCSI bus. Data is stored in a Value Change Dump
-       (VCD) file.
+       scsimon  —  Acts as a data capture tool for all traffic on the SCSI bus.
+       Data is stored in a Value Change Dump (VCD) file.
 
 SYNOPSIS
-       scsimon
+       scsimon [-i input_file_json] [-b buffer_size] [output_file]
 
 DESCRIPTION
-       scsimon monitors all of the traffic on the SCSI bus, using a PiSCSI device. The data is cached  in  memory  while
-       the  tool  is  running. A circular buffer is used so that only the most recent 1,000,000 transactions are stored.
-       The tool will continue to run until the user presses CTRL-C, or the process receives a SIGINT signal.
+       scsimon monitors all of the traffic on the SCSI bus, using a PiSCSI  de‐
+       vice. The data is cached in memory while the tool is running. A circular
+       buffer  is  used  so  that only the most recent transactions are stored,
+       with a default size of 1,000,000 unless overridden by the -b option. The
+       tool will continue to run until the user presses CTRL-C, or the  process
+       receives a SIGINT signal.
 
-       The logged data is stored in a file called "log.vcd" in the current working  directory  from  where  scsimon  was
-       launched.
+       If the -i option is specified, scsimon will parse the provided JSON file
+       instead  of  capturing  new data. If -i option is not specified, scsimon
+       will read the GPIO pins.
 
-       Currently, scsimon doesn't accept any arguments.
+       The logged data is stored in files with the base name specified by  out‐
+       put_file,  or  "log"  if  not  specified. The appropriate file extension
+       (e.g., .json or .vcd) will be appended.
 
        To quit scsimon, press Control + C.
 
 OPTIONS
-       None
+       -i input_file_json scsimon will parse the json file instead of capturing
+       new data. If -i option is not specified,  scsimon  will  read  the  gpio
+       pins.   -b  buffer_size  Override  the  default  buffer size of 1000000.
+       output_file Base name of the  output  files.  The  file  extension  (ex:
+       .json) will be appended to this file name.
 
 EXAMPLES
-       Make  sure  you've  stopped  the piscsi service. Then launch scsimon to capture all SCSI traffic available to the
-       PiSCSI hardware:
-          scsimon
+       Make sure you've stopped the piscsi service. Then launch scsimon to cap‐
+       ture all SCSI traffic available to the PiSCSI hardware:
+             scsimon
 
-       If you're trying to capture a specific scenario, you'll want to wait to start scsimon  until  immediately  before
-       the scenario.
+       If  you're trying to capture a specific scenario, you'll want to wait to
+       start scsimon until immediately before the scenario.
 
 SEE ALSO
        scsictl(1), piscsi(1), scsidump(1)
 
        Full documentation is available at: <https://www.piscsi.com>
 
-                                                                                                              scsimon(1)
+PiSCSI                         December 18, 2025                     SCSIMON(1)
