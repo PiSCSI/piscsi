@@ -1,6 +1,6 @@
 .Dd December 18, 2025
 .Dt SCSICTL 1
-.Os
+.Os PiSCSI
 .Sh NAME
 .Nm scsictl
 .Nd Sends management commands to the piscsi process
@@ -31,13 +31,12 @@
 .Sh DESCRIPTION
 .Nm
 sends commands to the piscsi process to make configuration adjustments at runtime or to check the status of the devices.
-
-Either the -i or -l option should be specified at one time. Not both. 
-
+.Pp
+Either the -i or -l option should be specified at one time. Not both.
+.Pp
 You do NOT need root privileges to use scsictl. scsictl also runs on non-Pi Linux platforms.
-
+.Pp
 Note: The command and type arguments are case insensitive. Only the first letter of the command/type is evaluated by the tool.
-
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl b Ar BLOCK_SIZE
@@ -143,7 +142,6 @@ Overrides the default locale for client-facing error messages.
 .It Fl u Ar UNIT
 Unit number (0-31). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
 .El
-
 .Sh EXAMPLES
 Show a listing of all of the SCSI devices and their current status.
 .Dl Nm scsictl Fl l
@@ -159,7 +157,6 @@ Example output:
 .Pp
 Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
 .Dl Nm scsictl Fl i 0 Fl f HDIIMAGE0.HDS
-
 .Sh SEE ALSO
 .Xr piscsi 1 ,
 .Xr scsimon 1 ,

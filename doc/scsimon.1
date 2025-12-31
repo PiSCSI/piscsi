@@ -1,6 +1,6 @@
 .Dd December 18, 2025
 .Dt SCSIMON 1
-.Os
+.Os PiSCSI
 .Sh NAME
 .Nm scsimon
 .Nd Acts as a data capture tool for all traffic on the SCSI bus. Data is stored in a Value Change Dump (VCD) file.
@@ -18,7 +18,6 @@ If the -i option is specified, scsimon will parse the provided JSON file instead
 The logged data is stored in files with the base name specified by output_file, or "log" if not specified. The appropriate file extension (e.g., .json or .vcd) will be appended.
 .Pp
 To quit scsimon, press Control + C.
-
 .Sh OPTIONS
 .Fl i Ar input_file_json
 scsimon will parse the json file instead of capturing new data. If -i option is not specified, scsimon will read the gpio pins.
@@ -26,13 +25,11 @@ scsimon will parse the json file instead of capturing new data. If -i option is 
 Override the default buffer size of 1000000.
 .Ar output_file
 Base name of the output files. The file extension (ex: .json) will be appended to this file name.
-
 .Sh EXAMPLES
 Make sure you've stopped the piscsi service. Then launch scsimon to capture all SCSI traffic available to the PiSCSI hardware:
 .Dl Nm scsimon
 .Pp
 If you're trying to capture a specific scenario, you'll want to wait to start scsimon until immediately before the scenario.
-
 .Sh SEE ALSO
 .Xr scsictl 1 ,
 .Xr piscsi 1 ,
