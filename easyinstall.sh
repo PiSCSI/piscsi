@@ -109,8 +109,14 @@ function initialChecks() {
 # Ensures a directory is owned by the actual user, not root
 function ensureUserOwnership() {
     local dir_path="$1"
+
+    # Only attempt to change ownership if the user exists on the system
     if [ -d "$dir_path" ] || [ -f "$dir_path" ]; then
-        chown -R "$ACTUAL_USER:$ACTUAL_USER" "$dir_path"
+        if id "$ACTUAL_USER" >/dev/null 2>&1; then
+            chown -R "$ACTUAL_USER:$ACTUAL_USER" "$dir_path"
+        else
+            echo "Note: User '$ACTUAL_USER' does not exist in this environment, skipping ownership change for $dir_path"
+        fi
     fi
 }
 
