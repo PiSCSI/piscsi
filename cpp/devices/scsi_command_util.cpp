@@ -44,10 +44,20 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 
 	// Parse the pages
 	while (length > 0) {
+		// Check if we can read the page code and length
+		if (offset >= static_cast<int>(buf.size())) {
+			break;
+		}
+
 		// Format device page
 		if (const int page = buf[offset]; page == 0x03) {
 			if (length < 14) {
 				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+			}
+
+			// Check if we can read the sector size field at offset + 12
+			if (offset + 13 >= static_cast<int>(buf.size())) {
+				break;
 			}
 
 			// With this page the sector size for a subsequent FORMAT can be selected, but only very few
@@ -69,6 +79,10 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 		}
 
 		// Advance to the next page
+		if (offset + 1 >= static_cast<int>(buf.size())) {
+			break;
+		}
+
 		const int size = buf[offset + 1] + 2;
 
 		length -= size;

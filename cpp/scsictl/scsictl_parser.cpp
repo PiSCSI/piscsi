@@ -11,6 +11,9 @@
 
 PbOperation ScsictlParser::ParseOperation(string_view operation) const
 {
+	if (operation.empty()) {
+		return NO_OPERATION;
+	}
 	const auto& it = operations.find(tolower(operation[0]));
 	return it != operations.end() ? it->second : NO_OPERATION;
 }

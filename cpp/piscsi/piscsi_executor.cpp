@@ -41,6 +41,12 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 
 	auto device = controller_manager.GetDeviceForIdAndLun(id, lun);
 
+	// Protect against non-existing device
+	if (!device) {
+		spdlog::error("ProcessDeviceCmd: No device found for id={}, lun={}", id, lun);
+		return false;
+	}
+
 	if (!ValidateOperationAgainstDevice(context, *device, operation)) {
 		return false;
 	}
