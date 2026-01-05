@@ -87,6 +87,8 @@ class ScsiDump
 
     string filename;
 
+    uint64_t start_sector = 0;
+
     bool inquiry = false;
 
     bool scan_bus = false;
