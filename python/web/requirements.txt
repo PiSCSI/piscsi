@@ -15,7 +15,7 @@ MarkupSafe==3.0.3
 # protobuf==3.20.3
 python-pam==2.0.2
 pytz==2025.2
-requests==2.32.4
+requests==2.32.5
 # six==1.17.0
 ua-parser==1.0.1
 urllib3==2.6.2
