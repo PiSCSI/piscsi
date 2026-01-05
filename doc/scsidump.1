@@ -33,6 +33,8 @@ If the generated drive image is intended to be used with PiSCSI, the drive image
 Display INQUIRY data of ID[:LUN].
 .It Fl i Ar BID
 SCSI ID of the PiSCSI device. If not specified, the PiSCSI device will use ID 7. The PiSCSI host will be functioning as the "Initiator" device.
+.It Fl o Ar offs
+Use `offs` as the sector offset to start dumping. It must be aligned to the buffer size. Can be used to resume an aborted transfer from/to a somewhat broken device by specifying the last shown sector number.
 .It Fl f Ar FILE
 Path to the dump file.
 .It Fl p
@@ -52,12 +54,12 @@ Enable verbose logging.
 Dump Mode: [SCSI Drive] ---> [PiSCSI host]
 .Pp
 Launch scsidump to dump an all data from SCSI ID 3 with block size 64 KiB, store it to the local filesystem as a drive image named outimage.hda, and generate the outimage.hda.properties file with the drive's INQUIRY information:
-.Dl Nm scsidump Fl t 3 Fl f ./outimage.hda Fl s 65536 Fl p
+.Dl Nm scsidump -t 3 -f ./outimage.hda -s 65536 -p
 .Pp
 Restore Mode: [PiSCSI host] ---> [SCSI Drive]
 .Pp
 Launch scsidump to restore/upload a drive image from the local file system to SCSI ID 0 with block size 1MiB:
-.Dl Nm scsidump Fl r Fl t 0 Fl f ./outimage.hda Fl s 1048576
+.Dl Nm scsidump -r -t 0 -f ./outimage.hda -s 1048576
 .Sh SEE ALSO
 .Xr scsictl 1 ,
 .Xr piscsi 1 ,

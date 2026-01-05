@@ -93,7 +93,7 @@ void ScsiDump::ParseArguments(span<char *> args)
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvpIS")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:o:s:t:rvpIS")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -114,6 +114,10 @@ void ScsiDump::ParseArguments(span<char *> args)
                 throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
             }
 
+            break;
+
+        case 'o':
+            start_sector = static_cast<uint64_t>(strtoull(optarg, NULL, 0));
             break;
 
         case 'S':
@@ -549,8 +553,18 @@ int ScsiDump::DumpRestore()
     	return EXIT_FAILURE;
     }
 
+    // Dump by buffer size
+    auto dsiz = static_cast<int>(buffer.size());
+    const int duni = dsiz / inq_info.sector_size;
+    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
+
+    // Verify start sector.
+    if (start_sector % duni != 0) {
+        throw parser_exception("Start sector must be a multiple of " + to_string(duni) + " (= bufsize / sectsize)");
+    }
+
     fstream fs;
-    fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
+    fs.open(filename, (restore ? ios::in : ios::out) | ios::binary | ios::app);
 
     if (fs.fail()) {
         throw parser_exception("Can't open image file '" + filename + "'");
@@ -573,19 +587,16 @@ int ScsiDump::DumpRestore()
         } else if (size < (off_t)(inq_info.sector_size * inq_info.capacity)) {
             throw parser_exception("File size is smaller than disk size");
         }
+        fs.seekg(start_sector * inq_info.sector_size);
     } else {
+        fs.seekp(start_sector * inq_info.sector_size);
         cout << "Starting dump\n" << flush;
     }
-
-    // Dump by buffer size
-    auto dsiz = static_cast<int>(buffer.size());
-    const int duni = dsiz / inq_info.sector_size;
-    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
 
     const auto start_time = chrono::high_resolution_clock::now();
 
     int i;
-    for (i = 0; i < dnum; i++) {
+    for (i = start_sector / duni; i < dnum; i++) {
         if (restore) {
             fs.read((char*)buffer.data(), dsiz);
             Write10(i * duni, duni, dsiz);
