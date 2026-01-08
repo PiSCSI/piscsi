@@ -18,7 +18,7 @@ pytz==2025.2
 requests==2.32.5
 # six==1.17.0
 ua-parser==1.0.1
-urllib3==2.6.2
+urllib3==2.6.3
 vcgencmd==0.1.1
 werkzeug==3.1.4
 zipp==3.23.0
