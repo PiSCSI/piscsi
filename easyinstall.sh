@@ -57,8 +57,16 @@ elif [ $CORES -lt 1 ]; then
 fi
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
-VIRTUAL_DRIVER_PATH="$HOME/images"
-CFG_PATH="$HOME/.config/piscsi"
+
+# Detect actual user home directory when running as root via sudo
+if [ -n "$SUDO_USER" ]; then
+    ACTUAL_USER_HOME=$(eval echo "~$SUDO_USER")
+else
+    ACTUAL_USER_HOME="$HOME"
+fi
+
+VIRTUAL_DRIVER_PATH="$ACTUAL_USER_HOME/images"
+CFG_PATH="$ACTUAL_USER_HOME/.config/piscsi"
 WEB_INSTALL_PATH="$BASE/python/web"
 OLED_INSTALL_PATH="$BASE/python/oled"
 CTRLBOARD_INSTALL_PATH="$BASE/python/ctrlboard"
@@ -69,8 +77,8 @@ SSL_KEYS_PATH="/etc/ssl/private"
 HFDISK_BIN=/usr/bin/hfdisk
 TOKEN=""
 AUTH_GROUP="piscsi"
-SECRET_FILE="$HOME/.config/piscsi/secret"
-FILE_SHARE_PATH="$HOME/shared_files"
+SECRET_FILE="$ACTUAL_USER_HOME/.config/piscsi/secret"
+FILE_SHARE_PATH="$ACTUAL_USER_HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
 
 APT_PACKAGES_COMMON="bridge-utils build-essential ca-certificates git protobuf-compiler rsyslog"
@@ -84,40 +92,46 @@ set -e
 
 # checks to run before entering the script main menu
 function initialChecks() {
-    if [ "root" == "$USER" ]; then
-        echo "Do not run this script as $USER or with 'sudo'."
-        exit 1
+    if [ "$EUID" -ne 0 ]; then
+        echo "This script must be run with root privileges."
+        echo "Please run: sudo $0 $*"
+    fi
+
+    # Detect the actual user who invoked sudo
+    if [ -n "$SUDO_USER" ]; then
+        ACTUAL_USER="$SUDO_USER"
+    else
+        # If not invoked via sudo, we're directly root - use a fallback
+        ACTUAL_USER="$USER"
     fi
 }
 
-# Only to be used for pi-gen automated install
-function sudoCache() {
-    echo "Caching sudo password"
-    echo raspberry | sudo -v -S
-}
+# Ensures a directory is owned by the actual user, not root
+function ensureUserOwnership() {
+    local dir_path="$1"
 
-# checks that the current user has sudoers privileges
-function sudoCheck() {
-    if [[ $HEADLESS ]]; then
-        echo "Skipping password check in headless mode"
-        return 0
+    # Only attempt to change ownership if the user exists on the system
+    if [ -d "$dir_path" ] || [ -f "$dir_path" ]; then
+        if id "$ACTUAL_USER" >/dev/null 2>&1; then
+            chown -R "$ACTUAL_USER:$ACTUAL_USER" "$dir_path"
+        else
+            echo "Note: User '$ACTUAL_USER' does not exist in this environment, skipping ownership change for $dir_path"
+        fi
     fi
-    echo "Input your password to allow this script to make the above changes."
-    sudo -v
 }
 
 # Delete file if it exists
 function deleteFile() {
-    if sudo test -f "$1/$2"; then
-        sudo rm "$1/$2" || exit 1
+    if test -f "$1/$2"; then
+        rm "$1/$2" || exit 1
         echo "Deleted file $1/$2"
     fi
 }
 
 # Delete dir if it exists
 function deleteDir() {
-    if sudo test -d "$1"; then
-        sudo rm -rf "$1" || exit 1
+    if test -d "$1"; then
+        rm -rf "$1" || exit 1
         echo "Deleted directory $1"
     fi
 }
@@ -128,7 +142,7 @@ function updateAptSources() {
         echo "Skipping package update"
         return 0
     fi
-    sudo apt-get update
+    apt-get update
 }
 
 # install Debian packages for PiSCSI backend
@@ -137,7 +151,7 @@ function installPackagesBackend() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
+    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_BACKEND
 }
@@ -148,13 +162,13 @@ function installPackagesWeb() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
+    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_PYTHON \
         $APT_PACKAGES_WEB
 
     if ! command -v hformat >/dev/null 2>&1 ]; then
-        if ! sudo apt-get install --no-install-recommends --assume-yes -qq hfsutils; then
+        if ! apt-get install --no-install-recommends --assume-yes -qq hfsutils; then
             echo "hfsutils package not found in apt repositories; compiling from source..."
             installHfsutils
         fi
@@ -177,16 +191,16 @@ function compilePiscsi() {
 
 # install the PiSCSI binaries and modify the service configuration
 function installPiscsi() {
-    sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
+    make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
 }
 
 # Update the systemd configuration for piscsi
 function configurePiscsiService() {
     if [[ -f $SECRET_FILE ]]; then
-        sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
+        sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
         echo "Secret token file $SECRET_FILE detected. Using it to enable back-end authentication."
     else
-        sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/piscsi.service"
+        sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/piscsi.service"
     fi
     echo "Configured piscsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 }
@@ -204,8 +218,8 @@ function preparePythonCommon() {
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installPiscsiWebInterface() {
-    sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
-    sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
+    cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
+    cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
     # Deleting previous venv dir, if one exists, to avoid the common issue of broken python dependencies
     deleteDir "$WEB_INSTALL_PATH/venv"
@@ -214,9 +228,9 @@ function installPiscsiWebInterface() {
         echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt already exists."
     else
         echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt does not exist; creating self-signed certificate..."
-        sudo mkdir -p "$SSL_CERTS_PATH" || true
-        sudo mkdir -p "$SSL_KEYS_PATH" || true
-        sudo openssl req -x509 -nodes -sha256 -days 3650 \
+        mkdir -p "$SSL_CERTS_PATH" || true
+        mkdir -p "$SSL_KEYS_PATH" || true
+        openssl req -x509 -nodes -sha256 -days 3650 \
             -newkey rsa:4096 \
             -keyout "$SSL_KEYS_PATH/piscsi-web.key" \
             -out "$SSL_CERTS_PATH/piscsi-web.crt" \
@@ -225,7 +239,7 @@ function installPiscsiWebInterface() {
             -addext 'extendedKeyUsage=serverAuth'
     fi
 
-    sudo systemctl reload nginx || true
+    systemctl reload nginx || true
 }
 
 # Creates the dir that PiSCSI uses to store image files
@@ -237,6 +251,7 @@ function createImagesDir() {
         mkdir -p "$VIRTUAL_DRIVER_PATH"
         chmod -R 775 "$VIRTUAL_DRIVER_PATH"
     fi
+    ensureUserOwnership "$VIRTUAL_DRIVER_PATH"
 }
 
 # Creates the dir that the Web Interface uses to store configuration files
@@ -248,12 +263,13 @@ function createCfgDir() {
         mkdir -p "$CFG_PATH"
         chmod -R 775 "$CFG_PATH"
     fi
+    ensureUserOwnership "$CFG_PATH"
 }
 
 # Takes a backup copy of the piscsi.service file if it exists
 function backupPiscsiService() {
     if [ -f "$SYSTEMD_PATH/piscsi.service" ]; then
-        sudo mv "$SYSTEMD_PATH/piscsi.service" "$SYSTEMD_PATH/piscsi.service.old"
+        mv "$SYSTEMD_PATH/piscsi.service" "$SYSTEMD_PATH/piscsi.service.old"
         SYSTEMD_BACKUP=true
         echo "Existing version of piscsi.service detected; Backing up to piscsi.service.old"
     else
@@ -264,12 +280,12 @@ function backupPiscsiService() {
 # Offers the choice of enabling token-based authentication for PiSCSI, or disables it if enabled
 function configureTokenAuth() {
     if [[ -f $SECRET_FILE ]]; then
-        sudo rm "$SECRET_FILE"
+        rm "$SECRET_FILE"
         echo "PiSCSI token file $SECRET_FILE already exists. Do you want to disable authentication? (y/N)"
         read REPLY
 
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sudo sed -i 's@-P '"$SECRET_FILE"'@@' "$SYSTEMD_PATH/piscsi.service"
+            sed -i 's@-P '"$SECRET_FILE"'@@' "$SYSTEMD_PATH/piscsi.service"
             return
         fi
     fi
@@ -280,10 +296,10 @@ function configureTokenAuth() {
     echo "$TOKEN" > "$SECRET_FILE"
 
     # Make the secret file owned and only readable by root
-    sudo chown root:root "$SECRET_FILE"
-    sudo chmod 600 "$SECRET_FILE"
+    chown root:root "$SECRET_FILE"
+    chmod 600 "$SECRET_FILE"
 
-    sudo sed -i "s@^ExecStart.*@& -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
+    sed -i "s@^ExecStart.*@& -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
 
     echo ""
     echo "Configured PiSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
@@ -293,10 +309,10 @@ function configureTokenAuth() {
 
 # Enables and starts the piscsi service
 function enablePiscsiService() {
-    sudo systemctl daemon-reload
-    sudo systemctl restart rsyslog
-    sudo systemctl enable piscsi # start piscsi at boot
-    sudo systemctl start piscsi
+    systemctl daemon-reload
+    systemctl restart rsyslog
+    systemctl enable piscsi # start piscsi at boot
+    systemctl start piscsi
 }
 
 # Modifies and installs the piscsi-web service
@@ -308,30 +324,30 @@ function installWebInterfaceService() {
     fi
 
     echo "Installing the piscsi-web.service configuration..."
-    sudo cp -f "$WEB_INSTALL_PATH/service-infra/piscsi-web.service" "$SYSTEMD_PATH/piscsi-web.service"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-web.service"
+    cp -f "$WEB_INSTALL_PATH/service-infra/piscsi-web.service" "$SYSTEMD_PATH/piscsi-web.service"
+    sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-web.service"
 
     if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/piscsi-web.service"
+        sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/piscsi-web.service"
         # Make the service file readable by root only, to protect the token string
-        sudo chmod 600 "$SYSTEMD_PATH/piscsi-web.service"
+        chmod 600 "$SYSTEMD_PATH/piscsi-web.service"
         echo "Granted access to the Web Interface with the token password that you configured for PiSCSI."
     else
-        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/piscsi-web.service"
+        sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/piscsi-web.service"
     fi
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable piscsi-web
-    sudo systemctl start piscsi-web
+    systemctl daemon-reload
+    systemctl enable piscsi-web
+    systemctl start piscsi-web
 }
 
 # Stops a service if it is running
 function stopService() {
     if [[ -f "$SYSTEMD_PATH/$1.service" ]]; then
         SERVICE_RUNNING=0
-        sudo systemctl is-active --quiet "$1.service" >/dev/null 2>&1 || SERVICE_RUNNING=$?
+        systemctl is-active --quiet "$1.service" >/dev/null 2>&1 || SERVICE_RUNNING=$?
         if [[ $SERVICE_RUNNING -eq 0 ]]; then
-            sudo systemctl stop "$1.service"
+            systemctl stop "$1.service"
         fi
     fi
 }
@@ -340,9 +356,9 @@ function stopService() {
 function disableService() {
     if [ -f "$SYSTEMD_PATH/$1.service" ]; then
         SERVICE_ENABLED=0
-        sudo systemctl is-enabled --quiet "$1.service" >/dev/null 2>&1 || SERVICE_ENABLED=$?
+        systemctl is-enabled --quiet "$1.service" >/dev/null 2>&1 || SERVICE_ENABLED=$?
         if [[ $SERVICE_ENABLED -eq 0 ]]; then
-          sudo systemctl disable "$1.service"
+          systemctl disable "$1.service"
         fi
     fi
 }
@@ -351,7 +367,7 @@ function disableService() {
 function isPiscsiScreenInstalled() {
     SERVICE_PISCSI_OLED_ENABLED=0
     if [[ -f "$SYSTEMD_PATH/piscsi-oled.service" ]]; then
-        sudo systemctl is-enabled --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_ENABLED=$?
+        systemctl is-enabled --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_ENABLED=$?
     else
         SERVICE_PISCSI_OLED_ENABLED=1
     fi
@@ -363,7 +379,7 @@ function isPiscsiScreenInstalled() {
 function isPiscsiCtrlBoardInstalled() {
     SERVICE_PISCSI_CTRLBOARD_ENABLED=0
     if [[ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]]; then
-        sudo systemctl is-enabled --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_ENABLED=$?
+        systemctl is-enabled --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_ENABLED=$?
     else
         SERVICE_PISCSI_CTRLBOARD_ENABLED=1
     fi
@@ -375,7 +391,7 @@ function isPiscsiCtrlBoardInstalled() {
 function isPiscsiScreenRunning() {
     SERVICE_PISCSI_OLED_RUNNING=0
     if [[ -f "$SYSTEMD_PATH/piscsi-oled.service" ]]; then
-        sudo systemctl is-active --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_RUNNING=$?
+        systemctl is-active --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_RUNNING=$?
     else
         SERVICE_PISCSI_OLED_RUNNING=1
     fi
@@ -387,7 +403,7 @@ function isPiscsiScreenRunning() {
 function isPiscsiCtrlBoardRunning() {
     SERVICE_PISCSI_CTRLBOARD_RUNNING=0
     if [[ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]]; then
-        sudo systemctl is-active --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_RUNNING=$?
+        systemctl is-active --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_RUNNING=$?
     else
         SERVICE_PISCSI_CTRLBOARD_RUNNING=1
     fi
@@ -399,7 +415,7 @@ function isPiscsiCtrlBoardRunning() {
 # Starts the piscsi-oled service if installed
 function startPiscsiScreen() {
     if [[ $(isPiscsiScreenInstalled) -eq 0 ]] && [[ $(isPiscsiScreenRunning) -ne 1 ]]; then
-        sudo systemctl start piscsi-oled.service
+        systemctl start piscsi-oled.service
         showServiceStatus "piscsi-oled"
     fi
 }
@@ -407,7 +423,7 @@ function startPiscsiScreen() {
 # Starts the piscsi-ctrlboard service if installed
 function startPiscsiCtrlBoard() {
     if [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isPiscsiCtrlBoardRunning) -ne 1 ]]; then
-        sudo systemctl start piscsi-ctrlboard.service
+        systemctl start piscsi-ctrlboard.service
         showServiceStatus "piscsi-ctrlboard"
     fi
 }
@@ -415,7 +431,7 @@ function startPiscsiCtrlBoard() {
 # Starts the macproxy service if installed
 function startMacproxy() {
     if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
-        sudo systemctl start macproxy.service
+        systemctl start macproxy.service
         showServiceStatus "macproxy"
     fi
 }
@@ -436,7 +452,7 @@ function installHfdisk() {
         cd "hfdisk-$HFDISK_VERSION" || exit 1
         make
 
-        sudo cp hfdisk "$HFDISK_BIN"
+        cp hfdisk "$HFDISK_BIN"
 
         echo "Installed $HFDISK_BIN"
     fi
@@ -444,7 +460,7 @@ function installHfdisk() {
 
 # Clone, compile and install 'hfsutils', HFS disk image tools
 function installHfsutils() {
-    sudo apt-get install --no-install-recommends --assume-yes -qq autoconf automake libtool m4 </dev/null
+    apt-get install --no-install-recommends --assume-yes -qq autoconf automake libtool m4 </dev/null
 
     if [ -d "$BASE/hfsutils" ]; then
         echo "hfsutils source dir already exists; deleting before re-cloning..."
@@ -457,7 +473,7 @@ function installHfsutils() {
     autoreconf -i
     ./configure
     make -j "$CORES"
-    sudo make install
+    make install
 }
 
 # Fetch HFS drivers that the Web Interface uses
@@ -514,14 +530,14 @@ function setupWiredNetworking() {
             read REPLY
         fi
 
-        sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
+        sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
 
-    sudo bash -c 'echo "denyinterfaces '$LAN_INTERFACE'" >> /etc/dhcpcd.conf'
+    bash -c 'echo "denyinterfaces '$LAN_INTERFACE'" >> /etc/dhcpcd.conf'
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
-    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$BASE"'/os_integration/piscsi_bridge > /etc/network/interfaces.d/piscsi_bridge'
+    bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$BASE"'/os_integration/piscsi_bridge > /etc/network/interfaces.d/piscsi_bridge'
     echo "Modified /etc/network/interfaces.d/piscsi_bridge"
 
     echo "Configuration completed!"
@@ -541,7 +557,7 @@ function setupWiredNetworking() {
 
     echo "Rebooting..."
     sleep 3
-    sudo reboot
+    reboot
 }
 
 # Modifies system configurations for a wireless network bridge with NAT
@@ -593,7 +609,7 @@ function setupWirelessNetworking() {
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
     else
-        sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+        bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
         echo "Modified /etc/sysctl.conf"
     fi
 
@@ -601,24 +617,24 @@ function setupWirelessNetworking() {
     if [ `apt-cache policy iptables | grep Installed | grep -c "(none)"` -eq 0 ]; then
         echo "iptables is already installed"
     else
-        sudo apt-get install iptables --assume-yes --no-install-recommends </dev/null
+        apt-get install iptables --assume-yes --no-install-recommends </dev/null
     fi
 
-    sudo iptables --flush
-    sudo iptables -t nat -F
-    sudo iptables -X
-    sudo iptables -Z
-    sudo iptables -P INPUT ACCEPT
-    sudo iptables -P OUTPUT ACCEPT
-    sudo iptables -P FORWARD ACCEPT
-    sudo iptables -t nat -A POSTROUTING -o "$WLAN_INTERFACE" -s "$ROUTING_ADDRESS" -j MASQUERADE
+    iptables --flush
+    iptables -t nat -F
+    iptables -X
+    iptables -Z
+    iptables -P INPUT ACCEPT
+    iptables -P OUTPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -t nat -A POSTROUTING -o "$WLAN_INTERFACE" -s "$ROUTING_ADDRESS" -j MASQUERADE
 
     # Check if iptables-persistent is installed
     if [ `apt-cache policy iptables-persistent | grep Installed | grep -c "(none)"` -eq 0 ]; then
         echo "iptables-persistent is already installed"
-        sudo iptables-save --file /etc/iptables/rules.v4
+        iptables-save --file /etc/iptables/rules.v4
     else
-        sudo apt-get install iptables-persistent --assume-yes --no-install-recommends </dev/null
+        apt-get install iptables-persistent --assume-yes --no-install-recommends </dev/null
     fi
     echo "Modified /etc/iptables/rules.v4"
 
@@ -634,19 +650,19 @@ function setupWirelessNetworking() {
 
     echo "Rebooting..."
     sleep 3
-    sudo reboot
+    reboot
 }
 
 # Detects or creates the file sharing directory
 function createFileSharingDir() {
-    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$ACTUAL_USER_HOME/afpshare" ]; then
         echo
-        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo "File server dir $ACTUAL_USER_HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
         echo
         echo "Do you want to proceed with the installation? [y/N]"
         read -r REPLY
         if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+            mv "$ACTUAL_USER_HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
         else
             exit 0
         fi
@@ -654,10 +670,10 @@ function createFileSharingDir() {
         echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
     else
         echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
-        sudo mkdir -p "$FILE_SHARE_PATH"
-        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
+        mkdir -p "$FILE_SHARE_PATH"
         chmod -Rv 775 "$FILE_SHARE_PATH"
     fi
+    ensureUserOwnership "$FILE_SHARE_PATH"
 }
 
 # Downloads, compiles, and installs Netatalk (AFP server)
@@ -706,7 +722,7 @@ function installNetatalk() {
     [[ $SKIP_MAKE_CLEAN ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-make-clean"
 
     bash -c "$BASE/shell_scripts/netatalk_install.sh $NETATALK_OPTIONS" || exit 1
-    sudo rm -rf "$BASE/tmp"
+    rm -rf "$BASE/tmp"
 }
 
 # Downloads, compiles, and installs Macproxy (web proxy)
@@ -728,24 +744,26 @@ function installMacproxy {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
+        apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
     fi
 
     MACPROXY_VER="25.11.1"
-    MACPROXY_PATH="$HOME/macproxy_classic-$MACPROXY_VER"
+    MACPROXY_PATH="$ACTUAL_USER_HOME/macproxy_classic-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
         echo "The $MACPROXY_PATH directory already exists. Deleting before downloading again..."
-        sudo rm -rf "$MACPROXY_PATH"
+        rm -rf "$MACPROXY_PATH"
     fi
-    cd "$HOME" || exit 1
+    cd "$ACTUAL_USER_HOME" || exit 1
     wget -O "macproxy_classic-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy_classic/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy_classic-$MACPROXY_VER.tar.gz"
+    rm "macproxy_classic-$MACPROXY_VER.tar.gz"
+    ensureUserOwnership "$MACPROXY_PATH"
 
-    sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
-    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh -p=$PORT" "$SYSTEMD_PATH/macproxy.service"
-    sudo systemctl daemon-reload
-    sudo systemctl enable macproxy
+    cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
+    sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
+    sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh -p=$PORT" "$SYSTEMD_PATH/macproxy.service"
+    systemctl daemon-reload
+    systemctl enable macproxy
     startMacproxy
 
     echo -n "Macproxy Classic is now running on IP "
@@ -759,7 +777,7 @@ function installMacproxy {
 function installFtp() {
     echo
     echo "Installing packages..."
-    sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
+    apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
 
     echo
     echo "Connect to the FTP server with:"
@@ -767,7 +785,7 @@ function installFtp() {
     echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
     echo "/"
     echo
-    echo "Authenticate with username '$USER' and your password on this Pi."
+    echo "Authenticate with username '$ACTUAL_USER' and your password on this Pi."
     echo
 }
 
@@ -790,23 +808,23 @@ function installSamba() {
 
     echo
     echo "Installing packages..."
-    sudo apt-get install samba --no-install-recommends --assume-yes </dev/null
+    apt-get install samba --no-install-recommends --assume-yes </dev/null
     echo
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
-    if [[ `sudo grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+    if [[ `grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
         # Allow Windows XP clients and earlier to connect to the server
-        sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
+        sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
         echo "server min prototol = NT1"
     fi
-    if [[ `sudo grep -c "\[Pi File Server\]" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+    if [[ `grep -c "\[Pi File Server\]" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
         # Define a shared directory with full read/write privileges, while aggressively hiding dot files
-        echo -e '\n[Pi File Server]\npath = '"$FILE_SHARE_PATH"'\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+        echo -e '\n[Pi File Server]\npath = '"$FILE_SHARE_PATH"'\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | tee -a "$SAMBA_CONFIG_PATH/smb.conf"
     fi
 
-    sudo systemctl restart smbd
+    systemctl restart smbd
 
-    echo "Please create a Samba password for user $USER"
-    sudo smbpasswd -a "$USER"
+    echo "Please create a Samba password for user $ACTUAL_USER"
+    smbpasswd -a "$ACTUAL_USER"
 }
 
 # Installs and configures Webmin
@@ -828,15 +846,15 @@ function installWebmin() {
 
     echo
     echo "Installing packages..."
-    sudo apt-get install curl libcgi-session-perl --no-install-recommends --assume-yes </dev/null
+    apt-get install curl libcgi-session-perl --no-install-recommends --assume-yes </dev/null
     curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
-    sudo sh setup-repos.sh -f
+    sh setup-repos.sh -f
     rm setup-repos.sh
-    sudo apt-get install webmin --no-install-recommends --assume-yes </dev/null
+    apt-get install webmin --no-install-recommends --assume-yes </dev/null
 
     rm vsftpd.wbm.gz 2> /dev/null || true
     wget -O vsftpd.wbm.tgz "https://github.com/rdmark/vsftpd-webmin/releases/download/$WEBMIN_VSFTPD_MODULE_VERSION/vsftpd-$WEBMIN_VSFTPD_MODULE_VERSION.wbm.gz" </dev/null
-    sudo "$WEBMIN_PATH/install-module.pl" vsftpd.wbm.tgz
+    "$WEBMIN_PATH/install-module.pl" vsftpd.wbm.tgz
     rm vsftpd.wbm.tgz || true
 }
 
@@ -885,14 +903,14 @@ function installPiscsiScreen() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get install $APT_PACKAGES_SCREEN --assume-yes --no-install-recommends </dev/null
+        apt-get install $APT_PACKAGES_SCREEN --assume-yes --no-install-recommends </dev/null
     fi
 
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
         echo "NOTE: I2C support seems to have been configured already."
         REBOOT=0
     else
-        sudo raspi-config nonint do_i2c 0 </dev/null
+        raspi-config nonint do_i2c 0 </dev/null
         echo "Modified the Raspberry Pi boot configuration to enable I2C."
         echo "A reboot will be required for the change to take effect."
         REBOOT=1
@@ -902,21 +920,21 @@ function installPiscsiScreen() {
     deleteDir "$OLED_INSTALL_PATH/venv"
 
     echo "Installing the piscsi-oled.service configuration..."
-    sudo cp -f "$OLED_INSTALL_PATH/service-infra/piscsi-oled.service" "$SYSTEMD_PATH/piscsi-oled.service"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-oled.service"
+    cp -f "$OLED_INSTALL_PATH/service-infra/piscsi-oled.service" "$SYSTEMD_PATH/piscsi-oled.service"
+    sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-oled.service"
     if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/piscsi-oled.service"
+        sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/piscsi-oled.service"
         # Make the service file readable by root only, to protect the token string
-        sudo chmod 600 "$SYSTEMD_PATH/piscsi-oled.service"
+        chmod 600 "$SYSTEMD_PATH/piscsi-oled.service"
         echo "Granted access to the OLED Monitor with the password that you configured for PiSCSI."
     else
-        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/piscsi-oled.service"
+        sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/piscsi-oled.service"
     fi
 
-    sudo systemctl daemon-reload
+    systemctl daemon-reload
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable piscsi-oled
+    systemctl daemon-reload
+    systemctl enable piscsi-oled
 
     if [ $REBOOT -eq 1 ]; then
         echo ""
@@ -926,10 +944,10 @@ function installPiscsiScreen() {
 
         echo "Rebooting..."
         sleep 3
-        sudo reboot
+        reboot
     fi
 
-    sudo systemctl start piscsi-oled
+    systemctl start piscsi-oled
 }
 
 # updates configuration files and installs packages needed for the CtrlBoard script
@@ -961,7 +979,7 @@ function installPiscsiCtrlBoard() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get install $APT_PACKAGES_SCREEN $APT_PACKAGES_CTRLB --assume-yes --no-install-recommends </dev/null
+        apt-get install $APT_PACKAGES_SCREEN $APT_PACKAGES_CTRLB --assume-yes --no-install-recommends </dev/null
     fi
 
     # enable i2c
@@ -969,7 +987,7 @@ function installPiscsiCtrlBoard() {
         echo "NOTE: I2C support seems to have been configured already."
         REBOOT=0
     else
-        sudo raspi-config nonint do_i2c 0 </dev/null
+        raspi-config nonint do_i2c 0 </dev/null
         echo "Modified the Raspberry Pi boot configuration to enable I2C."
         echo "A reboot will be required for the change to take effect."
         REBOOT=1
@@ -995,7 +1013,7 @@ function installPiscsiCtrlBoard() {
     ADJUST_BAUDRATE=$(grep -c "${GREP_PARAM}" /boot/config.txt)
     if [[ $ADJUST_BAUDRATE -eq 0 ]]; then
       echo "Adjusting I2C baudrate in /boot/config.txt"
-      sudo sed -i "s/dtparam=i2c_arm=on.*/dtparam=i2c_arm=on,i2c_arm_baudrate=${TARGET_I2C_BAUDRATE}/g" /boot/config.txt
+      sed -i "s/dtparam=i2c_arm=on.*/dtparam=i2c_arm=on,i2c_arm_baudrate=${TARGET_I2C_BAUDRATE}/g" /boot/config.txt
       REBOOT=1
     else
       echo "I2C baudrate already correct in /boot/config.txt"
@@ -1006,23 +1024,23 @@ function installPiscsiCtrlBoard() {
     deleteDir "$CTRLBOARD_INSTALL_PATH/venv"
 
     echo "Installing the piscsi-ctrlboard.service configuration..."
-    sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/piscsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+    cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/piscsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+    sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-ctrlboard.service"
     if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION --password=$TOKEN" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
-        sudo chmod 600 "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+        sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION --password=$TOKEN" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+        chmod 600 "$SYSTEMD_PATH/piscsi-ctrlboard.service"
         echo "Granted access to the PiSCSI Control Board UI with the password that you configured for PiSCSI."
     else
-        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+        sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
     fi
 
-    sudo systemctl daemon-reload
+    systemctl daemon-reload
 
     stopService "piscsi-oled"
     disableService "piscsi-oled"
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable piscsi-ctrlboard
+    systemctl daemon-reload
+    systemctl enable piscsi-ctrlboard
 
     if [ $REBOOT -eq 1 ]; then
         echo ""
@@ -1032,10 +1050,10 @@ function installPiscsiCtrlBoard() {
 
         echo "Rebooting..."
         sleep 3
-        sudo reboot
+        reboot
     fi
 
-    sudo systemctl start piscsi-ctrlboard
+    systemctl start piscsi-ctrlboard
 }
 
 # Prints a notification if the piscsi.service file was backed up
@@ -1056,17 +1074,17 @@ function enableWebInterfaceAuth {
         echo "Do you want to disable Web Interface authentication? (y/N)"
         read -r REPLY
         if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            sudo groupdel "$AUTH_GROUP"
+            groupdel "$AUTH_GROUP"
             echo "The '$AUTH_GROUP' group has been deleted."
             exit 0
         fi
     else
         echo "Creating the '$AUTH_GROUP' group."
-        sudo groupadd "$AUTH_GROUP"
+        groupadd "$AUTH_GROUP"
     fi
 
-    echo "Adding user '$USER' to the '$AUTH_GROUP' group."
-    sudo usermod -a -G "$AUTH_GROUP" "$USER"
+    echo "Adding user '$ACTUAL_USER' to the '$AUTH_GROUP' group."
+    usermod -a -G "$AUTH_GROUP" "$ACTUAL_USER"
 }
 
 # Executes the keyword driven scripts for a particular action in the main menu
@@ -1084,7 +1102,6 @@ function runChoice() {
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               echo "- Create a self-signed certificate in /etc/ssl"
-              sudoCheck
               createImagesDir
               createCfgDir
               stopService "piscsi-web"
@@ -1128,7 +1145,6 @@ function runChoice() {
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
-              sudoCheck
               createImagesDir
               createCfgDir
               updateAptSources
@@ -1161,7 +1177,6 @@ function runChoice() {
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
-              sudoCheck
               updateAptSources
               preparePythonCommon
               installPiscsiScreen
@@ -1175,7 +1190,6 @@ function runChoice() {
               echo "- Add and modify systemd services"
               echo "- Stop and disable the PiSCSI OLED service if it is running"
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
-              sudoCheck
               updateAptSources
               preparePythonCommon
               installPiscsiCtrlBoard
@@ -1187,7 +1201,6 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Create a virtual network bridge interface in /etc/network/interfaces.d"
               echo "- Modify /etc/dhcpcd.conf to bridge the Ethernet interface (may change the IP address; requires a reboot)"
-              sudoCheck
               showMacNetworkWired
               setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
@@ -1198,7 +1211,6 @@ function runChoice() {
               echo "- Install additional packages with apt-get"
               echo "- Modify /etc/sysctl.conf to enable IPv4 forwarding"
               echo "- Add NAT rules for the wlan interface (requires a reboot)"
-              sudoCheck
               showMacNetworkWireless
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
@@ -1216,7 +1228,6 @@ function runChoice() {
               echo " - Enable the vsftpd systemd service"
               echo "WARNING: The FTP server may transfer unencrypted data over the network."
               echo "Proceed with this installation only if you are on a private, secure network."
-              sudoCheck
               createFileSharingDir
               installFtp
               echo "Installing FTP File Server - Complete!"
@@ -1228,7 +1239,6 @@ function runChoice() {
               echo " - Enable Samba systemd services"
               echo " - Create a directory in the current user's home directory where shared files will be stored"
               echo " - Create a Samba user for the current user"
-              sudoCheck
               createFileSharingDir
               installSamba
               echo "Installing SMB File Server - Complete!"
@@ -1238,7 +1248,6 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
-              sudoCheck
               stopService "macproxy"
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
@@ -1250,7 +1259,6 @@ function runChoice() {
               echo "- Create directories and change permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
-              sudoCheck
               createImagesDir
               updateAptSources
               installPackagesBackend
@@ -1268,7 +1276,6 @@ function runChoice() {
               echo "- Modify and enable Apache2 and Nginx web service"
               echo "- Create directories and change permissions"
               echo "- Create a self-signed certificate in /etc/ssl"
-              sudoCheck
               createCfgDir
               updateAptSources
               installPackagesWeb
@@ -1283,7 +1290,6 @@ function runChoice() {
               echo "Enabling or disabling PiSCSI back-end authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
-              sudoCheck
               stopService "piscsi"
               configureTokenAuth
               enablePiscsiService
@@ -1293,7 +1299,6 @@ function runChoice() {
               echo "Enabling or disabling Web Interface authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
-              sudoCheck
               enableWebInterfaceAuth
               echo "Enabling or disabling Web Interface authentication - Complete!"
           ;;
@@ -1314,7 +1319,6 @@ function runChoice() {
           99)
               echo "Hidden setup mode for running the pi-gen utility"
               echo "This shouldn't be used by normal users"
-              sudoCache
               createImagesDir
               createCfgDir
               updateAptSources
@@ -1429,6 +1433,9 @@ while [ "$1" != "" ]; do
             ;;
         --help)
             echo "Usage: ./easyinstall.sh [options]"
+            echo
+            echo "NOTE: This script must be run with root privileges."
+            echo "It will detect the actual user and preserve proper file ownership."
             echo
             echo "-c=TYPE, --connect_type=TYPE          Connect type (FULLSPEC, STANDARD, AIBOM, GAMERNIUM)"
             echo "-r=CHOICE, --run_choice=CHOICE        Choose a menu option (1 to 16)"
