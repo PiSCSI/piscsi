@@ -20,5 +20,5 @@ requests==2.32.5
 ua-parser==1.0.1
 urllib3==2.6.3
 vcgencmd==0.1.1
-werkzeug==3.1.4
+werkzeug==3.1.5
 zipp==3.23.0
