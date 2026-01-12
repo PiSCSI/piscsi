@@ -51,6 +51,10 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	bool lockable = false;
 	bool locked = false;
 
+	// Mac Plus compatibility: suppress Unit Attention to avoid reset loops
+	// Mac Plus ROM triggers SCSI reset on Unit Attention, causing infinite boot loop
+	bool suppress_unit_attention = false;
+
 	// A device can be created with parameters
 	bool supports_params = false;
 
@@ -119,6 +123,10 @@ public:
 	void SetRemoved(bool b) { removed = b; }
 	bool IsLockable() const { return lockable; }
 	bool IsLocked() const { return locked; }
+
+	// Mac Plus compatibility: Unit Attention suppression
+	bool GetSuppressUnitAttention() const { return suppress_unit_attention; }
+	void SetSuppressUnitAttention(bool b) { suppress_unit_attention = b; }
 
 	virtual int GetId() const = 0;
 	int GetLun() const { return lun; }

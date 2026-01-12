@@ -51,6 +51,11 @@ const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS         = 20;
 const static int SCSI_DELAY_FAST_HOLD_TIME_NS            = 10;
 const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
 
+// Mac Plus compatibility: Mac Plus ROM has extremely tight selection timing
+// Standard SCSI allows 250ms selection abort time, but Mac Plus expects < 1ms
+// This constant is for documentation purposes - actual timing depends on GPIO polling speed
+const static int SCSI_DELAY_SELECTION_ABORT_MACPLUS_US   = 1000;  // 1ms (vs standard 250ms)
+
 // The DaynaPort SCSI Link do a short delay in the middle of transfering
 // a packet. This is the number of uS that will be delayed between the
 // header and the actual data.

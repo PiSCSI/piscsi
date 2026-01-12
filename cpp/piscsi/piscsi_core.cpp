@@ -147,11 +147,18 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:s:t:z:D:F:L:P:R:C:v")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:mn:p:r:s:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
 			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
+				continue;
+
+			case 'm':
+				// Mac Plus compatibility mode - enables SCSI-1 quirk handling
+				// Mac Plus has tight selection timing and triggers reset loops on Unit Attention
+				ScsiController::SetDefaultCompatibilityMode(CompatibilityMode::MAC_PLUS);
+				spdlog::info("Mac Plus compatibility mode enabled");
 				continue;
 
 			case 'd':

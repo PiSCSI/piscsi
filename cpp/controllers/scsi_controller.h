@@ -22,12 +22,25 @@ using namespace std;
 
 class PrimaryDevice;
 
+// Mac Plus/SCSI-1 compatibility mode
+// Mac Plus and other early SCSI-1 hosts have timing and protocol quirks
+enum class CompatibilityMode {
+	STANDARD,     // Standard SCSI-2 operation
+	MAC_PLUS,     // Mac Plus compatibility (SCSI-1 with specific quirks)
+	SCSI1_COMPAT  // Generic SCSI-1 compatibility
+};
+
 class ScsiController : public AbstractController
 {
 	// For timing adjustments
 public:
 	static unsigned int MIN_EXEC_TIME;
 	static void SetMinExecTime(unsigned int usec) { MIN_EXEC_TIME = usec; }
+
+	// Mac Plus/SCSI-1 compatibility mode
+	static CompatibilityMode default_compat_mode;
+	static void SetDefaultCompatibilityMode(CompatibilityMode mode) { default_compat_mode = mode; }
+	static CompatibilityMode GetDefaultCompatibilityMode() { return default_compat_mode; }
 
 	// Transfer period factor (limited to 50 x 4 = 200ns)
 	static const int MAX_SYNC_PERIOD = 50;
@@ -86,6 +99,19 @@ private:
 
 	// The LUN from the IDENTIFY message
 	int identified_lun = -1;
+
+	// SCSI-1 host detected (no ATN during selection - e.g., Mac Plus)
+	bool scsi1_detected = false;
+
+	// Instance-level compatibility mode (initialized from static default)
+	CompatibilityMode compat_mode = CompatibilityMode::STANDARD;
+
+	// Enable SCSI-1 compatibility behaviors on all attached devices
+	void EnableScsi1Compatibility();
+
+	// Check if running in Mac Plus or SCSI-1 compatibility mode
+	bool IsMacPlusMode() const { return compat_mode == CompatibilityMode::MAC_PLUS; }
+	bool IsScsi1Mode() const { return scsi1_detected || compat_mode != CompatibilityMode::STANDARD; }
 
 	// Data transfer
 	void Send();

@@ -186,14 +186,23 @@ void PrimaryDevice::CheckReady()
 	if (IsReset()) {
 		SetReset(false);
 		LogTrace("Device in reset");
-		throw scsi_exception(sense_key::unit_attention, asc::power_on_or_reset);
+		// Mac Plus compatibility: suppress Unit Attention to avoid reset loops
+		// Mac Plus ROM triggers SCSI reset on Unit Attention, causing infinite boot loop
+		if (!GetSuppressUnitAttention()) {
+			throw scsi_exception(sense_key::unit_attention, asc::power_on_or_reset);
+		}
+		LogTrace("Unit Attention suppressed (SCSI-1/Mac Plus compatibility mode)");
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
 		SetAttn(false);
 		LogTrace("Device in needs attention");
-		throw scsi_exception(sense_key::unit_attention, asc::not_ready_to_ready_change);
+		// Mac Plus compatibility: suppress Unit Attention to avoid reset loops
+		if (!GetSuppressUnitAttention()) {
+			throw scsi_exception(sense_key::unit_attention, asc::not_ready_to_ready_change);
+		}
+		LogTrace("Unit Attention suppressed (SCSI-1/Mac Plus compatibility mode)");
 	}
 
 	// Return status if not ready

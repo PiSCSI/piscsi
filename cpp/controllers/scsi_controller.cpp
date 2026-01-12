@@ -29,11 +29,22 @@
 
 using namespace scsi_defs;
 
+// Static member initialization
+CompatibilityMode ScsiController::default_compat_mode = CompatibilityMode::STANDARD;
+
 ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, ControllerManager::GetScsiLunMax())
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
 	AllocateBuffer(std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN));
+
+	// Initialize compatibility mode from static default
+	compat_mode = default_compat_mode;
+
+	// If Mac Plus mode is explicitly enabled, enable SCSI-1 compatibility behaviors
+	if (compat_mode == CompatibilityMode::MAC_PLUS || compat_mode == CompatibilityMode::SCSI1_COMPAT) {
+		scsi1_detected = true;
+	}
 }
 
 void ScsiController::Reset()
@@ -126,6 +137,14 @@ void ScsiController::Selection()
 		if (GetBus().GetATN()) {
 			MsgOut();
 		} else {
+			// No ATN during selection indicates SCSI-1 host (e.g., Mac Plus)
+			// SCSI-2 hosts assert ATN to send IDENTIFY message
+			if (!scsi1_detected) {
+				scsi1_detected = true;
+				LogInfo("SCSI-1 host detected (no ATN during selection) - enabling compatibility mode");
+				// Enable Unit Attention suppression on all attached devices
+				EnableScsi1Compatibility();
+			}
 			Command();
 		}
 	}
@@ -983,6 +1002,18 @@ void ScsiController::Sleep()
 		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 	}
 	execstart = 0;
+}
+
+void ScsiController::EnableScsi1Compatibility()
+{
+	// Enable Unit Attention suppression on all attached devices
+	// This is critical for Mac Plus which triggers SCSI reset on Unit Attention
+	for (int lun = 0; lun < GetMaxLuns(); lun++) {
+		if (auto device = GetDeviceForLun(lun); device != nullptr) {
+			device->SetSuppressUnitAttention(true);
+			LogTrace("Enabled Unit Attention suppression for LUN " + to_string(lun));
+		}
+	}
 }
 
 unsigned int ScsiController::MIN_EXEC_TIME = 50;
