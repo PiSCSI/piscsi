@@ -27,6 +27,7 @@ docker/docker-compose.override.yml
 
 # temporary user files
 s.sh
+result
 
 # temporary kicad files
 *-backups
