@@ -359,6 +359,12 @@ void ScsiController::DataIn()
 		GetBus().SetCD(false);
 		GetBus().SetIO(true);
 
+		// SCSI-1 hosts need extra delay before data phase
+		// Mac Plus and other early hosts can miss phase transitions without this
+		if (IsScsi1Mode()) {
+			SysTimer::SleepUsec(SCSI_DELAY_SCSI1_DATA_PHASE_US);
+		}
+
 		ResetOffset();
 
 		return;
@@ -387,6 +393,12 @@ void ScsiController::DataOut()
 		GetBus().SetMSG(false);
 		GetBus().SetCD(false);
 		GetBus().SetIO(false);
+
+		// SCSI-1 hosts need extra delay before data phase
+		// Mac Plus and other early hosts can miss phase transitions without this
+		if (IsScsi1Mode()) {
+			SysTimer::SleepUsec(SCSI_DELAY_SCSI1_DATA_PHASE_US);
+		}
 
 		ResetOffset();
 		return;

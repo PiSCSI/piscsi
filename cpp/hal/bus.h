@@ -56,6 +56,12 @@ const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
 // This constant is for documentation purposes - actual timing depends on GPIO polling speed
 const static int SCSI_DELAY_SELECTION_ABORT_MACPLUS_US   = 1000;  // 1ms (vs standard 250ms)
 
+// SCSI-1 compatibility delays (based on BlueSCSI implementation)
+// SCSI-1 hosts (like Mac Plus, Akai samplers) need extra delays before data phases
+// to properly recognize phase transitions
+const static int SCSI_DELAY_SCSI1_DATA_PHASE_US         = 400;   // 400µs before DATA_IN/DATA_OUT
+const static int SCSI_DELAY_SCSI1_PHASE_CHANGE_US       = 100;   // 100µs extra on all phase changes
+
 // The DaynaPort SCSI Link do a short delay in the middle of transfering
 // a packet. This is the number of uS that will be delayed between the
 // header and the actual data.

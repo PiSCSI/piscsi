@@ -29,6 +29,11 @@
 #include <fstream>
 #include <vector>
 #include <chrono>
+#include <cstring>
+#ifdef __linux__
+#include <sys/mman.h>
+#include <sys/resource.h>
+#endif
 
 using namespace std;
 using namespace filesystem;
@@ -570,6 +575,23 @@ int Piscsi::run(span<char *> args)
 
     // Set the affinity to a specific processor core
 	FixCpu(3);
+
+#ifdef __linux__
+	// Lock all memory pages to prevent page faults during SCSI operations
+	// This is critical for timing-sensitive hosts like Mac Plus
+	if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
+		warn("mlockall() failed - page faults may cause timing issues with SCSI-1 hosts");
+	} else {
+		info("Memory pages locked for realtime operation");
+	}
+
+	// Pre-fault the stack to ensure pages are resident
+	// This prevents page faults during critical SCSI handshaking
+	{
+		volatile char stack_prefault[64 * 1024];  // 64KB stack prefault
+		memset((void*)stack_prefault, 0, sizeof(stack_prefault));
+	}
+#endif
 
 	service.Start();
 
