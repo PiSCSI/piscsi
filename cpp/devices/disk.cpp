@@ -635,7 +635,8 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 	uint32_t count;
 
 	if (mode == RW6 || mode == SEEK6) {
-		start = GetInt24(GetController()->GetCmd(), 1);
+		// SCSI-1 6-byte commands: byte 1 bits 7-5 contain LUN, bits 4-0 are MSB of 21-bit LBA
+		start = GetInt24(GetController()->GetCmd(), 1) & 0x1fffff;
 
 		count = GetController()->GetCmdByte(4);
 		if (!count) {
