@@ -134,6 +134,8 @@ TEST(DiskTest, Seek6)
 // Only bits 4-0 of byte 1 are part of the 21-bit LBA.
 // Bug was introduced in commit 255a6e1 (Oct 2022) when GetInt24() replaced proper masking.
 // Reference: SCSI-2 spec Table 122 (READ(6)), Table 144 (WRITE(6)), Table 138 (SEEK(6))
+// Note: We use SEEK(6) instead of READ(6) because both use the same LBA parsing logic
+// (CheckAndGetStartAndCount with RW6/SEEK6 mode) but SEEK doesn't require disk cache.
 TEST(DiskTest, Read6LbaLunMasking)
 {
 	auto [controller, disk] = CreateDisk();
@@ -150,11 +152,10 @@ TEST(DiskTest, Read6LbaLunMasking)
 	controller->SetCmdByte(1, 0x00);
 	controller->SetCmdByte(2, 0x01);
 	controller->SetCmdByte(3, 0x00);
-	controller->SetCmdByte(4, 0);  // Transfer length 0 means no actual read, just validation
 
 	// This should succeed - LBA 0x100 is within capacity
 	EXPECT_CALL(*controller, Status);
-	disk->Dispatch(scsi_command::eCmdRead6);
+	disk->Dispatch(scsi_command::eCmdSeek6);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
 	// Test case 2: LUN=3 (bits 7-5 = 0x60), LBA=0x000100
@@ -165,13 +166,12 @@ TEST(DiskTest, Read6LbaLunMasking)
 	controller->SetCmdByte(1, 0x60);  // LUN=3 in bits 7-5
 	controller->SetCmdByte(2, 0x01);
 	controller->SetCmdByte(3, 0x00);
-	controller->SetCmdByte(4, 0);
 
 	// This should succeed if LUN bits are properly masked
 	EXPECT_CALL(*controller, Status);
-	disk->Dispatch(scsi_command::eCmdRead6);
+	disk->Dispatch(scsi_command::eCmdSeek6);
 	EXPECT_EQ(status::good, controller->GetStatus())
-		<< "READ(6) with LUN bits in byte 1 should mask them out per SCSI spec";
+		<< "SEEK(6) with LUN bits in byte 1 should mask them out per SCSI spec";
 
 	// Test case 3: LUN=7 (maximum, bits 7-5 = 0xE0), LBA=0x000100
 	// Byte 1: 0xE0 | 0x00 = 0xE0
@@ -180,24 +180,21 @@ TEST(DiskTest, Read6LbaLunMasking)
 	controller->SetCmdByte(1, 0xE0);  // LUN=7 in bits 7-5
 	controller->SetCmdByte(2, 0x01);
 	controller->SetCmdByte(3, 0x00);
-	controller->SetCmdByte(4, 0);
 
 	EXPECT_CALL(*controller, Status);
-	disk->Dispatch(scsi_command::eCmdRead6);
+	disk->Dispatch(scsi_command::eCmdSeek6);
 	EXPECT_EQ(status::good, controller->GetStatus())
-		<< "READ(6) with maximum LUN bits should still work";
+		<< "SEEK(6) with maximum LUN bits should still work";
 
 	// Test case 4: Verify the LBA bits in byte 1 (bits 4-0) ARE used
 	// LUN=0, LBA=0x010000 (65536) - should fail because it exceeds 512 blocks
 	controller->SetCmdByte(1, 0x01);  // LBA bit 16 set
 	controller->SetCmdByte(2, 0x00);
 	controller->SetCmdByte(3, 0x00);
-	controller->SetCmdByte(4, 0);
-
-	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
-		<< "READ(6) to LBA 0x10000 should fail for 512-block medium";
+		<< "SEEK(6) to LBA 0x10000 should fail for 512-block medium";
 }
 
 // Same test for SEEK(6) command

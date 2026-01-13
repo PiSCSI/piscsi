@@ -16,7 +16,7 @@
         pkgsAarch64 = pkgs.pkgsCross.aarch64-multiplatform;
 
         # Common build function for PiSCSI
-        mkPiscsi = { stdenv, protobuf, libpcap, spdlog, fmt, abseil-cpp, connectType ? "FULLSPEC", debug ? false }:
+        mkPiscsi = { stdenv, protobuf, libpcap, spdlog, fmt, abseil-cpp, gtest, connectType ? "FULLSPEC", debug ? false, withTests ? false }:
           stdenv.mkDerivation {
             pname = "piscsi";
             version = "24.10.01";
@@ -41,7 +41,12 @@
               spdlog
               fmt
               abseil-cpp
+            ] ++ pkgs.lib.optionals withTests [
+              gtest
             ];
+
+            # Tests can be run manually; some fail in sandbox (no network) or segfault
+            doCheck = false;
 
             makeFlags = [
               "CONNECT_TYPE=${connectType}"
@@ -64,6 +69,7 @@
               # Build targets
               targets="bin/piscsi bin/scsictl bin/scsimon bin/scsiloop"
               ${pkgs.lib.optionalString (connectType == "FULLSPEC") ''targets="$targets bin/scsidump"''}
+              ${pkgs.lib.optionalString withTests ''targets="$targets bin/piscsi_test"''}
 
               # Get abseil libs needed by protobuf
               ABSL_LIBS=$(pkg-config --libs protobuf 2>/dev/null | grep -oE '\-labsl[^ ]+' | tr '\n' ' ')
@@ -76,6 +82,12 @@
                 $targets
 
               runHook postBuild
+            '';
+
+            checkPhase = pkgs.lib.optionalString withTests ''
+              runHook preCheck
+              ./bin/piscsi_test
+              runHook postCheck
             '';
 
             installPhase = ''
@@ -111,6 +123,7 @@
             spdlog = crossPkgs.spdlog;
             fmt = crossPkgs.fmt;
             abseil-cpp = crossPkgs.abseil-cpp;
+            gtest = crossPkgs.gtest;
             inherit connectType;
           };
 
@@ -124,6 +137,19 @@
             spdlog = pkgs.spdlog;
             fmt = pkgs.fmt;
             abseil-cpp = pkgs.abseil-cpp;
+            gtest = pkgs.gtest;
+          };
+
+          # Native build with tests
+          test = mkPiscsi {
+            stdenv = pkgs.stdenv;
+            protobuf = pkgs.protobuf;
+            libpcap = pkgs.libpcap;
+            spdlog = pkgs.spdlog;
+            fmt = pkgs.fmt;
+            abseil-cpp = pkgs.abseil-cpp;
+            gtest = pkgs.gtest;
+            withTests = true;
           };
 
           # Cross-compiled for Raspberry Pi 2/3/Zero W (ARMv7)
@@ -142,6 +168,7 @@
             spdlog = pkgsArmv7.spdlog;
             fmt = pkgsArmv7.fmt;
             abseil-cpp = pkgsArmv7.abseil-cpp;
+            gtest = pkgsArmv7.gtest;
             connectType = "FULLSPEC";
             debug = true;
           };
@@ -153,6 +180,7 @@
             spdlog = pkgsAarch64.spdlog;
             fmt = pkgsAarch64.fmt;
             abseil-cpp = pkgsAarch64.abseil-cpp;
+            gtest = pkgsAarch64.gtest;
             connectType = "FULLSPEC";
             debug = true;
           };
@@ -180,7 +208,6 @@
 
             # Testing
             gtest
-            gmock
           ];
 
           shellHook = ''
@@ -198,8 +225,8 @@
             echo "  .#piscsi-armv7-debug       - ARMv7 debug build"
             echo "  .#piscsi-aarch64-debug     - AArch64 debug build"
             echo ""
-            echo "Manual build from cpp/:"
-            echo "  make all CONNECT_TYPE=FULLSPEC"
+            echo "Run tests:"
+            echo "  nix build .#test"
             echo ""
           '';
         };

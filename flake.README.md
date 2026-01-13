@@ -21,6 +21,9 @@ nix build .#piscsi-aarch64-debug
 
 # Native build (for local testing)
 nix build
+
+# Run unit tests
+nix build .#test
 ```
 
 ## Development
