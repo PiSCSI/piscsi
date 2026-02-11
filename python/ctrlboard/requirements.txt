@@ -2,7 +2,7 @@
 # cbor2==5.2.0
 luma.core==2.5.3
 luma.oled==3.14.0
-pillow==11.3.0
+pillow==12.1.1
 # protobuf==3.20.3
 pyftdi==0.57.1
 pyserial==3.5
