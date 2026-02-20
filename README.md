@@ -8,7 +8,14 @@
 [![Reliability](https://sonarcloud.io/api/project_badges/measure?project=akuker-PISCSI&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=akuker-PISCSI)
 [![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=akuker-PISCSI&metric=sqale_rating)](https://sonarcloud.io/project/overview?id=akuker-PISCSI)
 
-PiSCSI is a virtual SCSI device emulator that runs on a Raspberry Pi. It runs in userspace, and can emulate several SCSI devices at one time. There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media. This project is aimed at users of vintage Macintosh and Atari computers and more (see [compatibility list](https://github.com/PiSCSI/piscsi/wiki/Compatibility)) from the 1980's and 1990's.
+PiSCSI is a virtual SCSI device emulator that runs on a Raspberry Pi through the [PiSCSI hat](https://github.com/PiSCSI/piscsi/wiki/Hardware-Versions).
+The software runs in userspace, and can emulate several SCSI devices at one time.
+There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media.
+
+This project aims to be compliant with the SCSI specification and usable with any standards compliant SCSI controller (see [compatibility list](https://github.com/PiSCSI/piscsi/wiki/Compatibility)).
+A handful of PiSCSI features were written specifically for vintage Macintosh and Atari computers and may depend on non-free device drivers on the host machine.
+
+PiSCSI is a fork of [RaSCSI](https://github.com/RaSCSI/RaSCSI) and maintains compatibility with any RaSCSI hat.
 
 Please check out the full story with much more detail on the [wiki](https://github.com/PiSCSI/piscsi/wiki)!
 
