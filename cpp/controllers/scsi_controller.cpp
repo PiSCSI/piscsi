@@ -144,7 +144,7 @@ void ScsiController::Command()
 		const int actual_count = GetBus().CommandHandShake(GetBuffer());
 		if (actual_count == 0) {
 			stringstream s;
-			s << "Received unknown command: $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
+			s << "Received unknown command: $" << setfill('0') << setw(2) << hex << static_cast<unsigned int>(GetBuffer()[0]);
 			LogTrace(s.str());
 
 			Error(sense_key::illegal_request, asc::invalid_command_operation_code);
