@@ -1,5 +1,5 @@
 babel==2.18.0
-black==25.11.0
+black==26.3.1
 certifi==2026.2.25
 charset-normalizer==3.4.4
 click==8.1.8
