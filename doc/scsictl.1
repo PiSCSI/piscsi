@@ -155,8 +155,8 @@ Example output:
 +----+-----+------+-------------------------------------
 .Ed
 .Pp
-Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
-.Dl Nm scsictl Fl i 0 Fl f HDIIMAGE0.HDS
+Request the PiSCSI process to attach a disk to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
+.Dl Nm scsictl Fl c No a Fl i No 0 Fl f No HDIIMAGE0.HDS
 .Sh SEE ALSO
 .Xr piscsi 1 ,
 .Xr scsimon 1 ,
