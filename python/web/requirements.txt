@@ -11,7 +11,7 @@ idna==3.11
 importlib-metadata==8.7.1
 itsdangerous==2.2.0
 jinja2==3.1.6
-MarkupSafe==2.1.5
+MarkupSafe==3.0.3
 # protobuf==3.20.3
 python-pam==2.0.2
 pytz==2026.1.post1
