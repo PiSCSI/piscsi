@@ -24,7 +24,7 @@ pytokens==0.4.1
 requests==2.32.5
 tomli==2.4.0
 typing-extensions==4.15.0
-urllib3==2.6.3
+urllib3==2.7.0
 vcgencmd==0.1.1
 watchdog==6.0.0
 werkzeug==3.1.6
