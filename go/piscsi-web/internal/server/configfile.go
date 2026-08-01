@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	pb "github.com/piscsi/piscsi-web/proto"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 const (

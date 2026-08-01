@@ -1,4 +1,4 @@
-name: Go Web Interface
+name: Go Applications
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - '.github/workflows/go-web.yml'
-      - 'go/piscsi-web/**'
+      - 'go/**'
       - 'proto/**'
   pull_request:
     branches:
@@ -19,7 +19,7 @@ on:
       - reopened
     paths:
       - '.github/workflows/go-web.yml'
-      - 'go/piscsi-web/**'
+      - 'go/**'
       - 'proto/**'
 
 permissions:
@@ -34,14 +34,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: go/piscsi-web
+        working-directory: go
     steps:
       - uses: actions/checkout@v6
 
       - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: go/piscsi-web/go.sum
+          cache-dependency-path: go/go.sum
 
       - name: Install build and test dependencies
         run: sudo apt-get update && sudo apt-get install --yes groff protobuf-compiler
@@ -88,14 +88,14 @@ jobs:
           platforms: arm64,arm
 
       - name: Build in the target distribution
-        working-directory: go/piscsi-web
+        working-directory: go
         run: |
           docker run --rm --platform "${{ matrix.platform }}" \
             --env DEBIAN_FRONTEND=noninteractive \
             --volume "${{ github.workspace }}:/workspace" \
-            --workdir /workspace/go/piscsi-web \
+            --workdir /workspace/go \
             golang:1.25-trixie \
-            sh -c 'git config --global --add safe.directory /workspace && apt-get update && apt-get install --yes protobuf-compiler && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11 && export PATH="$(go env GOPATH)/bin:$PATH" && make proto && go build -v -tags nomsgpack -trimpath -o /tmp/piscsi-web ./cmd/piscsi-web'
+            sh -c 'git config --global --add safe.directory /workspace && apt-get update && apt-get install --yes protobuf-compiler && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11 && export PATH="$(go env GOPATH)/bin:$PATH" && make proto && go build -v -tags nomsgpack -trimpath -o /tmp/piscsi-web ./piscsi-web/cmd/piscsi-web && go build -v -trimpath -o /tmp/piscsi-oled ./cmd/piscsi-oled'
 
   arm:
     name: Build ${{ matrix.name }}
@@ -108,20 +108,22 @@ jobs:
             goarch: arm64
             goarm: ''
             output: piscsi-web-arm64-static
+            oled_output: piscsi-oled-arm64
           - name: linux-armv7
             goarch: arm
             goarm: '7'
             output: piscsi-web-armv7-static
+            oled_output: piscsi-oled-armv7
     defaults:
       run:
-        working-directory: go/piscsi-web
+        working-directory: go
     steps:
       - uses: actions/checkout@v6
 
       - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: go/piscsi-web/go.sum
+          cache-dependency-path: go/go.sum
 
       - name: Install protobuf toolchain
         run: |
@@ -138,7 +140,9 @@ jobs:
           GOOS: linux
           GOARCH: ${{ matrix.goarch }}
           GOARM: ${{ matrix.goarm }}
-        run: go build -tags nomsgpack -trimpath -ldflags="-s -w" -o "${{ matrix.output }}" ./cmd/piscsi-web
+        run: |
+          go build -tags nomsgpack -trimpath -ldflags="-s -w" -o "${{ matrix.output }}" ./piscsi-web/cmd/piscsi-web
+          go build -trimpath -ldflags="-s -w" -o "${{ matrix.oled_output }}" ./cmd/piscsi-oled
 
       - name: Verify binary
         run: file "${{ matrix.output }}"
@@ -146,5 +150,7 @@ jobs:
       - uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.name }}
-          path: go/piscsi-web/${{ matrix.output }}
+          path: |
+            go/${{ matrix.output }}
+            go/${{ matrix.oled_output }}
           if-no-files-found: error

@@ -1,7 +1,7 @@
 package testutil
 
 import (
-	pb "github.com/piscsi/piscsi-web/proto"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 // MockPiSCSIClient is a mock PiSCSI client for testing

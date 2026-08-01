@@ -23,10 +23,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/piscsi/piscsi-web/internal/driveprops"
-	"github.com/piscsi/piscsi-web/internal/piscsi"
-	pb "github.com/piscsi/piscsi-web/proto"
-	"github.com/piscsi/piscsi-web/web"
+	"github.com/piscsi/piscsi/go/piscsi"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/driveprops"
+	"github.com/piscsi/piscsi/go/piscsi-web/web"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 // serves the main control page

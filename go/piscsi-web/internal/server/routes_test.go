@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/piscsi/piscsi-web/internal/config"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/config"
 )
 
 func TestRoutesRequireNoBrowserLogin(t *testing.T) {

@@ -126,10 +126,10 @@ func TestGetFlashesForTemplate(t *testing.T) {
 	store := sessions.NewCookieStore([]byte("test-secret-key"))
 
 	tests := []struct {
-		name              string
-		messages          []FlashMessage
-		expectedFlash     string
-		expectedError     string
+		name          string
+		messages      []FlashMessage
+		expectedFlash string
+		expectedError string
 	}{
 		{
 			name: "success only",

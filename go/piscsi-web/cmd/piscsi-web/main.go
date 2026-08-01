@@ -11,8 +11,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/piscsi/piscsi-web/internal/config"
-	"github.com/piscsi/piscsi-web/internal/server"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/config"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/server"
 )
 
 func main() {

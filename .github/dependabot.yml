@@ -20,6 +20,11 @@ updates:
     schedule:
       interval: "weekly"
 
+  - package-ecosystem: "gomod"
+    directory: "/go"
+    schedule:
+      interval: "weekly"
+
   - package-ecosystem: "npm"
     directory: "/python/web"
     schedule:

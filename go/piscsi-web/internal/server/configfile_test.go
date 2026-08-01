@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/piscsi/piscsi-web/internal/config"
-	"github.com/piscsi/piscsi-web/internal/server/testutil"
-	pb "github.com/piscsi/piscsi-web/proto"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/config"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/server/testutil"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 func TestConfigurationRoundTrip(t *testing.T) {

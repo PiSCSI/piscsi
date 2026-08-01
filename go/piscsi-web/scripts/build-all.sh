@@ -8,7 +8,7 @@ echo "=================================================="
 echo ""
 
 # Navigate to project root
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."

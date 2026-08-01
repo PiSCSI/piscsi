@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
-	"github.com/piscsi/piscsi-web/web"
+	"github.com/piscsi/piscsi/go/piscsi-web/web"
 )
 
 func TestParseServiceStatus(t *testing.T) {
