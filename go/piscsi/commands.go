@@ -50,6 +50,15 @@ func (cb *CommandBuilder) ListDevices() *pb.PbCommand {
 	return cmd
 }
 
+// ReservedIDsInfo creates a command to list reserved SCSI IDs.
+func (cb *CommandBuilder) ReservedIDsInfo() *pb.PbCommand {
+	cmd := &pb.PbCommand{
+		Operation: pb.PbOperation_RESERVED_IDS_INFO,
+	}
+	cb.setCommonParams(cmd)
+	return cmd
+}
+
 // ListImages creates a command to list available image files
 func (cb *CommandBuilder) ListImages(defaultFolder string) *pb.PbCommand {
 	cmd := &pb.PbCommand{
@@ -58,6 +67,15 @@ func (cb *CommandBuilder) ListImages(defaultFolder string) *pb.PbCommand {
 			"folder": defaultFolder,
 		},
 	}
+	cb.setCommonParams(cmd)
+	return cmd
+}
+
+// ListDefaultImages creates the same request used by the legacy Control Board
+// client: the daemon selects its configured default image folder. Do not add a
+// folder parameter here; older daemon versions did not accept one.
+func (cb *CommandBuilder) ListDefaultImages() *pb.PbCommand {
+	cmd := &pb.PbCommand{Operation: pb.PbOperation_DEFAULT_IMAGE_FILES_INFO}
 	cb.setCommonParams(cmd)
 	return cmd
 }

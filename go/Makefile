@@ -18,6 +18,7 @@ BINARY_NAME=piscsi-web
 BINARY_UNIX=$(BINARY_NAME)_unix
 MOCK_BINARY=mock-piscsi
 OLED_BINARY=piscsi-oled
+CTRLBOARD_BINARY=piscsi-ctrlboard
 OLED_INSTALL_DIR ?= /opt/piscsi/oled
 SYSTEMD_UNIT_DIR ?= /etc/systemd/system
 OLED_SERVICE=piscsi-oled.service
@@ -84,6 +85,9 @@ build-linux-armv7-static: proto
 build-oled: proto
 	$(GOBUILD) $(LDFLAGS) -o $(OLED_BINARY) -v ./cmd/piscsi-oled
 
+build-ctrlboard: proto
+	$(GOBUILD) $(LDFLAGS) -o $(CTRLBOARD_BINARY) -v ./cmd/piscsi-ctrlboard
+
 build-oled-linux-arm64: proto
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(OLED_BINARY)-arm64 ./cmd/piscsi-oled
 
@@ -92,6 +96,12 @@ build-oled-linux-armv7: proto
 	@echo "✅ Static ARMv7 binary created: $(BINARY_NAME)-armv7-static"
 	@file $(BINARY_NAME)-armv7-static
 	@ls -lh $(BINARY_NAME)-armv7-static
+
+build-ctrlboard-linux-arm64: proto
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(CTRLBOARD_BINARY)-arm64 ./cmd/piscsi-ctrlboard
+
+build-ctrlboard-linux-armv7: proto
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 $(GOBUILD) $(LDFLAGS) -o $(CTRLBOARD_BINARY)-armv7 ./cmd/piscsi-ctrlboard
 
 test: proto
 	$(GOTEST) $(WEB_TAG_FLAGS) -v -coverprofile=coverage.txt -covermode=atomic ./...
@@ -120,6 +130,7 @@ clean:
 	rm -f $(BINARY_NAME)-arm64-static $(BINARY_NAME)-armv7-static
 	rm -f $(MOCK_BINARY)
 	rm -f $(OLED_BINARY) $(OLED_BINARY)-arm64 $(OLED_BINARY)-armv7
+	rm -f $(CTRLBOARD_BINARY) $(CTRLBOARD_BINARY)-arm64 $(CTRLBOARD_BINARY)-armv7
 	rm -f coverage.txt coverage.html
 
 run: proto
@@ -159,4 +170,4 @@ uninstall:
 	@echo "Uninstalling PiSCSI Web Interface..."
 	@./piscsi-web/scripts/uninstall.sh
 
-.PHONY: all build mock build-oled build-linux-arm64 build-linux-armv7 build-linux-arm64-static build-linux-armv7-static build-oled-linux-arm64 build-oled-linux-armv7 test test-race test-short test-server test-coverage test-verbose clean run deps tidy proto proto-tools install install-oled migrate-data uninstall
+.PHONY: all build mock build-oled build-ctrlboard build-linux-arm64 build-linux-armv7 build-linux-arm64-static build-linux-armv7-static build-oled-linux-arm64 build-oled-linux-armv7 build-ctrlboard-linux-arm64 build-ctrlboard-linux-armv7 test test-race test-short test-server test-coverage test-verbose clean run deps tidy proto proto-tools install install-oled migrate-data uninstall

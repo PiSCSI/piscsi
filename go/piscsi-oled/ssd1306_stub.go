@@ -6,7 +6,11 @@
 
 package oled
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/piscsi/piscsi/go/piscsi/i2c"
+)
 
 type SSD1306Config struct {
 	Device   string
@@ -19,6 +23,10 @@ type SSD1306Config struct {
 type SSD1306 struct{}
 
 func NewSSD1306(SSD1306Config) (*SSD1306, error) {
+	return nil, fmt.Errorf("SSD1306 I2C transport is only available on Linux")
+}
+
+func NewSSD1306WithBus(SSD1306Config, *i2c.Bus) (*SSD1306, error) {
 	return nil, fmt.Errorf("SSD1306 I2C transport is only available on Linux")
 }
 

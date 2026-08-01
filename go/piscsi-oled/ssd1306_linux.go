@@ -8,12 +8,14 @@ package oled
 
 import (
 	"fmt"
-	"sync"
 
-	"golang.org/x/sys/unix"
+	"github.com/piscsi/piscsi/go/piscsi/i2c"
 )
 
-const i2cSlave = 0x0703
+// pageWriteChunk bounds the longest normal-priority I2C transfer. At the
+// usual 100 kHz bus rate, a 16-pixel data write completes in roughly 1.5 ms,
+// allowing a queued PCA9554 input read to run before the next chunk.
+const pageWriteChunk = 16
 
 // SSD1306Config describes an I2C-connected 128-pixel-wide SSD1306 panel.
 type SSD1306Config struct {
@@ -27,12 +29,31 @@ type SSD1306Config struct {
 // SSD1306 is a direct Linux I2C implementation. It intentionally uses no
 // GPIO or display framework dependency.
 type SSD1306 struct {
-	config SSD1306Config
-	fd     int
-	mu     sync.Mutex
+	config  SSD1306Config
+	bus     *i2c.Bus
+	ownsBus bool
 }
 
 func NewSSD1306(config SSD1306Config) (*SSD1306, error) {
+	bus, err := i2c.Open(config.Device)
+	if err != nil {
+		return nil, err
+	}
+	display, err := NewSSD1306WithBus(config, bus)
+	if err != nil {
+		bus.Close()
+		return nil, err
+	}
+	display.ownsBus = true
+	return display, nil
+}
+
+// NewSSD1306WithBus reuses a bus shared with other I2C clients, such as the
+// Control Board PCA9554. The caller retains ownership of bus.
+func NewSSD1306WithBus(config SSD1306Config, bus *i2c.Bus) (*SSD1306, error) {
+	if bus == nil {
+		return nil, fmt.Errorf("I2C bus is required")
+	}
 	if config.Device == "" {
 		config.Device = "/dev/i2c-1"
 	}
@@ -48,24 +69,10 @@ func NewSSD1306(config SSD1306Config) (*SSD1306, error) {
 	if config.Contrast == 0 {
 		config.Contrast = 0x7f
 	}
-	return &SSD1306{config: config, fd: -1}, nil
+	return &SSD1306{config: config, bus: bus}, nil
 }
 
 func (d *SSD1306) Init() error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if d.fd >= 0 {
-		return nil
-	}
-	fd, err := unix.Open(d.config.Device, unix.O_RDWR|unix.O_CLOEXEC, 0)
-	if err != nil {
-		return fmt.Errorf("open I2C device %s: %w", d.config.Device, err)
-	}
-	if _, _, errno := unix.Syscall(unix.SYS_IOCTL, uintptr(fd), uintptr(i2cSlave), uintptr(d.config.Address)); errno != 0 {
-		unix.Close(fd)
-		return fmt.Errorf("select I2C address %#x: %w", d.config.Address, errno)
-	}
-	d.fd = fd
 	comScan, segRemap := byte(0xc0), byte(0xa0)
 	if d.config.Rotation == 180 {
 		comScan, segRemap = 0xc8, 0xa1
@@ -75,11 +82,11 @@ func (d *SSD1306) Init() error {
 	if d.config.Height == 64 {
 		multiplex, compins = 0x3f, 0x12
 	}
-	if err := d.command(0xae, 0xd5, 0x80, 0xa8, multiplex, 0xd3, 0x00, 0x40,
-		0x8d, 0x14, 0x20, 0x02, segRemap, comScan, 0xda, compins, 0x81,
-		d.config.Contrast, 0xd9, 0xf1, 0xdb, 0x40, 0xa4, 0xa6, 0xaf); err != nil {
-		unix.Close(d.fd)
-		d.fd = -1
+	if err := d.bus.Do(i2c.Normal, d.config.Address, func(transaction i2c.Transaction) error {
+		return transaction.Write(commandData(0xae, 0xd5, 0x80, 0xa8, multiplex, 0xd3, 0x00, 0x40,
+			0x8d, 0x14, 0x20, 0x02, segRemap, comScan, 0xda, compins, 0x81,
+			d.config.Contrast, 0xd9, 0xf1, 0xdb, 0x40, 0xa4, 0xa6, 0xaf))
+	}); err != nil {
 		return fmt.Errorf("initialize SSD1306: %w", err)
 	}
 	return nil
@@ -89,17 +96,23 @@ func (d *SSD1306) Present(frame Frame) error {
 	if !frame.valid() || frame.Height != d.config.Height {
 		return fmt.Errorf("invalid %dx%d framebuffer", frame.Width, frame.Height)
 	}
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if d.fd < 0 {
-		return fmt.Errorf("SSD1306 is not initialized")
-	}
 	for page := 0; page < frame.Height/8; page++ {
-		if err := d.command(byte(0xb0|page), 0x00, 0x10); err != nil {
+		if err := d.bus.Do(i2c.Normal, d.config.Address, func(transaction i2c.Transaction) error {
+			return transaction.Write(commandData(byte(0xb0|page), 0x00, 0x10))
+		}); err != nil {
 			return fmt.Errorf("set page %d: %w", page, err)
 		}
-		if err := d.write(ssd1306Page(frame, page)); err != nil {
-			return fmt.Errorf("write page %d: %w", page, err)
+		pageData := ssd1306Page(frame, page)
+		for offset := 1; offset < len(pageData); offset += pageWriteChunk {
+			end := min(offset+pageWriteChunk, len(pageData))
+			// Each I2C data transfer needs its own control byte. The SSD1306
+			// column address remains valid across intervening PCA transactions.
+			chunk := append([]byte{0x40}, pageData[offset:end]...)
+			if err := d.bus.Do(i2c.Normal, d.config.Address, func(transaction i2c.Transaction) error {
+				return transaction.Write(chunk)
+			}); err != nil {
+				return fmt.Errorf("write page %d data at column %d: %w", page, offset-1, err)
+			}
 		}
 	}
 	return nil
@@ -110,30 +123,10 @@ func (d *SSD1306) Clear() error {
 }
 
 func (d *SSD1306) Close() error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if d.fd < 0 {
-		return nil
-	}
-	err := unix.Close(d.fd)
-	d.fd = -1
-	return err
-}
-
-func (d *SSD1306) command(commands ...byte) error {
-	return d.write(append([]byte{0x00}, commands...))
-}
-
-func (d *SSD1306) write(data []byte) error {
-	for len(data) > 0 {
-		n, err := unix.Write(d.fd, data)
-		if err != nil {
-			return err
-		}
-		if n == 0 {
-			return unix.EIO
-		}
-		data = data[n:]
+	if d.ownsBus {
+		return d.bus.Close()
 	}
 	return nil
 }
+
+func commandData(commands ...byte) []byte { return append([]byte{0x00}, commands...) }

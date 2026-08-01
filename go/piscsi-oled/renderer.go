@@ -13,6 +13,8 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
+
+	"github.com/piscsi/piscsi/go/piscsi/assets"
 )
 
 const lineSpacing = 8
@@ -31,7 +33,7 @@ func NewRenderer(height, rotation int) (*Renderer, error) {
 	if rotation != 0 && rotation != 180 {
 		return nil, fmt.Errorf("unsupported rotation %d", rotation)
 	}
-	ttf, err := loadFont()
+	ttf, err := opentype.Parse(assets.TypeWriterFont())
 	if err != nil {
 		return nil, fmt.Errorf("load embedded font: %w", err)
 	}
@@ -86,7 +88,7 @@ func (r *Renderer) RenderLineAt(line string, row int) Frame {
 }
 
 func (r *Renderer) Splash(start bool) (Frame, error) {
-	img, err := splash(start, r.height)
+	img, err := assets.Splash(start, r.height)
 	if err != nil {
 		return Frame{}, err
 	}
