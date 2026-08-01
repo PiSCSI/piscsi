@@ -3,6 +3,11 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WEB_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+GO_ROOT="$(cd "${WEB_DIR}/.." && pwd)"
+cd "$GO_ROOT"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -147,16 +152,16 @@ cp "$BINARY_SOURCE" "$INSTALL_DIR/$BINARY_NAME"
 chmod +x "$INSTALL_DIR/$BINARY_NAME"
 
 # Copy web assets
-if [ -d "web" ]; then
+if [ -d "$WEB_DIR/web" ]; then
     print_msg "$YELLOW" "Installing web assets..."
-    cp -r web "$INSTALL_DIR/"
+    cp -r "$WEB_DIR/web" "$INSTALL_DIR/"
 fi
-HFS_MAP_SOURCE="../../python/web/genisoimage_hfs_resource_fork_map.txt"
+HFS_MAP_SOURCE="$GO_ROOT/../python/web/genisoimage_hfs_resource_fork_map.txt"
 if [ -f "$HFS_MAP_SOURCE" ]; then
     install -m 0644 "$HFS_MAP_SOURCE" "$INSTALL_DIR/web/genisoimage_hfs_resource_fork_map.txt"
 fi
-if [ -f "drive_properties.json" ]; then
-    cp drive_properties.json "$INSTALL_DIR/"
+if [ -f "$WEB_DIR/drive_properties.json" ]; then
+    cp "$WEB_DIR/drive_properties.json" "$INSTALL_DIR/"
 fi
 
 # Create service identity
@@ -170,7 +175,7 @@ fi
 
 # Install systemd service
 print_msg "$YELLOW" "Installing systemd service..."
-cp "$SERVICE_FILE" /etc/systemd/system/
+cp "$GO_ROOT/$SERVICE_FILE" /etc/systemd/system/
 
 # Create required directories
 print_msg "$YELLOW" "Creating required directories..."

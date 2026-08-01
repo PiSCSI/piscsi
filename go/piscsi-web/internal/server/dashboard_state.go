@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	pb "github.com/piscsi/piscsi-web/proto"
+	pb "github.com/piscsi/piscsi/go/proto"
 	"golang.org/x/sys/unix"
 )
 

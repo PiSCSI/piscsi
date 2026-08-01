@@ -3,7 +3,7 @@ package piscsi
 import (
 	"testing"
 
-	pb "github.com/piscsi/piscsi-web/proto"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 func TestCommandsIncludeTokenAndLocale(t *testing.T) {

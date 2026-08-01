@@ -1,0 +1,20 @@
+[Unit]
+Description=PiSCSI OLED Monitor service
+After=network-online.target piscsi.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+SupplementaryGroups=i2c
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+Restart=on-failure
+RestartSec=2s
+ExecStart=/opt/piscsi/oled/piscsi-oled
+SyslogIdentifier=PISCSIMON
+TimeoutStopSec=5s
+
+[Install]
+WantedBy=multi-user.target

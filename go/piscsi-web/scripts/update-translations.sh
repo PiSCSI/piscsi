@@ -5,6 +5,7 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly GO_ROOT="$(cd "${PROJECT_DIR}/.." && pwd)"
 
 for required_command in go msgfmt msgmerge; do
   if ! command -v "${required_command}" >/dev/null 2>&1; then
@@ -28,8 +29,8 @@ generated_pot="${work_dir}/messages.pot"
 source_pot="${PROJECT_DIR}/messages.pot"
 
 (
-  cd "${PROJECT_DIR}"
-  go run ./cmd/extract-translations --output "${generated_pot}"
+  cd "${GO_ROOT}"
+  go run ./piscsi-web/cmd/extract-translations --output "${generated_pot}"
 )
 msgfmt --check-format --output-file=/dev/null "${generated_pot}"
 

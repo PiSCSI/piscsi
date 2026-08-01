@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"time"
 
-	pb "github.com/piscsi/piscsi-web/proto"
+	pb "github.com/piscsi/piscsi/go/proto"
 	"google.golang.org/protobuf/proto"
 )
 

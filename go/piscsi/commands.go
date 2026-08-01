@@ -6,7 +6,7 @@
 package piscsi
 
 import (
-	pb "github.com/piscsi/piscsi-web/proto"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 // CommandBuilder provides methods to build protobuf commands for the piscsi daemon

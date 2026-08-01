@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/piscsi/piscsi-web/web"
+	"github.com/piscsi/piscsi/go/piscsi-web/web"
 )
 
 var modernBrowserPatterns = []struct {

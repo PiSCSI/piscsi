@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	pb "github.com/piscsi/piscsi-web/proto"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 type attachmentIdentity struct {

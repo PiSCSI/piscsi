@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
-	"github.com/piscsi/piscsi-web/internal/config"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/config"
 )
 
 func TestPWAResourcesArePublic(t *testing.T) {

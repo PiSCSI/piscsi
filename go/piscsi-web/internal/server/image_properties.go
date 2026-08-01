@@ -15,8 +15,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/piscsi/piscsi-web/internal/driveprops"
-	pb "github.com/piscsi/piscsi-web/proto"
+	"github.com/piscsi/piscsi/go/piscsi-web/internal/driveprops"
+	pb "github.com/piscsi/piscsi/go/proto"
 )
 
 type propertyMetadata struct {
