@@ -37,6 +37,16 @@ func TestCommandsIncludeEmptyTokenAndDefaultLocale(t *testing.T) {
 	}
 }
 
+func TestListDefaultImagesOmitsFolderParameter(t *testing.T) {
+	command := NewCommandBuilder().ListDefaultImages()
+	if _, found := command.GetParams()["folder"]; found {
+		t.Fatal("default image command unexpectedly includes folder")
+	}
+	if got := command.GetOperation(); got != pb.PbOperation_DEFAULT_IMAGE_FILES_INFO {
+		t.Fatalf("operation = %s, want DEFAULT_IMAGE_FILES_INFO", got)
+	}
+}
+
 func TestCheckAuthentication(t *testing.T) {
 	command := NewCommandBuilder().CheckAuthentication()
 	if command.GetOperation() != pb.PbOperation_CHECK_AUTHENTICATION {

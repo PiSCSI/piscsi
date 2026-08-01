@@ -7,12 +7,11 @@ package oled
 import (
 	"context"
 	"fmt"
-	"net"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/piscsi/piscsi/go/piscsi"
+	"github.com/piscsi/piscsi/go/piscsi/hostinfo"
 	pb "github.com/piscsi/piscsi/go/proto"
 )
 
@@ -42,7 +41,7 @@ func NewMonitor(client CommandSender, password string) *Monitor {
 	commands.SetToken(password)
 	return &Monitor{
 		client: client, commands: commands, removable: make(map[pb.PbDeviceType]bool),
-		network: localNetworkInfo, networkTicks: networkRefreshTicks,
+		network: hostinfo.Network, networkTicks: networkRefreshTicks,
 	}
 }
 
@@ -149,19 +148,4 @@ func withNetwork(lines []string, ip, hostname string) []string {
 		return append(lines, "No network connection")
 	}
 	return append(lines, fmt.Sprintf("IP %s - %s", ip, hostname))
-}
-
-func localNetworkInfo() (string, string) {
-	hostname, _ := os.Hostname()
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return "", hostname
-	}
-	for _, addr := range addrs {
-		ip, ok := addr.(*net.IPNet)
-		if ok && !ip.IP.IsLoopback() && ip.IP.To4() != nil {
-			return ip.IP.String(), hostname
-		}
-	}
-	return "", hostname
 }
