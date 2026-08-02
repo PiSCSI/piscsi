@@ -185,5 +185,5 @@ if gtest_dep.found() and gmock_dep.found() and to_build.contains('test')
         link_args : test_link_args,
         install : false
     )
-    test('unit', test_bin)
+    test('unit', test_bin, protocol : 'gtest')
 endif
