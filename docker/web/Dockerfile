@@ -1,56 +1,66 @@
-ARG DEBIAN_FRONTEND=noninteractive
+ARG GO_VERSION=1.25
 ARG OS_VERSION=bullseye
 
-FROM "debian:${OS_VERSION}-slim"
+FROM golang:${GO_VERSION}-bookworm AS build
+
+WORKDIR /src
+
+COPY go/go.mod go/go.sum ./go/
+WORKDIR /src/go
+RUN go mod download \
+    && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+
+WORKDIR /src
+COPY go go
+COPY proto proto
+
+WORKDIR /src/go
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/* \
+    && PATH="$(go env GOPATH)/bin:$PATH" ./proto/generate.sh \
+    && CGO_ENABLED=0 go build -tags nomsgpack -ldflags '-s -w' -o /out/piscsi-web ./piscsi-web/cmd/piscsi-web \
+    && CGO_ENABLED=0 go build -ldflags '-s -w' -o /out/mock-piscsi ./piscsi-web/cmd/mock-piscsi
+
+FROM debian:${OS_VERSION}-slim
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends sudo systemd rsyslog procps man-db wget git gcc \
-    && apt-get clean \
+    && apt-get install --yes --no-install-recommends \
+        ca-certificates \
+        disktype \
+        dosfstools \
+        genisoimage \
+        hfsutils \
+        kpartx \
+        man2html \
+        openssl \
+        unar \
+        unzip \
+        wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd pi \
-    && useradd --create-home --shell /bin/bash -g pi pi \
-    && echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && echo "pi:piscsi" | chpasswd
+RUN groupadd --system pi \
+    && useradd --system --create-home --home-dir /home/pi --shell /usr/sbin/nologin --gid pi pi \
+    && install -d --owner=pi --group=pi --mode=0777 \
+        /home/pi/images \
+        /home/pi/shared_files \
+        /home/pi/.config/piscsi \
+    && install -d --owner=pi --group=pi \
+        /home/pi/web/templates \
+        /home/pi/web/static
 
-# Make mock commands available when executing sudo
-RUN sed -i 's/^Defaults\tsecure_path="\/usr/Defaults\tsecure_path="\/home\/pi\/piscsi\/python\/web\/mock\/bin:\/usr/' /etc/sudoers
-
-RUN mkdir -p /home/pi/shared_files \
-    && mkdir /home/pi/images \
-    && mkdir -p /etc/network/interfaces.d \
-    && touch /etc/dhcpcd.conf
+COPY --from=build /out/piscsi-web /usr/local/bin/piscsi-web
+COPY --from=build /out/mock-piscsi /usr/local/bin/mock-piscsi
+COPY --from=build /src/go/piscsi-web/drive_properties.json /home/pi/drive_properties.json
+COPY docker/web/web_start_wrapper.sh /usr/local/bin/web_start_wrapper.sh
+RUN chown pi:pi /home/pi/drive_properties.json \
+    && chmod 0755 /usr/local/bin/piscsi-web /usr/local/bin/mock-piscsi /usr/local/bin/web_start_wrapper.sh
 
 USER pi
-WORKDIR /home/pi/piscsi
-
-COPY --chown=pi:pi easyinstall.sh .
-COPY --chown=pi:pi os_integration os_integration
-COPY --chown=pi:pi proto proto
-COPY --chown=pi:pi python/web python/web
-COPY --chown=pi:pi python/common python/common
-
-# Install standalone PiSCSI Web UI
-RUN ./easyinstall.sh --run_choice=12 \
-    && sudo apt-get remove build-essential --yes \
-    && sudo apt autoremove -y \
-    && sudo apt-get clean \
-    && sudo rm -rf /var/lib/apt/lists/*
-
-# Enable web UI authentication
-RUN ./easyinstall.sh --run_choice=14
-
-# Setup wired network bridge
-RUN ./easyinstall.sh --run_choice=5 --headless
-
-USER root
 WORKDIR /home/pi
-RUN pip3 install --no-cache-dir PyYAML watchdog
-COPY docker/web/web_start_wrapper.sh /usr/local/bin/web_start_wrapper.sh
-RUN chmod +x /usr/local/bin/web_start_wrapper.sh
 
-EXPOSE 80 443
+EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/web_start_wrapper.sh"]
 
 HEALTHCHECK --interval=5m --timeout=3s \
-  CMD wget --quiet --server-response http://localhost/healthcheck 2>&1 | grep "200 OK"
+  CMD wget --quiet --output-document=/dev/null http://localhost:8080/healthcheck

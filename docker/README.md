@@ -7,7 +7,7 @@ on the wiki instead.
 
 ## Introduction
 
-This documentation currently focuses on using Docker for developing and testing the web UI.
+This documentation covers developing and testing the Go web UI.
 
 Additions, amendments and contributions for additional workflows are most welcome.
 
@@ -25,7 +25,6 @@ Containers will be built and started for the PiSCSI server and the web UI.
 The web UI can be accessed at:
 
 * http://localhost:8080
-* https://localhost:8443
 
 To stop the containers, press *Ctrl + C*, or run `docker compose stop` 
 from another terminal.
@@ -38,13 +37,12 @@ The following environment variables are available when using Docker Compose:
 | -------------------- |----------|
 | `OS_VERSION`         | bullseye |
 | `WEB_HTTP_PORT`      | 8080     |
-| `WEB_HTTPS_PORT`     | 8443     |
-| `WEB_LOG_LEVEL`      | info     |
 | `BACKEND_HOST`       | backend  |
 | `BACKEND_PORT`       | 6868     |
 | `BACKEND_PASSWORD`   | *[None]* |
 | `BACKEND_LOG_LEVEL`  | debug    |
-| `RESET_VENV`         | *[None]* |
+| `PISCSI_DOCKER_UID`  | 1000     |
+| `PISCSI_DOCKER_GID`  | 1000     |
 
 **Examples:**
 
@@ -53,15 +51,13 @@ Run Debian "bullseye":
 OS_VERSION=bullseye docker compose up
 ```
 
-Start the web UI with the log level set to debug:
-```
-WEB_LOG_LEVEL=debug docker compose up
-```
+The Docker entrypoint generates an ephemeral session key for local development.
+Set `SESSION_KEY` yourself if browser sessions must survive a container restart.
 
-Force resetting & reinstalling Python web `venv` directory:
+Run the Go web-client test suite with:
 
 ```
-RESET_VENV=1 docker compose up
+docker compose --profile webui-tests run --rm go-test
 ```
 
 ## Volumes
@@ -79,8 +75,7 @@ When using Docker Compose the following volumes will be mounted automatically:
 ### Rebuild Containers
 
 You should rebuild the container images after checking out a different version of
-PiSCSI or making changes which affect the environment at build time, e.g. 
-`easyinstall.sh`.
+PiSCSI or making changes to the Go web client or its runtime dependencies.
 
 ```
 docker compose up --build
@@ -96,18 +91,18 @@ docker compose exec [CONTAINER] bash
 
 ### Setup Live Editing for the Web UI
 
-Use a `docker-compose.override.yml` to mount the local `python` directory to
-`/home/pi/piscsi/python/` in the `web` container.
+Use a `docker-compose.override.yml` to mount the local `go` directory into the
+build workspace used by the `go-test` service.
 
-Any changes to *.py files on the host computer (i.e. in your IDE) will trigger
-the web UI process to be restarted in the container.
+The web binary embeds templates and static assets, so rebuild and restart the
+`web` service after editing Go web-client files.
 
 **Example:**
 ```
 services:
-  web:
+  go-test:
     volumes:
-      - ../python:/home/pi/piscsi/python:delegated
+      - ../go:/src/go:delegated
 ```
 
 ### Connect the Web UI to a Real PiSCSI

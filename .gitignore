@@ -1,20 +1,6 @@
-venv
-*.pyc
-*.swp
-*.log
-*~
-core
-.idea/
-.vscode
-.DS_Store
-__pycache__
-current
-rascsi_interface_pb2.py
-piscsi_interface_pb2.py
 messages.pot
 messages.mo
 report.xml
-node_modules
 
 # Intermediate files from astyle
 *.orig

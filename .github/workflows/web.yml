@@ -1,4 +1,4 @@
-name: Web Tests/Analysis
+name: Docker Web Integration
 
 on:
   push:
@@ -7,8 +7,9 @@ on:
       - main
     paths:
       - '.github/workflows/web.yml'
-      - 'easyinstall.sh'
-      - 'python/**'
+      - 'docker/**'
+      - 'go/**'
+      - 'proto/**'
   pull_request:
     branches:
       - develop
@@ -19,130 +20,42 @@ on:
       - reopened
     paths:
       - '.github/workflows/web.yml'
-      - 'easyinstall.sh'
-      - 'python/**'
+      - 'docker/**'
+      - 'go/**'
+      - 'proto/**'
+
+permissions:
+  contents: read
 
 jobs:
-  backend_checks:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: python
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: 3.9.25
-          cache: 'pip'
-
-      - run: pip install -r web/requirements-dev.txt
-        id: pip
-
-      - run: black --check .
-
-      - run: flake8 .
-        if: success() || failure() && steps.pip.outcome == 'success'
-
-  backend_tests:
+  integration:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: docker
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
 
-      - name: Set backend container image name
+      - name: Set Docker bind-mount identity
         run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_TAG=$(git ls-files -s cpp proto .github/workflows/web.yml | git hash-object --stdin)
-          echo "GHCR_IMAGE=ghcr.io/${REPO_LOWER}/backend-standalone:${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "PISCSI_DOCKER_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PISCSI_DOCKER_GID=$(id -g)" >> "$GITHUB_ENV"
 
-      - name: Login to container registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and launch the web stack
+        run: docker compose -f docker-compose.ci.yml up --build --detach
 
-      - name: Build and launch containers
-        run: docker compose -f docker-compose.ci.yml up -d
-
-      - name: Run test suite
-        run: docker compose -f docker-compose.ci.yml run pytest -v
-
-      - name: Push backend image to container registry
-        if: |
-          (success() || failure())
-          && github.actor != 'dependabot[bot]'
-          && github.actor != 'dependabot'
-          && (
-            github.event_name != 'pull_request'
-            || github.event.pull_request.head.repo.full_name == github.repository
-          )
-        run: docker compose -f docker-compose.ci.yml push backend
-
-      - name: Upload test artifacts
-        if: success() || failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: pytest-output.zip
-          path: |
-            docker/volumes/pytest/report.xml
-            docker/volumes/pytest/pytest.log
+      - name: Run Go web tests
+        run: docker compose -f docker-compose.ci.yml run --rm go-test
 
       - name: Output container logs
         if: success() || failure()
         run: |
-          docker compose -f docker-compose.ci.yml logs backend > backend.log
           docker compose -f docker-compose.ci.yml logs web > web.log
           docker compose -f docker-compose.ci.yml logs -t | sort -u -k 3 > combined.log
 
-      - name: Upload backend log
-        if: success() || failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: backend.log
-          path: docker/backend.log
-
       - name: Upload web log
         if: success() || failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@v5
         with:
           name: web.log
           path: docker/web.log
-
-      - name: Upload combined log
-        if: success() || failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: combined.log
-          path: docker/combined.log
-
-  frontend_checks:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: python/web
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-      with:
-        node-version: 24
-        cache: 'npm'
-        cache-dependency-path: python/web/package-lock.json
-
-    - run: npm ci
-      id: npm
-
-    - name: Stylelint
-      run: |
-        npx stylelint src/static/themes/modern/style.css
-        npx stylelint src/static/themes/classic/style.css
-
-    - name: Prettier
-      run: |
-        npx prettier --check src/static/themes/modern/style.css
-        npx prettier --check src/static/themes/classic/style.css
-      if: success() || failure() && steps.npm.outcome == 'success'

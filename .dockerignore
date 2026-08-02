@@ -8,24 +8,19 @@
 !/doc
 !/os_integration
 !/proto
-!/python
 !/test
 !/easyinstall.sh
+!/go
 !/LICENCE
 !/README.md
+
+!/go/**
 
 # Dev artifacts to exclude
 **/.git
 
 /cpp/bin
 /cpp/obj
-
-**/venv*
-**/*.pyc
-**/__pycache__
-**/.pytest_cache
-**/piscsi_interface_pb2.py
-**/report.xml
 
 **/.idea
 **/.vscode

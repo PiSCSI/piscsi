@@ -1,22 +1,10 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+set -eu
 
-if ! [[ -f "/home/pi/piscsi/python/common/src/piscsi_interface_pb2.py" ]]; then
-    # Build piscsi_interface_pb2.py with the protobuf compiler
-    protoc \
-        --python_out=/home/pi/piscsi/python/common/src \
-        --proto_path=/home/pi/piscsi/proto \
-        /home/pi/piscsi/proto/piscsi_interface.proto
+# The Docker environment is for local development. It uses a throwaway session
+# key unless the caller provides SESSION_KEY or SESSION_KEY_FILE explicitly.
+if [ -z "${SESSION_KEY_FILE+x}" ] && [ -z "${SESSION_KEY:-}" ]; then
+    export SESSION_KEY="$(openssl rand -base64 48)"
 fi
 
-# Start Nginx service
-nginx
-
-# Use mock commands
-export PATH="/home/pi/piscsi/python/web/mock/bin:$PATH"
-
-# Pass args to web UI start script
-if [[ $BACKEND_PASSWORD ]]; then
-    /home/pi/piscsi/python/web/start.sh "$@" --password=$BACKEND_PASSWORD
-else
-    /home/pi/piscsi/python/web/start.sh "$@"
-fi
+exec /usr/local/bin/piscsi-web "$@"
