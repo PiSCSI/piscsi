@@ -198,7 +198,7 @@ TEST(PiscsiResponseTest, GetServerInfo)
 	EXPECT_EQ(piscsi_major_version, info1.version_info().major_version());
 	EXPECT_EQ(piscsi_minor_version, info1.version_info().minor_version());
 	EXPECT_EQ(piscsi_patch_version, info1.version_info().patch_version());
-	EXPECT_EQ(level::level_string_views[get_level()], info1.log_level_info().current_log_level());
+	EXPECT_EQ(level::to_string_view(get_level()).data(), info1.log_level_info().current_log_level());
 	EXPECT_EQ("default_folder", info1.image_files_info().default_image_folder());
 	EXPECT_EQ(1234, info1.image_files_info().depth());
 	EXPECT_EQ(2, info1.reserved_ids_info().ids().size());
@@ -235,7 +235,7 @@ TEST(PiscsiResponseTest, GetLogLevelInfo)
 
 	PbLogLevelInfo info;
 	response.GetLogLevelInfo(info);
-	EXPECT_EQ(level::level_string_views[get_level()], info.current_log_level());
+	EXPECT_EQ(level::to_string_view(get_level()).data(), info.current_log_level());
 	EXPECT_EQ(7, info.log_levels().size());
 }
 
@@ -245,7 +245,12 @@ TEST(PiscsiResponseTest, GetNetworkInterfacesInfo)
 
 	PbNetworkInterfacesInfo info;
 	response.GetNetworkInterfacesInfo(info);
+	// Network interface enumeration is currently implemented for Linux only.
+#ifdef __linux__
 	EXPECT_FALSE(info.name().empty());
+#else
+	EXPECT_TRUE(info.name().empty());
+#endif
 }
 
 TEST(PiscsiResponseTest, GetMappingInfo)

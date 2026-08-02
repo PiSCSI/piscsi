@@ -24,6 +24,7 @@
 #include <spdlog/spdlog.h>
 #include <netinet/in.h>
 #include <csignal>
+#include <sys/stat.h>
 #include <sstream>
 #include <iostream>
 #include <fstream>

@@ -67,7 +67,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
 
-#if defined(__x86_64__) || defined(__X86__)
+#if !defined(__linux__) || defined(__x86_64__) || defined(__X86__)
     (void)baseaddr;
     level = new uint32_t();
     return true;
@@ -278,7 +278,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
 void GPIOBUS_Raspberry::Cleanup()
 {
-#if defined(__x86_64__) || defined(__X86__)
+#if !defined(__linux__) || defined(__x86_64__) || defined(__X86__)
     return;
 #else
     // Release SEL signal interrupt
@@ -312,7 +312,7 @@ void GPIOBUS_Raspberry::Cleanup()
 
 void GPIOBUS_Raspberry::Reset()
 {
-#if defined(__x86_64__) || defined(__X86__)
+#if !defined(__linux__) || defined(__x86_64__) || defined(__X86__)
     return;
 #else
     int i;

@@ -36,6 +36,10 @@ using namespace std;
 //---------------------------------------------------------------------------
 void SysTimer_Raspberry::Init()
 {
+#if !defined(__linux__)
+    // The Raspberry Pi timer is accessed through Linux device files and is not available on development hosts.
+    return;
+#else
     // Get the base address
     const auto baseaddr = SBC_Version::GetPeripheralAddress();
 
@@ -81,6 +85,7 @@ void SysTimer_Raspberry::Init()
         corefreq = maxclock[6] / 1000000;
         close(vcio_fd);
     }
+#endif
 }
 
 //---------------------------------------------------------------------------

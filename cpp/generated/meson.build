@@ -1,11 +1,11 @@
 piscsi_interface_src = custom_target(
     'piscsi_interface_proto',
-    input : meson.project_source_root() / 'cpp' / 'piscsi_interface.proto',
+    input : meson.project_source_root() / 'proto' / 'piscsi_interface.proto',
     output : ['piscsi_interface.pb.cc', 'piscsi_interface.pb.h'],
     command : [
         protoc, 
         '--cpp_out=@BUILD_ROOT@/cpp/generated', 
-        '--proto_path=' + meson.project_source_root() / 'cpp',
+        '--proto_path=' + meson.project_source_root() / 'proto',
         '@INPUT@'
     ],
     build_by_default : true,

@@ -95,9 +95,7 @@ test_src = [
     'test/device_factory_test.cpp',
     'test/device_test.cpp',
     'test/disk_test.cpp',
-    'test/gpiobus_raspberry_test.cpp',
     'test/host_services_test.cpp',
-    'test/linux_os_stubs.cpp',
     'test/localizer_test.cpp',
     'test/mode_page_device_test.cpp',
     'test/network_util_test.cpp',
@@ -127,12 +125,23 @@ test_src = [
     'test/test_shared.cpp',
 ] + scsidump_core_src
 
+test_platform_src = []
+test_link_args = []
+if host_machine.system() == 'linux'
+    test_platform_src += [
+        'test/gpiobus_raspberry_test.cpp',
+        'test/linux_os_stubs.cpp',
+    ]
+    test_link_args += '-Wl,--wrap=fopen64'
+endif
+test_src += test_platform_src
+
 subdir('generated')
 
 if to_build.contains('piscsi')
     piscsi_bin = executable('piscsi',
         piscsi_core_src + piscsi_src + shared_src + protobuf_src + piscsi_interface_src[0],
-        dependencies : [pthread_dep, pcap_dep, protobuf_dep],
+        dependencies : common_deps + [pcap_dep, protobuf_dep],
         install : true,
     )
 endif
@@ -140,7 +149,7 @@ endif
 if to_build.contains('scsictl')
     scsictl_bin = executable('scsictl',
         scsictl_core_src + scsictl_src + shared_src + protobuf_src + piscsi_interface_src[0],
-        dependencies : [pthread_dep, protobuf_dep],
+        dependencies : common_deps + [protobuf_dep],
         install : true,
     )
 endif
@@ -148,7 +157,7 @@ endif
 if to_build.contains('scsimon')
     scsimon_bin = executable('scsimon',
         scsimon_src + shared_src,
-        dependencies : [pthread_dep],
+        dependencies : common_deps,
         install : true,
     )
 endif
@@ -156,7 +165,7 @@ endif
 if to_build.contains('scsiloop')
     scsiloop_bin = executable('scsiloop',
         scsiloop_src + shared_src,
-        dependencies : [pthread_dep],
+        dependencies : common_deps,
         install : true,
     )
 endif
@@ -164,7 +173,7 @@ endif
 if connect_type == 'FULLSPEC' and to_build.contains('scsidump')
     scsidump_bin = executable('scsidump',
         scsidump_src + shared_src,
-        dependencies : [pthread_dep],
+        dependencies : common_deps,
         install : true,
     )
 endif
@@ -172,8 +181,8 @@ endif
 if gtest_dep.found() and gmock_dep.found() and to_build.contains('test')
     test_bin = executable('piscsi_test',
         piscsi_core_src + scsictl_core_src + test_src + shared_src + protobuf_src + piscsi_interface_src[0],
-        dependencies : [pthread_dep, pcap_dep, protobuf_dep, gtest_dep, gmock_dep],
-        link_args : ['-Wl,--wrap=fopen64'],
+        dependencies : common_deps + [pcap_dep, protobuf_dep, gtest_dep, gmock_dep],
+        link_args : test_link_args,
         install : false
     )
     test('unit', test_bin)

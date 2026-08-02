@@ -79,7 +79,7 @@ void SBC_Version::Init()
     ifstream input_stream(SBC_Version::m_device_tree_model_path);
 
     if (input_stream.fail()) {
-#if defined(__x86_64__) || defined(__X86__)
+#if !defined(__linux__) || defined(__x86_64__) || defined(__X86__)
         // We expect this to fail on x86
     	spdlog::warn("Detected " + GetAsString());
         sbc_version = sbc_version_type::sbc_unknown;
