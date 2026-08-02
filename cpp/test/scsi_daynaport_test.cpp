@@ -16,6 +16,8 @@ TEST(ScsiDaynaportTest, GetDefaultParams)
 	const auto [controller, daynaport] = CreateDevice(SCDP);
 	const auto params = daynaport->GetDefaultParams();
 	EXPECT_EQ(2, params.size());
+	EXPECT_EQ("bridge", params.at("mode"));
+	EXPECT_FALSE(params.contains("inet"));
 }
 
 TEST(ScsiDaynaportTest, Inquiry)

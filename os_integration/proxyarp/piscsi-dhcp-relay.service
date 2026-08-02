@@ -1,0 +1,19 @@
+[Unit]
+Description=DHCP relay for PiSCSI Wi-Fi proxy-ARP service
+BindsTo=sys-subsystem-net-devices-piscsi0.device
+Requires=piscsi-proxyarp.service
+After=piscsi-proxyarp.service
+PartOf=piscsi-proxyarp.service
+Conflicts=dhcp-helper.service
+ConditionPathExists=/etc/piscsi/network.conf
+
+[Service]
+Type=simple
+Environment=PISCSI_TAP=piscsi0
+EnvironmentFile=/etc/piscsi/network.conf
+ExecStart=/usr/sbin/dhcp-helper -d -i ${PISCSI_TAP} -b ${PISCSI_PROXYARP_UPLINK}
+Restart=on-failure
+RestartSec=3s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=piscsi-dhcp-relay

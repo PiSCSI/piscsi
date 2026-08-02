@@ -14,11 +14,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <poll.h>
-#include <arpa/inet.h>
 #include "ctapdriver.h"
 #include <spdlog/spdlog.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <iomanip>
 #include <sstream>
 
 #ifdef __linux__
@@ -31,6 +31,25 @@ using namespace piscsi_util;
 using namespace network_util;
 
 const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
+
+namespace {
+
+#ifdef __linux__
+string FormatMac(const array<uint8_t, 6>& mac)
+{
+	ostringstream stream;
+	stream << hex << setfill('0');
+	for (size_t index = 0; index < mac.size(); index++) {
+		if (index) {
+			stream << ':';
+		}
+		stream << setw(2) << static_cast<int>(mac[index]);
+	}
+	return stream.str();
+}
+#endif
+
+}
 
 static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
 #ifndef __linux__
@@ -74,238 +93,202 @@ bool CTapDriver::Init(const param_map& const_params)
 #ifndef __linux__
 	return false;
 #else
-	param_map params = const_params;
-	stringstream s(params["interface"]);
-	string interface;
-	while (getline(s, interface, ',')) {
-		interfaces.push_back(interface);
-	}
-	inet = params["inet"];
-
-	spdlog::trace("Opening tap device");
-	// TAP device initilization
-	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
-		LogErrno("Can't open tun");
+	const auto mode = const_params.contains("mode") ? const_params.at("mode") : "";
+	const auto interface = const_params.contains("interface") ? const_params.at("interface") : "";
+	if (const string error = GetProfileValidationError(mode, interface, GetNetworkInterfaceInfo()); !error.empty()) {
+		spdlog::error(error);
 		return false;
 	}
-
-	// IFF_NO_PI for no extra packet information
-	ifreq ifr = {};
-	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-	strncpy(ifr.ifr_name, "piscsi0", IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
-
-	spdlog::trace("Going to open " + string(ifr.ifr_name));
-
-	const int ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr);
-	if (ret < 0) {
-		LogErrno("Can't ioctl TUNSETIFF");
-
-		close(m_hTAP);
-		return false;
-	}
-
-	spdlog::trace("Return code from ioctl was " + to_string(ret));
-
-	const int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
-	if (ip_fd < 0) {
-		LogErrno("Can't open ip socket");
-
-		close(m_hTAP);
-		return false;
-	}
-
-	const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
-	if (br_socket_fd < 0) {
-		LogErrno("Can't open bridge socket");
-
-		close(m_hTAP);
-		close(ip_fd);
-		return false;
-	}
-
-	auto cleanUp = [&] (const string& error) {
-		LogErrno(error);
-		close(m_hTAP);
-		close(ip_fd);
-		close(br_socket_fd);
-		return false;
-	};
-
-	// Check if the bridge has already been created
-	// TODO Find an alternative to accessing a file, there is most likely a system call/ioctl
-	if (access(string("/sys/class/net/" + BRIDGE_NAME).c_str(), F_OK)) {
-		spdlog::trace("Checking which interface is available for creating the bridge " + BRIDGE_NAME);
-
-		const auto& it = ranges::find_if(interfaces, [] (const string& iface) { return IsInterfaceUp(iface); } );
-		if (it == interfaces.end()) {
-			return cleanUp("No interface is up, not creating bridge " + BRIDGE_NAME);
+	if (mode == "proxyarp") {
+		const auto configured_uplink = GetConfiguredProxyArpUplink();
+		if (!configured_uplink) {
+			spdlog::error("PiSCSI proxy-ARP configuration is missing or invalid: /etc/piscsi/network.conf");
+			return false;
 		}
-
-		const string bridge_interface = *it;
-
-		spdlog::info("Creating " + BRIDGE_NAME + " for interface " + bridge_interface);
-
-		if (bridge_interface == "eth0") {
-			if (const string error = SetUpEth0(br_socket_fd, bridge_interface); !error.empty()) {
-				return cleanUp(error);
-			}
-		}
-		else if (const string error = SetUpNonEth0(br_socket_fd, ip_fd, inet); !error.empty()) {
-			return cleanUp(error);
-		}
-
-		spdlog::trace(">ip link set dev " + BRIDGE_NAME + " up");
-
-		if (const string error = ip_link(ip_fd, BRIDGE_NAME.c_str(), true); !error.empty()) {
-			return cleanUp(error);
+		if (*configured_uplink != interface) {
+			spdlog::error("DaynaPort proxy-ARP interface '" + interface + "' does not match configured uplink '" +
+					*configured_uplink + "'");
+			return false;
 		}
 	}
-	else {
-		spdlog::info(BRIDGE_NAME + " is already available");
+
+	if (m_hTAP != -1) {
+		spdlog::error("DaynaPort TAP device is already active");
+		return false;
+	}
+	const auto interface_mac = GetMacAddress(interface);
+	if (interface_mac.size() != m_MacAddr.size()) {
+		spdlog::error("Can't determine the MAC address of DaynaPort network interface '" + interface + "'");
+		return false;
+	}
+	m_MacAddr = DeriveDaynaPortMac(interface_mac);
+
+	if (!CreateTap()) {
+		return false;
 	}
 
-	spdlog::trace(">ip link set piscsi0 up");
-
-	if (const string error = ip_link(ip_fd, "piscsi0", true); !error.empty()) {
-		return cleanUp(error);
+	if (const string error = SetTapUp(); !error.empty()) {
+		spdlog::error(error);
+		ReleaseTap();
+		return false;
 	}
 
-	spdlog::trace(">brctl addif " + BRIDGE_NAME + " piscsi0");
-
-	if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", true); !error.empty()) {
-		return cleanUp(error);
+	if (mode == DEFAULT_MODE) {
+		if (const string error = AttachTapToBridge(); !error.empty()) {
+			spdlog::error(error);
+			ReleaseTap();
+			return false;
+		}
 	}
 
-	spdlog::trace("Getting the MAC address");
-
-	ifr.ifr_addr.sa_family = AF_INET;
-	if (ioctl(m_hTAP, SIOCGIFHWADDR, &ifr) < 0) {
-		return cleanUp("Can't ioctl SIOCGIFHWADDR");
-	}
-
-	// Save MAC address
-	memcpy(m_MacAddr.data(), ifr.ifr_hwaddr.sa_data, m_MacAddr.size());
-
-	close(ip_fd);
-	close(br_socket_fd);
-
-	spdlog::info("Tap device " + string(ifr.ifr_name) + " created");
+	spdlog::info("Tap device piscsi0 created for DaynaPort " + mode + " mode (TAP MAC " +
+			FormatMac(m_TapMac) + ", DaynaPort MAC " + FormatMac(m_MacAddr) + ")");
 
 	return true;
 #endif
 }
 
-void CTapDriver::CleanUp() const
+string CTapDriver::GetProfileValidationError(const string& mode, const string& interface,
+		const network_interface_map& interfaces)
 {
-	if (m_hTAP != -1) {
-		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
-			LogErrno("Can't open bridge socket");
-		} else {
-			spdlog::trace(">brctl delif " + BRIDGE_NAME + " piscsi0");
-			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", false); !error.empty()) {
-				spdlog::warn("Warning: Removing piscsi0 from the bridge failed: " + error);
-				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
-			}
-			close(br_socket_fd);
-		}
-
-		// Release TAP device
-		close(m_hTAP);
+	if (mode != DEFAULT_MODE && mode != "proxyarp") {
+		return "Unsupported DaynaPort network mode '" + mode + "'";
 	}
+	if (interfaces.contains("piscsi0")) {
+		return "DaynaPort TAP device piscsi0 is already in use";
+	}
+	if (!IsValidInterfaceName(interface)) {
+		return "Invalid DaynaPort network interface '" + interface + "'";
+	}
+	if (mode == DEFAULT_MODE && interface != BRIDGE_NAME) {
+		return "DaynaPort bridge mode requires the pre-configured " + BRIDGE_NAME + " interface";
+	}
+
+	const auto it = interfaces.find(interface);
+	if (it == interfaces.end()) {
+		return "DaynaPort network interface '" + interface + "' does not exist";
+	}
+	if (!it->second.up) {
+		return "DaynaPort network interface '" + interface + "' is down";
+	}
+	if (mode == DEFAULT_MODE && it->second.type != NetworkInterfaceType::BRIDGE) {
+		return "DaynaPort bridge mode requires " + BRIDGE_NAME + " to be a Linux bridge";
+	}
+	if (mode == "proxyarp" && it->second.type != NetworkInterfaceType::WIFI) {
+		return "DaynaPort proxyarp mode requires an active Wi-Fi interface";
+	}
+
+	return "";
 }
 
 param_map CTapDriver::GetDefaultParams() const
 {
 	return {
-		{ "interface", Join(GetNetworkInterfaces(), ",") },
-		{ "inet", DEFAULT_IP }
+		{ "interface", BRIDGE_NAME },
+		{ "mode", DEFAULT_MODE }
 	};
 }
 
-pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
+bool CTapDriver::CreateTap()
 {
-	string address = s;
-	string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
-	if (const auto& components = Split(s, '/', 2); components.size() == 2) {
-		address = components[0];
+#ifdef __linux__
+	spdlog::trace("Opening tap device");
+	m_hTAP = open("/dev/net/tun", O_RDWR);
+	if (m_hTAP < 0) {
+		LogErrno("Can't open tun");
+		return false;
+	}
 
-		int m;
-		if (!GetAsUnsignedInt(components[1], m) || m < 8 || m > 32) {
-			spdlog::error("Invalid CIDR netmask notation '" + components[1] + "'");
-			return { "", "" };
+	ifreq ifr = {};
+	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+	strncpy(ifr.ifr_name, "piscsi0", IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
+	if (ioctl(m_hTAP, TUNSETIFF, &ifr) < 0) {
+		LogErrno("Can't ioctl TUNSETIFF");
+		ReleaseTap();
+		return false;
+	}
+
+	ifr.ifr_addr.sa_family = AF_INET;
+	if (ioctl(m_hTAP, SIOCGIFHWADDR, &ifr) < 0) {
+		LogErrno("Can't ioctl SIOCGIFHWADDR");
+		ReleaseTap();
+		return false;
+	}
+	memcpy(m_TapMac.data(), ifr.ifr_hwaddr.sa_data, m_TapMac.size());
+	return true;
+#else
+	return false;
+#endif
+}
+
+string CTapDriver::SetTapUp() const
+{
+#ifdef __linux__
+	const int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
+	if (ip_fd < 0) {
+		return "Can't open IP socket";
+	}
+	const string error = ip_link(ip_fd, "piscsi0", true);
+	close(ip_fd);
+	return error;
+#else
+	return "TAP networking requires Linux";
+#endif
+}
+
+string CTapDriver::AttachTapToBridge()
+{
+#ifdef __linux__
+	const int bridge_socket = socket(AF_LOCAL, SOCK_STREAM, 0);
+	if (bridge_socket < 0) {
+		return "Can't open bridge socket";
+	}
+
+	spdlog::trace(">brctl addif " + BRIDGE_NAME + " piscsi0");
+	const string error = br_setif(bridge_socket, BRIDGE_NAME, "piscsi0", true);
+	close(bridge_socket);
+	if (error.empty()) {
+		tap_attached_to_bridge = true;
+	}
+	return error;
+#else
+	return "TAP networking requires Linux";
+#endif
+}
+
+void CTapDriver::CleanUp()
+{
+	ReleaseTap();
+}
+
+void CTapDriver::ReleaseTap()
+{
+	if (tap_attached_to_bridge) {
+		if (const int bridge_socket = socket(AF_LOCAL, SOCK_STREAM, 0); bridge_socket < 0) {
+			LogErrno("Can't open bridge socket while releasing TAP");
 		}
-
-		// long long is required for compatibility with 32 bit platforms
-		const auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
-		netmask = to_string((mask >> 24) & 0xff) + '.' + to_string((mask >> 16) & 0xff) + '.' +
-				to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
+		else {
+			spdlog::trace(">brctl delif " + BRIDGE_NAME + " piscsi0");
+			if (const string error = br_setif(bridge_socket, BRIDGE_NAME, "piscsi0", false); !error.empty()) {
+				spdlog::warn("Removing piscsi0 from " + BRIDGE_NAME + " failed: " + error);
+			}
+			close(bridge_socket);
+		}
+		tap_attached_to_bridge = false;
 	}
 
-	return { address, netmask };
-}
-
-string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
-{
-#ifdef __linux__
-	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
-
-	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
-		return "Can't ioctl SIOCBRADDBR";
+	if (m_hTAP != -1) {
+		close(m_hTAP);
+		m_hTAP = -1;
 	}
-
-	spdlog::trace(">brctl addif " + BRIDGE_NAME + " " + bridge_interface);
-
-	if (const string error = br_setif(socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
-		return error;
-	}
-#endif
-
-	return "";
-}
-
-string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
-{
-#ifdef __linux__
-	const auto [address, netmask] = ExtractAddressAndMask(s);
-	if (address.empty() || netmask.empty()) {
-		return "Error extracting inet address and netmask";
-	}
-
-	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
-
-	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
-		return "Can't ioctl SIOCBRADDBR";
-	}
-
-	ifreq ifr_a;
-	ifr_a.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr_a.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
-	if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
-		inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
-		return "Can't convert '" + address + "' into a network address";
-	}
-
-	ifreq ifr_n;
-	ifr_n.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr_n.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
-	if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
-		inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
-		return "Can't convert '" + netmask + "' into a netmask";
-	}
-
-	spdlog::trace(">ip address add " + s + " dev " + BRIDGE_NAME);
-
-	if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
-		return "Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK";
-	}
-#endif
-
-	return "";
 }
 
 string CTapDriver::IpLink(bool enable) const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
+	if (fd < 0) {
+		return "Can't open IP socket";
+	}
 	spdlog::trace(string(">ip link set piscsi0 ") + (enable ? "up" : "down"));
 	const string result = ip_link(fd, "piscsi0", enable);
 	close(fd);
@@ -352,6 +335,17 @@ uint32_t CTapDriver::Crc32(span<const uint8_t> data) {
       }
    }
    return ~crc;
+}
+
+array<uint8_t, 6> CTapDriver::DeriveDaynaPortMac(span<const uint8_t> interface_mac)
+{
+	if (interface_mac.size() != 6) {
+		return {};
+	}
+
+	// Retain the Dayna OUI and derive the unique suffix from
+	// the selected bridge or proxy-ARP uplink.
+	return { 0x00, 0x80, 0x19, interface_mac[3], interface_mac[4], interface_mac[5] };
 }
 
 int CTapDriver::Receive(uint8_t *buf) const

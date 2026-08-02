@@ -1,2 +1,2 @@
 # Intentionally built as a self-contained pure-Go executable (CGO_ENABLED=0).
-piscsi-oled: statically-linked-binary usr/bin/piscsi-oled
+piscsi-oled: statically-linked-binary

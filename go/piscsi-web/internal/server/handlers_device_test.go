@@ -121,6 +121,47 @@ func TestHandleAttach_ForwardsDaemonDefinedParameters(t *testing.T) {
 	}
 }
 
+func TestHandleAttach_UsesSelectedDaynaPortProfile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var attached *pb.PbDeviceDefinition
+	server := &Server{
+		sessionStore: sessions.NewCookieStore([]byte("test-secret-key")),
+		config:       &config.Config{},
+		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
+		piscsiClient: &testutil.MockPiSCSIClient{SendCommandFunc: func(command *pb.PbCommand) (*pb.PbResult, error) {
+			switch command.GetOperation() {
+			case pb.PbOperation_NETWORK_INTERFACES_INFO:
+				return &pb.PbResult{Status: true, Result: &pb.PbResult_NetworkInterfacesInfo{
+					NetworkInterfacesInfo: &pb.PbNetworkInterfacesInfo{Interfaces: []*pb.PbNetworkInterface{{
+						Name: "wlan0", Up: true, SupportedMode: []string{"proxyarp"},
+					}}},
+				}}, nil
+			case pb.PbOperation_ATTACH:
+				attached = command.GetDevices()[0]
+				return &pb.PbResult{Status: true}, nil
+			default:
+				t.Fatalf("unexpected operation %s", command.GetOperation())
+				return nil, nil
+			}
+		}},
+	}
+
+	router := gin.New()
+	router.POST("/scsi/attach", server.handleAttach)
+	form := url.Values{"scsi_id": {"6"}, "type": {"SCDP"}, "daynaport_profile": {"proxyarp:wlan0"}}
+	request := httptest.NewRequest(http.MethodPost, "/scsi/attach", strings.NewReader(form.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d; body: %s", response.Code, response.Body.String())
+	}
+	if attached == nil || attached.GetParams()["mode"] != "proxyarp" || attached.GetParams()["interface"] != "wlan0" {
+		t.Fatalf("DaynaPort params = %#v", attached.GetParams())
+	}
+}
+
 func TestParseDeviceTypeSupportsEveryCurrentProtobufType(t *testing.T) {
 	for _, name := range []string{"SCHD", "SCRM", "SCMO", "SCCD", "SCDP", "SCHS", "SCLP", "SCTP"} {
 		t.Run(name, func(t *testing.T) {
@@ -145,7 +186,7 @@ func TestBuildDeviceCatalogUsesDaemonCapabilities(t *testing.T) {
 		{
 			Type: pb.PbDeviceType_SCDP,
 			Properties: &pb.PbDeviceProperties{
-				DefaultParams: map[string]string{"interface": "piscsi_bridge", "timeout": "30", "name": "DaynaPORT"},
+				DefaultParams: map[string]string{"interface": "piscsi_bridge", "mode": "bridge", "timeout": "30", "name": "DaynaPORT"},
 			},
 		},
 		{
@@ -157,19 +198,22 @@ func TestBuildDeviceCatalogUsesDaemonCapabilities(t *testing.T) {
 		},
 	}}
 
-	catalog := server.buildDeviceCatalog(info, files, []string{"eth0", "piscsi_bridge"})
+	catalog := server.buildDeviceCatalog(info, files, []*pb.PbNetworkInterface{
+		{Name: "piscsi_bridge", Type: pb.PbNetworkInterfaceType_NETWORK_INTERFACE_BRIDGE, Up: true, SupportedMode: []string{"bridge"}},
+		{Name: "wlan0", Type: pb.PbNetworkInterfaceType_NETWORK_INTERFACE_WIFI, Up: true, SupportedMode: []string{"proxyarp"}},
+	})
 	if len(catalog) != 2 {
 		t.Fatalf("catalog length = %d, want 2", len(catalog))
 	}
-	if catalog[0].Key != "SCDP" || len(catalog[0].Parameters) != 3 {
+	if catalog[0].Key != "SCDP" || len(catalog[0].Parameters) != 2 {
 		t.Fatalf("unexpected network catalog entry: %#v", catalog[0])
 	}
-	if catalog[0].Parameters[0].Kind != "interface" ||
-		len(catalog[0].Parameters[0].Options) != 2 {
-		t.Fatalf("interface control = %#v", catalog[0].Parameters[0])
+	if len(catalog[0].DaynaProfiles) != 2 || catalog[0].DaynaProfiles[0].Mode != "bridge" ||
+		catalog[0].DaynaProfiles[1].Mode != "proxyarp" {
+		t.Fatalf("DaynaPort profiles = %#v", catalog[0].DaynaProfiles)
 	}
-	if catalog[0].Parameters[2].Kind != "number" {
-		t.Fatalf("timeout control = %#v, want number", catalog[0].Parameters[2])
+	if catalog[0].Parameters[1].Kind != "number" {
+		t.Fatalf("timeout control = %#v, want number", catalog[0].Parameters[1])
 	}
 	if !catalog[1].SupportsFile || !catalog[1].Removable {
 		t.Fatalf("unexpected tape capabilities: %#v", catalog[1])
@@ -305,26 +349,27 @@ func TestHandleAttachAppliesImagePropertiesIdentity(t *testing.T) {
 	}
 }
 
-func TestBridgeConfigurationStatus(t *testing.T) {
-	original := bridgeConfigurationPaths
-	t.Cleanup(func() { bridgeConfigurationPaths = original })
-	tempDir := t.TempDir()
-	bridgeConfigurationPaths.sysctl = filepath.Join(tempDir, "sysctl.conf")
-	bridgeConfigurationPaths.nat = filepath.Join(tempDir, "rules.v4")
-	bridgeConfigurationPaths.dhcpcd = filepath.Join(tempDir, "dhcpcd.conf")
-	bridgeConfigurationPaths.bridge = filepath.Join(tempDir, "piscsi_bridge")
+func TestDaynaPortProfileStatus(t *testing.T) {
+	bridge := &pb.PbNetworkInterface{Name: "piscsi_bridge", Up: true, SupportedMode: []string{"bridge"}}
+	if ready, message := daynaPortProfileStatus("bridge", bridge); !ready || !strings.Contains(message, "Wired bridge") {
+		t.Fatalf("bridge ready = %v, message = %q", ready, message)
+	}
+	wifi := &pb.PbNetworkInterface{Name: "wlan0", Up: true, SupportedMode: []string{"proxyarp"}}
+	if ready, message := daynaPortProfileStatus("proxyarp", wifi); !ready || !strings.Contains(message, "IPv4") {
+		t.Fatalf("proxyarp ready = %v, message = %q", ready, message)
+	}
+	if ready, message := daynaPortProfileStatus("bridge", wifi); ready || !strings.Contains(message, "does not support") {
+		t.Fatalf("mismatched profile ready = %v, message = %q", ready, message)
+	}
+}
 
-	if err := os.WriteFile(bridgeConfigurationPaths.dhcpcd, []byte("denyinterfaces eth0\n"), 0o644); err != nil {
-		t.Fatal(err)
+func TestParseDaynaPortProfile(t *testing.T) {
+	mode, interfaceName, err := parseDaynaPortProfile("proxyarp:wlan0")
+	if err != nil || mode != "proxyarp" || interfaceName != "wlan0" {
+		t.Fatalf("parse profile = %q, %q, %v", mode, interfaceName, err)
 	}
-	if ready, message := bridgeConfigurationStatus("eth0"); ready || !strings.Contains(message, bridgeConfigurationPaths.bridge) {
-		t.Fatalf("ready = %v, message = %q", ready, message)
-	}
-	if err := os.WriteFile(bridgeConfigurationPaths.bridge, []byte("auto piscsi_bridge\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if ready, message := bridgeConfigurationStatus("eth0"); !ready {
-		t.Fatalf("ready = false, message = %q", message)
+	if _, _, err := parseDaynaPortProfile("proxyarp:eth0:extra"); err == nil {
+		t.Fatal("invalid profile was accepted")
 	}
 }
 

@@ -52,8 +52,8 @@ enum PbOperation {
     // Attach devices and return the new device list (PbDevicesInfo)
     // Parameters (depending on the device type):
     //   "file": The filename relative to the default image folder
-    //   "interface": A prioritized comma-separated list of interfaces to create a network bridge for
-    //   "inet": The IP address and netmask for the network bridge
+    //   "interface": The interface selected for the DaynaPort network mode
+    //   "mode": The DaynaPort networking mode, either "bridge" or "proxyarp"
     //   "cmd": The command to be used for printing, with "%f" as file placeholder
     ATTACH = 1;
 
@@ -118,8 +118,7 @@ enum PbOperation {
     // Get information on the available log levels and the current log level (PbLogLevelInfo)
     LOG_LEVEL_INFO = 16;
 
-    // Get the names of the available network interfaces (PbNetworkInterfacesInfo)
-    // Only lists interfaces that are up.
+    // Get available network interfaces and their DaynaPort profile eligibility (PbNetworkInterfacesInfo)
     NETWORK_INTERFACES_INFO = 17;
     
     // Get the mapping of extensions to device types (PbMappingInfo)
@@ -314,9 +313,27 @@ message PbLogLevelInfo {
     string current_log_level = 3;
 }
 
+enum PbNetworkInterfaceType {
+    NETWORK_INTERFACE_UNKNOWN = 0;
+    NETWORK_INTERFACE_BRIDGE = 1;
+    NETWORK_INTERFACE_ETHERNET = 2;
+    NETWORK_INTERFACE_WIFI = 3;
+}
+
+// A network interface that is a normal DaynaPort profile candidate.
+message PbNetworkInterface {
+    string name = 1;
+    PbNetworkInterfaceType type = 2;
+    bool up = 3;
+    // Supported DaynaPort modes for this interface, e.g. "bridge" or "proxyarp".
+    repeated string supported_mode = 4;
+}
+
 // The network interfaces information
 message PbNetworkInterfacesInfo {
+    // Kept for backwards compatibility. Contains only up interfaces.
     repeated string name = 1;
+    repeated PbNetworkInterface interfaces = 2;
 }
 
 // Statistics categories ordered by increasing severity

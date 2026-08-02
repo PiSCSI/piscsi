@@ -1,0 +1,24 @@
+{{define "manpages.html"}}
+{{template "document-head" .}}
+<body class="page-manpages">
+{{template "page-header" .}}
+
+    <div class="content">
+        <h2>PiSCSI Manual Pages</h2>
+        <p>Browse the manual pages included with PiSCSI.</p>
+
+        <dl class="manpage-list">
+        {{ range .Manpages }}
+            <dt><a href="/sys/manpage?app={{ .App }}">{{ .App }}({{ .Section }})</a></dt>
+            <dd>{{ .Description }}</dd>
+        {{ end }}
+        </dl>
+
+        <hr/>
+    </div>
+
+{{template "back-link" .}}
+{{template "page-footer" .}}
+</body>
+</html>
+{{end}}

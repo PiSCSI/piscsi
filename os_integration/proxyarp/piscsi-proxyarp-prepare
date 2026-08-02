@@ -1,0 +1,54 @@
+#!/bin/sh
+# Prepare the dynamically created DaynaPort TAP interface for parprouted.
+# State is recorded so cleanup changes only PiSCSI-created addresses and flags.
+set -eu
+
+ip=/usr/sbin/ip
+tap=${PISCSI_TAP:?PISCSI_TAP is required}
+uplink=${PISCSI_PROXYARP_UPLINK:?PISCSI_PROXYARP_UPLINK is required}
+promisc=${PISCSI_PROXYARP_PROMISC:-true}
+state=/run/piscsi/proxyarp.state
+
+case "$tap" in
+    piscsi0) ;;
+    *) echo "Invalid PiSCSI TAP interface name: $tap" >&2; exit 2 ;;
+esac
+case "$uplink" in
+    *[![:alnum:]_.-]*|''|????????????????*) echo "Invalid upstream interface name: $uplink" >&2; exit 2 ;;
+esac
+case "$promisc" in
+    true|false) ;;
+    *) echo "PISCSI_PROXYARP_PROMISC must be true or false" >&2; exit 2 ;;
+esac
+
+"$ip" link show dev "$tap" >/dev/null
+"$ip" link show dev "$uplink" >/dev/null
+
+# A stale PiSCSI state file can only contain values written by this helper.
+# Reconcile it before selecting the current DHCP lease.
+if [ -f "$state" ]; then
+    /usr/lib/piscsi/piscsi-proxyarp-cleanup
+fi
+
+# parprouted requires an address on every bridged interface. The /32 lets the
+# DHCP relay use the upstream subnet without creating a second connected route.
+upstream_cidr=$("$ip" -4 -o addr show dev "$uplink" scope global | awk 'NR == 1 { print $4 }')
+if [ -z "$upstream_cidr" ]; then
+    echo "No global IPv4 address is available on $uplink" >&2
+    exit 1
+fi
+upstream_address=${upstream_cidr%/*}
+
+"$ip" link set dev "$tap" up
+"$ip" -4 addr add "$upstream_address/32" dev "$tap"
+
+umask 077
+printf 'PISCSI_PROXYARP_ADDRESS=%s/32\nPISCSI_PROXYARP_PROMISC_CHANGED=0\n' "$upstream_address" >"$state"
+
+if [ "$promisc" = true ]; then
+    flags=$(cat "/sys/class/net/$uplink/flags")
+    if [ $((flags & 0x100)) -eq 0 ]; then
+        "$ip" link set dev "$uplink" promisc on
+        printf 'PISCSI_PROXYARP_ADDRESS=%s/32\nPISCSI_PROXYARP_PROMISC_CHANGED=1\n' "$upstream_address" >"$state"
+    fi
+fi

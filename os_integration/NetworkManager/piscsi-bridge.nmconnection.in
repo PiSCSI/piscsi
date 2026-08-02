@@ -1,0 +1,22 @@
+# NetworkManager keyfile template for the persistent PiSCSI wired bridge.
+# Copy to /etc/NetworkManager/system-connections/, substitute the UUID and
+# selected physical Ethernet MAC, then add a matching bridge-port profile.
+[connection]
+id=PiSCSI wired bridge
+uuid=@PISCSI_BRIDGE_UUID@
+type=bridge
+interface-name=piscsi_bridge
+autoconnect=true
+
+[bridge]
+stp=false
+
+[ethernet]
+# Keep the bridge MAC distinct from the DaynaPort TAP MAC.
+cloned-mac-address=@PISCSI_ETHERNET_MAC@
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto

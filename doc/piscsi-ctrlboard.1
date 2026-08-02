@@ -1,0 +1,138 @@
+.Dd August 23, 2026
+.Dt PISCSI-CTRLBOARD 1
+.Os PiSCSI
+.Sh NAME
+.Nm piscsi-ctrlboard
+.Nd operate PiSCSI with the PiSCSI Control Board
+.Sh SYNOPSIS
+.Nm
+.Op Fl diagnostic
+.Op Fl display Ar true|false
+.Op Fl host Ar HOST
+.Op Fl password Ar TOKEN
+.Op Fl port Ar PORT
+.Op Fl rotation Ar 0|180
+.Op Fl v
+.Sh DESCRIPTION
+.Nm
+is the client for the PiSCSI Control Board.
+It receives rotary-encoder and button events through a PCA9554 I2C expander,
+renders a menu on a 128-by-64 SSD1306 display, and sends commands to a
+PiSCSI daemon.
+The menu supports SCSI-ID management, image attach and eject operations,
+profiles, and system actions.
+.Pp
+By default, the Control Board uses
+.Pa /dev/i2c-1 ,
+PCA9554 address 0x3f, SSD1306 address 0x3c, and BCM GPIO line 9 for the
+PCA9554 interrupt.
+It connects to the local PiSCSI daemon on port 6868.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl button-debounce Ar DURATION
+Button debounce interval.
+The default is 200ms.
+.It Fl button-cycle-timeout Ar DURATION
+Inactivity timeout before an auxiliary-button choice runs.
+The default is 3s.
+.It Fl config-dir Ar DIRECTORY
+PiSCSI profile directory.
+The default is
+.Pa /var/lib/piscsi/config .
+.It Fl diagnostic
+Log Control Board input snapshots, decoded events, dropped events, and latency
+statistics.
+.It Fl display Ar true|false
+Render the Control Board menu on the SSD1306 display.
+When false, the PCA9554 and GPIO interrupt are still required.
+The default is true.
+.It Fl display-address Ar ADDRESS
+SSD1306 I2C address.
+The default is 0x3c.
+.It Fl event-queue-size Ar SIZE
+Maximum number of hardware events waiting to be processed.
+The default is 64.
+.It Fl gpiochip Ar DEVICE
+Linux GPIO character device.
+The default is
+.Pa /dev/gpiochip0 .
+.It Fl host Ar HOST
+PiSCSI daemon hostname.
+The default is
+.Dq localhost .
+.It Fl i2c-device Ar DEVICE
+Linux I2C device used by the Control Board.
+The default is
+.Pa /dev/i2c-1 .
+.It Fl image-dir Ar DIRECTORY
+Image directory used while loading profiles.
+The default is
+.Pa /var/lib/piscsi/images .
+.It Fl interrupt-gpio Ar LINE
+BCM GPIO line connected to the PCA9554 interrupt.
+The default is 9.
+.It Fl pca-address Ar ADDRESS
+PCA9554 I2C address.
+The default is 0x3f.
+.It Fl password Ar TOKEN
+PiSCSI daemon authentication token.
+.It Fl port Ar PORT
+PiSCSI daemon port.
+The default is 6868.
+.It Fl refresh-interval Ar DURATION
+Interval used to refresh the PiSCSI root menu.
+The default is 10s.
+.It Fl rotation Ar 0|180
+Menu display rotation in degrees.
+The default is 0.
+.It Fl screensaver-move-interval Ar DURATION
+Interval between moves of the IP screensaver line.
+The default is 30s.
+.It Fl screensaver-timeout Ar DURATION
+Idle timeout before the IP screensaver starts.
+Specify 0 to disable it.
+The default is 10m.
+.It Fl shutdown-splash-duration Ar DURATION
+Duration for which the shutdown splash is displayed.
+Specify 0 to disable the delay.
+The default is 700ms.
+.It Fl splash-duration Ar DURATION
+Duration for which the startup splash is displayed.
+Specify 0 to disable the delay.
+The default is 2s.
+.It Fl transitions
+Animate submenu navigation with horizontal push transitions.
+.It Fl v
+Print PiSCSI version and copyright information, then exit.
+.El
+.Pp
+Duration options accept Go duration strings, for example 200ms, 3s, and 10m.
+.Sh EXAMPLES
+Run the client with an inverted display:
+.Bd -literal -offset indent
+piscsi-ctrlboard -rotation=180
+.Ed
+.Pp
+Use a remote PiSCSI daemon and enable input diagnostics:
+.Bd -literal -offset indent
+piscsi-ctrlboard -host=piscsi.local -port=6868 -diagnostic
+.Ed
+.Sh HARDWARE
+Enable I2C and ensure the process can access both the selected I2C device and
+GPIO character device.
+Use
+.Xr i2cdetect 8
+to verify the usual 0x3c display and 0x3f PCA9554 addresses.
+.Sh SIGNALS
+.Nm
+handles
+.Dv SIGINT
+and
+.Dv SIGTERM
+and stops its input, display, and daemon work cleanly.
+.Sh SEE ALSO
+.Xr piscsi 1 ,
+.Xr piscsi-oled 1 ,
+.Xr i2cdetect 8
+.Pp
+Full documentation is available at: <https://www.piscsi.com>

@@ -1,0 +1,16 @@
+# NetworkManager keyfile template for the Ethernet port of piscsi_bridge.
+# Substitute the UUIDs and @PISCSI_ETHERNET_INTERFACE@ before installing.
+[connection]
+id=PiSCSI wired bridge port
+uuid=@PISCSI_BRIDGE_PORT_UUID@
+type=ethernet
+interface-name=@PISCSI_ETHERNET_INTERFACE@
+master=@PISCSI_BRIDGE_UUID@
+slave-type=bridge
+autoconnect=true
+
+[ipv4]
+method=disabled
+
+[ipv6]
+method=disabled

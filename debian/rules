@@ -74,7 +74,7 @@ override_dh_auto_install:
 	install -d debian/tmp/usr/bin debian/tmp/usr/share/man/man1
 	install -m 0755 cpp/bin/piscsi cpp/bin/scsictl cpp/bin/scsimon cpp/bin/scsiloop cpp/bin/scsidump debian/tmp/usr/bin/
 	install -m 0755 debian/build/piscsi-web debian/build/piscsi-oled debian/build/piscsi-ctrlboard debian/tmp/usr/bin/
-	install -m 0644 doc/piscsi.1 doc/scsictl.1 doc/scsimon.1 doc/scsiloop.1 doc/scsidump.1 debian/tmp/usr/share/man/man1/
+	install -m 0644 doc/piscsi.1 doc/piscsi-web.1 doc/piscsi-oled.1 doc/piscsi-ctrlboard.1 doc/scsictl.1 doc/scsimon.1 doc/scsiloop.1 doc/scsidump.1 debian/tmp/usr/share/man/man1/
 	install -D -m 0644 go/piscsi-web/drive_properties.json debian/tmp/etc/piscsi-web/drive_properties.json
 	install -D -m 0644 debian/piscsi-web.piscsi-web.env debian/tmp/etc/piscsi-web/piscsi-web.env
 	@piscsi_version=$$(awk -F '[=;]' '\

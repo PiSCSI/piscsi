@@ -12,6 +12,7 @@
 #pragma once
 
 #include "devices/device.h"
+#include "shared/network_util.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -31,7 +32,7 @@ class CTapDriver
 {
 	static const string BRIDGE_NAME;
 
-	const inline static string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hardcoded IP address is safe
+	const inline static string DEFAULT_MODE = "bridge";
 
 public:
 
@@ -41,9 +42,10 @@ public:
 	CTapDriver& operator=(const CTapDriver&) = default;
 
 	bool Init(const param_map&);
-	void CleanUp() const;
+	void CleanUp();
 
 	param_map GetDefaultParams() const;
+	static string GetProfileValidationError(const string&, const string&, const network_util::network_interface_map&);
 
 	void GetMacAddr(uint8_t *) const;
 	int Receive(uint8_t *) const;
@@ -53,20 +55,22 @@ public:
 	void Flush() const;			// Purge all of the packets that are waiting to be processed
 
 	static uint32_t Crc32(span<const uint8_t>);
+	static array<uint8_t, 6> DeriveDaynaPortMac(span<const uint8_t>);
 
 private:
 
-	static string SetUpEth0(int, const string&);
-	static string SetUpNonEth0(int, int, const string&);
-	static pair<string, string> ExtractAddressAndMask(const string&);
+	bool CreateTap();
+	string SetTapUp() const;
+	string AttachTapToBridge();
+	void ReleaseTap();
 
-	array<byte, 6> m_MacAddr;	// MAC Address
+	// The kernel TAP port and emulated DaynaPort must use different MACs. A
+	// bridge treats a port's MAC as local and will not forward frames for it.
+	array<uint8_t, 6> m_MacAddr {};
+#ifdef __linux__
+	array<uint8_t, 6> m_TapMac {};
+#endif
 
 	int m_hTAP = -1;			// File handle
-
-	// Prioritized comma-separated list of interfaces to create the bridge for
-	vector<string> interfaces;
-
-	string inet;
+	bool tap_attached_to_bridge = false;
 };
-

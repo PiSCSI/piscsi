@@ -18,7 +18,7 @@ func TestFindSystemManpage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	path, err := findSystemManpage("piscsi", []string{manDir})
+	path, err := findSystemManpage("piscsi", 1, []string{manDir})
 	if err != nil {
 		t.Fatalf("findSystemManpage() error = %v", err)
 	}
@@ -31,7 +31,7 @@ func TestFindSystemManpage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	path, err = findSystemManpage("piscsi", []string{manDir})
+	path, err = findSystemManpage("piscsi", 1, []string{manDir})
 	if err != nil {
 		t.Fatalf("findSystemManpage() error = %v", err)
 	}
@@ -41,7 +41,7 @@ func TestFindSystemManpage(t *testing.T) {
 }
 
 func TestFindSystemManpageNotInstalled(t *testing.T) {
-	_, err := findSystemManpage("piscsi", []string{t.TempDir()})
+	_, err := findSystemManpage("piscsi", 1, []string{t.TempDir()})
 	if err == nil || !strings.Contains(err.Error(), "not installed") {
 		t.Fatalf("findSystemManpage() error = %v, want a not-installed error", err)
 	}
@@ -55,12 +55,52 @@ func TestFindSystemManpageSearchesLaterDirectories(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := findSystemManpage("piscsi", []string{firstDir, usrManDir})
+	got, err := findSystemManpage("piscsi", 1, []string{firstDir, usrManDir})
 	if err != nil {
 		t.Fatalf("findSystemManpage() error = %v", err)
 	}
 	if got != want {
 		t.Errorf("findSystemManpage() = %q, want %q", got, want)
+	}
+}
+
+func TestFindSystemManpageSection(t *testing.T) {
+	manDir := t.TempDir()
+	want := filepath.Join(manDir, "piscsi-network-profile.8")
+	if err := os.WriteFile(want, []byte(".Dt PISCSI-NETWORK-PROFILE 8\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := findSystemManpage("piscsi-network-profile", 8, []string{manDir})
+	if err != nil {
+		t.Fatalf("findSystemManpage() error = %v", err)
+	}
+	if got != want {
+		t.Errorf("findSystemManpage() = %q, want %q", got, want)
+	}
+}
+
+func TestPiSCSIManpagesListsDocumentedPages(t *testing.T) {
+	want := map[string]int{
+		"piscsi":                 1,
+		"piscsi-web":             1,
+		"piscsi-oled":            1,
+		"piscsi-ctrlboard":       1,
+		"scsictl":                1,
+		"scsidump":               1,
+		"scsiloop":               1,
+		"scsimon":                1,
+		"piscsi-network-profile": 8,
+	}
+
+	for app, section := range want {
+		page, ok := findPiSCSIManpage(app)
+		if !ok || page.Section != section {
+			t.Errorf("manual index entry for %s = %#v, %v; want section %d", app, page, ok, section)
+		}
+	}
+	if len(piscsiManpages) != len(want) {
+		t.Errorf("manual index has %d pages, want %d", len(piscsiManpages), len(want))
 	}
 }
 

@@ -171,6 +171,14 @@ EXAMPLES
        the contents of the file system image "HDIIMAGE0.HDS".
              scsictl -i -0 -f -HDIIMAGE0.HDS
 
+       Attach a DaynaPort to the preconfigured wired bridge. DaynaPort mode and
+       interface are a single, explicit parameter value:
+             scsictl -i 6 -c attach -t scdp -f "mode=bridge:interface=piscsi_bridge"
+
+       Attach a DaynaPort through a configured Wi-Fi proxy-ARP uplink. This
+       profile supports IPv4 unicast and DHCP only; it is not an Ethernet bridge:
+             scsictl -i 6 -c attach -t scdp -f "mode=proxyarp:interface=wlan0"
+
 SEE ALSO
        piscsi(1), scsimon(1), scsidump(1)
 

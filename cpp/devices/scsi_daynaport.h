@@ -117,7 +117,7 @@ private:
 	};
 
 	scsi_resp_link_stats_t m_scsi_link_stats = {
-		// TODO Remove this hard-coded MAC address, see https://github.com/PiSCSI/piscsi/issues/598
+		// Kept as a stable fallback when the TAP cannot be created on a development host.
 		.mac_address = { byte{0x00}, byte{0x80}, byte{0x19}, byte{0x10}, byte{0x98}, byte{0xe3} },
 		.frame_alignment_errors = 0,
 		.crc_errors = 0,

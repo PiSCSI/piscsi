@@ -1,0 +1,253 @@
+#!/bin/sh
+# Configure only the named NetworkManager/PiSCSI objects used by DaynaPort.
+# This is deliberately not an installer: it never edits an existing connection.
+
+set -eu
+
+bridge_name='PiSCSI wired bridge'
+bridge_port_name='PiSCSI wired bridge port'
+network_config=/etc/piscsi/network.conf
+dry_run=false
+acknowledged=false
+
+usage() {
+	cat <<'EOF'
+Usage:
+  piscsi-network-profile [--dry-run] [--console-acknowledge] apply bridge <ethernet-interface>
+  piscsi-network-profile [--dry-run] [--console-acknowledge] apply proxyarp <wifi-interface>
+  piscsi-network-profile [--dry-run] [--console-acknowledge] remove bridge|proxyarp
+
+The command manages only the named PiSCSI NetworkManager connections and
+/etc/piscsi/network.conf. --dry-run prints the complete plan without changing
+the system. Applying or removing a profile can interrupt host connectivity.
+Without --console-acknowledge, type APPLY at a local console to continue.
+--console-acknowledge is an explicit approval that skips that prompt.
+EOF
+}
+
+run() {
+	if "$dry_run"; then
+		printf '+ '
+		printf '%s ' "$@"
+		printf '\n'
+	else
+		"$@"
+	fi
+}
+
+run_optional() {
+	if "$dry_run"; then
+		printf '+ '
+		printf '%s ' "$@"
+		printf '\n'
+	else
+		"$@" || true
+	fi
+}
+
+require_console_acknowledgement() {
+	if "$dry_run"; then
+		return
+	fi
+	if "$acknowledged"; then
+		return
+	fi
+	if ! [ -t 0 ] || ! [ -r /dev/tty ]; then
+		echo 'Run this command from a local console and type APPLY, or pass --console-acknowledge.' >&2
+		exit 2
+	fi
+	printf 'This can interrupt network access. Type APPLY on the local console to continue: ' >/dev/tty
+	read -r confirmation </dev/tty
+	if [ "$confirmation" != APPLY ]; then
+		echo 'No changes made.' >&2
+		exit 2
+	fi
+}
+
+require_network_manager() {
+	if ! command -v nmcli >/dev/null 2>&1; then
+		echo 'NetworkManager (nmcli) is required.' >&2
+		exit 1
+	fi
+	if ! nmcli -t -f RUNNING general status 2>/dev/null | grep -qx running; then
+		echo 'NetworkManager is not running.' >&2
+		exit 1
+	fi
+}
+
+require_root() {
+	if "$dry_run"; then
+		return
+	fi
+	if [ "$(id -u)" -ne 0 ]; then
+		echo 'Run as root (for example, with sudo).' >&2
+		exit 1
+	fi
+}
+
+require_interface_name() {
+	case "$1" in
+		'' | *[!A-Za-z0-9_.:-]*)
+			echo "Invalid interface name: $1" >&2
+			exit 2
+			;;
+	esac
+}
+
+connection_exists() {
+	nmcli -g NAME connection show 2>/dev/null | grep -Fxq "$1"
+}
+
+get_interface_mac() {
+	interface=$1
+	mac=$(cat "/sys/class/net/$interface/address" 2>/dev/null || true)
+	if ! printf '%s\n' "$mac" | grep -Eiq '^[0-9a-f]{2}(:[0-9a-f]{2}){5}$'; then
+		mac=$(nmcli -g GENERAL.HWADDR device show "$interface" 2>/dev/null || true)
+	fi
+	if ! printf '%s\n' "$mac" | grep -Eiq '^[0-9a-f]{2}(:[0-9a-f]{2}){5}$'; then
+		echo "Unable to determine a valid hardware MAC address for $interface." >&2
+		return 1
+	fi
+	printf '%s\n' "$mac"
+}
+
+write_proxyarp_config() {
+	uplink=$1
+	if [ -d "$network_config" ]; then
+		echo "$network_config is a directory; move it aside and create a regular configuration file before continuing." >&2
+		exit 1
+	fi
+	if "$dry_run"; then
+		printf '%s\n' "Would write $network_config with PISCSI_PROXYARP_UPLINK=$uplink"
+		return
+	fi
+	mkdir -p /etc/piscsi
+	tmp=$(mktemp /etc/piscsi/network.conf.XXXXXX)
+	trap 'rm -f "$tmp"' EXIT HUP INT TERM
+	cat >"$tmp" <<EOF
+# Managed by piscsi-network-profile. Wi-Fi proxy-ARP is active only while a
+# DaynaPort is attached with mode=proxyarp.
+PISCSI_PROXYARP_UPLINK=$uplink
+PISCSI_PROXYARP_PROMISC=true
+EOF
+	chmod 0644 "$tmp"
+	mv "$tmp" "$network_config"
+	trap - EXIT HUP INT TERM
+}
+
+apply_bridge() {
+	interface=$1
+	if connection_exists "$bridge_name" || connection_exists "$bridge_port_name"; then
+		echo 'A named PiSCSI wired bridge connection already exists; remove it first.' >&2
+		exit 1
+	fi
+	if ! ethernet_mac=$(get_interface_mac "$interface"); then
+		exit 1
+	fi
+	echo "Plan: create $bridge_name on piscsi_bridge with MAC $ethernet_mac and STP disabled, add $interface as its port, and activate the bridge."
+	require_console_acknowledgement
+	if "$dry_run"; then
+		run nmcli connection add type bridge ifname piscsi_bridge con-name "$bridge_name" ipv4.method auto ipv6.method auto bridge.stp no 802-3-ethernet.cloned-mac-address "$ethernet_mac" connection.autoconnect yes
+		run nmcli connection add type ethernet ifname "$interface" con-name "$bridge_port_name" master piscsi_bridge slave-type bridge connection.autoconnect yes
+		run nmcli connection up "$bridge_name"
+		return
+	fi
+
+	nmcli connection add type bridge ifname piscsi_bridge con-name "$bridge_name" ipv4.method auto ipv6.method auto bridge.stp no 802-3-ethernet.cloned-mac-address "$ethernet_mac" connection.autoconnect yes
+	if ! nmcli connection add type ethernet ifname "$interface" con-name "$bridge_port_name" master piscsi_bridge slave-type bridge connection.autoconnect yes; then
+		echo 'Failed to add the PiSCSI bridge port; removing the newly created bridge connection.' >&2
+		nmcli connection delete "$bridge_name" || true
+		exit 1
+	fi
+	if ! nmcli connection up "$bridge_name"; then
+		echo 'Failed to activate the PiSCSI bridge; removing the newly created connections.' >&2
+		nmcli connection delete "$bridge_port_name" || true
+		nmcli connection delete "$bridge_name" || true
+		exit 1
+	fi
+}
+
+apply_proxyarp() {
+	interface=$1
+	device_type=$(nmcli -g GENERAL.TYPE device show "$interface" 2>/dev/null || true)
+	if [ "$device_type" != wifi ]; then
+		echo "$interface is not a NetworkManager Wi-Fi interface." >&2
+		exit 1
+	fi
+	if ! command -v parprouted >/dev/null 2>&1 || ! command -v dhcp-helper >/dev/null 2>&1; then
+		echo 'Install the suggested parprouted and dhcp-helper packages before selecting proxy-ARP.' >&2
+		exit 1
+	fi
+	echo "Plan: configure $interface as the PiSCSI proxy-ARP uplink, reload PiSCSI runtime configuration, and disable the generic dhcp-helper service."
+	require_console_acknowledgement
+	write_proxyarp_config "$interface"
+	run systemctl disable --now dhcp-helper.service
+	run systemctl daemon-reload
+	run udevadm control --reload
+	run sysctl --system
+}
+
+remove_bridge() {
+	echo "Plan: deactivate and delete only the named PiSCSI NetworkManager bridge connections."
+	require_console_acknowledgement
+	run_optional nmcli connection down "$bridge_name"
+	run_optional nmcli connection delete "$bridge_port_name"
+	run_optional nmcli connection delete "$bridge_name"
+}
+
+remove_proxyarp() {
+	echo "Plan: stop PiSCSI proxy-ARP services and clear the PiSCSI proxy-ARP uplink selection."
+	require_console_acknowledgement
+	# These services are static: udev and NetworkManager start them as needed.
+	# Stop them before clearing the config so ExecStopPost can restore the
+	# selected uplink's state.
+	run systemctl stop piscsi-dhcp-relay.service piscsi-proxyarp.service
+	write_proxyarp_config ''
+}
+
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		--dry-run) dry_run=true; shift ;;
+		--console-acknowledge) acknowledged=true; shift ;;
+		-h|--help) usage; exit 0 ;;
+		*) break ;;
+	esac
+done
+
+if [ "$#" -lt 2 ]; then
+	usage >&2
+	exit 2
+fi
+
+action=$1
+profile=$2
+shift 2
+if [ "$action" != apply ] && [ "$action" != remove ]; then
+	usage >&2
+	exit 2
+fi
+if [ "$action" = apply ] && [ "$#" -ne 1 ]; then
+	usage >&2
+	exit 2
+fi
+if [ "$action" = remove ] && [ "$#" -ne 0 ]; then
+	usage >&2
+	exit 2
+fi
+
+require_root
+require_network_manager
+if [ "$action" = apply ]; then
+	require_interface_name "$1"
+	case "$profile" in
+		bridge) apply_bridge "$1" ;;
+		proxyarp) apply_proxyarp "$1" ;;
+		*) usage >&2; exit 2 ;;
+	esac
+else
+	case "$profile" in
+		bridge) remove_bridge ;;
+		proxyarp) remove_proxyarp ;;
+		*) usage >&2; exit 2 ;;
+	esac
+fi

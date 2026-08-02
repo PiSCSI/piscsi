@@ -161,24 +161,17 @@ func (s *Server) handleIndex(c *gin.Context) {
 	validScsiIds, recommendedScsiId := validSCSIIDs(reserved, occupiedIDs)
 
 	// Build the attachment catalog from the daemon's advertised device
-	// capabilities. Network interfaces are used by daemon-defined "interface"
-	// parameters.
+	// capabilities. Typed network interfaces advertise the valid DaynaPort
+	// topology/profile combinations.
 	var deviceTypesInfo *pb.PbDeviceTypesInfo
 	if result, err := s.piscsiClient.SendCommand(cmdBuilder.GetDeviceTypesInfo()); err == nil && result.GetStatus() {
 		deviceTypesInfo = result.GetDeviceTypesInfo()
 	}
-	var networkInterfaces []string
+	var networkInterfaces []*pb.PbNetworkInterface
 	if result, err := s.piscsiClient.SendCommand(cmdBuilder.GetNetworkInfo()); err == nil && result.GetStatus() {
-		networkInterfaces = append(networkInterfaces, result.GetNetworkInterfacesInfo().GetName()...)
+		networkInterfaces = append(networkInterfaces, result.GetNetworkInterfacesInfo().GetInterfaces()...)
 	}
 	deviceTypes := s.buildDeviceCatalog(deviceTypesInfo, files, networkInterfaces)
-	bridgeConfigured := false
-	for _, interfaceName := range networkInterfaces {
-		if interfaceName == "piscsi_bridge" {
-			bridgeConfigured = true
-			break
-		}
-	}
 
 	data["ConfigDir"] = s.config.ConfigDir
 	data["ConfigDirExists"] = configDirExists
@@ -195,7 +188,6 @@ func (s *Server) handleIndex(c *gin.Context) {
 	data["RecommendedScsiId"] = recommendedScsiId
 	data["DeviceTypes"] = deviceTypes
 	data["FreeDiskSpace"] = freeDiskSpace
-	data["BridgeConfigured"] = bridgeConfigured
 	data["CreatableImageSuffixes"] = creatableImageSuffixes(imageFileTypeMapping)
 	data["HardDiskDriveProfiles"] = s.hardDiskDriveProfiles()
 	if drivers, err := s.hardDiskDriverImages(); err == nil {
@@ -544,8 +536,15 @@ type deviceCatalogEntry struct {
 	Removable     bool
 	SupportsFile  bool
 	Parameters    []deviceParameterControl
+	DaynaProfiles []daynaPortProfile
 	Files         []map[string]interface{}
 	DriveProfiles []string
+}
+
+type daynaPortProfile struct {
+	Mode      string
+	Interface string
+	Label     string
 }
 
 // converts DEVICE_TYPES_INFO into the complete attachment catalog
@@ -553,7 +552,7 @@ type deviceCatalogEntry struct {
 func (s *Server) buildDeviceCatalog(
 	info *pb.PbDeviceTypesInfo,
 	files []map[string]interface{},
-	networkInterfaces []string,
+	networkInterfaces []*pb.PbNetworkInterface,
 ) []deviceCatalogEntry {
 	if info == nil {
 		return nil
@@ -580,6 +579,9 @@ func (s *Server) buildDeviceCatalog(
 		}
 		sort.Strings(paramKeys)
 		for _, key := range paramKeys {
+			if deviceType == pb.PbDeviceType_SCDP && (key == "interface" || key == "mode") {
+				continue
+			}
 			defaultValue := properties.GetDefaultParams()[key]
 			control := deviceParameterControl{
 				Key:     key,
@@ -588,11 +590,40 @@ func (s *Server) buildDeviceCatalog(
 			}
 			if key == "interface" {
 				control.Kind = "interface"
-				control.Options = append([]string(nil), networkInterfaces...)
+				for _, networkInterface := range networkInterfaces {
+					if networkInterface.GetUp() {
+						control.Options = append(control.Options, networkInterface.GetName())
+					}
+				}
 			} else if _, err := strconv.Atoi(defaultValue); err == nil {
 				control.Kind = "number"
 			}
 			entry.Parameters = append(entry.Parameters, control)
+		}
+		if deviceType == pb.PbDeviceType_SCDP {
+			for _, networkInterface := range networkInterfaces {
+				if !networkInterface.GetUp() {
+					continue
+				}
+				for _, mode := range networkInterface.GetSupportedMode() {
+					profile := daynaPortProfile{Mode: mode, Interface: networkInterface.GetName()}
+					switch mode {
+					case "bridge":
+						profile.Label = "Wired bridge"
+					case "proxyarp":
+						profile.Label = "Wi-Fi proxy ARP"
+					default:
+						continue
+					}
+					entry.DaynaProfiles = append(entry.DaynaProfiles, profile)
+				}
+			}
+			sort.Slice(entry.DaynaProfiles, func(i, j int) bool {
+				if entry.DaynaProfiles[i].Mode == entry.DaynaProfiles[j].Mode {
+					return entry.DaynaProfiles[i].Interface < entry.DaynaProfiles[j].Interface
+				}
+				return entry.DaynaProfiles[i].Mode == "bridge"
+			})
 		}
 
 		if entry.SupportsFile {
@@ -713,13 +744,33 @@ func (s *Server) handleAttach(c *gin.Context) {
 
 	cmdBuilder := s.getCommandBuilder(c)
 
-	// Network adapters can only be attached through an interface advertised
-	// by the daemon and with the corresponding host bridge configuration.
-	bridgeMessage := ""
+	// DaynaPort attachments always use an explicit mode/interface pair. The
+	// profile selector is the web form representation; direct clients may send
+	// param_mode and param_interface instead.
+	profileMessage := ""
 	if pbType == pb.PbDeviceType_SCDP {
+		if profile := c.PostForm("daynaport_profile"); profile != "" {
+			mode, interfaceName, profileErr := parseDaynaPortProfile(profile)
+			if profileErr != nil {
+				s.respond(c, ResponseOptions{Error: true, Message: profileErr.Error()})
+				return
+			}
+			if requestedMode, ok := params["mode"]; ok && requestedMode != mode {
+				s.respond(c, ResponseOptions{Error: true, Message: "DaynaPort mode does not match the selected profile"})
+				return
+			}
+			if requestedInterface, ok := params["interface"]; ok && requestedInterface != interfaceName {
+				s.respond(c, ResponseOptions{Error: true, Message: "DaynaPort interface does not match the selected profile"})
+				return
+			}
+			params["mode"] = mode
+			params["interface"] = interfaceName
+		}
+
+		mode := params["mode"]
 		interfaceName := params["interface"]
-		if interfaceName == "" {
-			s.respond(c, ResponseOptions{Error: true, Message: "A network interface is required"})
+		if mode == "" || interfaceName == "" {
+			s.respond(c, ResponseOptions{Error: true, Message: "Select a DaynaPort network profile (mode and interface)"})
 			return
 		}
 		networkResult, networkErr := s.piscsiClient.SendCommand(cmdBuilder.GetNetworkInfo())
@@ -727,23 +778,23 @@ func (s *Server) handleAttach(c *gin.Context) {
 			s.respond(c, ResponseOptions{Error: true, Message: "Failed to validate network interfaces: " + networkErr.Error()})
 			return
 		}
-		interfaceAvailable := false
-		for _, available := range networkResult.GetNetworkInterfacesInfo().GetName() {
-			if available == interfaceName {
-				interfaceAvailable = true
+		var selectedInterface *pb.PbNetworkInterface
+		for _, available := range networkResult.GetNetworkInterfacesInfo().GetInterfaces() {
+			if available.GetName() == interfaceName {
+				selectedInterface = available
 				break
 			}
 		}
-		if !networkResult.GetStatus() || !interfaceAvailable {
+		if !networkResult.GetStatus() || selectedInterface == nil {
 			s.respond(c, ResponseOptions{Error: true, Message: fmt.Sprintf("Network interface %s is not available", interfaceName)})
 			return
 		}
-		bridgeReady, message := bridgeConfigurationStatus(interfaceName)
-		if !bridgeReady {
+		profileReady, message := daynaPortProfileStatus(mode, selectedInterface)
+		if !profileReady {
 			s.respond(c, ResponseOptions{Error: true, Message: message})
 			return
 		}
-		bridgeMessage = message
+		profileMessage = message
 	}
 
 	identity, err := s.attachmentIdentity(imageName, c.PostForm("drive_name"), pbType)
@@ -829,8 +880,8 @@ func (s *Server) handleAttach(c *gin.Context) {
 	if file != "" {
 		message = fmt.Sprintf("%s %s (%s) at SCSI ID %s:%s", action, deviceType, file, scsiID, unit)
 	}
-	if bridgeMessage != "" {
-		message += " - " + bridgeMessage
+	if profileMessage != "" {
+		message += " - " + profileMessage
 	}
 
 	s.respond(c, ResponseOptions{
@@ -3025,29 +3076,30 @@ func (s *Server) handleFilesDiskinfo(c *gin.Context) {
 	c.HTML(http.StatusOK, "diskinfo.html", data)
 }
 
-// displays manual pages
+// displays the PiSCSI manual index and individual manual pages
 func (s *Server) handleSysManpage(c *gin.Context) {
 	app := c.Query("app")
-	allowlist := map[string]bool{
-		"piscsi":   true,
-		"scsictl":  true,
-		"scsidump": true,
-		"scsimon":  true,
+	data := s.getBaseTemplateData(c)
+	if app == "" {
+		data["Manpages"] = piscsiManpages
+		data["Title"] = "PiSCSI Manual Pages"
+		c.HTML(http.StatusOK, "manpages.html", data)
+		return
 	}
 
-	if !allowlist[app] {
-		data := s.getBaseTemplateData(c)
+	page, ok := findPiSCSIManpage(app)
+	if !ok {
 		data["ErrorMessage"] = fmt.Sprintf("%s is not a recognized PiSCSI app", app)
 		data["Title"] = "Error"
 		c.HTML(http.StatusBadRequest, "manpage.html", data)
 		return
 	}
 
-	data := s.getBaseTemplateData(c)
 	data["App"] = app
-	data["Title"] = fmt.Sprintf("Manual for %s", app)
+	data["Section"] = page.Section
+	data["Title"] = fmt.Sprintf("Manual for %s(%d)", app, page.Section)
 
-	manpagePath, err := findSystemManpage(app, systemManpageDirs)
+	manpagePath, err := findSystemManpage(app, page.Section, systemManpageDirs[page.Section])
 	if err != nil {
 		data["ErrorMessage"] = err.Error()
 		c.HTML(http.StatusNotFound, "manpage.html", data)

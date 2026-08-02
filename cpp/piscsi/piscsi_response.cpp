@@ -308,8 +308,41 @@ void PiscsiResponse::GetLogLevelInfo(PbLogLevelInfo& log_level_info) const
 
 void PiscsiResponse::GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info) const
 {
-	for (const auto& network_interface : GetNetworkInterfaces()) {
-		network_interfaces_info.add_name(network_interface);
+	const auto proxyarp_uplink = GetConfiguredProxyArpUplink();
+	for (const auto& [name, network_interface] : GetNetworkInterfaceInfo()) {
+		if ((network_interface.type == NetworkInterfaceType::BRIDGE && name != "piscsi_bridge") ||
+				(network_interface.type != NetworkInterfaceType::BRIDGE &&
+				network_interface.type != NetworkInterfaceType::ETHERNET &&
+				network_interface.type != NetworkInterfaceType::WIFI)) {
+			continue;
+		}
+
+		auto interface = network_interfaces_info.add_interfaces();
+		interface->set_name(name);
+		interface->set_up(network_interface.up);
+		switch (network_interface.type) {
+		case NetworkInterfaceType::BRIDGE:
+			interface->set_type(NETWORK_INTERFACE_BRIDGE);
+			if (name == "piscsi_bridge") {
+				interface->add_supported_mode("bridge");
+			}
+			break;
+		case NetworkInterfaceType::ETHERNET:
+			interface->set_type(NETWORK_INTERFACE_ETHERNET);
+			break;
+		case NetworkInterfaceType::WIFI:
+			interface->set_type(NETWORK_INTERFACE_WIFI);
+			if (proxyarp_uplink && *proxyarp_uplink == name) {
+				interface->add_supported_mode("proxyarp");
+			}
+			break;
+		default:
+			break;
+		}
+
+		if (network_interface.up) {
+			network_interfaces_info.add_name(name);
+		}
 	}
 }
 
@@ -339,8 +372,8 @@ void PiscsiResponse::GetOperationInfo(PbOperationInfo& operation_info, int depth
 {
 	auto operation = CreateOperation(operation_info, ATTACH, "Attach device, device-specific parameters are required");
 	AddOperationParameter(*operation, "name", "Image file name in case of a mass storage device");
-	AddOperationParameter(*operation, "interface", "Comma-separated prioritized network interface list");
-	AddOperationParameter(*operation, "inet", "IP address and netmask of the network bridge");
+	AddOperationParameter(*operation, "interface", "Network interface selected for the DaynaPort mode");
+	AddOperationParameter(*operation, "mode", "DaynaPort networking mode (bridge or proxyarp)");
 	AddOperationParameter(*operation, "cmd", "Print command for the printer device");
 
 	CreateOperation(operation_info, DETACH, "Detach device, device-specific parameters are required");

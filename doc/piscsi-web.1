@@ -1,0 +1,123 @@
+.Dd August 23, 2026
+.Dt PISCSI-WEB 1
+.Os PiSCSI
+.Sh NAME
+.Nm piscsi-web
+.Nd web control interface for PiSCSI
+.Sh SYNOPSIS
+.Nm
+.Op Fl password Ar TOKEN
+.Op Fl v
+.Sh DESCRIPTION
+.Nm
+provides the browser-based control interface for a PiSCSI daemon.
+It connects to the daemon to display and manage SCSI devices, images,
+configuration files, logs, and system services.
+.Pp
+The packaged service reads its configuration from
+.Pa /etc/piscsi-web/piscsi-web.env
+and listens on all interfaces at port 8080 by default.
+Run the service through
+.Xr systemctl 1
+on a packaged installation.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl password Ar TOKEN
+Use
+.Ar TOKEN
+to authenticate with the PiSCSI daemon.
+This overrides
+.Ev PISCSI_TOKEN
+for this invocation.
+.It Fl v
+Print PiSCSI version and copyright information, then exit.
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width SESSION_KEY_FILE
+.It Ev SERVER_HOST
+Address on which to listen.
+The default is
+.Dq 0.0.0.0 .
+.It Ev SERVER_PORT
+TCP port on which to listen.
+The default is 8080.
+.It Ev PISCSI_HOST
+Hostname or IP address of the PiSCSI daemon.
+The default is
+.Dq localhost .
+.It Ev PISCSI_PORT
+TCP port of the PiSCSI daemon.
+The default is 6868.
+.It Ev PISCSI_TOKEN
+Authentication token for the PiSCSI daemon.
+.It Ev BASE_DIR
+Absolute directory that contains disk images.
+The default is
+.Pa /var/lib/piscsi/images .
+.It Ev SHARED_DIR
+Absolute directory for shared files.
+The default is
+.Pa /var/lib/piscsi/shared .
+.It Ev CONFIG_DIR
+Absolute directory for PiSCSI configuration files.
+The default is
+.Pa /var/lib/piscsi/config .
+.It Ev DRIVER_DIR
+Optional absolute directory containing Macintosh hard-disk driver images.
+The default is
+.Pa /var/lib/piscsi/data/mac-hard-disk-drivers .
+.It Ev DRIVE_PROPERTIES_FILE
+Drive-properties JSON file.
+Packaged installations use
+.Pa /etc/piscsi-web/drive_properties.json .
+.It Ev MAX_FILE_SIZE
+Largest accepted upload in bytes.
+The default is 4294967296 (4 GiB).
+.It Ev SESSION_KEY_FILE
+Absolute path to a base64-encoded master-key file used to protect browser
+sessions.
+The default is
+.Pa /etc/piscsi-web/session.key .
+.It Ev SESSION_KEY
+Base64-encoded session master key for development only.
+It is used only when
+.Ev SESSION_KEY_FILE
+is not set.
+.It Ev SESSION_MAX_AGE
+Browser session lifetime in seconds.
+The default is 86400.
+.It Ev TEMPLATES_DIR
+Optional directory containing HTML templates for development.
+.It Ev STATIC_DIR
+Optional directory containing static assets for development.
+.El
+.Sh EXAMPLES
+Start the packaged service and inspect its status:
+.Bd -literal -offset indent
+sudo systemctl enable --now piscsi-web
+systemctl status piscsi-web
+.Ed
+.Pp
+Run the application directly against a daemon on another host:
+.Bd -literal -offset indent
+PISCSI_HOST=piscsi.local PISCSI_TOKEN=secret piscsi-web
+.Ed
+.Sh FILES
+.Bl -tag -width /etc/piscsi-web/piscsi-web.env
+.It Pa /etc/piscsi-web/piscsi-web.env
+Packaged service environment file.
+.It Pa /etc/piscsi-web/session.key
+Packaged session master-key file.
+.It Pa /etc/piscsi-web/drive_properties.json
+Drive-properties database.
+.El
+.Sh SECURITY
+The web interface can modify PiSCSI devices and files.
+Protect access to its listening address, keep the daemon token and session key
+secret, and do not make the service publicly reachable without an appropriate
+network access control.
+.Sh SEE ALSO
+.Xr piscsi 1 ,
+.Xr scsictl 1
+.Pp
+Full documentation is available at: <https://www.piscsi.com>
