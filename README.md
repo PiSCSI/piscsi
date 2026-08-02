@@ -32,7 +32,7 @@ Typically, releases will only be planned every few months.
 
 When you are ready to contribute code to PiSCSI, follow the <a href="https://docs.github.com/en/get-started/quickstart/contributing-to-projects">GitHub Forking and Pull Request workflow</a> to create your own fork where you can make changes, and then contribute it back to the project. Please remember to always make Pull Requests against the *develop* branch.
 
-If you want to add a new translation, or improve upon an existing one, please follow the <a href="https://github.com/PiSCSI/piscsi/tree/master/python/web#localizing-the-web-interface">instructions in the Web Interface README</a>. Once the translation is complete, please use the same workflow as above to contribute it to the project.
+If you want to add a new translation, or improve upon an existing one, please follow the [Web Interface localization instructions](go/piscsi-web/README.md#updating-localizations). Once the translation is complete, please use the same workflow as above to contribute it to the project.
 
 # GitHub Sponsors
 

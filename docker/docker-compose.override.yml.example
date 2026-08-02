@@ -1,7 +1,4 @@
 services:
-  web:
+  go-test:
     volumes:
-      - ../python:/home/pi/piscsi/python:delegated
-  pytest:
-    volumes:
-      - ../python/web:/src:delegated
+      - ../go:/src/go:delegated

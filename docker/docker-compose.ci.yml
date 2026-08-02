@@ -1,5 +1,7 @@
 services:
   backend:
+    profiles:
+      - native-backend
     image: ${GHCR_IMAGE}
     build:
       context: ..
@@ -11,6 +13,15 @@ services:
       interval: 5s
       start_period: 5s
 
+  mock-backend:
+    build:
+      context: ..
+      dockerfile: docker/web/Dockerfile
+    entrypoint: ["/usr/local/bin/mock-piscsi"]
+    init: true
+    healthcheck:
+      disable: true
+
   web:
     build:
       context: ..
@@ -19,24 +30,28 @@ services:
         - OS_VERSION=bullseye
     volumes:
       - ./volumes/images:/home/pi/images:delegated
+    user: "${PISCSI_DOCKER_UID:-1000}:${PISCSI_DOCKER_GID:-1000}"
     init: true
-    command: ["--backend-host=backend", "--log-level=debug"]
+    environment:
+      PISCSI_HOST: mock-backend
+      PISCSI_PORT: 6868
+      SERVER_PORT: 8080
+      BASE_DIR: /home/pi/images
+      SHARED_DIR: /home/pi/shared_files
+      CONFIG_DIR: /home/pi/.config/piscsi
     healthcheck:
       interval: 5s
       start_period: 5s
+    depends_on:
+      mock-backend:
+        condition: service_started
 
-  pytest:
+  go-test:
     depends_on:
       web:
-        condition: service_healthy
-      backend:
         condition: service_healthy
     profiles:
       - webui-tests
     build:
       context: ..
-      dockerfile: docker/pytest/Dockerfile
-    working_dir: /src
-    volumes:
-      - ./volumes/pytest:/src/tests/output:delegated
-    command: ["-vv"]
+      dockerfile: docker/go-test/Dockerfile

@@ -21,7 +21,7 @@ services:
 
   web:
     container_name: piscsi_web
-    image: piscsi-web:${OS_VERSION:-bullseye}
+    image: piscsi-web
     pull_policy: never
     build:
       context: ..
@@ -32,27 +32,24 @@ services:
       - ./volumes/images:/home/pi/images:delegated
       - ./volumes/config:/home/pi/.config/piscsi:delegated
     ports:
-      - "127.0.0.1:${WEB_HTTP_PORT:-8080}:80"
-      - "127.0.0.1:${WEB_HTTPS_PORT:-8443}:443"
+      - "127.0.0.1:${WEB_HTTP_PORT:-8080}:8080"
     environment:
-     - BACKEND_PASSWORD=${BACKEND_PASSWORD:-}
-     - RESET_VENV=${RESET_VENV:-}
+      PISCSI_HOST: ${BACKEND_HOST:-backend}
+      PISCSI_PORT: ${BACKEND_PORT:-6868}
+      PISCSI_TOKEN: ${BACKEND_PASSWORD:-}
+      SERVER_PORT: 8080
+      BASE_DIR: /home/pi/images
+      SHARED_DIR: /home/pi/shared_files
+      CONFIG_DIR: /home/pi/.config/piscsi
+      SESSION_KEY: ${SESSION_KEY:-}
+    user: "${PISCSI_DOCKER_UID:-1000}:${PISCSI_DOCKER_GID:-1000}"
     init: true
-    command: [
-      "--backend-host=${BACKEND_HOST:-backend}",
-      "--backend-port=${BACKEND_PORT:-6868}",
-      "--log-level=${WEB_LOG_LEVEL:-debug}",
-      "--dev-mode"
-    ]
-
-  pytest:
-    container_name: piscsi_pytest
-    image: piscsi-pytest
+  go-test:
+    container_name: piscsi_go_test
+    image: piscsi-go-test
     pull_policy: never
     profiles:
       - webui-tests
     build:
       context: ..
-      dockerfile: docker/pytest/Dockerfile
-    working_dir: /src
-    command: ["-vv"]
+      dockerfile: docker/go-test/Dockerfile
