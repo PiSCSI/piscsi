@@ -299,11 +299,11 @@ void PiscsiResponse::GetVersionInfo(PbVersionInfo& version_info) const
 
 void PiscsiResponse::GetLogLevelInfo(PbLogLevelInfo& log_level_info) const
 {
-	for (const auto& log_level : spdlog::level::level_string_views) {
-		log_level_info.add_log_levels(log_level.data());
+	for (int level = spdlog::level::trace; level < spdlog::level::n_levels; level++) {
+		log_level_info.add_log_levels(spdlog::level::to_string_view(static_cast<spdlog::level::level_enum>(level)).data());
 	}
 
-	log_level_info.set_current_log_level(spdlog::level::level_string_views[spdlog::get_level()].data());
+	log_level_info.set_current_log_level(spdlog::level::to_string_view(spdlog::get_level()).data());
 }
 
 void PiscsiResponse::GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info) const

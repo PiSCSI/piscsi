@@ -7,8 +7,6 @@ project(
 
 common_flags = [
   '-D_FILE_OFFSET_BITS=64',
-  '-DFMT_HEADER_ONLY',
-  '-DSPDLOG_FMT_EXTERNAL',
 ]
 
 if get_option('buildtype') == 'debug'
@@ -31,8 +29,12 @@ protobuf_dep = dependency('protobuf', required : true)
 protoc = find_program('protoc', required : true)
 pthread_dep = dependency('threads', required : true)
 pcap_dep = dependency('pcap', required : true)
+spdlog_dep = dependency('spdlog', required : true)
+fmt_dep = dependency('fmt', required : true)
 gtest_dep = dependency('gtest', required : false)
 gmock_dep = dependency('gmock', required : false)
+
+common_deps = [pthread_dep, spdlog_dep, fmt_dep]
 
 subdir('cpp')
 subdir('doc')

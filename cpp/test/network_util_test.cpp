@@ -22,7 +22,12 @@ TEST(NetworkUtilTest, IsInterfaceUp)
 
 TEST(NetworkUtilTest, GetNetworkInterfaces)
 {
+	// GetNetworkInterfaces() only enumerates interfaces on Linux.
+#ifdef __linux__
 	EXPECT_FALSE(GetNetworkInterfaces().empty());
+#else
+	GetNetworkInterfaces();
+#endif
 }
 
 TEST(NetworkUtilTest, ResolveHostName)
