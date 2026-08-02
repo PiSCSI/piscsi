@@ -62,11 +62,13 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 
 		// Format device page
 		if (const int page = buf[offset]; page == 0x03) {
-			// The sector size field is at offset 12 in the page and occupies two bytes.
-			if (size < 14) {
+			// MODE SELECT must use the page length advertised by MODE SENSE.
+			constexpr int format_device_page_length = 24;
+			if (size != format_device_page_length) {
 				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 			}
 
+			// The sector size field is at offset 12 in the page and occupies two bytes.
 			// With this page the sector size for a subsequent FORMAT can be selected, but only very few
 			// drives support this, e.g FUJITSU M2624S
 			// We are fine as long as the current sector size remains unchanged

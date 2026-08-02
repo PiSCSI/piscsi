@@ -123,11 +123,11 @@ TEST(ScsiCommandUtilTest, ModeSelectRejectsTruncatedParameterList)
 {
 	vector<int> cdb(6);
 	cdb[1] = 0x10;
-	vector<uint8_t> buf(19);
+	vector<uint8_t> buf(29);
 
 	// A complete Format Device Page is followed by one byte of a truncated page header.
 	buf[4] = 0x03;
-	buf[5] = 0x0c;
+	buf[5] = 0x16;
 	buf[16] = 0x02;
 
 	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, static_cast<int>(buf.size()), 512); },
@@ -135,6 +135,23 @@ TEST(ScsiCommandUtilTest, ModeSelectRejectsTruncatedParameterList)
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::parameter_list_length_error))))
 		<< "Truncated mode page header was accepted";
+}
+
+TEST(ScsiCommandUtilTest, ModeSelectRejectsFormatDevicePageWithInvalidLength)
+{
+	vector<int> cdb(6);
+	cdb[1] = 0x10;
+	vector<uint8_t> buf(18);
+
+	buf[4] = 0x03;
+	buf[5] = 0x0c;
+	buf[16] = 0x02;
+
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, static_cast<int>(buf.size()), 512); },
+			Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_parameter_list))))
+		<< "Format Device Page with an invalid length was accepted";
 }
 
 TEST(ScsiCommandUtilTest, ModeSelectReportsParameterListLengthErrorForTruncation)
@@ -148,6 +165,7 @@ TEST(ScsiCommandUtilTest, ModeSelectReportsParameterListLengthErrorForTruncation
 	vector<int> cdb6(6);
 	cdb6[1] = 0x10;
 	vector<uint8_t> buf6(28);
+	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb6, buf6, static_cast<int>(buf6.size()) + 1, 512); });
 	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb6, buf6, 3, 512); });
 	buf6[3] = 1;
 	expect_truncation([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb6, buf6, 4, 512); });
