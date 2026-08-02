@@ -36,6 +36,9 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 				<< " LUN := {0-" << (ControllerManager::GetScsiLunMax() - 1) << "}, default is 0\n"
 				<< "Usage: " << args[0] << " -l\n"
 				<< "       Print device list.\n\n"
+				<< "DaynaPort profiles use one explicit parameter value, for example:\n"
+				<< "       -f 'mode=bridge:interface=piscsi_bridge'\n"
+				<< "       -f 'mode=proxyarp:interface=wlan0'\n\n"
 				<< "See the scsictl man page for all supported commands, types, and other parameters\n"
                 << flush;
 
@@ -263,6 +266,19 @@ int ScsiCtl::run(const vector<char *>& args) const
 		}
 		else {
 			ParseParameters(*device, param);
+			if (command.operation() == ATTACH && device->type() == SCDP) {
+				const bool has_mode = device->params().contains("mode");
+				const bool has_interface = device->params().contains("interface");
+				if (!has_mode && !has_interface) {
+					SetParam(*device, "mode", "bridge");
+					SetParam(*device, "interface", "piscsi_bridge");
+				}
+				else if (has_mode != has_interface) {
+					cerr << "Error: DaynaPort attachments require both mode and interface, for example "
+							"-f 'mode=proxyarp:interface=wlan0'" << endl;
+					return EXIT_FAILURE;
+				}
+			}
 
 			status = scsictl_commands.Execute(log_level, default_folder, reserved_ids, image_params, filename);
 		}

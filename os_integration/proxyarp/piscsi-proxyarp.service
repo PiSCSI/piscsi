@@ -1,0 +1,26 @@
+[Unit]
+Description=PiSCSI Wi-Fi proxy-ARP service
+Documentation=https://github.com/PiSCSI/piscsi/issues/1387
+BindsTo=sys-subsystem-net-devices-piscsi0.device
+After=sys-subsystem-net-devices-piscsi0.device network-online.target NetworkManager.service
+Wants=network-online.target piscsi-dhcp-relay.service
+Before=piscsi-dhcp-relay.service
+ConditionPathExists=/sys/class/net/piscsi0
+ConditionPathExists=/etc/piscsi/network.conf
+StartLimitIntervalSec=60
+StartLimitBurst=10
+
+[Service]
+Type=simple
+Environment=PISCSI_TAP=piscsi0
+EnvironmentFile=/etc/piscsi/network.conf
+RuntimeDirectory=piscsi
+RuntimeDirectoryMode=0755
+ExecStartPre=/usr/lib/piscsi/piscsi-proxyarp-prepare
+ExecStart=/usr/sbin/parprouted -d ${PISCSI_TAP} ${PISCSI_PROXYARP_UPLINK}
+ExecStopPost=/usr/lib/piscsi/piscsi-proxyarp-cleanup
+Restart=on-failure
+RestartSec=3s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=piscsi-proxyarp

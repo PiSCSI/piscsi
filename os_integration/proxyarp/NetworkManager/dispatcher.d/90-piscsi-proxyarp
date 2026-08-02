@@ -1,0 +1,22 @@
+#!/bin/sh
+# Reconcile the PiSCSI proxy-ARP services after the selected Wi-Fi uplink
+# reconnects or receives a new DHCP lease.
+set -eu
+
+interface=${1:-}
+action=${2:-}
+config=/etc/piscsi/network.conf
+
+[ -r "$config" ] || exit 0
+uplink=$(sed -n 's/^PISCSI_PROXYARP_UPLINK=//p' "$config")
+case "$uplink" in *[![:alnum:]_.-]*|''|????????????????*) exit 0 ;; esac
+[ "$interface" = "$uplink" ] || exit 0
+
+case "$action" in
+    down|pre-down)
+        /usr/bin/systemctl stop piscsi-dhcp-relay.service piscsi-proxyarp.service
+        ;;
+    up|dhcp4-change)
+        /usr/bin/systemctl restart piscsi-proxyarp.service piscsi-dhcp-relay.service
+        ;;
+esac

@@ -96,7 +96,7 @@ Sets the default locale for client-facing error messages. The client can overrid
 .It Fl ID Ar n Ns Oo : Ar u Oc Ar FILE
 n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The default LUN is 0.
 .Pp
-FILE is the name of the image file to use for a SCSI mass storage device. For devices that do not support an image file (SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCDP it is a prioritized list of network interfaces with an IP address and netmask, e.g. "interface=eth0,eth1,wlan0:inet=10.10.20.1/24". For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
+FILE is the name of the image file to use for a SCSI mass storage device. For devices that do not support an image file (SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCDP it selects one explicit host networking profile: \fBmode=bridge:interface=piscsi_bridge\fR for a preconfigured wired Linux bridge, or \fBmode=proxyarp:interface=wlan0\fR for the configured Wi-Fi proxy-ARP uplink. The proxy-ARP profile supports IPv4 unicast and DHCP only; it is not an Ethernet bridge and does not support IPv6, AppleTalk, multicast, mDNS, or other non-IP Ethernet traffic. For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
 .El
 .Sh EXAMPLES
 Launch PiSCSI with no emulated drives attached:
@@ -107,6 +107,12 @@ Launch PiSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
 .Pp
 Launch PiSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter as ID 6:
 .Dl Nm piscsi Fl ID0 Fl t Ar scrm Ar /dev/hdb Fl ID6 Fl t Ar scdp Ar daynaport
+.Pp
+Launch PiSCSI with a DaynaPort on the preconfigured wired bridge:
+.Dl Nm piscsi Fl ID6 Fl t Ar scdp Ar "mode=bridge:interface=piscsi_bridge"
+.Pp
+For a configured Wi-Fi proxy-ARP uplink named wlan0:
+.Dl Nm piscsi Fl ID6 Fl t Ar scdp Ar "mode=proxyarp:interface=wlan0"
 .Pp
 To create an empty, 100MiB HD image, use the following command:
 .Dl dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800

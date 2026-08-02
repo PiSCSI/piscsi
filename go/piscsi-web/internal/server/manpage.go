@@ -20,21 +20,49 @@ import (
 	"strings"
 )
 
-var systemManpageDirs = []string{
-	"/usr/local/man/man1",
-	"/usr/local/share/man/man1",
-	"/usr/man/man1",
-	"/usr/share/man/man1",
+var systemManpageDirs = map[int][]string{
+	1: {
+		"/usr/local/man/man1",
+		"/usr/local/share/man/man1",
+		"/usr/man/man1",
+		"/usr/share/man/man1",
+	},
+	8: {
+		"/usr/local/man/man8",
+		"/usr/local/share/man/man8",
+		"/usr/man/man8",
+		"/usr/share/man/man8",
+	},
 }
 
 var manpageLinkPattern = regexp.MustCompile(`(?i)href="/\?1\+([a-z0-9_-]+)"`)
 
+// manpage describes a PiSCSI manual page that can be displayed in the web UI.
+type manpage struct {
+	App         string
+	Section     int
+	Description string
+}
+
+var piscsiManpages = []manpage{
+	{App: "piscsi", Section: 1, Description: "Emulates SCSI devices using the Raspberry Pi GPIO pins."},
+	{App: "piscsi-web", Section: 1, Description: "Web control interface for PiSCSI."},
+	{App: "piscsi-oled", Section: 1, Description: "Displays PiSCSI status on an SSD1306 OLED panel."},
+	{App: "piscsi-ctrlboard", Section: 1, Description: "Operates PiSCSI with the PiSCSI Control Board."},
+	{App: "scsictl", Section: 1, Description: "Sends management commands to the piscsi process."},
+	{App: "scsidump", Section: 1, Description: "SCSI disk dumping tool for PiSCSI."},
+	{App: "scsiloop", Section: 1, Description: "Tests a PiSCSI board with a loopback adapter."},
+	{App: "scsimon", Section: 1, Description: "Captures traffic on the SCSI bus."},
+	{App: "piscsi-network-profile", Section: 8, Description: "Manages PiSCSI DaynaPort network profiles."},
+}
+
 // findSystemManpage finds a source manpage in the system locations used by
 // PiSCSI and the common Linux man implementations.
-func findSystemManpage(app string, dirs []string) (string, error) {
+func findSystemManpage(app string, section int, dirs []string) (string, error) {
+	suffix := fmt.Sprintf(".%d", section)
 	for _, dir := range dirs {
-		for _, suffix := range []string{".1", ".1.gz"} {
-			path := filepath.Join(dir, app+suffix)
+		for _, extension := range []string{suffix, suffix + ".gz"} {
+			path := filepath.Join(dir, app+extension)
 			info, err := os.Stat(path)
 			if err == nil && info.Mode().IsRegular() {
 				return path, nil
@@ -42,7 +70,17 @@ func findSystemManpage(app string, dirs []string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("manual page for %s is not installed", app)
+	return "", fmt.Errorf("manual page for %s(%d) is not installed", app, section)
+}
+
+func findPiSCSIManpage(app string) (manpage, bool) {
+	for _, page := range piscsiManpages {
+		if page.App == app {
+			return page, true
+		}
+	}
+
+	return manpage{}, false
 }
 
 func readRoffManpage(path string) ([]byte, error) {

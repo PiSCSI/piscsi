@@ -16,11 +16,12 @@ Build-Depends: debhelper-compat (= 13),
                protoc-gen-go:native
 Standards-Version: 4.7.2
 Rules-Requires-Root: no
-Homepage: https://github.com/PiSCSI/piscsi
+Homepage: https://piscsi.com
 
 Package: piscsi
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
+Suggests: dhcp-helper, parprouted
 Description: virtual SCSI device emulator for Raspberry Pi
  PiSCSI emulates SCSI devices using a Raspberry Pi and a compatible SCSI HAT.
  This package provides the PiSCSI daemon and its command-line utilities.

@@ -157,6 +157,12 @@ Example output:
 .Pp
 Request the PiSCSI process to attach a disk to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
 .Dl Nm scsictl Fl c No a Fl i No 0 Fl f No HDIIMAGE0.HDS
+.Pp
+Attach a DaynaPort to the preconfigured wired bridge. DaynaPort mode and interface are a single, explicit parameter value:
+.Dl Nm scsictl Fl i No 6 Fl c No attach Fl t No scdp Fl f No "mode=bridge:interface=piscsi_bridge"
+.Pp
+Attach a DaynaPort through a configured Wi-Fi proxy-ARP uplink. This profile supports IPv4 unicast and DHCP only; it is not an Ethernet bridge:
+.Dl Nm scsictl Fl i No 6 Fl c No attach Fl t No scdp Fl f No "mode=proxyarp:interface=wlan0"
 .Sh SEE ALSO
 .Xr piscsi 1 ,
 .Xr scsimon 1 ,

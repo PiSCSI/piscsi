@@ -51,6 +51,9 @@ func TestRoutesRequireNoBrowserLogin(t *testing.T) {
 	if !routes["GET /"] {
 		t.Fatal("GET / is not registered")
 	}
+	if !routes["GET /sys/manpage"] {
+		t.Fatal("GET /sys/manpage is not registered")
+	}
 	if routes["GET /login"] || routes["POST /login"] || routes["GET /logout"] {
 		t.Fatal("browser authentication routes are still registered")
 	}

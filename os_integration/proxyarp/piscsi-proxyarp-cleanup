@@ -1,0 +1,29 @@
+#!/bin/sh
+# Remove only the IPv4 address and promiscuous-mode flag owned by PiSCSI.
+set -eu
+
+ip=/usr/sbin/ip
+tap=${PISCSI_TAP:-piscsi0}
+uplink=${PISCSI_PROXYARP_UPLINK:-}
+state=/run/piscsi/proxyarp.state
+
+if [ ! -f "$state" ]; then
+    exit 0
+fi
+
+address=$(sed -n 's/^PISCSI_PROXYARP_ADDRESS=//p' "$state")
+promisc_changed=$(sed -n 's/^PISCSI_PROXYARP_PROMISC_CHANGED=//p' "$state")
+
+case "$tap" in piscsi0) ;; *) exit 2 ;; esac
+case "$uplink" in *[![:alnum:]_.-]*|''|????????????????*) exit 2 ;; esac
+case "$address" in *[!0-9./]*|''|*/*/*) exit 2 ;; esac
+case "$promisc_changed" in 0|1) ;; *) exit 2 ;; esac
+
+if "$ip" link show dev "$tap" >/dev/null 2>&1; then
+    "$ip" -4 addr del "$address" dev "$tap" 2>/dev/null || true
+fi
+if [ "$promisc_changed" = 1 ] && "$ip" link show dev "$uplink" >/dev/null 2>&1; then
+    "$ip" link set dev "$uplink" promisc off
+fi
+
+rm -f "$state"

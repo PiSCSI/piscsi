@@ -1,13 +1,7 @@
 #
-# Defines the 'piscsi_bridge' bridge that connects the PiSCSI network
-# interface (ex DaynaPort SCSI/Link) to the outside world.
+# Retired legacy ifupdown template.
 #
-# Depending upon your system configuration, you may need to update this
-# file to change 'eth0' to your Ethernet interface
-#
-# This file should be place in /etc/network/interfaces.d
-
-auto piscsi_bridge
-iface piscsi_bridge inet dhcp
-	bridge_ports eth0
-
+# PiSCSI now requires NetworkManager to own the persistent piscsi_bridge
+# bridge and its Ethernet port. Use the inert templates in
+# os_integration/NetworkManager/ instead; do not install this file on a
+# supported Trixie or Forky system.

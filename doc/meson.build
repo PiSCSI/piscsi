@@ -38,3 +38,5 @@ foreach man : man_pages
     install_dir : meson.project_source_root() / 'doc',
   )
 endforeach
+
+install_data('piscsi-network-profile.8', install_dir : get_option('prefix') / get_option('mandir') / 'man8')

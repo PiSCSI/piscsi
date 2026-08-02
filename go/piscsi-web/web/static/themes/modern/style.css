@@ -872,6 +872,19 @@ body.page-manpage div.content p.home {
   font-weight: bold;
 }
 
+body.page-manpages dl.manpage-list {
+  margin: 1.5rem 0;
+}
+
+body.page-manpages dl.manpage-list dt {
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+body.page-manpages dl.manpage-list dd {
+  margin: 0.25rem 0 0 1.5rem;
+}
+
 /*
  ------------------------------------------------------------------------------
  Base > Back

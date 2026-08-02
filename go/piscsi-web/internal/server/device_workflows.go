@@ -143,60 +143,39 @@ func removableDeviceType(deviceType pb.PbDeviceType) bool {
 	}
 }
 
-var bridgeConfigurationPaths = struct {
-	sysctl string
-	nat    string
-	dhcpcd string
-	bridge string
-}{
-	sysctl: "/etc/sysctl.conf",
-	nat:    "/etc/iptables/rules.v4",
-	dhcpcd: "/etc/dhcpcd.conf",
-	bridge: "/etc/network/interfaces.d/piscsi_bridge",
+func parseDaynaPortProfile(value string) (string, string, error) {
+	mode, interfaceName, found := strings.Cut(value, ":")
+	if !found || mode == "" || interfaceName == "" || strings.Contains(interfaceName, ":") {
+		return "", "", fmt.Errorf("invalid DaynaPort network profile")
+	}
+	if mode != "bridge" && mode != "proxyarp" {
+		return "", "", fmt.Errorf("unsupported DaynaPort network mode %q", mode)
+	}
+	return mode, interfaceName, nil
 }
 
-func bridgeConfigurationStatus(interfaceName string) (bool, string) {
-	switch {
-	case interfaceName == "piscsi_bridge":
-		return true, "The piscsi_bridge network bridge is active and ready"
-	case strings.HasPrefix(interfaceName, "wlan"), strings.HasPrefix(interfaceName, "wlx"):
-		missing := []string{}
-		if !fileContainsLine(bridgeConfigurationPaths.sysctl, "net.ipv4.ip_forward=1") {
-			missing = append(missing, "IPv4 forwarding")
-		}
-		if _, err := os.Stat(bridgeConfigurationPaths.nat); err != nil {
-			missing = append(missing, "NAT")
-		}
-		if len(missing) != 0 {
-			return false, fmt.Sprintf("Configure the network bridge for %s first: %s", interfaceName, strings.Join(missing, ", "))
-		}
-		return true, fmt.Sprintf("Wireless network bridge enabled for %s", interfaceName)
-	case strings.HasPrefix(interfaceName, "eth"), strings.HasPrefix(interfaceName, "enx"), strings.HasPrefix(interfaceName, "enp"):
-		missing := []string{}
-		if !fileContainsLine(bridgeConfigurationPaths.dhcpcd, "denyinterfaces "+interfaceName) {
-			missing = append(missing, bridgeConfigurationPaths.dhcpcd)
-		}
-		if _, err := os.Stat(bridgeConfigurationPaths.bridge); err != nil {
-			missing = append(missing, bridgeConfigurationPaths.bridge)
-		}
-		if len(missing) != 0 {
-			return false, fmt.Sprintf("Configure the network bridge for %s first: %s", interfaceName, strings.Join(missing, ", "))
-		}
-		return true, fmt.Sprintf("Wired network bridge enabled for %s", interfaceName)
-	default:
-		return false, fmt.Sprintf("Unable to validate the network bridge for interface %s", interfaceName)
+// daynaPortProfileStatus validates the topology advertised by the daemon. The
+// daemon is also responsible for the final host-side validation (notably the
+// configured proxy-ARP uplink), so the web app never infers readiness from
+// obsolete NAT, dhcpcd, or ifupdown files.
+func daynaPortProfileStatus(mode string, networkInterface *pb.PbNetworkInterface) (bool, string) {
+	if mode != "bridge" && mode != "proxyarp" {
+		return false, fmt.Sprintf("Unsupported DaynaPort network mode %q", mode)
 	}
-}
-
-func fileContainsLine(path, expected string) bool {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return false
+	if networkInterface == nil {
+		return false, "The selected network interface is not advertised by the PiSCSI daemon"
 	}
-	for _, line := range strings.Split(string(data), "\n") {
-		if strings.TrimSpace(line) == expected {
-			return true
+	if !networkInterface.GetUp() {
+		return false, fmt.Sprintf("Network interface %s is down", networkInterface.GetName())
+	}
+	for _, supportedMode := range networkInterface.GetSupportedMode() {
+		if supportedMode != mode {
+			continue
 		}
+		if mode == "bridge" {
+			return true, "Wired bridge profile is active and ready"
+		}
+		return true, "Wi-Fi proxy-ARP profile is active and ready (IPv4 unicast and DHCP only)"
 	}
-	return false
+	return false, fmt.Sprintf("Network interface %s does not support the DaynaPort %s profile", networkInterface.GetName(), mode)
 }

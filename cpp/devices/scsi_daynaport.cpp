@@ -62,6 +62,9 @@ bool SCSIDaynaPort::Init(const param_map& params)
 		return false;
 #endif
 	} else {
+		array<uint8_t, 6> mac = {};
+		tap.GetMacAddr(mac.data());
+		memcpy(m_scsi_link_stats.mac_address.data(), mac.data(), mac.size());
 		LogTrace("Tap interface created");
 	}
 

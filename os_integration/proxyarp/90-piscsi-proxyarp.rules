@@ -1,0 +1,2 @@
+# Start proxy-ARP only after PiSCSI has created its dynamic TAP interface.
+SUBSYSTEM=="net", ACTION=="add", KERNEL=="piscsi0", TAG+="systemd", ENV{SYSTEMD_WANTS}+="piscsi-proxyarp.service"

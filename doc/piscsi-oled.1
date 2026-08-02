@@ -1,0 +1,121 @@
+.Dd August 23, 2026
+.Dt PISCSI-OLED 1
+.Os PiSCSI
+.Sh NAME
+.Nm piscsi-oled
+.Nd display PiSCSI status on an SSD1306 I2C OLED panel
+.Sh SYNOPSIS
+.Nm
+.Op Fl diagnostic
+.Op Fl height Ar 32|64
+.Op Fl host Ar HOST
+.Op Fl i2c-address Ar ADDRESS
+.Op Fl i2c-device Ar DEVICE
+.Op Fl password Ar TOKEN
+.Op Fl port Ar PORT
+.Op Fl refresh_interval Ar MILLISECONDS
+.Op Fl rotation Ar 0|180
+.Op Fl screensaver Ar off|ip|blank
+.Op Fl screensaver-idle-timeout Ar DURATION
+.Op Fl screensaver-move-interval Ar DURATION
+.Op Fl v
+.Sh DESCRIPTION
+.Nm
+polls a PiSCSI daemon and presents its current status on a 128-by-32 or
+128-by-64 SSD1306 OLED display connected through I2C.
+It shows startup and shutdown splash screens, rotates long status lines, and
+can activate an optional screensaver after status has been unchanged for a
+period of time.
+.Pp
+The default display is a 128-by-32 panel at address 0x3c on
+.Pa /dev/i2c-1 ,
+rotated 180 degrees.
+The default daemon is
+.Dq localhost
+on port 6868.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl diagnostic
+Show the startup and shutdown splashes, clear the display, and exit without
+contacting the PiSCSI daemon.
+.It Fl height Ar 32|64
+Display height in pixels.
+The default is 32.
+.It Fl host Ar HOST
+PiSCSI daemon hostname.
+The default is
+.Dq localhost .
+.It Fl horizontal_scroll_step Ar PIXELS
+Pixels by which long lines move after each refresh.
+Specify 0 to pause horizontal scrolling.
+The default is 6.
+.It Fl i2c-address Ar ADDRESS
+SSD1306 I2C address, expressed as an integer accepted by Go, such as
+.Dq 0x3c .
+.It Fl i2c-device Ar DEVICE
+Linux I2C device.
+The default is
+.Pa /dev/i2c-1 .
+.It Fl password Ar TOKEN
+PiSCSI daemon authentication token.
+.It Fl port Ar PORT
+PiSCSI daemon port.
+The default is 6868.
+.It Fl refresh_interval Ar MILLISECONDS
+Screen refresh interval in milliseconds.
+0 uses the minimum interval of one millisecond.
+The default is 1000.
+.It Fl rotation Ar 0|180
+Screen rotation in degrees.
+The default is 180.
+.It Fl screensaver Ar off|ip|blank
+Screensaver mode.
+.Dq ip
+keeps the network-status line visible and moves it periodically;
+.Dq blank
+clears the display;
+.Dq off
+disables the screensaver.
+The default is
+.Dq off .
+.It Fl screensaver-idle-timeout Ar DURATION
+Time for which the status must remain unchanged before the screensaver starts.
+The default is 5m.
+.It Fl screensaver-move-interval Ar DURATION
+Interval between moves of the IP screensaver line.
+The default is 30s.
+.It Fl v
+Print PiSCSI version and copyright information, then exit.
+.El
+.Pp
+Duration options accept Go duration strings, for example 30s, 5m, and 1h.
+.Sh EXAMPLES
+Use a 128-by-64 display rotated 180 degrees:
+.Bd -literal -offset indent
+piscsi-oled -height=64 -rotation=180
+.Ed
+.Pp
+Enable the IP screensaver after five minutes of inactivity:
+.Bd -literal -offset indent
+piscsi-oled -screensaver=ip -screensaver-idle-timeout=5m
+.Ed
+.Sh HARDWARE
+Enable I2C before using the program and ensure that the service account can
+access the selected I2C device.
+On Raspberry Pi OS, the display is usually available at
+.Pa /dev/i2c-1 .
+Use
+.Xr i2cdetect 8
+to identify its address.
+.Sh SIGNALS
+.Nm
+handles
+.Dv SIGINT
+and
+.Dv SIGTERM .
+It displays the shutdown splash, clears the OLED panel, and exits.
+.Sh SEE ALSO
+.Xr piscsi 1 ,
+.Xr i2cdetect 8
+.Pp
+Full documentation is available at: <https://www.piscsi.com>

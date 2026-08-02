@@ -1,0 +1,81 @@
+.Dd August 22, 2026
+.Dt PISCSI-NETWORK-PROFILE 8
+.Os PiSCSI
+.Sh NAME
+.Nm piscsi-network-profile
+.Nd explicitly manage PiSCSI DaynaPort network profiles
+.Sh SYNOPSIS
+.Nm
+.Op Fl Fl dry-run
+.Op Fl Fl console-acknowledge
+.Cm apply bridge
+.Ar ethernet-interface
+.Nm
+.Op Fl Fl dry-run
+.Op Fl Fl console-acknowledge
+.Cm apply proxyarp
+.Ar wifi-interface
+.Nm
+.Op Fl Fl dry-run
+.Op Fl Fl console-acknowledge
+.Cm remove
+.Cm bridge | proxyarp
+.Sh DESCRIPTION
+.Nm
+creates or removes only the named NetworkManager connections and PiSCSI
+configuration used by the DaynaPort network adapter.
+It is not a general installer and does not modify existing user connections,
+routes, addresses, or firewall rules.
+.Pp
+The
+.Cm bridge
+profile creates the named
+.Dq PiSCSI wired bridge
+and
+.Dq PiSCSI wired bridge port
+NetworkManager connections, then activates the bridge.
+It disables STP to avoid an unnecessary forwarding delay and pins the bridge
+MAC address to the selected physical Ethernet interface, keeping it distinct
+from the DaynaPort TAP MAC.
+It is the protocol-complete profile for a wired connection.
+.Pp
+The
+.Cm proxyarp
+profile records the selected Wi-Fi uplink in
+.Pa /etc/piscsi/network.conf ,
+reloads the PiSCSI runtime configuration, and disables the generic
+.Pa dhcp-helper.service
+to avoid a UDP/67 conflict with PiSCSI's DHCP relay.
+It requires the separately installed
+.Nm parprouted
+and
+.Nm dhcp-helper
+programs.
+Proxy ARP supports IPv4 unicast and DHCP only; it is not an Ethernet bridge
+and does not support IPv6, AppleTalk, multicast, mDNS, or other non-IP
+Ethernet traffic.
+.Sh SAFETY
+.Fl Fl dry-run
+prints the complete plan without changing the system.
+Applying or removing a profile requires root and NetworkManager. If
+.Fl Fl console-acknowledge
+is omitted, the command requires an interactive local terminal and an explicit
+.Dq APPLY
+response. Passing
+.Fl Fl console-acknowledge
+is explicit approval that skips the prompt.
+Use a local console or another recovery path: changing a network profile can
+interrupt connectivity.
+.Pp
+Legacy PiSCSI NAT/firewall rules are never removed automatically.
+Remove them manually before selecting a supported profile.
+.Sh EXAMPLES
+.Bd -literal -offset indent
+sudo piscsi-network-profile --dry-run apply bridge eth0
+sudo piscsi-network-profile --console-acknowledge apply bridge eth0
+sudo piscsi-network-profile --dry-run apply proxyarp wlan0
+sudo piscsi-network-profile --console-acknowledge apply proxyarp wlan0
+.Ed
+.Sh SEE ALSO
+.Xr piscsi 1 ,
+.Xr scsictl 1

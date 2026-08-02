@@ -1,2 +1,3 @@
 debian/tmp/usr/bin/piscsi-oled usr/bin
+debian/tmp/usr/share/man/man1/piscsi-oled.1 usr/share/man/man1
 os_integration/systemd/piscsi-oled.service usr/lib/systemd/system
