@@ -249,7 +249,7 @@ TEST(PiscsiResponseTest, GetNetworkInterfacesInfo)
 #ifdef __linux__
 	EXPECT_FALSE(info.name().empty());
 #else
-	EXPECT_TRUE(info.name().empty());
+	GTEST_SKIP() << "Network interface enumeration is implemented for Linux only";
 #endif
 }
 

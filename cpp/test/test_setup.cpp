@@ -12,7 +12,7 @@
 #include <spdlog/spdlog.h>
 #include <fcntl.h>
 
-int main(int argc, char *[])
+int main(int argc, char *argv[])
 {
 	const bool disable_logging = argc <= 1;
 
@@ -25,7 +25,7 @@ int main(int argc, char *[])
 		dup2(fd, STDERR_FILENO);
 	}
 
-	testing::InitGoogleTest();
+	testing::InitGoogleTest(&argc, argv);
 
 	const int result = RUN_ALL_TESTS();
 

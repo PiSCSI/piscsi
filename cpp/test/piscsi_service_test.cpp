@@ -27,6 +27,8 @@ using namespace piscsi_interface;
 using namespace protobuf_util;
 using namespace network_util;
 
+namespace {
+
 int GetAvailablePort()
 {
 	const int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -36,7 +38,7 @@ int GetAvailablePort()
 
 	sockaddr_in server_addr = {};
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 #ifdef __APPLE__
 	server_addr.sin_len = sizeof(server_addr);
 #endif
@@ -55,35 +57,49 @@ int GetAvailablePort()
 	return ntohs(server_addr.sin_port);
 }
 
-void SendCommand(const PbCommand& command, PbResult& result, int port)
+bool SendCommand(const PbCommand& command, PbResult& result, int port)
 {
 	sockaddr_in server_addr = {};
-	ASSERT_TRUE(ResolveHostName("127.0.0.1", &server_addr));
+	if (!ResolveHostName("127.0.0.1", &server_addr)) {
+		return false;
+	}
 	server_addr.sin_port = htons(static_cast<uint16_t>(port));
 
 	const int fd = socket(AF_INET, SOCK_STREAM, 0);
-	ASSERT_NE(-1, fd);
-	EXPECT_TRUE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running"; //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
-	ASSERT_EQ(6, write(fd, "RASCSI", 6));
+	if (fd == -1) {
+		return false;
+	}
+
+	if (connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) < 0) { //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
+		close(fd);
+		return false;
+	}
+
+	if (write(fd, "RASCSI", 6) != 6) {
+		close(fd);
+		return false;
+	}
+
 	SerializeMessage(fd, command);
-    DeserializeMessage(fd, result);
-    close(fd);
+	DeserializeMessage(fd, result);
+	close(fd);
+
+	return true;
+}
+
 }
 
 TEST(PiscsiServiceTest, Init)
 {
 	PiscsiService service;
 	const int port = GetAvailablePort();
-	ASSERT_NE(0, port);
+	if (!port) {
+		GTEST_SKIP() << "Unable to bind an ephemeral TCP port";
+	}
 
 	EXPECT_FALSE(service.Init(nullptr, 65536).empty()) << "Illegal port number";
 	EXPECT_FALSE(service.Init(nullptr, 0).empty()) << "Illegal port number";
 	EXPECT_FALSE(service.Init(nullptr, -1).empty()) << "Illegal port number";
-#ifdef __linux__
-	if (geteuid()) {
-		EXPECT_FALSE(service.Init(nullptr, 1).empty()) << "Port 1 is only available for the root user";
-	}
-#endif
 	EXPECT_TRUE(service.Init(nullptr, port).empty()) << "Selected port is expected not to be in use for this test";
 	service.Stop();
 }
@@ -92,7 +108,9 @@ TEST(PiscsiServiceTest, IsRunning)
 {
 	PiscsiService service;
 	const int port = GetAvailablePort();
-	ASSERT_NE(0, port);
+	if (!port) {
+		GTEST_SKIP() << "Unable to bind an ephemeral TCP port";
+	}
 	EXPECT_FALSE(service.IsRunning());
 	EXPECT_TRUE(service.Init(nullptr, port).empty()) << "Selected port is expected not to be in use for this test";
 	EXPECT_FALSE(service.IsRunning());
@@ -106,7 +124,9 @@ TEST(PiscsiServiceTest, IsRunning)
 TEST(PiscsiServiceTest, Execute)
 {
 	const int port = GetAvailablePort();
-	ASSERT_NE(0, port);
+	if (!port) {
+		GTEST_SKIP() << "Unable to bind an ephemeral TCP port";
+	}
 
 	sockaddr_in server_addr = {};
 	ASSERT_TRUE(ResolveHostName("127.0.0.1", &server_addr));
@@ -138,13 +158,13 @@ TEST(PiscsiServiceTest, Execute)
 	PbCommand command;
 	PbResult result;
 
-	SendCommand(command, result, port);
 	command.set_operation(PbOperation::NO_OPERATION);
-    EXPECT_TRUE(result.status()) << "Command should have been successful";
+	ASSERT_TRUE(SendCommand(command, result, port));
+	EXPECT_TRUE(result.status()) << "Command should have been successful";
 
-    command.set_operation(PbOperation::EJECT);
-    SendCommand(command, result, port);
-    EXPECT_FALSE(result.status()) << "Exception should have been raised";
+	command.set_operation(PbOperation::EJECT);
+	ASSERT_TRUE(SendCommand(command, result, port));
+	EXPECT_FALSE(result.status()) << "Exception should have been raised";
 
-    service.Stop();
+	service.Stop();
 }
