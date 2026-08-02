@@ -69,7 +69,10 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 
 	// Resolve a potential symlink
 	if (error_code error; is_symlink(folder, error)) {
-		folder = read_symlink(folder);
+		folder = canonical(folder, error);
+		if (error) {
+			return "Can't resolve default image folder '" + folder.string() + "': " + error.message();
+		}
 	}
 
 	if (error_code error; !is_directory(folder)) {

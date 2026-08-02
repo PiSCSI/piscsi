@@ -27,11 +27,34 @@ TEST(PiscsiImageTest, SetGetDefaultFolder)
 {
 	PiscsiImage image;
 
-	EXPECT_EQ(PiscsiImage::DEFAULT_IMAGE_FOLDER, image.GetDefaultFolder());
-
 	EXPECT_TRUE(!image.SetDefaultFolder("").empty());
+	EXPECT_FALSE(image.SetDefaultFolder((test_data_temp_path / "non-existent-folder").string()).empty());
 	EXPECT_TRUE(image.SetDefaultFolder(temp_directory_path().string()).empty());
 	EXPECT_EQ(temp_directory_path(), path(image.GetDefaultFolder()));
+}
+
+TEST(PiscsiImageTest, SetDefaultFolderResolvesRelativePathsAndSymlinks)
+{
+	PiscsiImage image;
+
+	EXPECT_TRUE(image.SetDefaultFolder(".").empty());
+	EXPECT_TRUE(equivalent(current_path(), path(image.GetDefaultFolder())));
+
+	const path target = test_data_temp_path / "image-folder-target";
+	const path link = test_data_temp_path / "image-folder-link";
+	error_code error;
+	remove_all(target, error);
+	remove(link, error);
+	create_directories(target, error);
+	ASSERT_FALSE(error) << error.message();
+	create_directory_symlink("image-folder-target", link, error);
+	ASSERT_FALSE(error) << error.message();
+
+	EXPECT_TRUE(image.SetDefaultFolder(link.string()).empty());
+	EXPECT_EQ(canonical(target), path(image.GetDefaultFolder()));
+
+	remove(link, error);
+	remove_all(target, error);
 }
 
 TEST(PiscsiImageTest, CreateImage)
