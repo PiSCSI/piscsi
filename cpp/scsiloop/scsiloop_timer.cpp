@@ -11,6 +11,8 @@
 #include "hal/systimer.h"
 #include "scsiloop/scsiloop_cout.h"
 #include "hal/log.h"
+#include <chrono>
+#include <thread>
 
 int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
 {
@@ -27,7 +29,7 @@ int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
     LOGDEBUG("++ Testing SysTimer::GetTimerLow()")
     uint32_t before = SysTimer::GetTimerLow();
     for (int i = 0; i < 10; i++) {
-        usleep(100000);
+        this_thread::sleep_for(chrono::microseconds(100000));
         ScsiLoop_Cout::PrintUpdate();
     }
     uint32_t after = SysTimer::GetTimerLow();

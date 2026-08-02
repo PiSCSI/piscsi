@@ -162,12 +162,14 @@ if to_build.contains('scsimon')
     )
 endif
 
-if to_build.contains('scsiloop')
+if to_build.contains('scsiloop') and host_machine.system() == 'linux'
     scsiloop_bin = executable('scsiloop',
         scsiloop_src + shared_src,
         dependencies : common_deps,
         install : true,
     )
+elif to_build.contains('scsiloop')
+    message('Skipping scsiloop: it requires Linux on Raspberry Pi GPIO hardware')
 endif
 
 if connect_type == 'FULLSPEC' and to_build.contains('scsidump')
