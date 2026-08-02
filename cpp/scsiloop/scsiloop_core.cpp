@@ -13,6 +13,7 @@
 //---------------------------------------------------------------------------
 
 #include "hal/log.h"
+#include "hal/sbc_version.h"
 #include "shared/piscsi_version.h"
 #include "shared/piscsi_util.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -22,7 +23,10 @@
 #include "scsiloop/scsiloop_gpio.h"
 #include "scsiloop/scsiloop_timer.h"
 
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <string_view>
 #include <signal.h>
 
 #if defined CONNECT_TYPE_STANDARD
@@ -41,6 +45,25 @@ using namespace std;
 using namespace spdlog;
 
 string current_log_level = "unknown"; // Some versions of spdlog do not support get_log_level()
+
+namespace {
+
+bool IsSupportedPlatform()
+{
+#if defined(__linux__)
+	try {
+		SBC_Version::Init();
+		return SBC_Version::IsRaspberryPi();
+	}
+	catch (const invalid_argument&) {
+		return false;
+	}
+#else
+	return false;
+#endif
+}
+
+}
 
 void ScsiLoop::Banner(const vector<char *> &args) const
 {
@@ -87,34 +110,26 @@ void ScsiLoop::TerminationHandler(int signum)
 
 bool ScsiLoop::ParseArgument(const vector<char *> &args)
 {
-    string name;
     string log_level;
 
-    const char *locale = setlocale(LC_MESSAGES, "");
-    if (locale == nullptr || !strcmp(locale, "C")) {
-        locale = "en";
-    }
-
-    opterr = 1;
-    int opt;
-
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-L:")) != -1) {
-        switch (opt) {
-        case 'L':
-            log_level = optarg;
-            continue;
-
-        default:
-            return false;
-        }
-
-        if (optopt) {
-            return false;
-        }
-    }
+    for (size_t i = 1; i < args.size(); ++i) {
+		const string_view argument(args[i]);
+		if (argument == "-L") {
+			if (++i == args.size()) {
+				return false;
+			}
+			log_level = args[i];
+		}
+		else if (argument.starts_with("-L") && argument.size() > 2) {
+			log_level = argument.substr(2);
+		}
+		else {
+			return false;
+		}
+	}
 
     if (!log_level.empty()) {
-        SetLogLevel(log_level);
+		return SetLogLevel(log_level);
     }
 
     return true;
@@ -131,11 +146,16 @@ int ScsiLoop::run(const vector<char *> &args)
     // ParseArgument() requires the bus to have been initialized first, which requires the root user.
     // The -v option should be available for any user, which requires special handling.
     for (auto this_arg : args) {
-        if (!strcasecmp(this_arg, "-v")) {
+		if (!strcmp(this_arg, "-v")) {
             cout << piscsi_get_version_string() << endl;
             return 0;
         }
     }
+
+	if (!IsSupportedPlatform()) {
+		cerr << "scsiloop requires Linux on a Raspberry Pi with access to the GPIO hardware." << endl;
+		return EXIT_FAILURE;
+	}
 
     // Create a thread-safe stdout logger to process the log messages
     const auto logger = stdout_color_mt("scsiloop stdout logger");

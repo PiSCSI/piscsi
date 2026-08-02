@@ -13,6 +13,8 @@
 #include "hal/sbc_version.h"
 #include "scsiloop/scsiloop_cout.h"
 #include "hal/log.h"
+#include <chrono>
+#include <thread>
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/connection_type/connection_standard.h"
@@ -221,7 +223,7 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
 
     LOGTRACE("dir ctrl pin: %d", (int)gpio_rec.dir_ctrl_pin);
     set_output_channel(gpio_rec.dir_ctrl_pin);
-    usleep(sleep_time);
+    this_thread::sleep_for(chrono::microseconds(sleep_time));
 
     // Set all GPIOs high (initialize to a known state)
     for (auto cur_gpio : loopback_conn_table) {
@@ -229,7 +231,7 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
         bus->SetMode(cur_gpio.this_pin, GPIO_INPUT);
     }
 
-    usleep(sleep_time);
+    this_thread::sleep_for(chrono::microseconds(sleep_time));
     bus->Acquire();
 
     // ############################################
@@ -237,7 +239,7 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
     bus->SetMode(gpio_rec.this_pin, GPIO_OUTPUT);
     bus->SetSignal(gpio_rec.this_pin, ON);
 
-    usleep(sleep_time);
+    this_thread::sleep_for(chrono::microseconds(sleep_time));
 
     bus->Acquire();
     // loop through all of the gpios
@@ -281,7 +283,7 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
     // set the transceivers to input
     set_output_channel(-1);
 
-    usleep(sleep_time);
+    this_thread::sleep_for(chrono::microseconds(sleep_time));
 
     bus->Acquire();
     // # loop through all of the gpios
@@ -311,14 +313,14 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
 
     // Set the transceiver back to output
     set_output_channel(gpio_rec.dir_ctrl_pin);
-    usleep(sleep_time);
+    this_thread::sleep_for(chrono::microseconds(sleep_time));
 
     // #############################################
     // set the test gpio high
     bus->SetMode(gpio_rec.this_pin, GPIO_OUTPUT);
     bus->SetSignal(gpio_rec.this_pin, OFF);
 
-    usleep(sleep_time);
+    this_thread::sleep_for(chrono::microseconds(sleep_time));
 
     bus->Acquire();
     // loop through all of the gpios
@@ -458,7 +460,7 @@ int ScsiLoop_GPIO::RunDataInputTest(vector<string> &error_list)
 
     for (uint32_t val = 0; val < UINT8_MAX; val++) {
         set_dat_inputs_loop(val);
-        usleep(delay_time_us);
+        this_thread::sleep_for(chrono::microseconds(delay_time_us));
 
         bus->Acquire();
         uint8_t read_val = bus->GetDAT();
@@ -488,7 +490,7 @@ int ScsiLoop_GPIO::RunDataOutputTest(vector<string> &error_list)
 
     for (uint32_t val = 0; val < UINT8_MAX; val++) {
         bus->SetDAT(val);
-        usleep(delay_time_us);
+        this_thread::sleep_for(chrono::microseconds(delay_time_us));
 
         bus->Acquire();
         uint8_t read_val = get_dat_outputs_loop();
