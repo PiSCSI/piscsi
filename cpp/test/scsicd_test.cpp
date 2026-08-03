@@ -132,4 +132,58 @@ TEST(ScsiCdTest, ReadToc)
 			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	// Further testing requires filesystem access
+	path filename = CreateTempFile(2 * 2048);
+	cd->SetFilename(string(filename));
+	cd->Open();
+	cd->SetAttn(false);
+
+	// READ TOC with start track AA requests the lead-out descriptor. This is
+	// commonly issued by CD-ROM initiators and must not walk past the last track.
+	controller->SetCmdByte(6, 0xaa);
+	controller->SetCmdByte(8, 12);
+	controller->AllocateBuffer(12);
+	EXPECT_CALL(*controller, DataIn);
+	cd->Dispatch(scsi_command::eCmdReadToc);
+
+	const auto& buf = controller->GetBuffer();
+	EXPECT_EQ(12, controller->GetLength());
+	EXPECT_EQ(0x00, buf[0]);
+	EXPECT_EQ(0x0a, buf[1]);
+	EXPECT_EQ(0x01, buf[2]);
+	EXPECT_EQ(0x01, buf[3]);
+	EXPECT_EQ(0xaa, buf[6]);
+	EXPECT_EQ(0x00, buf[10]);
+	EXPECT_EQ(0x02, buf[11]);
+
+	remove(filename);
+}
+
+// The allocation length in the CDB is initiator-controlled and can be up to 65535, while the
+// controller buffer is only DEFAULT_BUFFER_SIZE (4096) bytes. READ TOC must not write or report
+// more than the buffer holds.
+TEST(ScsiCdTest, ReadTocAllocationLength)
+{
+	auto controller = make_shared<MockAbstractController>();
+	auto cd = make_shared<MockSCSICD>(0);
+	EXPECT_TRUE(cd->Init({}));
+
+	controller->AddDevice(cd);
+	// The real controller allocates DEFAULT_BUFFER_SIZE
+	controller->AllocateBuffer(4096);
+
+	const path filename = CreateTempFile(2 * 2048);
+	cd->SetFilename(string(filename));
+	cd->Open();
+	cd->SetAttn(false);
+
+	// Request the maximum allocation length that fits in the 16 bit CDB field
+	controller->SetCmdByte(7, 0xff);
+	controller->SetCmdByte(8, 0xff);
+	EXPECT_CALL(*controller, DataIn);
+	cd->Dispatch(scsi_command::eCmdReadToc);
+
+	EXPECT_LE(controller->GetLength(), controller->GetBuffer().size())
+					<< "READ TOC must not report more data than the transfer buffer holds";
+
+	remove(filename);
 }

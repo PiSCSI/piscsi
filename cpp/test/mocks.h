@@ -158,6 +158,8 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(HostServicesTest, ModeSense10);
 	FRIEND_TEST(HostServicesTest, SetUpModePages);
 	FRIEND_TEST(ScsiPrinterTest, Print);
+	FRIEND_TEST(ScsiCdTest, ReadToc);
+	FRIEND_TEST(ScsiCdTest, ReadTocAllocationLength);
 
 public:
 
@@ -390,6 +392,7 @@ class MockSCSICD : public SCSICD //NOSONAR Ignore inheritance hierarchy depth in
 	FRIEND_TEST(ScsiCdTest, GetSectorSizes);
 	FRIEND_TEST(ScsiCdTest, SetUpModePages);
 	FRIEND_TEST(ScsiCdTest, ReadToc);
+	FRIEND_TEST(ScsiCdTest, ReadTocAllocationLength);
 
 	using SCSICD::SCSICD;
 };
