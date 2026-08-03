@@ -249,8 +249,9 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 	assert(!tracks.empty());
 	assert(tracks[0]);
 
-	// Get allocation length, clear buffer
-	const int length = GetInt16(cdb, 7);
+	// Get allocation length, clear buffer. The allocation length is initiator-controlled and can
+	// exceed the transfer buffer size, so it has to be limited to the buffer size.
+	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));
 	fill_n(buf.data(), length, 0);
 
 	// Get MSF Flag
@@ -264,10 +265,10 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 	}
 
 	// Check start index
-	int index = 0;
+	size_t index = 0;
 	if (cdb[6] != 0x00) {
 		// Advance the track until the track numbers match
-		while (tracks[index]) {
+		while (index < tracks.size() && tracks[index]) {
 			if (cdb[6] == tracks[index]->GetTrackNo()) {
 				break;
 			}
@@ -275,7 +276,7 @@ int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 		}
 
 		// AA if not found or internal error
-		if (!tracks[index]) {
+		if (index == tracks.size() || !tracks[index]) {
 			if (cdb[6] != 0xaa) {
 				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 			}
@@ -385,4 +386,3 @@ int SCSICD::SearchTrack(uint32_t lba) const
 	// Track wasn't found
 	return -1;
 }
-
