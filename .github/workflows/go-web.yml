@@ -83,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64,arm
 
