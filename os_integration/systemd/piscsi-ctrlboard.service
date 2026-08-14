@@ -1,12 +1,14 @@
 [Unit]
 Description=PiSCSI Control Board service
+Documentation=https://piscsi.com/
 After=network-online.target piscsi.service
+Wants=network-online.target
 
 [Service]
 Type=simple
 Restart=always
 RestartSec=2s
-ExecStart=/opt/piscsi/ctrlboard/piscsi-ctrlboard
+ExecStart=/usr/bin/piscsi-ctrlboard
 SyslogIdentifier=PISCSICTRLB
 
 [Install]

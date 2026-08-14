@@ -1,0 +1,2 @@
+# Intentionally built as a self-contained pure-Go executable (CGO_ENABLED=0).
+piscsi-ctrlboard: statically-linked-binary usr/bin/piscsi-ctrlboard

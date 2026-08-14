@@ -1,0 +1,3 @@
+d /var/lib/piscsi 2770 root piscsi -
+d /var/lib/piscsi/images 2770 root piscsi -
+d /var/lib/piscsi/shared 2770 root piscsi -

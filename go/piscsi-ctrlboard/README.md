@@ -68,17 +68,13 @@ debounce, I2C addresses, or the GPIO interrupt connection.
 
 ## Service
 
-The repository includes [piscsi-ctrlboard.service](../piscsi-ctrlboard.service).
-Install the binary at the path in `ExecStart` (by default
-`/opt/piscsi/ctrlboard/piscsi-ctrlboard`), then install and enable the unit:
+The `piscsi-ctrlboard` Debian package installs
+[`piscsi-ctrlboard.service`](../../os_integration/systemd/piscsi-ctrlboard.service).
+Enable it after installing the package:
 
 ```sh
-sudo install -d /opt/piscsi/ctrlboard
-sudo install -m 0755 piscsi-ctrlboard /opt/piscsi/ctrlboard/piscsi-ctrlboard
-sudo install -m 0644 piscsi-ctrlboard.service /etc/systemd/system/piscsi-ctrlboard.service
-sudo systemctl daemon-reload
 sudo systemctl enable --now piscsi-ctrlboard
 ```
 
-Adjust `ExecStart` in the unit if you need non-default hardware addresses,
-daemon connection details, or display options.
+Use a systemd drop-in to pass non-default hardware addresses, daemon
+connection details, or display options.

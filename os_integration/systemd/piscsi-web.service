@@ -1,6 +1,6 @@
 [Unit]
 Description=PiSCSI Web Interface
-Documentation=https://github.com/piscsi/piscsi
+Documentation=https://github.com/PiSCSI/piscsi
 After=network.target piscsi.service
 Wants=piscsi.service
 
@@ -8,18 +8,9 @@ Wants=piscsi.service
 Type=simple
 User=piscsi-web
 Group=piscsi
-SupplementaryGroups=systemd-journal
-WorkingDirectory=/opt/piscsi/web
 UMask=0007
-
-# Binary location
-ExecStart=/opt/piscsi/web/piscsi-web
-
-# Protected, non-secret configuration. SESSION_KEY_FILE points to the
-# separately protected base64 master-key file.
+ExecStart=/usr/bin/piscsi-web
 EnvironmentFile=/etc/piscsi-web/piscsi-web.env
-
-# Security hardening
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
@@ -27,14 +18,10 @@ ProtectHome=true
 StateDirectory=piscsi-web
 StateDirectoryMode=0700
 ReadWritePaths=/var/lib/piscsi/images /var/lib/piscsi/shared /var/lib/piscsi/config
-
-# Restart policy
 Restart=on-failure
 RestartSec=5s
-StartLimitInterval=60s
+StartLimitIntervalSec=60
 StartLimitBurst=3
-
-# Logging
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=piscsi-web

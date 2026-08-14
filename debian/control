@@ -1,0 +1,53 @@
+Source: piscsi
+Section: admin
+Priority: optional
+Maintainer: Daniel Markstedt <daniel@mindani.net>
+Build-Depends: debhelper-compat (= 13),
+               pkgconf:native,
+               protobuf-compiler,
+               libfmt-dev,
+               libgmock-dev:native,
+               libgtest-dev:native,
+               libpcap-dev,
+               libprotobuf-dev,
+               libspdlog-dev,
+               golang-go:native (>= 2:1.24~),
+               groff,
+               protoc-gen-go:native
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+Homepage: https://github.com/PiSCSI/piscsi
+
+Package: piscsi
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: virtual SCSI device emulator for Raspberry Pi
+ PiSCSI emulates SCSI devices using a Raspberry Pi and a compatible SCSI HAT.
+ This package provides the PiSCSI daemon and its command-line utilities.
+
+Package: piscsi-web
+Architecture: any
+Depends: ${misc:Depends}, piscsi
+Recommends: genisoimage, unar
+Description: web interface for the PiSCSI daemon
+ PiSCSI Web provides a browser-based interface for managing PiSCSI devices,
+ image files, and saved configurations.
+
+Package: piscsi-oled
+Architecture: any
+Depends: ${misc:Depends}, piscsi
+Recommends: i2c-tools
+Description: OLED status monitor for PiSCSI
+ PiSCSI OLED displays PiSCSI status on a supported SSD1306 I2C display.
+ It provides at-a-glance information about the emulator and its attached
+ SCSI devices without requiring access to the web interface or command line.
+ The service is intended for PiSCSI installations with compatible OLED
+ hardware connected through I2C.
+
+Package: piscsi-ctrlboard
+Architecture: any
+Depends: ${misc:Depends}, piscsi
+Recommends: i2c-tools
+Description: Control Board client for PiSCSI
+ PiSCSI Control Board drives the PiSCSI Control Board's display, buttons, and
+ rotary encoder through its I2C and GPIO interfaces.

@@ -1,0 +1,5 @@
+d /var/lib/piscsi/config 2770 piscsi-web piscsi -
+d /var/lib/piscsi/data 0755 root root -
+d /var/lib/piscsi/data/mac-hard-disk-drivers 0755 root root -
+d /var/lib/piscsi-web 0700 piscsi-web piscsi -
+d /etc/piscsi-web 0750 root piscsi -

@@ -1,0 +1,34 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = configure ]; then
+    config_dir=/etc/piscsi-web
+    key_file=$config_dir/session.key
+
+    install -d -o root -g piscsi -m 0750 "$config_dir"
+    chown root:piscsi "$config_dir/piscsi-web.env"
+    chmod 0640 "$config_dir/piscsi-web.env"
+
+    if [ -L "$key_file" ]; then
+        echo "piscsi-web: refusing symbolic-link session key: $key_file" >&2
+        exit 1
+    fi
+    if [ -e "$key_file" ] && [ ! -f "$key_file" ]; then
+        echo "piscsi-web: session key is not a regular file: $key_file" >&2
+        exit 1
+    fi
+    if [ ! -e "$key_file" ]; then
+        key_tmp=$(mktemp "$config_dir/.session.key.XXXXXX")
+        trap 'rm -f "$key_tmp"' EXIT HUP INT TERM
+        umask 0137
+        dd if=/dev/urandom bs=32 count=1 2>/dev/null | base64 > "$key_tmp"
+        install -o root -g piscsi -m 0640 "$key_tmp" "$key_file"
+        rm -f "$key_tmp"
+        trap - EXIT HUP INT TERM
+    else
+        chown root:piscsi "$key_file"
+        chmod 0640 "$key_file"
+    fi
+fi

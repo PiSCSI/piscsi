@@ -75,7 +75,9 @@ binary; standard CI cannot exercise I2C hardware.
 
 ## Service
 
-Install [piscsi-oled.service](../piscsi-oled.service) as `piscsi-oled`. The
-unit runs with a dynamic unprivileged user and the `i2c` supplementary group;
-ensure the I2C device grants group access. On `SIGINT` or `SIGTERM`, the
-monitor shows the shutdown splash, blanks the panel after 700 ms, and exits.
+The `piscsi-oled` Debian package installs and manages the
+[`piscsi-oled.service`](../../os_integration/systemd/piscsi-oled.service)
+unit. It runs with a dynamic unprivileged user and the `i2c` supplementary
+group; ensure the I2C device grants group access. On `SIGINT` or `SIGTERM`,
+the monitor shows the shutdown splash, blanks the panel after 700 ms, and
+exits.

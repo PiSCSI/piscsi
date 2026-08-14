@@ -1,0 +1,88 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export GOTOOLCHAIN = local
+export GOFLAGS = -mod=vendor -buildvcs=false
+
+include /usr/share/dpkg/architecture.mk
+
+PISCSI_RPI_ZERO ?= 0
+RPI_ZERO_CXXFLAGS =
+
+CPP_MAKE_FLAGS = \
+	CONNECT_TYPE=FULLSPEC \
+	DEFAULT_IMAGE_FOLDER=/var/lib/piscsi/images \
+	CROSS_COMPILE=$(DEB_HOST_GNU_TYPE)- \
+	EXTRA_FLAGS="$(shell dpkg-buildflags --get CPPFLAGS) $(shell dpkg-buildflags --get CXXFLAGS) $(RPI_ZERO_CXXFLAGS)" \
+	LDFLAGS="$(shell dpkg-buildflags --get LDFLAGS)"
+
+WEB_LDFLAGS = -s -w \
+	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultBaseDir=/var/lib/piscsi/images \
+	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultSharedDir=/var/lib/piscsi/shared \
+	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultConfigDir=/var/lib/piscsi/config \
+	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultDataDir=/var/lib/piscsi/data \
+	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultDrivePropertiesFile=/etc/piscsi-web/drive_properties.json \
+	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultSessionKeyFile=/etc/piscsi-web/session.key
+
+ifeq ($(DEB_HOST_ARCH),arm64)
+GO_ARCH_ENV = GOARCH=arm64
+else ifeq ($(DEB_HOST_ARCH),armhf)
+ifeq ($(PISCSI_RPI_ZERO),1)
+GO_ARCH_ENV = GOARCH=arm GOARM=6
+RPI_ZERO_CXXFLAGS = -march=armv6 -mfpu=vfp -mfloat-abi=hard
+else
+GO_ARCH_ENV = GOARCH=arm GOARM=7
+endif
+else
+GO_ARCH_ENV =
+endif
+
+%:
+	dh $@
+
+# dh_installsysusers is not part of the default compat 13 sequence. Run it
+# before tmpfiles so service identities exist before their directories are
+# created during package configuration.
+execute_before_dh_installtmpfiles:
+	dh_installsysusers
+
+override_dh_auto_configure:
+	@test -d go/vendor || { echo "go/vendor is required for an offline Debian build; run 'cd go && go mod vendor' before making the source tarball" >&2; exit 1; }
+	@go env GOVERSION | awk -F. '($$1 == "go1" && $$2 >= 25) { ok = 1 } END { exit !ok }' || { echo "PiSCSI Go components require Go 1.25 or newer; Debian Trixie supplies Go 1.24, so put a preinstalled Go 1.25+ toolchain first in PATH" >&2; exit 1; }
+	@command -v protoc-gen-go >/dev/null || { echo "protoc-gen-go is required" >&2; exit 1; }
+
+override_dh_auto_build:
+	$(MAKE) -C cpp $(CPP_MAKE_FLAGS)
+	cd go && protoc --proto_path=.. --go_out=. --go_opt=paths=source_relative --go_opt=Mproto/piscsi_interface.proto=github.com/piscsi/piscsi/go/proto ../proto/piscsi_interface.proto
+	install -d debian/build
+	cd go && env CGO_ENABLED=0 GOOS=linux $(GO_ARCH_ENV) go build -trimpath -tags nomsgpack -ldflags "$(WEB_LDFLAGS)" -o ../debian/build/piscsi-web ./piscsi-web/cmd/piscsi-web
+	cd go && env CGO_ENABLED=0 GOOS=linux $(GO_ARCH_ENV) go build -trimpath -o ../debian/build/piscsi-oled ./cmd/piscsi-oled
+	cd go && env CGO_ENABLED=0 GOOS=linux $(GO_ARCH_ENV) go build -trimpath -o ../debian/build/piscsi-ctrlboard ./cmd/piscsi-ctrlboard
+
+override_dh_auto_test:
+ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	@:
+else ifneq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+	@echo "Skipping tests while cross-building"
+else
+	$(MAKE) -C cpp test
+	cd go && go test -tags nomsgpack ./piscsi-web/... ./piscsi-oled ./piscsi-ctrlboard ./piscsi/... ./cmd/piscsi-oled ./cmd/piscsi-ctrlboard
+endif
+
+override_dh_auto_install:
+	install -d debian/tmp/usr/bin debian/tmp/usr/share/man/man1
+	install -m 0755 cpp/bin/piscsi cpp/bin/scsictl cpp/bin/scsimon cpp/bin/scsiloop cpp/bin/scsidump debian/tmp/usr/bin/
+	install -m 0755 debian/build/piscsi-web debian/build/piscsi-oled debian/build/piscsi-ctrlboard debian/tmp/usr/bin/
+	install -m 0644 doc/piscsi.1 doc/scsictl.1 doc/scsimon.1 doc/scsiloop.1 doc/scsidump.1 debian/tmp/usr/share/man/man1/
+	install -D -m 0644 go/piscsi-web/drive_properties.json debian/tmp/etc/piscsi-web/drive_properties.json
+	install -D -m 0644 debian/piscsi-web.piscsi-web.env debian/tmp/etc/piscsi-web/piscsi-web.env
+
+# Go's compressed DWARF sections are not supported by dwz, and some cross-built
+# C++ binaries also fail its optional ELF rewrite pass.
+override_dh_dwz:
+	@:
+
+override_dh_auto_clean:
+	$(MAKE) -C cpp clean
+	rm -f go/proto/piscsi_interface.pb.go
+	dh_clean debian/build/

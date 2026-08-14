@@ -243,18 +243,8 @@ $(SCSILOOP) : $(BINDIR)/$(SCSILOOP)
 clean:
 	rm -rf $(OBJDIR) $(BINDIR) $(GENERATED_DIR) $(COVERAGE_DIR) $(COVERAGE_FILE)
 
-##   install  : Copies all of the man pages to the correct location
-##              Copies the binaries to a global install location
-##              Configures the Systemd and RSyslog services to auto-run PiSCSI
-##              * This target needs to be run with sudo (ex: sudo make install)
-##              * Before running this, you need to stop the piscsi service if
-##              * it is already running:
-##              *   sudo systemctl stop piscsi
-##              * After running this, you will need to reboot or run:
-##              *   sudo systemctl daemon-reload
-##              *   sudo systemctl restart rsyslog
-##              *   sudo systemctl enable piscsi
-##              *   sudo systemctl start piscsi
+##   install  : Copies development binaries, man pages, and OS integration files.
+##              For production systems, install the Debian packages instead.
 .PHONY: install
 install: \
 	$(MAN_PAGES) \
@@ -264,7 +254,7 @@ install: \
 	$(RSYSLOG_LOG)
 	@echo "-- Done installing!"
 
-$(USR_LOCAL_BIN)% : $(BINDIR)/%
+$(USR_LOCAL_BIN)/% : $(BINDIR)/%
 	@echo "-- Copying $@"
 	cp $< $@
 
@@ -277,9 +267,9 @@ $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
 	@echo "!!   ------ The native file is $(notdir $<). Re-run 'make docs' after updating\n\n" >> $@
 	MANWIDTH=80 man -l $< | col -bx >> $@
 
-$(SYSTEMD_CONF) : $(OS_FILES)/$(notdir $(SYSTEMD_CONF))
+$(SYSTEMD_CONF) : $(OS_FILES)/systemd/$(notdir $(SYSTEMD_CONF))
 	@echo "-- Copying $@"
-	cp $< $@
+	sed -e 's@^ExecStart=/usr/bin/@ExecStart=$(USR_LOCAL_BIN)/@' -e 's@^ExecStop=/usr/bin/@ExecStop=$(USR_LOCAL_BIN)/@' $< > $@
 
 $(RSYSLOG_CONF) : $(OS_FILES)/$(notdir $(RSYSLOG_CONF))
 	@echo "-- Copying $@"

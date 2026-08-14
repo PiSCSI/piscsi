@@ -1,0 +1,6 @@
+piscsi (26.8.1-1) unstable; urgency=medium
+
+  * Initial Debian packaging draft for the PiSCSI daemon, web interface,
+    OLED monitor, and Control Board client.
+
+ -- Daniel Markstedt <daniel@mindani.net>  Fri, 14 Aug 2026 12:00:00 +0200

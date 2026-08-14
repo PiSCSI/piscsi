@@ -11,27 +11,40 @@ on:
 
 jobs:
   build_arm:
+    name: ${{ matrix.name }} (${{ inputs.connect-type }})
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: armv7
+            debian_arch: armhf
+            cross_compile: arm-linux-gnueabihf-
+            apt_toolchain: gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev
+            apt_libraries: libspdlog-dev:armhf libpcap-dev:armhf libevdev2:armhf libev-dev:armhf protobuf-compiler libprotobuf-dev:armhf
+            apt_sources: |
+              deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse restricted universe
+              deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse restricted universe
     defaults:
       run:
         working-directory: cpp
     env:
-      APT_ARM_TOOLCHAIN: "gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev"
-      APT_LIBRARIES: "libspdlog-dev:armhf libpcap-dev:armhf libevdev2:armhf libev-dev:armhf protobuf-compiler libprotobuf-dev:armhf"
+      APT_ARM_TOOLCHAIN: ${{ matrix.apt_toolchain }}
+      APT_LIBRARIES: ${{ matrix.apt_libraries }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Add armhf as architecture
-        run: sudo dpkg --add-architecture armhf
+      - name: Add ${{ matrix.debian_arch }} as architecture
+        run: sudo dpkg --add-architecture ${{ matrix.debian_arch }}
 
       - name: Reconfigure apt for arch amd64
         run: sudo sed -i "s/deb /deb [arch=amd64] /g" /etc/apt/sources.list
 
-      - name: Add armhf repos (jammy)
-        run: sudo bash -c "echo \"deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse restricted universe\" >> /etc/apt/sources.list"
-
-      - name: Add armhf repos (jammy-updates)
-        run: sudo bash -c "echo \"deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse restricted universe\" >> /etc/apt/sources.list"
+      - name: Add ${{ matrix.debian_arch }} repositories
+        run: |
+          sudo tee -a /etc/apt/sources.list <<'EOF'
+          ${{ matrix.apt_sources }}
+          EOF
 
       - name: Update apt
         run: sudo apt update
@@ -46,17 +59,17 @@ jobs:
           echo "debug_flag_filename=debug-" >> $GITHUB_ENV
 
       - name: Compile
-        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }} CROSS_COMPILE=arm-linux-gnueabihf-
+        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }} CROSS_COMPILE=${{ matrix.cross_compile }}
 
       # We need to tar the binary outputs to retain the executable
       # file permission. Currently, actions/upload-artifact only
       # supports .ZIP files.
       # This is workaround for https://github.com/actions/upload-artifact/issues/38
       - name: Tar binary output
-        run: tar -czvf ${{ env.debug_flag_filename }}piscsi-${{ inputs.connect-type }}.tar.gz ./bin
+        run: tar -czvf ${{ env.debug_flag_filename }}piscsi-${{ inputs.connect-type }}-${{ matrix.name }}.tar.gz ./bin
 
       - name: Upload binaries
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ env.debug_flag_filename }}arm-binaries-${{ inputs.connect-type }}.tar.gz
-          path: cpp/${{ env.debug_flag_filename }}piscsi-${{ inputs.connect-type }}.tar.gz
+          name: ${{ env.debug_flag_filename }}${{ matrix.name }}-binaries-${{ inputs.connect-type }}.tar.gz
+          path: cpp/${{ env.debug_flag_filename }}piscsi-${{ inputs.connect-type }}-${{ matrix.name }}.tar.gz

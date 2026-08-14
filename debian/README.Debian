@@ -1,0 +1,232 @@
+piscsi for Debian
+=================
+
+The supplied systemd units are enabled and started by package installation.
+This package set is intended for Raspberry Pi systems with PiSCSI hardware.
+Stop or disable a service explicitly if its optional hardware is not attached.
+
+The web interface reads its protected configuration from
+/etc/piscsi-web/piscsi-web.env. Its session key is generated on first package
+configuration and is retained on upgrades and removal. Do not delete it unless
+you deliberately want to invalidate existing browser sessions.
+Its editable drive-property presets are in
+/etc/piscsi-web/drive_properties.json.
+
+The OLED service needs an I2C device whose permissions allow the i2c group to
+open it. The Control Board service runs as root because it needs the GPIO
+character device as well as I2C.
+
+All shared image, upload, and configuration directories are managed by
+systemd-tmpfiles. They are intentionally retained when packages are removed.
+
+Debian Trixie cross-builds
+--------------------------
+
+The top-level `debian/` directory builds four binary packages from one source
+tree: `piscsi`, `piscsi-web`, `piscsi-oled`, and `piscsi-ctrlboard`. Keeping one
+source package is necessary because the C++ daemon, the Go services, and their
+generated Protocol Buffer bindings share `proto/piscsi_interface.proto`.
+
+`piscsi` is built with the classic `cpp/Makefile`. The remaining packages are
+pure-Go (`CGO_ENABLED=0`) and need no target C compiler.
+
+One-time Trixie build-host setup
+--------------------------------
+
+Trixie supplies Go 1.24, but this checkout's `go.mod` requires Go 1.25 and
+selects `go1.25.12`. For a local build, install a Go 1.25.12-or-newer toolchain
+outside the package build. The following installs Go 1.25.13 for an arm64
+build host without replacing Trixie's `/usr/bin/go`. Use the archive for the
+build host architecture, not the package target architecture.
+
+```sh
+cd /tmp
+curl -fLO https://go.dev/dl/go1.25.13.linux-arm64.tar.gz
+echo 'adad240fcb6bd180cf973b4b7c747baf4ec81d08b7d40ca35940ee4531971490  go1.25.13.linux-arm64.tar.gz' | sha256sum -c -
+sudo install -d /opt/go1.25.13
+sudo tar -C /opt/go1.25.13 --strip-components=1 \
+  -xzf go1.25.13.linux-arm64.tar.gz
+```
+
+Set the local toolchain explicitly. `GOTOOLCHAIN=local` prevents Go from
+downloading a toolchain during the package build.
+
+The Go module must be vendored before the source package is made; Debian build
+environments must not fetch modules from the network. Generate the local Go
+Protocol Buffer bindings first: without them, `go mod vendor` mistakes the
+local `go/proto` package for a missing remote dependency.
+
+```sh
+export PATH=/opt/go1.25.13/bin:$PATH
+export GOTOOLCHAIN=local
+go version
+go env GOVERSION | awk -F. '($1 == "go1" && $2 >= 25) { ok = 1 } END { exit !ok }'
+(cd go && ./proto/generate.sh && go mod vendor && cd ..)
+```
+
+The generated binding is removed by `debian/rules clean` and recreated during
+the build; this is expected. Keep the generated `go/vendor/` directory in the
+upstream source tarball.
+
+Install the native build tools and, for each target, its cross toolchain and
+target development libraries. `protoc` and `protoc-gen-go` run on the build
+machine, so do not install target-architecture versions of those tools.
+
+```sh
+sudo apt update
+sudo apt install --yes devscripts equivs fakeroot \
+  debhelper build-essential pkgconf protobuf-compiler protoc-gen-go \
+  golang-go libfmt-dev libgmock-dev libgtest-dev libpcap-dev libprotobuf-dev \
+  libspdlog-dev
+```
+
+Development test build
+----------------------
+
+Build and run the full test suite on your development machine.:
+
+```sh
+debuild --prepend-path=/opt/go1.25.13/bin -b -us -uc
+```
+
+`debuild` resets `PATH` by default, so an ordinary `PATH=... debuild` command
+will still select Trixie's Go 1.24. `--prepend-path` retains the normal Debian
+sanitised environment while making the local Go toolchain available. This
+approach is suitable for local development builds only: an official clean
+Debian build needs a satisfiable Debian build dependency for Go 1.25 or newer.
+
+The resulting `.deb` files are written to the parent directory. Installation
+enables and starts every supplied service, which is the expected behaviour for
+the Raspberry Pi appliance image.
+
+arm64
+-----
+
+```sh
+sudo dpkg --add-architecture arm64
+sudo apt update
+sudo apt install --yes crossbuild-essential-arm64 \
+  libfmt-dev:arm64 libpcap-dev:arm64 libprotobuf-dev:arm64 libspdlog-dev:arm64
+dpkg-buildpackage -us -uc -b -aarm64
+```
+
+The C++ rule expands the Debian host triplet to
+`CROSS_COMPILE=aarch64-linux-gnu-`; Go receives `GOARCH=arm64`.
+
+armhf
+-----
+
+```sh
+sudo dpkg --add-architecture armhf
+sudo apt update
+sudo apt install --yes crossbuild-essential-armhf \
+  libfmt-dev:armhf libpcap-dev:armhf libprotobuf-dev:armhf libspdlog-dev:armhf
+dpkg-buildpackage -us -uc -b -aarmhf
+```
+
+The C++ rule expands the Debian host triplet to
+`CROSS_COMPILE=arm-linux-gnueabihf-`; Go receives `GOARCH=arm GOARM=7`, which
+is Debian's armhf baseline.
+
+Raspberry Pi Zero
+-----------------
+
+Raspberry Pi OS reports the original Raspberry Pi Zero as `armhf`, but its
+ARMv6 hard-float ABI is different from Debian's ARMv7 armhf baseline. Build in
+an ARMv6 Raspberry Pi OS/Raspbian armhf rootfs; do not use Debian or Ubuntu
+armhf target libraries, as they may contain ARMv7 instructions.
+
+The historical `piscsi-pi-gen` project provides a proven rootfs setup: it
+bootstraps an armhf Raspbian rootfs and configures the Raspbian package
+repository. On a Linux development host, use that rootfs under QEMU user-mode
+emulation; on macOS, run the same setup in a privileged Linux VM or container.
+
+On a Linux development host, create the Raspbian Trixie rootfs as follows. The
+Raspbian archive key is used by debootstrap to verify the downloaded packages.
+
+```sh
+sudo apt update
+sudo apt install --yes debootstrap qemu-user-static binfmt-support curl gpg rsync
+
+ROOTFS=/srv/piscsi-rpi-zero-trixie
+sudo install -d "$ROOTFS" /usr/share/keyrings
+curl -fsSL https://archive.raspbian.org/raspbian.public.key | \
+  sudo gpg --dearmor --yes -o /usr/share/keyrings/raspbian-archive-keyring.gpg
+sudo debootstrap --arch=armhf --foreign \
+  --components=main,contrib,non-free \
+  --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg \
+  trixie "$ROOTFS" http://raspbian.raspberrypi.com/raspbian/
+sudo install -m 0755 "$(command -v qemu-arm-static)" "$ROOTFS/usr/bin/qemu-arm-static"
+sudo chroot "$ROOTFS" /debootstrap/debootstrap --second-stage
+sudo tee "$ROOTFS/etc/apt/sources.list" >/dev/null <<'EOF'
+deb http://raspbian.raspberrypi.org/raspbian/ trixie main contrib non-free rpi
+EOF
+```
+
+Mount the kernel interfaces needed by APT and copy the source tree into the
+rootfs. Copying rather than bind-mounting prevents the emulated root build from
+leaving root-owned files in the development checkout.
+
+```sh
+sudo mount --bind /dev "$ROOTFS/dev"
+sudo mount --bind /dev/pts "$ROOTFS/dev/pts"
+sudo mount -t proc proc "$ROOTFS/proc"
+sudo mount -t sysfs sys "$ROOTFS/sys"
+sudo install -d "$ROOTFS/build/piscsi"
+sudo rsync -a --delete --exclude .git ./ "$ROOTFS/build/piscsi/"
+sudo chroot "$ROOTFS" /bin/bash
+```
+
+For subsequent builds, leave the chroot, update the host checkout as usual,
+then rerun the `rsync` command before entering the chroot again. The host
+checkout is the source of truth: `--delete` removes stale files from the
+rootfs copy, and excluding `.git` is intentional, so do not run Git commands
+inside the rootfs copy.
+
+Inside the resulting ARMv6 Raspbian shell, install the build dependencies and
+the official Go 1.25.13 ARMv6 (`linux-armv6l`) toolchain, then build:
+
+```sh
+export DEBIAN_FRONTEND=noninteractive
+apt update
+apt install --yes devscripts equivs fakeroot debhelper build-essential pkgconf \
+  protobuf-compiler protoc-gen-go golang-go libfmt-dev libgmock-dev libgtest-dev \
+  libpcap-dev libprotobuf-dev libspdlog-dev ca-certificates curl
+cd /tmp
+curl -fLO https://go.dev/dl/go1.25.13.linux-armv6l.tar.gz
+install -d /opt/go1.25.13
+tar -C /opt/go1.25.13 --strip-components=1 \
+  -xzf go1.25.13.linux-armv6l.tar.gz
+cd /build/piscsi
+
+export PATH=/opt/go1.25.13/bin:$PATH
+export GOTOOLCHAIN=local
+DEB_BUILD_OPTIONS=nocheck PISCSI_RPI_ZERO=1 dpkg-buildpackage -us -uc -b
+```
+
+`PISCSI_RPI_ZERO=1` keeps the resulting package architecture as `armhf` while
+using `-march=armv6 -mfpu=vfp -mfloat-abi=hard` for C++ and `GOARM=6` for the
+Go binaries. The flag is deliberately opt-in, so ordinary Debian armhf builds
+continue to target ARMv7. `DEB_BUILD_OPTIONS=nocheck` skips the C++ and Go test
+suites, which are especially slow under ARM emulation; omit it when you want
+to run the tests.
+
+Leave the chroot with `exit`. The generated packages are in `$ROOTFS/build/`,
+the parent directory of the copied source tree, and the rootfs is directly
+accessible from the host. Copy them to a host directory with:
+
+```sh
+mkdir -p ./rpi-zero-packages
+sudo rsync -a --chown="$(id -u):$(id -g)" \
+  --include='*_armhf.deb' --exclude='*' \
+  "$ROOTFS/build/" ./rpi-zero-packages/
+```
+
+Then unmount the rootfs in reverse order:
+
+```sh
+sudo umount "$ROOTFS/sys"
+sudo umount "$ROOTFS/proc"
+sudo umount "$ROOTFS/dev/pts"
+sudo umount "$ROOTFS/dev"
+```

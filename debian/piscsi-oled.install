@@ -1,0 +1,2 @@
+debian/tmp/usr/bin/piscsi-oled usr/bin
+os_integration/systemd/piscsi-oled.service usr/lib/systemd/system
