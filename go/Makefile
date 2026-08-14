@@ -22,6 +22,7 @@ CTRLBOARD_BINARY=piscsi-ctrlboard
 OLED_INSTALL_DIR ?= /opt/piscsi/oled
 SYSTEMD_UNIT_DIR ?= /etc/systemd/system
 OLED_SERVICE=piscsi-oled.service
+OLED_SERVICE_TEMPLATE=../os_integration/systemd/$(OLED_SERVICE)
 
 # Build flags
 LDFLAGS=-ldflags "-s -w"
@@ -153,14 +154,14 @@ proto-tools:
 	@actual="$$($(PROTOC_GEN_GO) --version)"; expected="protoc-gen-go $(PROTOC_GEN_GO_VERSION)"; test "$$actual" = "$$expected" || { echo "$$expected is required (found $$actual)."; exit 1; }
 
 install:
-	@echo "Installing PiSCSI Web Interface..."
+	@echo "Installing PiSCSI Web Interface for development..."
 	@./piscsi-web/scripts/install.sh
 
 install-oled: build-oled
-	@echo "Installing PiSCSI OLED monitor..."
+	@echo "Installing PiSCSI OLED monitor for development..."
 	install -d "$(OLED_INSTALL_DIR)"
 	install -m 0755 "$(OLED_BINARY)" "$(OLED_INSTALL_DIR)/$(OLED_BINARY)"
-	install -m 0644 "$(OLED_SERVICE)" "$(SYSTEMD_UNIT_DIR)/$(OLED_SERVICE)"
+	sed 's@^ExecStart=/usr/bin/piscsi-oled$$@ExecStart=$(OLED_INSTALL_DIR)/$(OLED_BINARY)@' "$(OLED_SERVICE_TEMPLATE)" | install -m 0644 /dev/stdin "$(SYSTEMD_UNIT_DIR)/$(OLED_SERVICE)"
 	systemctl daemon-reload
 
 migrate-data:

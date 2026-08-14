@@ -1,0 +1,4 @@
+debian/tmp/usr/bin/piscsi-web usr/bin
+debian/tmp/etc/piscsi-web/drive_properties.json etc/piscsi-web
+debian/tmp/etc/piscsi-web/piscsi-web.env etc/piscsi-web
+os_integration/systemd/piscsi-web.service usr/lib/systemd/system

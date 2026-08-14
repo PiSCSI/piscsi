@@ -1,0 +1,2 @@
+debian/tmp/usr/bin/piscsi-ctrlboard usr/bin
+os_integration/systemd/piscsi-ctrlboard.service usr/lib/systemd/system

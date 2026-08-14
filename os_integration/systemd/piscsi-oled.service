@@ -1,5 +1,6 @@
 [Unit]
 Description=PiSCSI OLED Monitor service
+Documentation=https://piscsi.com/
 After=network-online.target piscsi.service
 Wants=network-online.target
 
@@ -12,7 +13,7 @@ PrivateTmp=yes
 ProtectSystem=strict
 Restart=on-failure
 RestartSec=2s
-ExecStart=/opt/piscsi/oled/piscsi-oled
+ExecStart=/usr/bin/piscsi-oled
 SyslogIdentifier=PISCSIMON
 TimeoutStopSec=5s
 

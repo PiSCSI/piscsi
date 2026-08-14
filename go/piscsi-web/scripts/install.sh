@@ -17,6 +17,7 @@ NC='\033[0m' # No Color
 # Configuration
 INSTALL_DIR="/opt/piscsi/web"
 SERVICE_FILE="piscsi-web.service"
+SERVICE_TEMPLATE="$GO_ROOT/../os_integration/systemd/$SERVICE_FILE"
 BINARY_NAME="piscsi-web"
 SERVICE_USER="piscsi-web"
 SERVICE_GROUP="piscsi"
@@ -175,7 +176,9 @@ fi
 
 # Install systemd service
 print_msg "$YELLOW" "Installing systemd service..."
-cp "$GO_ROOT/$SERVICE_FILE" /etc/systemd/system/
+sed -e 's@^WorkingDirectory=/usr/lib/piscsi-web$@WorkingDirectory=/opt/piscsi/web@' \
+    -e 's@^ExecStart=/usr/lib/piscsi-web/piscsi-web$@ExecStart=/opt/piscsi/web/piscsi-web@' \
+    "$SERVICE_TEMPLATE" | install -m 0644 /dev/stdin "/etc/systemd/system/$SERVICE_FILE"
 
 # Create required directories
 print_msg "$YELLOW" "Creating required directories..."

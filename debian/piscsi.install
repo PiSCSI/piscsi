@@ -1,0 +1,12 @@
+debian/tmp/usr/bin/piscsi usr/bin
+debian/tmp/usr/bin/scsictl usr/bin
+debian/tmp/usr/bin/scsidump usr/bin
+debian/tmp/usr/bin/scsiloop usr/bin
+debian/tmp/usr/bin/scsimon usr/bin
+debian/tmp/usr/share/man/man1/piscsi.1 usr/share/man/man1
+debian/tmp/usr/share/man/man1/scsictl.1 usr/share/man/man1
+debian/tmp/usr/share/man/man1/scsidump.1 usr/share/man/man1
+debian/tmp/usr/share/man/man1/scsiloop.1 usr/share/man/man1
+debian/tmp/usr/share/man/man1/scsimon.1 usr/share/man/man1
+os_integration/piscsi.conf etc/rsyslog.d
+os_integration/systemd/piscsi.service usr/lib/systemd/system
