@@ -30,11 +30,13 @@ DEFAULT_BASE_DIR ?= /var/lib/piscsi/images
 DEFAULT_SHARED_DIR ?= /var/lib/piscsi/shared
 DEFAULT_CONFIG_DIR ?= /var/lib/piscsi/config
 DEFAULT_DATA_DIR ?= /var/lib/piscsi/data
+DEFAULT_DRIVE_PROPERTIES_FILE ?= drive_properties.json
 DEFAULT_SESSION_KEY_FILE ?= /etc/piscsi-web/session.key
 CONFIG_LDFLAGS = -X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultBaseDir=$(DEFAULT_BASE_DIR) \
 	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultSharedDir=$(DEFAULT_SHARED_DIR) \
 	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultConfigDir=$(DEFAULT_CONFIG_DIR) \
 	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultDataDir=$(DEFAULT_DATA_DIR) \
+	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultDrivePropertiesFile=$(DEFAULT_DRIVE_PROPERTIES_FILE) \
 	-X github.com/piscsi/piscsi/go/piscsi-web/internal/config.defaultSessionKeyFile=$(DEFAULT_SESSION_KEY_FILE)
 WEB_LDFLAGS = -ldflags "-s -w $(CONFIG_LDFLAGS)"
 STATIC_WEB_LDFLAGS = -ldflags "-s -w $(CONFIG_LDFLAGS) -extldflags=-static"

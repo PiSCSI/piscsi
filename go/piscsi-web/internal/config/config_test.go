@@ -20,6 +20,7 @@ func TestLoadValidConfiguration(t *testing.T) {
 	t.Setenv("PISCSI_TOKEN", "daemon-secret")
 	t.Setenv("MAX_FILE_SIZE", "1048576")
 	t.Setenv("SESSION_MAX_AGE", "3600")
+	t.Setenv("DRIVE_PROPERTIES_FILE", "/etc/piscsi-web/drive_properties.json")
 
 	cfg, err := Load()
 	if err != nil {
@@ -41,6 +42,9 @@ func TestLoadValidConfiguration(t *testing.T) {
 	}
 	if cfg.TemplatesDir != env.templatesDir || cfg.StaticDir != env.staticDir {
 		t.Errorf("configured asset directories were not preserved")
+	}
+	if cfg.DrivePropertiesFile != "/etc/piscsi-web/drive_properties.json" {
+		t.Errorf("DrivePropertiesFile = %q", cfg.DrivePropertiesFile)
 	}
 	if cfg.MaxFileSize != 1048576 || cfg.SessionMaxAge != 3600 {
 		t.Errorf("limits = (%d, %d)", cfg.MaxFileSize, cfg.SessionMaxAge)
@@ -79,6 +83,7 @@ func TestLoadRejectsMalformedConfiguration(t *testing.T) {
 		{name: "relative shared directory", setting: "SHARED_DIR", value: "shared"},
 		{name: "relative config directory", setting: "CONFIG_DIR", value: "config"},
 		{name: "relative driver directory", setting: "DRIVER_DIR", value: "drivers"},
+		{name: "empty drive properties file", setting: "DRIVE_PROPERTIES_FILE", value: ""},
 		{name: "empty templates directory", setting: "TEMPLATES_DIR", value: ""},
 		{name: "empty static directory", setting: "STATIC_DIR", value: ""},
 	}
@@ -433,6 +438,7 @@ func configureValidEnvironment(t *testing.T, masterKey []byte) validEnvironment 
 		"PISCSI_TOKEN",
 		"MAX_FILE_SIZE",
 		"SESSION_MAX_AGE",
+		"DRIVE_PROPERTIES_FILE",
 	} {
 		unsetEnv(t, setting)
 	}

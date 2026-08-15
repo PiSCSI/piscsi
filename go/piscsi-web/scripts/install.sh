@@ -176,9 +176,11 @@ fi
 
 # Install systemd service
 print_msg "$YELLOW" "Installing systemd service..."
-sed -e 's@^WorkingDirectory=/usr/lib/piscsi-web$@WorkingDirectory=/opt/piscsi/web@' \
-    -e 's@^ExecStart=/usr/lib/piscsi-web/piscsi-web$@ExecStart=/opt/piscsi/web/piscsi-web@' \
-    "$SERVICE_TEMPLATE" | install -m 0644 /dev/stdin "/etc/systemd/system/$SERVICE_FILE"
+awk '
+    /^UMask=0007$/ { print; print "WorkingDirectory=/opt/piscsi/web"; next }
+    /^ExecStart=\/usr\/bin\/piscsi-web$/ { print "ExecStart=/opt/piscsi/web/piscsi-web"; next }
+    { print }
+' "$SERVICE_TEMPLATE" | install -m 0644 /dev/stdin "/etc/systemd/system/$SERVICE_FILE"
 
 # Create required directories
 print_msg "$YELLOW" "Creating required directories..."
