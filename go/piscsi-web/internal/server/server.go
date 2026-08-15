@@ -84,7 +84,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*Server, error) {
 	}
 
 	// Load drive properties
-	drivePropsPath := "drive_properties.json"
+	drivePropsPath := cfg.DrivePropertiesFile
 	driveProps, err := driveprops.LoadProperties(drivePropsPath)
 	if err != nil {
 		logger.Warn("Failed to load drive properties", "error", err, "path", drivePropsPath)

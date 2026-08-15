@@ -142,7 +142,8 @@ make proto
 
 ### Custom build-time data-directory defaults
 
-The `BASE_DIR`, `SHARED_DIR`, `CONFIG_DIR`, and `DRIVER_DIR` environment
+The `BASE_DIR`, `SHARED_DIR`, `CONFIG_DIR`, `DRIVER_DIR`, and
+`DRIVE_PROPERTIES_FILE` environment
 variables override the application's defaults at runtime.
 When building a binary for a legacy installation where data dirs are under `/home/pi`,
 the fallback defaults can instead be selected with Makefile variables:
@@ -153,12 +154,14 @@ make build \
   DEFAULT_SHARED_DIR=/home/pi/shared \
   DEFAULT_CONFIG_DIR=/home/pi/.config/piscsi \
   DEFAULT_DATA_DIR=/home/pi \
+  DEFAULT_DRIVE_PROPERTIES_FILE=/home/pi/drive_properties.json \
   DEFAULT_SESSION_KEY_FILE=/home/pi/.config/piscsi/session.key
 ```
 
 The resulting binary uses these directories only when the corresponding
 environment variable is unset. `DEFAULT_SESSION_KEY_FILE` is used only when
-`SESSION_KEY_FILE` is unset. `DEFAULT_DATA_DIR` sets the support-data root;
+`SESSION_KEY_FILE` is unset. `DEFAULT_DRIVE_PROPERTIES_FILE` is used only when
+`DRIVE_PROPERTIES_FILE` is unset. `DEFAULT_DATA_DIR` sets the support-data root;
 the default driver directory is its `mac-hard-disk-drivers` subdirectory.
 
 The packaged installation stores root-owned, read-only support data below
@@ -396,6 +399,8 @@ Environment variables:
 - `CONFIG_DIR`: Saved configuration directory (default: `/var/lib/piscsi/config`)
 - `DRIVER_DIR`: Lido and SpeedTools driver-image directory (default:
   `/var/lib/piscsi/data/mac-hard-disk-drivers`)
+- `DRIVE_PROPERTIES_FILE`: Drive property presets (default:
+  `drive_properties.json`; Debian package: `/etc/piscsi-web/drive_properties.json`)
 - `TEMPLATES_DIR`: HTML template directory (default: `web/templates`)
 - `STATIC_DIR`: Static-asset directory (default: `web/static`)
 - `MAX_FILE_SIZE`: Maximum upload size in bytes (default: `4294967296`)

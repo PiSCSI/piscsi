@@ -34,11 +34,12 @@ const (
 
 // These defaults can be overridden at link time with go build -ldflags -X.
 var (
-	defaultBaseDir        = "/var/lib/piscsi/images"
-	defaultSharedDir      = "/var/lib/piscsi/shared"
-	defaultConfigDir      = "/var/lib/piscsi/config"
-	defaultDataDir        = "/var/lib/piscsi/data"
-	defaultSessionKeyFile = "/etc/piscsi-web/session.key"
+	defaultBaseDir             = "/var/lib/piscsi/images"
+	defaultSharedDir           = "/var/lib/piscsi/shared"
+	defaultConfigDir           = "/var/lib/piscsi/config"
+	defaultDataDir             = "/var/lib/piscsi/data"
+	defaultDrivePropertiesFile = "drive_properties.json"
+	defaultSessionKeyFile      = "/etc/piscsi-web/session.key"
 )
 
 // Config holds application configuration.
@@ -53,12 +54,13 @@ type Config struct {
 	PiscsiToken string
 
 	// File paths
-	BaseDir      string // Base directory for image files
-	SharedDir    string // Shared files directory
-	ConfigDir    string // Configuration files directory
-	DriverDir    string // Macintosh hard disk driver images
-	TemplatesDir string // Templates directory
-	StaticDir    string // Static assets directory
+	BaseDir             string // Base directory for image files
+	SharedDir           string // Shared files directory
+	ConfigDir           string // Configuration files directory
+	DriverDir           string // Macintosh hard disk driver images
+	DrivePropertiesFile string // Drive property presets
+	TemplatesDir        string // Templates directory
+	StaticDir           string // Static assets directory
 
 	// File size limits
 	MaxFileSize int64 // Maximum upload file size in bytes
@@ -112,6 +114,10 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	drivePropertiesFile, err := loadNonemptyString("DRIVE_PROPERTIES_FILE", defaultDrivePropertiesFile)
+	if err != nil {
+		return nil, err
+	}
 	templatesDir, err := loadDirectory("TEMPLATES_DIR", "web/templates", false)
 	if err != nil {
 		return nil, err
@@ -160,6 +166,7 @@ func Load() (*Config, error) {
 		SharedDir:             sharedDir,
 		ConfigDir:             configDir,
 		DriverDir:             driverDir,
+		DrivePropertiesFile:   drivePropertiesFile,
 		TemplatesDir:          templatesDir,
 		StaticDir:             staticDir,
 		MaxFileSize:           maxFileSize,
