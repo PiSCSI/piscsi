@@ -96,9 +96,6 @@ void scsimon_generate_value_change_dump(const string &filename, const vector<sha
                  << "$version" << endl
                  << "   VCD generator tool version info text." << endl
                  << "$end" << endl
-                 << "$comment" << endl
-                 << "   Tool build date:" << __TIMESTAMP__ << endl
-                 << "$end" << endl
                  << "$timescale 1 ns $end" << endl
                  << "$scope module logic $end" << endl
                  << "$var wire 1 " << SYMBOL_PIN_BSY << " BSY $end" << endl
