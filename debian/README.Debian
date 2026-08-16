@@ -34,7 +34,7 @@ One-time Trixie build-host setup
 --------------------------------
 
 Trixie supplies Go 1.24, but this checkout's `go.mod` requires Go 1.25 and
-selects `go1.25.12`. For a local build, install a Go 1.25.12-or-newer toolchain
+selects `go1.25.13`. For a local build, install a Go 1.25.13-or-newer toolchain
 outside the package build. The following installs Go 1.25.13 for an arm64
 build host without replacing Trixie's `/usr/bin/go`. Use the archive for the
 build host architecture, not the package target architecture.

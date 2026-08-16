@@ -2,14 +2,14 @@ module github.com/piscsi/piscsi/go
 
 go 1.25.0
 
-toolchain go1.25.12
+toolchain go1.25.13
 
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
 	golang.org/x/image v0.41.0
-	golang.org/x/net v0.54.0
+	golang.org/x/net v0.55.0
 	golang.org/x/sys v0.45.0
 	golang.org/x/text v0.37.0
 	google.golang.org/protobuf v1.36.11

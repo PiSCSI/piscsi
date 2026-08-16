@@ -42,6 +42,12 @@ type Server struct {
 	hostIP        func() string
 }
 
+const (
+	readHeaderTimeout = 10 * time.Second
+	idleTimeout       = 60 * time.Second
+	maxHeaderBytes    = 1 << 20
+)
+
 // New creates a new server instance
 func New(cfg *config.Config, logger *slog.Logger) (*Server, error) {
 	// Set Gin mode based on environment
@@ -220,7 +226,17 @@ func (s *Server) setupRoutes() {
 func (s *Server) Start() error {
 	address := net.JoinHostPort(s.config.ServerHost, strconv.Itoa(s.config.ServerPort))
 	s.logger.Info("Starting PiSCSI web server", "address", address)
-	return s.router.Run(address)
+	return s.httpServer(address).ListenAndServe()
+}
+
+func (s *Server) httpServer(address string) *http.Server {
+	return &http.Server{
+		Addr:              address,
+		Handler:           s.router,
+		ReadHeaderTimeout: readHeaderTimeout,
+		IdleTimeout:       idleTimeout,
+		MaxHeaderBytes:    maxHeaderBytes,
+	}
 }
 
 // requestLogger logs HTTP requests
