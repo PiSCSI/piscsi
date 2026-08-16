@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.25
+ARG GO_VERSION=1.25.13
 ARG OS_VERSION=bullseye
 
 FROM golang:${GO_VERSION}-bookworm AS build

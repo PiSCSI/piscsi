@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 env:
-  GO_VERSION: '1.25.12'
+  GO_VERSION: '1.25.13'
 
 jobs:
   quality:
@@ -94,7 +94,7 @@ jobs:
             --env DEBIAN_FRONTEND=noninteractive \
             --volume "${{ github.workspace }}:/workspace" \
             --workdir /workspace/go \
-            golang:1.25-trixie \
+            golang:1.25.13-trixie \
             sh -c 'git config --global --add safe.directory /workspace && apt-get update && apt-get install --yes protobuf-compiler && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11 && export PATH="$(go env GOPATH)/bin:$PATH" && make proto && go build -v -tags nomsgpack -trimpath -o /tmp/piscsi-web ./piscsi-web/cmd/piscsi-web && go build -v -trimpath -o /tmp/piscsi-oled ./cmd/piscsi-oled'
 
   arm:
