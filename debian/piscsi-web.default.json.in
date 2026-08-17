@@ -1,0 +1,9 @@
+{
+    "version": "@PISCSI_VERSION@",
+    "devices": [],
+    "reserved_ids": [
+        {
+            "id": 7
+        }
+    ]
+}

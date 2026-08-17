@@ -1,4 +1,5 @@
 d /var/lib/piscsi/config 2770 piscsi-web piscsi -
+C /var/lib/piscsi/config/default.json 0660 piscsi-web piscsi - /usr/share/piscsi-web/default.json
 d /var/lib/piscsi/data 0755 root root -
 d /var/lib/piscsi/data/mac-hard-disk-drivers 0755 root root -
 d /var/lib/piscsi-web 0700 piscsi-web piscsi -

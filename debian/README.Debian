@@ -18,6 +18,9 @@ character device as well as I2C.
 
 All shared image, upload, and configuration directories are managed by
 systemd-tmpfiles. They are intentionally retained when packages are removed.
+On first installation, systemd-tmpfiles copies the packaged empty default
+configuration to `/var/lib/piscsi/config/default.json`; it is not overwritten
+on upgrades.
 
 Debian Trixie cross-builds
 --------------------------
