@@ -76,6 +76,16 @@ override_dh_auto_install:
 	install -m 0644 doc/piscsi.1 doc/scsictl.1 doc/scsimon.1 doc/scsiloop.1 doc/scsidump.1 debian/tmp/usr/share/man/man1/
 	install -D -m 0644 go/piscsi-web/drive_properties.json debian/tmp/etc/piscsi-web/drive_properties.json
 	install -D -m 0644 debian/piscsi-web.piscsi-web.env debian/tmp/etc/piscsi-web/piscsi-web.env
+	@piscsi_version=$$(awk -F '[=;]' '\
+		/^const int piscsi_major_version =/ { major = $$2 + 0; have_major = 1 } \
+		/^const int piscsi_minor_version =/ { minor = $$2 + 0; have_minor = 1 } \
+		/^const int piscsi_patch_version =/ { patch = $$2 + 0; have_patch = 1 } \
+		END { if (!have_major || !have_minor || !have_patch) exit 1; printf "%d.%d.%d", major, minor, patch }' \
+		cpp/shared/piscsi_version.cpp); \
+	[ -n "$$piscsi_version" ] || { echo "could not determine PiSCSI version" >&2; exit 1; }; \
+	install -d debian/tmp/usr/share/piscsi-web; \
+	sed "s/@PISCSI_VERSION@/$$piscsi_version/" debian/piscsi-web.default.json.in > debian/tmp/usr/share/piscsi-web/default.json; \
+	chmod 0644 debian/tmp/usr/share/piscsi-web/default.json
 
 # Go's compressed DWARF sections are not supported by dwz, and some cross-built
 # C++ binaries also fail its optional ELF rewrite pass.
