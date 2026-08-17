@@ -401,8 +401,10 @@ Environment variables:
   `/var/lib/piscsi/data/mac-hard-disk-drivers`)
 - `DRIVE_PROPERTIES_FILE`: Drive property presets (default:
   `drive_properties.json`; Debian package: `/etc/piscsi-web/drive_properties.json`)
-- `TEMPLATES_DIR`: HTML template directory (default: `web/templates`)
-- `STATIC_DIR`: Static-asset directory (default: `web/static`)
+- `TEMPLATES_DIR`: HTML template directory used only as a development fallback
+  (default: `web/templates`; the release binary embeds templates)
+- `STATIC_DIR`: Static-asset directory used only as a development fallback
+  (default: `web/static`; the release binary embeds static assets)
 - `MAX_FILE_SIZE`: Maximum upload size in bytes (default: `4294967296`)
 - `SESSION_MAX_AGE`: Session lifetime in seconds (default: `86400`)
 - `SESSION_KEY_FILE`: Protected base64 master-key file (default:

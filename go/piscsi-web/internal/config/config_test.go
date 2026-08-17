@@ -153,6 +153,34 @@ func TestLoadAllowsMissingDefaultDriverDirectory(t *testing.T) {
 	}
 }
 
+func TestLoadAllowsMissingDefaultAssetDirectories(t *testing.T) {
+	configureValidEnvironment(t, bytes.Repeat([]byte{0x35}, minimumMasterKeySize))
+	unsetEnv(t, "TEMPLATES_DIR")
+	unsetEnv(t, "STATIC_DIR")
+
+	workingDirectory := t.TempDir()
+	previousWorkingDirectory, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(workingDirectory); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(previousWorkingDirectory); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.TemplatesDir != "web/templates" || cfg.StaticDir != "web/static" {
+		t.Errorf("asset fallback directories = (%q, %q)", cfg.TemplatesDir, cfg.StaticDir)
+	}
+}
+
 func TestLoadRejectsContradictoryPaths(t *testing.T) {
 	t.Run("nested writable roots", func(t *testing.T) {
 		env := configureValidEnvironment(t, bytes.Repeat([]byte{0x34}, minimumMasterKeySize))
