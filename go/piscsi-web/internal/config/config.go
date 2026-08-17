@@ -118,11 +118,14 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	templatesDir, err := loadDirectory("TEMPLATES_DIR", "web/templates", false)
+	// Release binaries embed their UI assets. The relative directories are only
+	// fallbacks for development, so their absence must not prevent a packaged
+	// service from starting. Explicit overrides remain required and validated.
+	templatesDir, err := loadOptionalDirectory("TEMPLATES_DIR", "web/templates")
 	if err != nil {
 		return nil, err
 	}
-	staticDir, err := loadDirectory("STATIC_DIR", "web/static", false)
+	staticDir, err := loadOptionalDirectory("STATIC_DIR", "web/static")
 	if err != nil {
 		return nil, err
 	}
@@ -368,12 +371,19 @@ func loadOptionalAbsoluteDirectory(setting, defaultValue string) (string, error)
 	return validateDirectory(setting, value, false)
 }
 
-func loadDirectory(setting, defaultValue string, writable bool) (string, error) {
+// loadOptionalDirectory permits an absent default directory for an embedded
+// resource fallback. Explicit settings are always validated.
+func loadOptionalDirectory(setting, defaultValue string) (string, error) {
 	value, err := loadNonemptyString(setting, defaultValue)
 	if err != nil {
 		return "", err
 	}
-	return validateDirectory(setting, value, writable)
+	if _, configured := os.LookupEnv(setting); !configured {
+		if _, err := os.Stat(value); errors.Is(err, fs.ErrNotExist) {
+			return value, nil
+		}
+	}
+	return validateDirectory(setting, value, false)
 }
 
 func validateDirectory(setting, value string, writable bool) (string, error) {
