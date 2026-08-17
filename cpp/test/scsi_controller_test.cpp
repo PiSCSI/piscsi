@@ -20,10 +20,11 @@ TEST(ScsiControllerTest, GetInitiatorId)
 
 	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
+	controller.Init();
 
-	controller.Process(ID);
+	EXPECT_FALSE(controller.Process(ID));
 	EXPECT_EQ(ID, controller.GetInitiatorId());
-	controller.Process(-1);
+	EXPECT_FALSE(controller.Process(-1));
 	EXPECT_EQ(-1, controller.GetInitiatorId());
 }
 
