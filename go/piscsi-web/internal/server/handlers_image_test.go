@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -702,6 +703,46 @@ func TestHandleFilesCreateRejectsFormatBeforeCreatingImage(t *testing.T) {
 	}
 }
 
+func TestHardDiskDriverImages(t *testing.T) {
+	driverDir := t.TempDir()
+	for _, name := range []string{"SpeedTools.IMG", "Lido.bin", "readme.txt", "no-extension"} {
+		if err := os.WriteFile(filepath.Join(driverDir, name), nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Mkdir(filepath.Join(driverDir, "nested.img"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	server := &Server{config: &config.Config{DriverDir: driverDir}}
+	got, err := server.hardDiskDriverImages()
+	if err != nil {
+		t.Fatalf("hardDiskDriverImages() error = %v", err)
+	}
+	want := []string{"Lido.bin", "SpeedTools.IMG"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("hardDiskDriverImages() = %v, want %v", got, want)
+	}
+	if !server.isSupportedDriveFormat("Lido.bin") {
+		t.Error("listed driver was not accepted as a drive format")
+	}
+	if server.isSupportedDriveFormat("readme.txt") {
+		t.Error("non-driver file was accepted as a drive format")
+	}
+}
+
+func TestHardDiskDriverImagesAllowsMissingDirectory(t *testing.T) {
+	driverDir := filepath.Join(t.TempDir(), "missing")
+	server := &Server{config: &config.Config{DriverDir: driverDir}}
+	drivers, err := server.hardDiskDriverImages()
+	if err != nil {
+		t.Fatalf("hardDiskDriverImages() error = %v", err)
+	}
+	if len(drivers) != 0 {
+		t.Errorf("hardDiskDriverImages() = %v, want no drivers", drivers)
+	}
+}
+
 func TestHandleFilesCreateRemovesImageWhenFormattingFails(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	root := t.TempDir()
@@ -765,7 +806,7 @@ func TestFormatNewImageInjectsHFSDriver(t *testing.T) {
 	for i := range driverData {
 		driverData[i] = byte(i)
 	}
-	driverPath := filepath.Join(driverDir, "Lido-7.56.img")
+	driverPath := filepath.Join(driverDir, "Custom Driver.bin")
 	if err := os.WriteFile(driverPath, driverData, 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -775,7 +816,7 @@ func TestFormatNewImageInjectsHFSDriver(t *testing.T) {
 	}
 
 	server := &Server{config: &config.Config{DriverDir: driverDir}}
-	if err := server.formatNewImage(imagePath, 1, "Lido 7.56"); err != nil {
+	if err := server.formatNewImage(imagePath, 1, filepath.Base(driverPath)); err != nil {
 		t.Fatalf("formatNewImage() error = %v", err)
 	}
 	imageData, err := os.ReadFile(imagePath)
@@ -785,6 +826,85 @@ func TestFormatNewImageInjectsHFSDriver(t *testing.T) {
 	if !reflect.DeepEqual(imageData[64*512:96*512], driverData) {
 		t.Fatal("HFS driver was not injected at blocks 64-95")
 	}
+}
+
+func TestInjectMiniSCSIDriver(t *testing.T) {
+	root := t.TempDir()
+	driverData := make([]byte, 1862)
+	for i := range driverData {
+		driverData[i] = byte(i)
+	}
+	driverPath := filepath.Join(root, "miniscsi-1.0.bin")
+	if err := os.WriteFile(driverPath, driverData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	imagePath := filepath.Join(root, "disk.hds")
+	imageData := make([]byte, 1024*1024)
+	writeApplePartitionMapEntry(imageData[512:1024], 3, "Apple_partition_map", 1, 63)
+	writeApplePartitionMapEntry(imageData[1024:1536], 3, "Apple_Driver43", 64, 32)
+	copy(imageData[2*diskBlockSize+0x10:], "Driver_Partition")
+	writeApplePartitionMapEntry(imageData[1536:2048], 3, "Apple_HFS", 96, 1952)
+	if err := os.WriteFile(imagePath, imageData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := injectMiniSCSIDriver(imagePath, driverPath); err != nil {
+		t.Fatalf("injectMiniSCSIDriver() error = %v", err)
+	}
+	imageData, err := os.ReadFile(imagePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	driverOffset := miniSCSIDriverPartitionBlock * diskBlockSize
+	if !reflect.DeepEqual(imageData[driverOffset:driverOffset+len(driverData)], driverData) {
+		t.Fatal("MiniSCSI driver data was not injected")
+	}
+	entry := imageData[2*diskBlockSize : 3*diskBlockSize]
+	if got := binary.BigEndian.Uint32(entry[partitionStatusOffset:]); got != 0x7f {
+		t.Errorf("partition status = %#x, want %#x", got, uint32(0x7f))
+	}
+	if got := binary.BigEndian.Uint32(entry[partitionBootSizeOffset:]); got != uint32(len(driverData)) {
+		t.Errorf("boot size = %d, want %d", got, len(driverData))
+	}
+	if got := string(entry[0x10 : 0x10+16]); got != "Driver_Partition" {
+		t.Errorf("partition name = %q, want %q", got, "Driver_Partition")
+	}
+	if got, want := binary.BigEndian.Uint32(entry[partitionBootChecksumOffset:]), uint32(miniSCSIChecksum(driverData)); got != want {
+		t.Errorf("boot checksum = %#x, want %#x", got, want)
+	}
+	if got := string(entry[partitionProcessorOffset : partitionProcessorOffset+5]); got != "68000" {
+		t.Errorf("processor = %q, want %q", got, "68000")
+	}
+}
+
+func TestMiniSCSIChecksum(t *testing.T) {
+	if got, want := miniSCSIChecksum([]byte{0x12, 0x34, 0x56, 0x78}), uint16(0x68ac); got != want {
+		t.Errorf("miniSCSIChecksum() = %#x, want %#x", got, want)
+	}
+}
+
+func TestIsMiniSCSIDriver(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		want bool
+	}{
+		{name: "miniscsi-1.0.bin", want: true},
+		{name: "MiniSCSI-1.0.bin", want: true},
+		{name: "SpeedTools-3.6.img", want: false},
+	} {
+		if got := isMiniSCSIDriver(test.name); got != test.want {
+			t.Errorf("isMiniSCSIDriver(%q) = %t, want %t", test.name, got, test.want)
+		}
+	}
+}
+
+func writeApplePartitionMapEntry(entry []byte, entryCount uint32, partitionType string, start, blocks uint32) {
+	binary.BigEndian.PutUint16(entry, partitionMapSignature)
+	binary.BigEndian.PutUint32(entry[4:], entryCount)
+	binary.BigEndian.PutUint32(entry[8:], start)
+	binary.BigEndian.PutUint32(entry[12:], blocks)
+	copy(entry[partitionTypeOffset:partitionTypeOffset+32], partitionType)
+	binary.BigEndian.PutUint32(entry[partitionStatusOffset:], 0x33)
 }
 
 func TestFormatNewImageSupportsFAT16AndFAT32(t *testing.T) {

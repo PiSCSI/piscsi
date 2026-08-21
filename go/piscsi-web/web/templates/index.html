@@ -540,8 +540,9 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
     <label for="drive_format">Format as:</label>
     <select name="drive_format" id="drive_format">
         <option value="">Unformatted</option>
-        <option value="Lido 7.56">HFS + Lido</option>
-        <option value="SpeedTools 3.6">HFS + SpeedTools</option>
+        {{range .HardDiskDriverImages}}
+        <option value="{{.}}">HFS + {{.}}</option>
+        {{end}}
         <option value="FAT16">FAT16</option>
         <option value="FAT32">FAT32</option>
     </select>

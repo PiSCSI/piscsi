@@ -8,6 +8,8 @@ package server
 import (
 	"archive/zip"
 	"context"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -194,6 +196,9 @@ func (s *Server) handleIndex(c *gin.Context) {
 	data["BridgeConfigured"] = bridgeConfigured
 	data["CreatableImageSuffixes"] = creatableImageSuffixes(imageFileTypeMapping)
 	data["HardDiskDriveProfiles"] = s.hardDiskDriveProfiles()
+	if drivers, err := s.hardDiskDriverImages(); err == nil {
+		data["HardDiskDriverImages"] = drivers
+	}
 
 	c.HTML(http.StatusOK, "index.html", data)
 }
@@ -2129,7 +2134,7 @@ func (s *Server) handleFilesCreate(c *gin.Context) {
 
 	// Validate formatting before creating anything, so a malformed request
 	// cannot leave an unformatted image behind.
-	if !isSupportedDriveFormat(driveFormat) {
+	if !s.isSupportedDriveFormat(driveFormat) {
 		s.respond(c, ResponseOptions{
 			Error:   true,
 			Message: fmt.Sprintf("%s is not a valid hard disk format", driveFormat),
@@ -2264,13 +2269,53 @@ func (s *Server) imageFileTypeMapping(c *gin.Context) map[string]pb.PbDeviceType
 	return result.GetServerInfo().GetMappingInfo().GetMapping()
 }
 
-func isSupportedDriveFormat(format string) bool {
+// hardDiskDriverImages returns the regular driver-image files immediately in
+// DRIVER_DIR. Driver files are deliberately not searched recursively: the
+// selected filename is later used to open a file in this directory.
+func (s *Server) hardDiskDriverImages() ([]string, error) {
+	entries, err := os.ReadDir(s.config.DriverDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	drivers := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil || !info.Mode().IsRegular() {
+			continue
+		}
+		if isHardDiskDriverImage(entry.Name()) {
+			drivers = append(drivers, entry.Name())
+		}
+	}
+	sort.Strings(drivers)
+	return drivers, nil
+}
+
+func (s *Server) isSupportedDriveFormat(format string) bool {
 	switch format {
-	case "", "Lido 7.56", "SpeedTools 3.6", "FAT16", "FAT32":
+	case "", "FAT16", "FAT32":
 		return true
-	default:
+	}
+
+	drivers, err := s.hardDiskDriverImages()
+	if err != nil {
 		return false
 	}
+	for _, driver := range drivers {
+		if format == driver {
+			return true
+		}
+	}
+	return false
+}
+
+func isHardDiskDriverImage(name string) bool {
+	extension := strings.ToLower(filepath.Ext(name))
+	return extension == ".bin" || extension == ".img"
 }
 
 func mappedImageType(mapping map[string]pb.PbDeviceType, suffix string) pb.PbDeviceType {
@@ -2302,20 +2347,32 @@ func (s *Server) formatNewImage(fullPath string, sizeMB int64, format string) er
 			"mkfs.fat", "", "-v", "-F", fatSize, "-n",
 			volumeName[:min(len(volumeName), 11)], "--offset=2048", fullPath,
 		)
-	case "Lido 7.56", "SpeedTools 3.6":
+	default:
+		if !isHardDiskDriverImage(format) {
+			return fmt.Errorf("unsupported hard disk format %q", format)
+		}
+		driverPartitionType := "Apple_Driver"
+		if isMiniSCSIDriver(format) {
+			driverPartitionType = "Apple_Driver43"
+		}
 		if err := runFormatterCommand("hfdisk", strings.Join([]string{
-			"i", "", "C", "", "32", "Driver_Partition", "Apple_Driver",
+			"i", "", "C", "", "32", "Driver_Partition", driverPartitionType,
 			"C", "", "", volumeName, "Apple_HFS", "w", "y", "p", "",
 		}, "\n"), fullPath); err != nil {
 			return err
 		}
-		driverPath := filepath.Join(s.config.DriverDir, strings.ReplaceAll(format, " ", "-")+".img")
+		driverPath := filepath.Join(s.config.DriverDir, format)
+		if isMiniSCSIDriver(format) {
+			if err := injectMiniSCSIDriver(fullPath, driverPath); err != nil {
+				return err
+			}
+			return runHFSFormatterCommand("-l", volumeName, fullPath, "1")
+		}
 		if err := injectHFSDriver(fullPath, driverPath); err != nil {
 			return err
 		}
 		return runHFSFormatterCommand("-l", volumeName, fullPath, "1")
 	}
-	return nil
 }
 
 func runHFSFormatterCommand(args ...string) error {
@@ -2392,6 +2449,123 @@ func injectHFSDriver(imagePath, driverPath string) error {
 		return fmt.Errorf("inject hard disk driver: %w", err)
 	}
 	return image.Sync()
+}
+
+const (
+	diskBlockSize                 = 512
+	miniSCSIDriverPartitionBlock  = 64
+	miniSCSIDriverPartitionBlocks = 32
+	partitionMapEntrySize         = 512
+	partitionMapSignature         = 0x504d
+	partitionTypeOffset           = 0x30
+	partitionStatusOffset         = 0x58
+	partitionBootStartOffset      = 0x5c
+	partitionBootSizeOffset       = 0x60
+	partitionBootAddressOffset    = 0x64
+	partitionBootEntryOffset      = 0x6c
+	partitionBootChecksumOffset   = 0x74
+	partitionProcessorOffset      = 0x78
+	partitionStatusInUse          = 1 << 2
+	partitionStatusHasBootInfo    = 1 << 3
+	partitionStatusBootCodePIC    = 1 << 6
+)
+
+// isMiniSCSIDriver identifies MiniSCSI driver blobs by the documented filename
+// convention. Unlike legacy 16 KiB driver images, MiniSCSI is a variable-size
+// Apple_Driver43 boot-code blob with partition-map boot metadata.
+func isMiniSCSIDriver(name string) bool {
+	return strings.HasPrefix(strings.ToLower(filepath.Base(name)), "miniscsi")
+}
+
+func injectMiniSCSIDriver(imagePath, driverPath string) error {
+	driver, err := os.ReadFile(driverPath)
+	if err != nil {
+		return fmt.Errorf("read MiniSCSI driver %q: %w", driverPath, err)
+	}
+	if len(driver) == 0 || len(driver) > miniSCSIDriverPartitionBlocks*diskBlockSize {
+		return fmt.Errorf("MiniSCSI driver size %d is outside the supported range 1-%d bytes", len(driver), miniSCSIDriverPartitionBlocks*diskBlockSize)
+	}
+
+	image, err := os.OpenFile(imagePath, os.O_RDWR, 0)
+	if err != nil {
+		return err
+	}
+	defer image.Close()
+	if _, err := image.Seek(miniSCSIDriverPartitionBlock*diskBlockSize, io.SeekStart); err != nil {
+		return err
+	}
+	if _, err := image.Write(driver); err != nil {
+		return fmt.Errorf("inject MiniSCSI driver: %w", err)
+	}
+	if err := updateMiniSCSIPartitionMap(image, len(driver), miniSCSIChecksum(driver)); err != nil {
+		return err
+	}
+	return image.Sync()
+}
+
+func updateMiniSCSIPartitionMap(image *os.File, driverSize int, checksum uint16) error {
+	entry := make([]byte, partitionMapEntrySize)
+	if _, err := image.ReadAt(entry, diskBlockSize); err != nil {
+		return fmt.Errorf("read Apple partition map: %w", err)
+	}
+	if binary.BigEndian.Uint16(entry) != partitionMapSignature {
+		return errors.New("invalid Apple partition map signature")
+	}
+	entryCount := binary.BigEndian.Uint32(entry[4:])
+	if entryCount == 0 {
+		return errors.New("Apple partition map has no entries")
+	}
+
+	for block := uint32(1); block <= entryCount; block++ {
+		if _, err := image.ReadAt(entry, int64(block)*diskBlockSize); err != nil {
+			return fmt.Errorf("read Apple partition map entry %d: %w", block, err)
+		}
+		if binary.BigEndian.Uint16(entry) != partitionMapSignature {
+			return fmt.Errorf("invalid Apple partition map signature in entry %d", block)
+		}
+		partitionType := string(entry[partitionTypeOffset : partitionTypeOffset+32])
+		if strings.TrimRight(partitionType, "\x00") != "Apple_Driver43" {
+			continue
+		}
+		if binary.BigEndian.Uint32(entry[12:]) < uint32((driverSize+diskBlockSize-1)/diskBlockSize) {
+			return errors.New("MiniSCSI driver does not fit in its partition")
+		}
+
+		status := binary.BigEndian.Uint32(entry[partitionStatusOffset:])
+		binary.BigEndian.PutUint32(entry[partitionStatusOffset:], status|partitionStatusInUse|partitionStatusHasBootInfo|partitionStatusBootCodePIC)
+		// Keep hfdisk's "Driver_Partition" name. The Start Manager verifies
+		// pmBootCksum only when the name starts with "Maci". MiniSCSI's
+		// documented checksum description was insufficient to reproduce the
+		// expected value, and verification prevented the driver from loading on
+		// an SE/30. Leave verification disabled until its checksum algorithm is
+		// specified or a known-good reference partition map is available.
+		binary.BigEndian.PutUint32(entry[partitionBootStartOffset:], 0)
+		binary.BigEndian.PutUint32(entry[partitionBootSizeOffset:], uint32(driverSize))
+		binary.BigEndian.PutUint32(entry[partitionBootAddressOffset:], 0)
+		binary.BigEndian.PutUint32(entry[partitionBootEntryOffset:], 0)
+		// Retain the calculated value for diagnostics and future compatibility,
+		// even though the partition name above intentionally disables validation.
+		binary.BigEndian.PutUint32(entry[partitionBootChecksumOffset:], uint32(checksum))
+		clear(entry[partitionProcessorOffset : partitionProcessorOffset+16])
+		copy(entry[partitionProcessorOffset:partitionProcessorOffset+16], "68000")
+		if _, err := image.WriteAt(entry, int64(block)*diskBlockSize); err != nil {
+			return fmt.Errorf("write MiniSCSI partition map entry: %w", err)
+		}
+		return nil
+	}
+	return errors.New("Apple_Driver43 partition not found")
+}
+
+func miniSCSIChecksum(driver []byte) uint16 {
+	var checksum uint32
+	for len(driver) >= 2 {
+		checksum += uint32(binary.BigEndian.Uint16(driver))
+		driver = driver[2:]
+	}
+	if len(driver) == 1 {
+		checksum += uint32(driver[0]) << 8
+	}
+	return uint16(checksum)
 }
 
 // creates an image and properties file pair
