@@ -121,6 +121,74 @@ func TestHandleFilesUploadStreamsFile(t *testing.T) {
 	assertNoTemporaryUploads(t, imageDir)
 }
 
+func TestHandleFilesUploadReturnsJSONForProgressRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	server, imageDir := newUploadTestServer(t, 1024)
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	if err := writer.WriteField("destination", "disk_images"); err != nil {
+		t.Fatalf("write destination: %v", err)
+	}
+	filePart, err := writer.CreateFormFile("file", "disk.hda")
+	if err != nil {
+		t.Fatalf("create file part: %v", err)
+	}
+	if _, err := filePart.Write([]byte("upload data")); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	context, _ := gin.CreateTestContext(recorder)
+	context.Request = httptest.NewRequest(http.MethodPost, "/files/upload", &body)
+	context.Request.Header.Set("Content-Type", writer.FormDataContentType())
+	context.Request.Header.Set("X-Requested-With", "XMLHttpRequest")
+
+	server.handleFilesUpload(context)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+	if contentType := recorder.Header().Get("Content-Type"); !strings.HasPrefix(contentType, "application/json") {
+		t.Fatalf("Content-Type = %q, want JSON", contentType)
+	}
+	if !strings.Contains(recorder.Body.String(), `"message":"File uploaded successfully"`) {
+		t.Fatalf("response = %s", recorder.Body.String())
+	}
+	if _, err := os.Stat(filepath.Join(imageDir, "disk.hda")); err != nil {
+		t.Fatalf("uploaded file missing: %v", err)
+	}
+}
+
+func TestHandleFilesUploadCheckReportsExistingFile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	server, imageDir := newUploadTestServer(t, 1024)
+	if err := os.WriteFile(filepath.Join(imageDir, "disk.hda"), []byte("existing"), 0644); err != nil {
+		t.Fatalf("create existing file: %v", err)
+	}
+
+	values := neturl.Values{
+		"destination": {"disk_images"},
+		"filename":    {"disk.hda"},
+	}
+	recorder := httptest.NewRecorder()
+	context, _ := gin.CreateTestContext(recorder)
+	context.Request = httptest.NewRequest(http.MethodPost, "/files/upload/check", strings.NewReader(values.Encode()))
+	context.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	server.handleFilesUploadCheck(context)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+	if recorder.Body.String() != `{"exists":true}` {
+		t.Fatalf("response = %s", recorder.Body.String())
+	}
+}
+
 func TestHandleFilesUploadRejectsOversizedFile(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	server, imageDir := newUploadTestServer(t, 4)

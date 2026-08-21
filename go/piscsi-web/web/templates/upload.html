@@ -5,23 +5,149 @@
 
 <div class="content">
 <h2>Upload File from Local Computer</h2>
-<form action="/files/upload" method="post" enctype="multipart/form-data">
-    <fieldset>
-        <legend>Destination</legend>
-        <label for="destination">To directory:</label>
-        <select name="destination" id="destination">
+<form id="upload-form" action="/files/upload" method="post" enctype="multipart/form-data">
+    <label for="destination">To directory:</label>
+    <select name="destination" id="destination">
         <option value="disk_images" selected>{{ .ImageRootDir }}/</option>
         {{ if .FileServerDirExists }}
         <option value="shared_files">{{ .SharedRootDir }}/</option>
         {{ end }}
         <option value="piscsi_config">{{ .ConfigDir }}/</option>
-        </select>
-    </fieldset>
+    </select>
     <label for="file">File:</label>
     <input type="file" name="file" id="file" required>
-    <input type="submit" value="Upload">
+    <input id="upload-submit" type="submit" value="Upload">
+    <div id="upload-progress-container" hidden>
+        <label for="upload-progress">Upload progress:</label>
+        <progress id="upload-progress" max="100" value="0">0%</progress>
+        <span id="upload-progress-text" aria-live="polite">0%</span>
+    </div>
+    <div id="upload-status" role="status" aria-live="polite"></div>
 </form>
 </div>
+
+<script>
+(() => {
+    const form = document.getElementById("upload-form");
+    if (!form || !window.FormData || !window.XMLHttpRequest) {
+        return;
+    }
+    if (!new XMLHttpRequest().upload) {
+        return;
+    }
+
+    const progressContainer = document.getElementById("upload-progress-container");
+    const progress = document.getElementById("upload-progress");
+    const progressText = document.getElementById("upload-progress-text");
+    const status = document.getElementById("upload-status");
+    const fields = form.querySelectorAll("input, select");
+    let uploading = false;
+
+    const setFieldsDisabled = (disabled) => {
+        fields.forEach((field) => {
+            field.disabled = disabled;
+        });
+    };
+
+    const showFailure = (message) => {
+        uploading = false;
+        setFieldsDisabled(false);
+        status.textContent = message;
+    };
+
+    const startUpload = (formData) => {
+        progressContainer.hidden = false;
+        progress.value = 0;
+        progressText.textContent = "0%";
+        status.textContent = "Uploading…";
+
+        const request = new XMLHttpRequest();
+        request.open(form.method, form.action);
+        request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+        request.upload.addEventListener("progress", (progressEvent) => {
+            if (!progressEvent.lengthComputable) {
+                progress.removeAttribute("value");
+                progressText.textContent = "Uploading…";
+                return;
+            }
+
+            const percentage = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            progress.value = percentage;
+            progressText.textContent = `${percentage}%`;
+        });
+
+        request.addEventListener("load", () => {
+            let response = {};
+            try {
+                response = JSON.parse(request.responseText);
+            } catch (_) {
+                // Treat a non-JSON response as an upload failure.
+            }
+
+            if (request.status >= 200 && request.status < 300 && !response.error) {
+                progress.value = 100;
+                progressText.textContent = "100%";
+                status.textContent = response.message || "Upload complete.";
+                form.reset();
+                uploading = false;
+                setFieldsDisabled(false);
+                return;
+            }
+
+            showFailure(response.message || "Upload failed.");
+        });
+
+        request.addEventListener("error", () => showFailure("Upload failed."));
+        request.addEventListener("abort", () => showFailure("Upload canceled."));
+        request.send(formData);
+    };
+
+    form.addEventListener("submit", (event) => {
+        if (uploading) {
+            event.preventDefault();
+            return;
+        }
+
+        event.preventDefault();
+        uploading = true;
+        progressContainer.hidden = true;
+        progress.value = 0;
+        progressText.textContent = "0%";
+        status.textContent = "Checking destination…";
+        const formData = new FormData(form);
+        setFieldsDisabled(true);
+
+        const check = new XMLHttpRequest();
+        check.open("POST", "/files/upload/check");
+        check.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        check.addEventListener("load", () => {
+            let response = {};
+            try {
+                response = JSON.parse(check.responseText);
+            } catch (_) {
+                // Treat a non-JSON response as a failed destination check.
+            }
+
+            if (check.status >= 200 && check.status < 300 && !response.error && !response.exists) {
+                startUpload(formData);
+                return;
+            }
+
+            showFailure(response.message || "A file with this name already exists.");
+        });
+
+        check.addEventListener("error", () => showFailure("Could not check the upload destination."));
+        const checkFields = [
+            ["destination", formData.get("destination")],
+            ["images_subdir", formData.get("images_subdir")],
+            ["shared_subdir", formData.get("shared_subdir")],
+            ["filename", formData.get("file").name],
+        ];
+        check.send(checkFields.map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value || "")}`).join("&"));
+    });
+})();
+</script>
 
 {{template "back-link" .}}
 {{template "page-footer" .}}

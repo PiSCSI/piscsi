@@ -42,6 +42,7 @@ const (
 	EndpointFilesRename      = "/files/rename"
 	EndpointFilesCopy        = "/files/copy"
 	EndpointFilesUpload      = "/files/upload"
+	EndpointFilesUploadCheck = "/files/upload/check"
 	EndpointFilesDownload    = "/files/download"
 	EndpointFilesDownloadURL = "/files/download_url"
 	EndpointFilesExtract     = "/files/extract"
