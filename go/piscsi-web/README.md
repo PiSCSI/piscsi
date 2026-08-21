@@ -201,16 +201,20 @@ and enables the web service.
 
 ### Optional Macintosh driver injection
 
-Macintosh driver injection when creating `Lido 7.56` or `SpeedTools 3.6` HFS
-images is optional. The installer does not provide driver images. If you have
-the corresponding `Lido-7.56.img` and `SpeedTools-3.6.img` files, install them
-manually in the default driver directory:
+Macintosh driver injection when creating HFS images is optional. The installer
+does not provide driver images. Place regular `.bin` or `.img` driver files in
+the default driver directory; the web interface lists them as HFS formatting
+options:
 
 ```shell
 sudo install -d -o root -g root -m 0755 /var/lib/piscsi/data/mac-hard-disk-drivers
-sudo install -o root -g root -m 0644 /path/to/Lido-7.56.img /path/to/SpeedTools-3.6.img \
+sudo install -o root -g root -m 0644 /path/to/driver.bin /path/to/driver.img \
   /var/lib/piscsi/data/mac-hard-disk-drivers/
 ```
+
+Files whose names start with `miniscsi` are created with an `Apple_Driver43`
+partition and MiniSCSI-specific boot metadata. Other driver files use the legacy
+16 KiB `Apple_Driver` format.
 
 Alternatively, set `DRIVER_DIR` to an existing, readable directory containing
 those files. Without the driver images, the web service remains available but
