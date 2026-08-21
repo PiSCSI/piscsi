@@ -7,17 +7,24 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
 
+	"github.com/piscsi/piscsi/go/piscsi"
 	"github.com/piscsi/piscsi/go/piscsi-web/internal/config"
 	"github.com/piscsi/piscsi/go/piscsi-web/internal/server"
 )
 
 func main() {
+	version := flag.Bool("v", false, "print version information and exit")
 	password := flag.String("password", "", "token password for authenticating with the PiSCSI daemon")
 	flag.Parse()
+	if *version {
+		fmt.Print(piscsi.VersionBanner("PiSCSI Web Interface"))
+		return
+	}
 
 	// Set up structured logging
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{

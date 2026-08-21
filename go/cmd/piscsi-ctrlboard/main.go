@@ -24,6 +24,7 @@ import (
 )
 
 func main() {
+	version := flag.Bool("v", false, "print version information and exit")
 	diagnostic := flag.Bool("diagnostic", false, "log input latency counters")
 	debounce := flag.Duration("button-debounce", 200*time.Millisecond, "button debounce interval")
 	queueSize := flag.Int("event-queue-size", ctrlboard.DefaultQueueSize, "bounded hardware event queue size")
@@ -47,6 +48,10 @@ func main() {
 	configDir := flag.String("config-dir", "/var/lib/piscsi/config", "object-style PiSCSI profile directory")
 	imageDir := flag.String("image-dir", "/var/lib/piscsi/images", "image directory used when loading profiles")
 	flag.Parse()
+	if *version {
+		fmt.Print(piscsi.VersionBanner("PiSCSI Control Board"))
+		return
+	}
 	client := piscsi.NewClient(*host, *port)
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))

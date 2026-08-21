@@ -18,7 +18,7 @@ func TestLoadValidConfiguration(t *testing.T) {
 	t.Setenv("PISCSI_HOST", "piscsi.local")
 	t.Setenv("PISCSI_PORT", "16868")
 	t.Setenv("PISCSI_TOKEN", "daemon-secret")
-	t.Setenv("MAX_FILE_SIZE", "1048576")
+	t.Setenv("MAX_FILE_SIZE", "146789695488")
 	t.Setenv("SESSION_MAX_AGE", "3600")
 	t.Setenv("DRIVE_PROPERTIES_FILE", "/etc/piscsi-web/drive_properties.json")
 
@@ -46,7 +46,7 @@ func TestLoadValidConfiguration(t *testing.T) {
 	if cfg.DrivePropertiesFile != "/etc/piscsi-web/drive_properties.json" {
 		t.Errorf("DrivePropertiesFile = %q", cfg.DrivePropertiesFile)
 	}
-	if cfg.MaxFileSize != 1048576 || cfg.SessionMaxAge != 3600 {
+	if cfg.MaxFileSize != maximumFileSize || cfg.SessionMaxAge != 3600 {
 		t.Errorf("limits = (%d, %d)", cfg.MaxFileSize, cfg.SessionMaxAge)
 	}
 	if cfg.SessionKeyFile != env.keyFile {
@@ -75,7 +75,7 @@ func TestLoadRejectsMalformedConfiguration(t *testing.T) {
 		{name: "empty file size", setting: "MAX_FILE_SIZE", value: ""},
 		{name: "malformed file size", setting: "MAX_FILE_SIZE", value: "large"},
 		{name: "zero file size", setting: "MAX_FILE_SIZE", value: "0"},
-		{name: "excessive file size", setting: "MAX_FILE_SIZE", value: "4398046511105"},
+		{name: "excessive file size", setting: "MAX_FILE_SIZE", value: "146789695489"},
 		{name: "empty session age", setting: "SESSION_MAX_AGE", value: ""},
 		{name: "malformed session age", setting: "SESSION_MAX_AGE", value: "one-day"},
 		{name: "zero session age", setting: "SESSION_MAX_AGE", value: "0"},

@@ -41,6 +41,13 @@ go build -o piscsi-ctrlboard ./cmd/piscsi-ctrlboard
 ./piscsi-ctrlboard
 ```
 
+Print the PiSCSI project version and copyright information without accessing
+the Control Board hardware or daemon:
+
+```sh
+./piscsi-ctrlboard -v
+```
+
 The Makefile offers equivalent build targets, including cross-compilation for
 Raspberry Pi targets:
 

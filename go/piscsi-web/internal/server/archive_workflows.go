@@ -377,8 +377,10 @@ func moveExtractedFile(source, target string) error {
 	return os.Remove(source)
 }
 
-// handleFilesExtractImage extracts selected members into a temporary directory
-// before moving images beneath BaseDir and properties beneath ConfigDir.
+// handleFilesExtractImage extracts selected members directly beneath BaseDir.
+// This avoids needing temporary storage as large as the archive contents. Files
+// left behind by a failed extraction are deliberately retained in BaseDir so
+// that they are visible and can be removed through the web interface.
 func (s *Server) handleFilesExtractImage(c *gin.Context) {
 	archiveName := c.PostForm("archive_file")
 	archivePath, err := resolvePathWithin(s.config.BaseDir, archiveName)
@@ -403,27 +405,43 @@ func (s *Server) handleFilesExtractImage(c *gin.Context) {
 		return
 	}
 
-	tempDir, err := os.MkdirTemp("", "piscsi-extract-*")
-	if err != nil {
-		s.respond(c, ResponseOptions{Error: true, Message: fmt.Sprintf("Unable to extract archive: %v", err)})
-		return
-	}
-	defer os.RemoveAll(tempDir)
-
-	if output, err := extractArchiveMembers(archivePath, tempDir, requested); err != nil {
-		detail := strings.TrimSpace(string(output))
-		if detail != "" {
-			err = fmt.Errorf("%w: %s", err, detail)
-		}
-		s.respond(c, ResponseOptions{Error: true, Message: fmt.Sprintf("Unable to extract archive: %v", err)})
-		return
-	}
-
-	extracted := make([]string, 0, len(requested))
+	toExtract := make([]archiveMember, 0, len(requested))
 	skipped := make([]string, 0)
-	failed := make([]string, 0)
 	for _, member := range requested {
-		source, sourceErr := resolvePathWithin(tempDir, member.Path)
+		if member.IsPropertiesFile {
+			toExtract = append(toExtract, member)
+			continue
+		}
+		target, targetErr := resolvePathWithin(s.config.BaseDir, member.Path)
+		if targetErr != nil {
+			s.respond(c, ResponseOptions{Error: true, Message: fmt.Sprintf("Unable to extract archive: %v", targetErr)})
+			return
+		}
+		if _, statErr := os.Stat(target); statErr == nil {
+			skipped = append(skipped, member.Path)
+			continue
+		} else if !os.IsNotExist(statErr) {
+			s.respond(c, ResponseOptions{Error: true, Message: fmt.Sprintf("Unable to extract archive: %v", statErr)})
+			return
+		}
+		toExtract = append(toExtract, member)
+	}
+
+	if len(toExtract) > 0 {
+		if output, err := extractArchiveMembers(archivePath, s.config.BaseDir, toExtract); err != nil {
+			detail := strings.TrimSpace(string(output))
+			if detail != "" {
+				err = fmt.Errorf("%w: %s", err, detail)
+			}
+			s.respond(c, ResponseOptions{Error: true, Message: fmt.Sprintf("Unable to extract archive: %v", err)})
+			return
+		}
+	}
+
+	extracted := make([]string, 0, len(toExtract))
+	failed := make([]string, 0)
+	for _, member := range toExtract {
+		source, sourceErr := resolvePathWithin(s.config.BaseDir, member.Path)
 		if sourceErr != nil {
 			failed = append(failed, member.Path)
 			continue
@@ -433,31 +451,20 @@ func (s *Server) handleFilesExtractImage(c *gin.Context) {
 			continue
 		}
 
-		root := s.config.BaseDir
 		if member.IsPropertiesFile {
-			root = s.config.ConfigDir
-		}
-		target, targetErr := resolvePathWithin(root, member.Path)
-		if targetErr != nil {
-			failed = append(failed, member.Path)
-			continue
-		}
-		if !member.IsPropertiesFile {
-			if _, statErr := os.Stat(target); statErr == nil {
-				skipped = append(skipped, member.Path)
-				continue
-			} else if !os.IsNotExist(statErr) {
+			target, targetErr := resolvePathWithin(s.config.ConfigDir, member.Path)
+			if targetErr != nil {
 				failed = append(failed, member.Path)
 				continue
 			}
-		}
-		if mkdirErr := os.MkdirAll(filepath.Dir(target), 0o755); mkdirErr != nil {
-			failed = append(failed, member.Path)
-			continue
-		}
-		if renameErr := moveExtractedFile(source, target); renameErr != nil {
-			failed = append(failed, member.Path)
-			continue
+			if mkdirErr := os.MkdirAll(filepath.Dir(target), 0o755); mkdirErr != nil {
+				failed = append(failed, member.Path)
+				continue
+			}
+			if renameErr := moveExtractedFile(source, target); renameErr != nil {
+				failed = append(failed, member.Path)
+				continue
+			}
 		}
 		extracted = append(extracted, member.Path)
 	}

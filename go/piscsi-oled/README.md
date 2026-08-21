@@ -30,6 +30,13 @@ go build -o piscsi-oled ./cmd/piscsi-oled
 ./piscsi-oled --rotation=180 --height=64
 ```
 
+Print the PiSCSI project version and copyright information without accessing
+the display or daemon:
+
+```sh
+./piscsi-oled -v
+```
+
 The defaults preserve the previous monitor behavior: a 180-degree, 128×32
 display at `/dev/i2c-1`, address `0x3c`, polling `localhost:6868` every 1000
 milliseconds. Useful flags are:

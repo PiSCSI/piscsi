@@ -3,7 +3,7 @@
 <body>
 {{template "page-header" .}}
 
-    <div class="content">
+<div class="content">
 
 <script type="application/javascript">
     var processNotify = function(Notification) {
@@ -75,7 +75,7 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
             <th class="unit" scope="col">LUN</th>
             {{end}}
             <th class="name" scope="col">Device</th>
-            <th class="parameters" scope="col">Parameters</th>
+            <th class="parameters" scope="col">Media</th>
             <th class="product" scope="col">Product</th>
             <th class="actions" scope="col">Actions</th>
         </tr>
@@ -101,8 +101,11 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
                     <input name="unit" type="hidden" value="{{.Unit}}">
                     <input name="type" type="hidden" value="{{.DeviceType}}">
                     <select type="select" name="file_name" id="device_list_file_name_{{.ID}}_{{.Unit}}">
+                    {{$fileDeviceType := .FileDeviceType}}
                     {{range $.Files}}
+                    {{if eq .DetectedType $fileDeviceType}}
                     <option value="{{.Name}}">{{.Name}}</option>
+                    {{end}}
                     {{end}}
                     </select>
                     <input type="submit" value="Insert">
@@ -470,26 +473,13 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
 <form action="/files/download_url" method="post">
     <label for="download_url">Download file from URL:</label>
     <input name="url" id="download_url" required="" type="url">
-    <label for="disk_images" class="hidden">Disk Images</label>
-    <label for="images_subdir">To directory:</label>
-    <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
-    <select name="images_subdir" id="images_subdir">
-    {{range .ImagesSubdirs}}
-    <option value="{{.}}">{{$.ImageRootDir}}/{{.}}</option>
-    {{end}}
-    <option value="" selected>{{.ImageRootDir}}/</option>
-    </select>
+    <label for="destination">To directory:</label>
+    <select name="destination" id="destination">
+    <option value="disk_images" selected>{{.ImageRootDir}}/</option>
     {{if .FileServerDirExists}}
-    <label for="shared_files" class="hidden">Shared Files</label>
-    <input type="radio" name="destination" id="shared_files" value="shared_files">
-    <label for="shared_subdir" class="hidden">To directory:</label>
-    <select name="shared_subdir" id="shared_subdir">
-    {{range .SharedSubdirs}}
-    <option value="{{.}}">{{$.SharedRootDir}}/{{.}}</option>
+    <option value="shared_files">{{.SharedRootDir}}/</option>
     {{end}}
-    <option value="" selected>{{.SharedRootDir}}/</option>
     </select>
-    {{end}}
     <input type="submit" value="Download" onclick="processNotify('Downloading File...')">
 </form>
 </section>
@@ -497,14 +487,6 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
 <section id="upload">
     <a href="/upload" target="_blank"><p>Upload Files (new window)</p></a>
 </section>
-<noscript>
-    <style type="text/css">
-        section#upload { display: none; }
-    </style>
-    <div class="notice">
-        The file uploading functionality requires JavaScript.
-    </div>
-</noscript>
 
 <hr/>
 
@@ -607,7 +589,7 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
 
 <hr/>
 
-    </div>
+</div>
 
 {{template "page-footer" .}}
 </body>
