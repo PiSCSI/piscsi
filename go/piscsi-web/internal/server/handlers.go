@@ -284,6 +284,14 @@ type ResponseOptions struct {
 // provides unified response handling for HTML form posts
 func (s *Server) respond(c *gin.Context, opts ResponseOptions) {
 	opts.Message = s.localizer.Translate(s.selectedLocale(c), opts.Message)
+	if uploadProgressResponse, _ := c.Get("uploadProgressResponse"); uploadProgressResponse == true {
+		statusCode := http.StatusOK
+		if opts.Error {
+			statusCode = http.StatusBadRequest
+		}
+		c.JSON(statusCode, gin.H{"error": opts.Error, "message": opts.Message})
+		return
+	}
 
 	// Default redirect URL
 	if opts.RedirectURL == "" {
@@ -977,6 +985,10 @@ func (s *Server) handleEject(c *gin.Context) {
 
 // handles file uploads
 func (s *Server) handleFilesUpload(c *gin.Context) {
+	if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
+		c.Set("uploadProgressResponse", true)
+	}
+
 	if s.config.MaxFileSize < 0 {
 		s.respond(c, ResponseOptions{
 			Error:   true,
@@ -1214,6 +1226,39 @@ func (s *Server) handleFilesUpload(c *gin.Context) {
 		Message:     "File uploaded successfully",
 		RedirectURL: "/upload",
 	})
+}
+
+// checks whether an upload target already exists before a client begins uploading it
+func (s *Server) handleFilesUploadCheck(c *gin.Context) {
+	filename := filepath.Base(c.PostForm("filename"))
+	if !isValidFilename(filename) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": true, "message": "Invalid filename"})
+		return
+	}
+
+	formValues := map[string]string{
+		"destination":   c.DefaultPostForm("destination", "disk_images"),
+		"images_subdir": c.PostForm("images_subdir"),
+		"shared_subdir": c.PostForm("shared_subdir"),
+	}
+	destPath, err := s.uploadDestination(formValues)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": true, "message": err.Error()})
+		return
+	}
+
+	_, err = os.Lstat(filepath.Join(destPath, filename))
+	if err == nil {
+		c.JSON(http.StatusOK, gin.H{"exists": true})
+		return
+	}
+	if os.IsNotExist(err) {
+		c.JSON(http.StatusOK, gin.H{"exists": false})
+		return
+	}
+
+	s.logger.Error("Failed to inspect upload destination", "error", err, "path", destPath)
+	c.JSON(http.StatusInternalServerError, gin.H{"error": true, "message": "Failed to inspect upload destination"})
 }
 
 func (s *Server) uploadDestination(formValues map[string]string) (string, error) {

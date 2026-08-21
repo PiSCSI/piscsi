@@ -181,6 +181,7 @@ func (s *Server) setupRoutes() {
 
 		// File operations
 		app.POST("/files/upload", s.handleFilesUpload)
+		app.POST("/files/upload/check", s.handleFilesUploadCheck)
 		app.POST("/files/uploadform/", s.handleFilesUploadForm)
 		app.GET("/files/download_image", s.handleFilesDownload)
 		app.POST("/files/download_image", s.handleFilesDownload)
