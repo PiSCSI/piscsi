@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	version := flag.Bool("v", false, "print version information and exit")
 	rotation := flag.Int("rotation", 180, "screen rotation in degrees (0 or 180)")
 	height := flag.Int("height", 32, "screen height (32 or 64 pixels)")
 	refresh := flag.Int("refresh_interval", 1000, "screen refresh interval in milliseconds")
@@ -29,6 +31,10 @@ func main() {
 	screensaverMoveInterval := flag.Duration("screensaver-move-interval", 30*time.Second, "interval between screensaver line moves")
 	diagnostic := flag.Bool("diagnostic", false, "show start and stop splashes, then exit")
 	flag.Parse()
+	if *version {
+		fmt.Print(piscsi.VersionBanner("PiSCSI OLED Display"))
+		return
+	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)

@@ -340,7 +340,8 @@ func TestHandleScsiInfoRendersHTML(t *testing.T) {
 					Status: true,
 					Result: &pb.PbResult_DevicesInfo{DevicesInfo: &pb.PbDevicesInfo{Devices: []*pb.PbDevice{{
 						Id: 2, Type: pb.PbDeviceType_SCHD, Product: "Test Disk",
-						File: &pb.PbImageFile{Name: "disk.hds", Size: 4096},
+						File:   &pb.PbImageFile{Name: "disk.hds", Size: 4096},
+						Params: map[string]string{"caching_mode": "piscsi"},
 					}}}},
 				}, nil
 			case pb.PbOperation_SERVER_INFO:
@@ -364,10 +365,91 @@ func TestHandleScsiInfoRendersHTML(t *testing.T) {
 	router.ServeHTTP(htmlResponse, htmlRequest)
 	if htmlResponse.Code != http.StatusOK ||
 		!strings.Contains(htmlResponse.Body.String(), "Detailed Info for Attached Devices") ||
-		!strings.Contains(htmlResponse.Body.String(), "Test Disk") {
+		!strings.Contains(htmlResponse.Body.String(), "Test Disk") ||
+		!strings.Contains(htmlResponse.Body.String(), "caching_mode:piscsi") ||
+		strings.Contains(htmlResponse.Body.String(), "map[caching_mode:piscsi]") {
 		t.Fatalf("status = %d; body: %s", htmlResponse.Code, htmlResponse.Body.String())
 	}
 
+}
+
+func TestHandleIndexNoMediaOnlyListsMatchingImageTypes(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	imageDir := t.TempDir()
+	for name := range map[string]struct{}{
+		"disk.hds": {},
+		"disk.iso": {},
+		"tape.tap": {},
+	} {
+		if err := os.WriteFile(filepath.Join(imageDir, name), nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	server := &Server{
+		sessionStore: sessions.NewCookieStore([]byte("test-secret-key")),
+		config:       &config.Config{BaseDir: imageDir, ConfigDir: t.TempDir()},
+		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
+		piscsiClient: &testutil.MockPiSCSIClient{SendCommandFunc: func(command *pb.PbCommand) (*pb.PbResult, error) {
+			switch command.GetOperation() {
+			case pb.PbOperation_DEVICES_INFO:
+				return &pb.PbResult{
+					Status: true,
+					Result: &pb.PbResult_DevicesInfo{DevicesInfo: &pb.PbDevicesInfo{Devices: []*pb.PbDevice{{
+						Id:     2,
+						Type:   pb.PbDeviceType_SCCD,
+						Status: &pb.PbDeviceStatus{Removed: true},
+					}}}},
+				}, nil
+			case pb.PbOperation_SERVER_INFO:
+				return &pb.PbResult{
+					Status: true,
+					Result: &pb.PbResult_ServerInfo{ServerInfo: &pb.PbServerInfo{
+						MappingInfo: &pb.PbMappingInfo{Mapping: map[string]pb.PbDeviceType{
+							"hds": pb.PbDeviceType_SCHD,
+							"iso": pb.PbDeviceType_SCCD,
+							"tap": pb.PbDeviceType_SCTP,
+						}},
+					}},
+				}, nil
+			default:
+				return &pb.PbResult{Status: true}, nil
+			}
+		}},
+	}
+
+	templates, err := web.GetTemplates()
+	if err != nil {
+		t.Fatal(err)
+	}
+	router := gin.New()
+	router.SetHTMLTemplate(templates)
+	router.GET("/", server.handleIndex)
+
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/", nil))
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body: %s", response.Code, http.StatusOK, response.Body.String())
+	}
+
+	body := response.Body.String()
+	selectorStart := strings.Index(body, `<select type="select" name="file_name" id="device_list_file_name_2_0">`)
+	if selectorStart == -1 {
+		t.Fatalf("CD no-media selector missing: %s", body)
+	}
+	selectorEnd := strings.Index(body[selectorStart:], "</select>")
+	if selectorEnd == -1 {
+		t.Fatalf("CD no-media selector is not closed: %s", body[selectorStart:])
+	}
+	selector := body[selectorStart : selectorStart+selectorEnd]
+	if !strings.Contains(selector, `<option value="disk.iso">disk.iso</option>`) {
+		t.Fatalf("CD image missing from no-media selector: %s", selector)
+	}
+	for _, name := range []string{"disk.hds", "tape.tap"} {
+		if strings.Contains(selector, `<option value="`+name+`">`+name+`</option>`) {
+			t.Errorf("incompatible image %q appeared in CD no-media selector", name)
+		}
+	}
 }
 
 // TestHandleAttach_MissingSCSIID tests attach with missing SCSI ID

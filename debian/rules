@@ -50,6 +50,7 @@ override_dh_auto_configure:
 	@test -d go/vendor || { echo "go/vendor is required for an offline Debian build; run 'cd go && go mod vendor' before making the source tarball" >&2; exit 1; }
 	@go env GOVERSION | awk -F. '($$1 == "go1" && $$2 >= 25) { ok = 1 } END { exit !ok }' || { echo "PiSCSI Go components require Go 1.25 or newer; Debian Trixie supplies Go 1.24, so put a preinstalled Go 1.25+ toolchain first in PATH" >&2; exit 1; }
 	@command -v protoc-gen-go >/dev/null || { echo "protoc-gen-go is required" >&2; exit 1; }
+	@cd go && ./piscsi/generate_version.sh --check
 
 override_dh_auto_build:
 	$(MAKE) -C cpp $(CPP_MAKE_FLAGS)

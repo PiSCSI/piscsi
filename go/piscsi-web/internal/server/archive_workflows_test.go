@@ -200,6 +200,9 @@ while [ "$#" -gt 0 ]; do
   fi
   shift
 done
+if [ "$out" != "`+imageDir+`" ]; then
+  exit 1
+fi
 mkdir -p "$out/folder"
 printf image > "$out/folder/system.hds"
 printf properties > "$out/folder/system.hds.properties"
@@ -241,6 +244,63 @@ printf properties > "$out/folder/system.hds.properties"
 	message, _ := GetFlashesForTemplate(session)
 	if message != "Extracted 2 file(s)" {
 		t.Errorf("message = %q, want %q", message, "Extracted 2 file(s)")
+	}
+}
+
+func TestHandleFilesExtractImageRetainsPartialDirectExtraction(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	root := t.TempDir()
+	imageDir := filepath.Join(root, "images")
+	binDir := filepath.Join(root, "bin")
+	for _, directory := range []string{imageDir, binDir} {
+		if err := os.MkdirAll(directory, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	archivePath := filepath.Join(imageDir, "software.sit")
+	if err := os.WriteFile(archivePath, []byte("archive"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	writeExecutable(t, filepath.Join(binDir, "lsar"), "#!/bin/sh\nprintf '%s\\n' '{\"lsarContents\":[{\"XADFileName\":\"disk.hds\",\"XADFileSize\":1048576}]}'\n")
+	writeExecutable(t, filepath.Join(binDir, "unar"), `#!/bin/sh
+out=
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "-output-directory" ]; then
+    shift
+    out="$1"
+  fi
+  shift
+done
+printf partial > "$out/disk.hds"
+exit 1
+`)
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	server := &Server{
+		config:       &config.Config{BaseDir: imageDir, ConfigDir: filepath.Join(root, "properties")},
+		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
+		sessionStore: sessions.NewCookieStore([]byte("test-secret-key")),
+	}
+	form := url.Values{
+		"archive_file":    {"software.sit"},
+		"archive_members": {"disk.hds"},
+	}
+	recorder := httptest.NewRecorder()
+	context, _ := gin.CreateTestContext(recorder)
+	context.Request = httptest.NewRequest(http.MethodPost, "/files/extract_image", strings.NewReader(form.Encode()))
+	context.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	server.handleFilesExtractImage(context)
+
+	if recorder.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+	}
+	contents, err := os.ReadFile(filepath.Join(imageDir, "disk.hds"))
+	if err != nil {
+		t.Fatalf("partial extraction was removed: %v", err)
+	}
+	if string(contents) != "partial" {
+		t.Errorf("partial contents = %q, want partial", contents)
 	}
 }
 

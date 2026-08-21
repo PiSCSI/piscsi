@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/go-web.yml'
       - 'go/**'
+      - 'cpp/shared/piscsi_version.cpp'
       - 'proto/**'
   pull_request:
     branches:
@@ -20,6 +21,7 @@ on:
     paths:
       - '.github/workflows/go-web.yml'
       - 'go/**'
+      - 'cpp/shared/piscsi_version.cpp'
       - 'proto/**'
 
 permissions:
@@ -50,6 +52,9 @@ jobs:
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Verify generated project version
+        run: make version-check
 
       - name: Generate protobuf bindings
         run: make proto

@@ -26,7 +26,7 @@ import (
 const (
 	minimumMasterKeySize  = 32
 	maximumSecretFileSize = 16 * 1024
-	maximumFileSize       = int64(4 * 1024 * 1024 * 1024 * 1024) // 4 TiB
+	maximumFileSize       = int64(146789695488) // Largest supported drive preset (Seagate SUN146G)
 
 	sessionAuthenticationInfo = "piscsi-web/session-authentication/v1"
 	sessionEncryptionInfo     = "piscsi-web/session-encryption/v1"

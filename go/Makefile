@@ -147,8 +147,14 @@ deps:
 tidy:
 	$(GOMOD) tidy
 
-proto: proto-tools
+proto: proto-tools version
 	PATH="$(GO_BIN):$$PATH" ./proto/generate.sh
+
+version:
+	./piscsi/generate_version.sh
+
+version-check:
+	./piscsi/generate_version.sh --check
 
 proto-tools:
 	@command -v protoc >/dev/null || { echo "protoc is required; install protobuf-compiler."; exit 1; }
@@ -173,4 +179,4 @@ uninstall:
 	@echo "Uninstalling PiSCSI Web Interface..."
 	@./piscsi-web/scripts/uninstall.sh
 
-.PHONY: all build mock build-oled build-ctrlboard build-linux-arm64 build-linux-armv7 build-linux-arm64-static build-linux-armv7-static build-oled-linux-arm64 build-oled-linux-armv7 build-ctrlboard-linux-arm64 build-ctrlboard-linux-armv7 test test-race test-short test-server test-coverage test-verbose clean run deps tidy proto proto-tools install install-oled migrate-data uninstall
+.PHONY: all build mock build-oled build-ctrlboard build-linux-arm64 build-linux-armv7 build-linux-arm64-static build-linux-armv7-static build-oled-linux-arm64 build-oled-linux-armv7 build-ctrlboard-linux-arm64 build-ctrlboard-linux-armv7 test test-race test-short test-server test-coverage test-verbose clean run deps tidy proto proto-tools version version-check install install-oled migrate-data uninstall

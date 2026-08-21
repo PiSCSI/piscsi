@@ -107,6 +107,9 @@ func TestHandleFilesUploadStreamsFile(t *testing.T) {
 	if recorder.Code != http.StatusSeeOther {
 		t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
 	}
+	if location := recorder.Header().Get("Location"); location != "/upload" {
+		t.Fatalf("redirect location = %q, want /upload", location)
+	}
 	uploaded, err := os.ReadFile(filepath.Join(imageDir, "disk.hda"))
 	if err != nil {
 		t.Fatalf("read uploaded file: %v", err)

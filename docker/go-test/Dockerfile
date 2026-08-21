@@ -9,6 +9,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
 
+COPY cpp/shared/piscsi_version.cpp cpp/shared/piscsi_version.cpp
 COPY go go
 COPY proto proto
 

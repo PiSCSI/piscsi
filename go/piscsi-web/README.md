@@ -409,7 +409,8 @@ Environment variables:
   (default: `web/templates`; the release binary embeds templates)
 - `STATIC_DIR`: Static-asset directory used only as a development fallback
   (default: `web/static`; the release binary embeds static assets)
-- `MAX_FILE_SIZE`: Maximum upload size in bytes (default: `4294967296`)
+- `MAX_FILE_SIZE`: Maximum upload size in bytes (default: `4294967296`; maximum:
+  `146789695488`, the largest supported drive preset)
 - `SESSION_MAX_AGE`: Session lifetime in seconds (default: `86400`)
 - `SESSION_KEY_FILE`: Protected base64 master-key file (default:
   `/etc/piscsi-web/session.key`)

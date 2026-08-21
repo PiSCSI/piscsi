@@ -64,18 +64,19 @@ func (s *Server) handleIndex(c *gin.Context) {
 		for id := 0; id <= 7; id++ {
 			for unit := 0; unit <= 31; unit++ {
 				device := map[string]interface{}{
-					"ID":         id,
-					"Unit":       unit,
-					"DeviceName": "",
-					"DeviceType": "",
-					"File":       "",
-					"Vendor":     "",
-					"Product":    "",
-					"Revision":   "",
-					"Reserved":   false,
-					"Occupied":   false,
-					"NoMedia":    false,
-					"Removable":  false,
+					"ID":             id,
+					"Unit":           unit,
+					"DeviceName":     "",
+					"DeviceType":     "",
+					"FileDeviceType": "",
+					"File":           "",
+					"Vendor":         "",
+					"Product":        "",
+					"Revision":       "",
+					"Reserved":       false,
+					"Occupied":       false,
+					"NoMedia":        false,
+					"Removable":      false,
 				}
 				if _, isReserved := reserved[id]; isReserved && unit == 0 {
 					device["Reserved"] = true
@@ -88,6 +89,7 @@ func (s *Server) handleIndex(c *gin.Context) {
 						deviceType := dev.GetType().String()
 						device["DeviceName"] = deviceType
 						device["DeviceType"] = strings.ToLower(deviceType)
+						device["FileDeviceType"] = deviceType
 						if dev.GetFile() != nil {
 							device["File"] = dev.GetFile().GetName()
 							if image, ok := imageNameRelativeTo(s.config.BaseDir, dev.GetFile().GetName()); ok {
@@ -1209,7 +1211,8 @@ func (s *Server) handleFilesUpload(c *gin.Context) {
 
 	s.logger.Info("File uploaded", "filename", filename, "size", fileSize, "destination", filepath.Dir(fullPath))
 	s.respond(c, ResponseOptions{
-		Message: "File uploaded successfully",
+		Message:     "File uploaded successfully",
+		RedirectURL: "/upload",
 	})
 }
 
@@ -1474,7 +1477,7 @@ func (s *Server) handleScsiInfo(c *gin.Context) {
 			"Image":      image,
 			"Size":       imageSize,
 			"Status":     status,
-			"Params":     device.GetParams(),
+			"Params":     formatDeviceParams(device.GetParams()),
 		})
 	}
 
@@ -1490,6 +1493,11 @@ func (s *Server) handleScsiInfo(c *gin.Context) {
 			"Devices": templateDevices,
 		},
 	})
+}
+
+// formatDeviceParams returns the display form of a device parameter map.
+func formatDeviceParams(params map[string]string) string {
+	return strings.TrimSuffix(strings.TrimPrefix(fmt.Sprint(params), "map["), "]")
 }
 
 // reserves a SCSI ID
@@ -2876,8 +2884,6 @@ func (s *Server) handleUploadPage(c *gin.Context) {
 	data := s.getBaseTemplateData(c)
 	data["Title"] = "PiSCSI - Upload"
 
-	maxFileSizeMB := s.config.MaxFileSize / 1024 / 1024
-	data["MaxFileSize"] = maxFileSizeMB
 	data["ConfigDir"] = s.config.ConfigDir
 	s.addTransferDirectoryData(data)
 

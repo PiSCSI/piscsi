@@ -11,6 +11,7 @@ RUN go mod download \
     && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
 
 WORKDIR /src
+COPY cpp/shared/piscsi_version.cpp cpp/shared/piscsi_version.cpp
 COPY go go
 COPY proto proto
 
