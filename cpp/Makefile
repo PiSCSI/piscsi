@@ -169,7 +169,11 @@ $(OBJDIR) $(BINDIR):
 	@echo "-- Creating directory $@"
 	mkdir -p $@
 
-$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
+# All regular C++ sources may include headers that transitively depend on the
+# protobuf interface. Make its generation complete before starting any of them;
+# otherwise a parallel clean build can compile a consumer before the header has
+# been created.
+$(OBJDIR)/%.o: %.cpp $(SRC_GENERATED) | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(SRC_GENERATED) : $(SRC_PROTOC)
