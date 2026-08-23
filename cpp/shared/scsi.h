@@ -62,7 +62,10 @@ enum class scsi_command {
     eCmdRezero         = 0x01,
     eCmdRequestSense   = 0x03,
     eCmdFormatUnit     = 0x04,
+    // SASI READ CAPACITY (not the SCSI READ BLOCK LIMITS command)
     eCmdReadBlockLimits= 0x05,
+    // Legacy SASI FORMAT opcode
+    eCmdFormatLegacy   = 0x06,
     eCmdReassignBlocks = 0x07,
     eCmdRead6          = 0x08,
     // Bridge specific command
@@ -156,6 +159,8 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdRezero, make_pair(6, "Rezero")},
     {scsi_command::eCmdRequestSense, make_pair(6, "RequestSense")},
     {scsi_command::eCmdFormatUnit, make_pair(6, "FormatUnit")},
+    {scsi_command::eCmdReadBlockLimits, make_pair(6, "SasiReadCapacity/ReadBlockLimits")},
+    {scsi_command::eCmdFormatLegacy, make_pair(6, "SasiFormat")},
     {scsi_command::eCmdReassignBlocks, make_pair(6, "ReassignBlocks")},
     {scsi_command::eCmdRead6, make_pair(6, "Read6/GetMessage10")},
     {scsi_command::eCmdRetrieveStats, make_pair(6, "RetrieveStats")},

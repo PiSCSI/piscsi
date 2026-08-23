@@ -19,6 +19,8 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 {
 	DeviceFactory device_factory;
 
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hdf"), SAHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.HDF"), SAHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hd1"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hds"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.HDS"), SCHD);
@@ -47,7 +49,8 @@ TEST(DeviceFactoryTest, GetExtensionMapping)
 	DeviceFactory device_factory;
 
 	auto mapping = device_factory.GetExtensionMapping();
-	EXPECT_EQ(14, mapping.size());
+	EXPECT_EQ(15, mapping.size());
+	EXPECT_EQ(SAHD, mapping["hdf"]);
 	EXPECT_EQ(SCHD, mapping["hd1"]);
 	EXPECT_EQ(SCHD, mapping["hds"]);
 	EXPECT_EQ(SCHD, mapping["hda"]);
@@ -71,11 +74,13 @@ TEST(DeviceFactoryTest, UnknownDeviceType)
 	auto device1 = device_factory.CreateDevice(UNDEFINED, 0, "test");
 	EXPECT_EQ(nullptr, device1);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	auto device2 = device_factory.CreateDevice(SAHD, 0, "test");
-#pragma GCC diagnostic pop
-	EXPECT_EQ(nullptr, device2);
+	EXPECT_NE(nullptr, device2);
+	EXPECT_EQ(SAHD, device2->GetType());
+
+	auto device3 = device_factory.CreateDevice(UNDEFINED, 0, "test.hdf");
+	EXPECT_NE(nullptr, device3);
+	EXPECT_EQ(SAHD, device3->GetType());
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)

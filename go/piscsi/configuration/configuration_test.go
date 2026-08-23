@@ -55,3 +55,19 @@ func TestLoaderAppliesValidatedConfigurationInOrder(t *testing.T) {
 		t.Fatalf("image path = %q, want %q", got, want)
 	}
 }
+
+func TestParseValidatesSASILUNRange(t *testing.T) {
+	valid := []byte(`{"devices":[{"id":2,"unit":1,"device_type":"SAHD","image":"disk.img","params":{}}],"reserved_ids":[]}`)
+	_, devices, _, err := Parse(valid)
+	if err != nil {
+		t.Fatalf("Parse(valid SASI configuration): %v", err)
+	}
+	if len(devices) != 1 || devices[0].GetType() != pb.PbDeviceType_SAHD {
+		t.Fatalf("parsed devices = %#v, want one SAHD", devices)
+	}
+
+	invalid := []byte(`{"devices":[{"id":2,"unit":2,"device_type":"SAHD","params":{}}],"reserved_ids":[]}`)
+	if _, _, _, err := Parse(invalid); err == nil {
+		t.Fatal("Parse accepted SASI LUN 2")
+	}
+}

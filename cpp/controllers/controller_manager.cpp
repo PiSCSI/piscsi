@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "devices/primary_device.h"
+#include "sasi_controller.h"
 #include "scsi_controller.h"
 #include "controller_manager.h"
 
@@ -21,9 +22,22 @@ shared_ptr<ScsiController> ControllerManager::CreateScsiController(BUS& bus, int
 	return controller;
 }
 
+shared_ptr<SasiController> ControllerManager::CreateSasiController(BUS& bus, int id) const
+{
+	auto controller = make_shared<SasiController>(bus, id);
+	controller->Init();
+
+	return controller;
+}
+
 bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryDevice> device)
 {
 	if (auto controller = FindController(id); controller != nullptr) {
+		// SCSI and SASI use different bus phase semantics and cannot share a target ID.
+		if (controller->IsSasi() != (device->GetType() == SAHD)) {
+			return false;
+		}
+
 		if (controller->HasDeviceForLun(device->GetLun())) {
 			return false;
 		}
@@ -33,7 +47,10 @@ bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryD
 
 	// If this is LUN 0 create a new controller
 	if (!device->GetLun()) {
-		if (auto controller = CreateScsiController(bus, id); controller->AddDevice(device)) {
+		auto controller = device->GetType() == SAHD ?
+			static_pointer_cast<AbstractController>(CreateSasiController(bus, id)) :
+			static_pointer_cast<AbstractController>(CreateScsiController(bus, id));
+		if (controller->AddDevice(device)) {
 			controllers[id] = controller;
 
 			return true;

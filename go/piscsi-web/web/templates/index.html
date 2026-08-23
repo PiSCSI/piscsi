@@ -452,7 +452,7 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
                 {{end}}
                 </select>
                 <label for="{{.Key}}_unit">LUN</label>
-                <input class="lun" name="unit" id="{{.Key}}_unit" type="number" value="0" min="0" max="31" step="1" size="3">
+                <input class="lun" name="unit" id="{{.Key}}_unit" type="number" value="0" min="0" max="{{.MaxLUN}}" step="1" size="3">
                 <input type="submit" value="Attach" title="Attach">
             </form>
         </td>

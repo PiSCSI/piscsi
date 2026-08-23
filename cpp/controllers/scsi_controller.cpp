@@ -29,7 +29,11 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, ControllerManager::GetScsiLunMax())
+ScsiController::ScsiController(BUS& bus, int target_id) : ScsiController(bus, target_id, ControllerManager::GetScsiLunMax())
+{
+}
+
+ScsiController::ScsiController(BUS& bus, int target_id, int max_luns) : AbstractController(bus, target_id, max_luns)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
@@ -122,8 +126,8 @@ void ScsiController::Selection()
 	if (!GetBus().GetSEL() && GetBus().GetBSY()) {
 		LogTrace("Selection completed");
 
-		// Message out phase if ATN=1, otherwise command phase
-		if (GetBus().GetATN()) {
+		// SASI has no message phases. SCSI enters message out if ATN is asserted.
+		if (!IsSasi() && GetBus().GetATN()) {
 			MsgOut();
 		} else {
 			Command();
@@ -266,7 +270,7 @@ void ScsiController::Status()
 		ResetOffset();
 		SetLength(1);
 		SetBlocks(1);
-		GetBuffer()[0] = (uint8_t)GetStatus();
+		GetBuffer()[0] = static_cast<uint8_t>(GetStatus()) | (IsSasi() ? GetEffectiveLun() << 5 : 0);
 
 		return;
 	}
@@ -490,6 +494,10 @@ void ScsiController::Send()
 			break;
 
 		case phase_t::status:
+			if (IsSasi()) {
+				BusFree();
+				break;
+			}
 			SetLength(1);
 			SetBlocks(1);
 			GetBuffer()[0] = (uint8_t)GetMessage();
@@ -979,8 +987,8 @@ int ScsiController::GetEffectiveLun() const
 
 void ScsiController::Sleep()
 {
-	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
-		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
+	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < GetMinimumExecutionTime()) {
+		SysTimer::SleepUsec(GetMinimumExecutionTime() - time);
 	}
 	execstart = 0;
 }

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -163,7 +164,7 @@ func TestHandleAttach_UsesSelectedDaynaPortProfile(t *testing.T) {
 }
 
 func TestParseDeviceTypeSupportsEveryCurrentProtobufType(t *testing.T) {
-	for _, name := range []string{"SCHD", "SCRM", "SCMO", "SCCD", "SCDP", "SCHS", "SCLP", "SCTP"} {
+	for _, name := range []string{"SAHD", "SCHD", "SCRM", "SCMO", "SCCD", "SCDP", "SCHS", "SCLP", "SCTP"} {
 		t.Run(name, func(t *testing.T) {
 			got, err := parseDeviceType(strings.ToLower(name))
 			if err != nil {
@@ -179,10 +180,22 @@ func TestParseDeviceTypeSupportsEveryCurrentProtobufType(t *testing.T) {
 func TestBuildDeviceCatalogUsesDaemonCapabilities(t *testing.T) {
 	server := &Server{}
 	files := []map[string]interface{}{
+		{"Name": "disk.hdf", "DetectedType": "SAHD"},
 		{"Name": "disk.hds", "DetectedType": "SCHD"},
+		{"Name": "apple.hda", "DetectedType": "SCHD"},
+		{"Name": "scsi1.hd1", "DetectedType": "SCHD"},
+		{"Name": "pc98.hdn", "DetectedType": "SCHD"},
+		{"Name": "anex.hdi", "DetectedType": "SCHD"},
+		{"Name": "t98.nhd", "DetectedType": "SCHD"},
 		{"Name": "backup.tap", "DetectedType": "SCTP"},
 	}
 	info := &pb.PbDeviceTypesInfo{Properties: []*pb.PbDeviceTypeProperties{
+		{
+			Type: pb.PbDeviceType_SAHD,
+			Properties: &pb.PbDeviceProperties{
+				SupportsFile: true,
+			},
+		},
 		{
 			Type: pb.PbDeviceType_SCDP,
 			Properties: &pb.PbDeviceProperties{
@@ -202,8 +215,14 @@ func TestBuildDeviceCatalogUsesDaemonCapabilities(t *testing.T) {
 		{Name: "piscsi_bridge", Type: pb.PbNetworkInterfaceType_NETWORK_INTERFACE_BRIDGE, Up: true, SupportedMode: []string{"bridge"}},
 		{Name: "wlan0", Type: pb.PbNetworkInterfaceType_NETWORK_INTERFACE_WIFI, Up: true, SupportedMode: []string{"proxyarp"}},
 	})
-	if len(catalog) != 2 {
-		t.Fatalf("catalog length = %d, want 2", len(catalog))
+	if len(catalog) != 3 {
+		t.Fatalf("catalog length = %d, want 3", len(catalog))
+	}
+	if catalog[2].Key != "SAHD" || catalog[2].Name != "SASI Hard Disk" || catalog[2].MaxLUN != 1 {
+		t.Fatalf("unexpected SASI catalog entry: %#v", catalog[2])
+	}
+	if got, want := catalogFileNames(catalog[2]), []string{"disk.hdf"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("SASI files = %#v", catalog[2].Files)
 	}
 	if catalog[0].Key != "SCDP" || len(catalog[0].Parameters) != 2 {
 		t.Fatalf("unexpected network catalog entry: %#v", catalog[0])
@@ -221,6 +240,15 @@ func TestBuildDeviceCatalogUsesDaemonCapabilities(t *testing.T) {
 	if len(catalog[1].Files) != 1 || catalog[1].Files[0]["Name"] != "backup.tap" {
 		t.Fatalf("tape files = %#v", catalog[1].Files)
 	}
+}
+
+func catalogFileNames(entry deviceCatalogEntry) []string {
+	names := make([]string, 0, len(entry.Files))
+	for _, file := range entry.Files {
+		name, _ := file["Name"].(string)
+		names = append(names, name)
+	}
+	return names
 }
 
 func TestHandleAttachInsertsMediaIntoEmptyRemovableDevice(t *testing.T) {
@@ -645,6 +673,47 @@ func TestHandleAttach_InvalidLUN(t *testing.T) {
 		if !strings.Contains(errorMessage, "Invalid LUN") {
 			t.Errorf("expected error about invalid LUN, got: %s", errorMessage)
 		}
+	}
+}
+
+func TestHandleAttachRejectsSASILUNAboveOne(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	store := sessions.NewCookieStore([]byte("test-secret-key"))
+	server := &Server{
+		sessionStore: store,
+		piscsiClient: &testutil.MockPiSCSIClient{SendCommandFunc: func(*pb.PbCommand) (*pb.PbResult, error) {
+			t.Fatal("SASI LUN validation sent a daemon command")
+			return nil, nil
+		}},
+		config: &config.Config{},
+		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	}
+
+	router := gin.New()
+	router.POST("/scsi/attach", server.handleAttach)
+	form := url.Values{"scsi_id": {"6"}, "unit": {"2"}, "type": {"SAHD"}}
+	request := httptest.NewRequest(http.MethodPost, "/scsi/attach", strings.NewReader(form.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusSeeOther)
+	}
+	cookies := response.Result().Cookies()
+	if len(cookies) == 0 {
+		t.Fatal("SASI LUN validation did not set an error flash")
+	}
+	verifyRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	verifyRequest.AddCookie(cookies[0])
+	session, err := store.Get(verifyRequest, sessionName)
+	if err != nil {
+		t.Fatalf("read error flash: %v", err)
+	}
+	_, errorMessage := GetFlashesForTemplate(session)
+	if !strings.Contains(errorMessage, "must be 0-1") {
+		t.Fatalf("error message = %q, want SASI LUN limit", errorMessage)
 	}
 }
 

@@ -12,11 +12,13 @@
 
 TEST(BusTest, GetCommandByteCount)
 {
-    EXPECT_EQ(41, scsi_defs::command_mapping.size());
+    EXPECT_EQ(43, scsi_defs::command_mapping.size());
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x00));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x01));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x03));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x04));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x05));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x06));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x07));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x08));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x09));

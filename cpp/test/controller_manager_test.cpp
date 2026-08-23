@@ -79,6 +79,30 @@ TEST(ControllerManagerTest, AttachToController)
 	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, device1));
 }
 
+TEST(ControllerManagerTest, AttachSasiDevices)
+{
+	const int ID = 4;
+
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	DeviceFactory device_factory;
+
+	auto sasi_lun0 = device_factory.CreateDevice(SAHD, 0, "");
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, sasi_lun0));
+	auto controller = controller_manager.FindController(ID);
+	EXPECT_TRUE(controller->IsSasi());
+	EXPECT_EQ(ControllerManager::GetSasiLunMax(), controller->GetMaxLuns());
+
+	auto sasi_lun1 = device_factory.CreateDevice(SAHD, 1, "");
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, sasi_lun1));
+
+	auto scsi_lun1 = device_factory.CreateDevice(SCHS, 1, "");
+	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, scsi_lun1));
+
+	auto invalid_sasi_lun = device_factory.CreateDevice(SAHD, 2, "");
+	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, invalid_sasi_lun));
+}
+
 TEST(ControllerManager, ProcessOnController)
 {
 	ControllerManager controller_manager;

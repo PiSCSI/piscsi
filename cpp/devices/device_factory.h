@@ -35,6 +35,7 @@ public:
 private:
 
 	const inline static unordered_map<string, PbDeviceType, piscsi_util::StringHash, equal_to<>> EXTENSION_MAPPING = {
+			{ "hdf", SAHD },
 			{ "hd1", SCHD },
 			{ "hds", SCHD },
 			{ "hda", SCHD },

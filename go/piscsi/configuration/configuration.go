@@ -154,18 +154,19 @@ func Parse(data []byte) (*Configuration, []*pb.PbDeviceDefinition, []int32, erro
 		if saved.ID < 0 || saved.ID > 7 {
 			return nil, nil, nil, fmt.Errorf("device %d has invalid SCSI ID %d", index, saved.ID)
 		}
-		if saved.Unit < 0 || saved.Unit > 31 {
-			return nil, nil, nil, fmt.Errorf("device %d has invalid LUN %d", index, saved.Unit)
+		typeValue, exists := pb.PbDeviceType_value[strings.ToUpper(saved.DeviceType)]
+		if !exists || pb.PbDeviceType(typeValue) == pb.PbDeviceType_UNDEFINED {
+			return nil, nil, nil, fmt.Errorf("device %d has invalid type %q", index, saved.DeviceType)
+		}
+		deviceType := pb.PbDeviceType(typeValue)
+		if saved.Unit < 0 || saved.Unit > piscsi.MaxLUN(deviceType) {
+			return nil, nil, nil, fmt.Errorf("device %d has invalid LUN %d for %s (must be 0-%d)", index, saved.Unit, deviceType, piscsi.MaxLUN(deviceType))
 		}
 		location := [2]int32{saved.ID, saved.Unit}
 		if _, exists := occupied[location]; exists {
 			return nil, nil, nil, fmt.Errorf("duplicate device at SCSI ID %d LUN %d", saved.ID, saved.Unit)
 		}
 		occupied[location], usedIDs[saved.ID] = struct{}{}, struct{}{}
-		typeValue, exists := pb.PbDeviceType_value[strings.ToUpper(saved.DeviceType)]
-		if !exists || pb.PbDeviceType(typeValue) == pb.PbDeviceType_UNDEFINED {
-			return nil, nil, nil, fmt.Errorf("device %d has invalid type %q", index, saved.DeviceType)
-		}
 		params := make(map[string]string, len(saved.Params)+1)
 		for key, value := range saved.Params {
 			params[key] = value
@@ -173,7 +174,7 @@ func Parse(data []byte) (*Configuration, []*pb.PbDeviceDefinition, []int32, erro
 		if saved.Image != nil && *saved.Image != "" {
 			params["file"] = *saved.Image
 		}
-		definition := &pb.PbDeviceDefinition{Id: saved.ID, Unit: saved.Unit, Type: pb.PbDeviceType(typeValue), Params: params, Protected: saved.Protected}
+		definition := &pb.PbDeviceDefinition{Id: saved.ID, Unit: saved.Unit, Type: deviceType, Params: params, Protected: saved.Protected}
 		if saved.Vendor != nil {
 			definition.Vendor = *saved.Vendor
 		}

@@ -10,6 +10,7 @@
 #include "shared/piscsi_util.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
+#include "sasi_hd.h"
 #include "scsimo.h"
 #include "scsicd.h"
 #include "scsi_printer.h"
@@ -46,6 +47,10 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 
 	shared_ptr<PrimaryDevice> device;
 	switch (type) {
+	case SAHD:
+		device = make_shared<SasiHd>(lun);
+		break;
+
 	case SCHD: {
 		if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);

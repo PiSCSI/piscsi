@@ -400,10 +400,10 @@ func (s *Server) getImageFiles(mapping map[string]pb.PbDeviceType, attachedImage
 	return files, filesBySubdir
 }
 
-// mirrors the Python client's grouping of daemon-provided extensions:
-// hard disks, removable disks, magneto-optical disks, CD-ROMs, then tapes.
+// groups daemon-provided extensions by device family for display.
 func imageSuffixes(mapping map[string]pb.PbDeviceType) []string {
 	deviceTypes := []pb.PbDeviceType{
+		pb.PbDeviceType_SAHD,
 		pb.PbDeviceType_SCHD,
 		pb.PbDeviceType_SCRM,
 		pb.PbDeviceType_SCMO,
@@ -436,6 +436,7 @@ type creatableImageSuffix struct {
 // format-specific headers.
 func creatableImageSuffixes(mapping map[string]pb.PbDeviceType) []creatableImageSuffix {
 	deviceTypes := []pb.PbDeviceType{
+		pb.PbDeviceType_SAHD,
 		pb.PbDeviceType_SCHD,
 		pb.PbDeviceType_SCRM,
 		pb.PbDeviceType_SCMO,
@@ -475,6 +476,7 @@ func imageSuffixDescription(suffix string, deviceType pb.PbDeviceType) string {
 		"hda": "Hard Disk Image (Apple)",
 		"hdn": "Hard Disk Image (NEC)",
 		"hd1": "Hard Disk Image (SCSI-1)",
+		"hdf": "Hard Disk Image (SASI)",
 		"hdr": "Removable Disk Image",
 		"mos": "Magneto-Optical Disk Image",
 		"tap": "Tape Image",
@@ -502,6 +504,8 @@ func (s *Server) hardDiskDriveProfiles() []string {
 
 func deviceTypeName(deviceType pb.PbDeviceType) string {
 	switch deviceType {
+	case pb.PbDeviceType_SAHD:
+		return "SASI Hard Disk"
 	case pb.PbDeviceType_SCHD:
 		return "SCSI Hard Disk"
 	case pb.PbDeviceType_SCRM:
@@ -533,6 +537,7 @@ type deviceParameterControl struct {
 type deviceCatalogEntry struct {
 	Key           string
 	Name          string
+	MaxLUN        int32
 	Removable     bool
 	SupportsFile  bool
 	Parameters    []deviceParameterControl
@@ -569,6 +574,7 @@ func (s *Server) buildDeviceCatalog(
 		entry := deviceCatalogEntry{
 			Key:          deviceType.String(),
 			Name:         deviceTypeName(deviceType),
+			MaxLUN:       piscsi.MaxLUN(deviceType),
 			Removable:    properties.GetRemovable(),
 			SupportsFile: properties.GetSupportsFile(),
 		}
@@ -628,7 +634,7 @@ func (s *Server) buildDeviceCatalog(
 
 		if entry.SupportsFile {
 			for _, file := range files {
-				if detectedType, ok := file["DetectedType"].(string); ok && detectedType == entry.Key {
+				if imageFileCompatibleWithDevice(file, deviceType) {
 					entry.Files = append(entry.Files, file)
 				}
 			}
@@ -645,7 +651,19 @@ func (s *Server) buildDeviceCatalog(
 		catalog = append(catalog, entry)
 	}
 
+	// Keep the legacy SASI hard disk option at the end of device-type lists.
+	sort.SliceStable(catalog, func(i, j int) bool {
+		return catalog[i].Key != "SAHD" && catalog[j].Key == "SAHD"
+	})
+
 	return catalog
+}
+
+// imageFileCompatibleWithDevice reports whether an image listed by the daemon
+// can be selected for a device type.
+func imageFileCompatibleWithDevice(file map[string]interface{}, deviceType pb.PbDeviceType) bool {
+	detectedType, ok := file["DetectedType"].(string)
+	return ok && detectedType == deviceType.String()
 }
 
 // returns server health status
@@ -696,21 +714,21 @@ func (s *Server) handleAttach(c *gin.Context) {
 		return
 	}
 
-	lun, err := parseIntParam(unit)
-	if err != nil || lun < 0 || lun > 31 {
-		s.respond(c, ResponseOptions{
-			Error:   true,
-			Message: "Invalid LUN (must be 0-31)",
-		})
-		return
-	}
-
 	// Map device type string to protobuf enum
 	pbType, err := parseDeviceType(deviceType)
 	if err != nil {
 		s.respond(c, ResponseOptions{
 			Error:   true,
 			Message: "Invalid device type",
+		})
+		return
+	}
+
+	lun, err := parseIntParam(unit)
+	if err != nil || lun < 0 || lun > piscsi.MaxLUN(pbType) {
+		s.respond(c, ResponseOptions{
+			Error:   true,
+			Message: fmt.Sprintf("Invalid LUN for %s (must be 0-%d)", deviceTypeName(pbType), piscsi.MaxLUN(pbType)),
 		})
 		return
 	}

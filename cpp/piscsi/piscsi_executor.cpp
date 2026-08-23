@@ -196,9 +196,9 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	const int lun = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 
-	if (lun >= ControllerManager::GetScsiLunMax()) {
+	if (lun >= ControllerManager::GetLunMax(type)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_LUN, to_string(lun),
-				to_string(ControllerManager::GetScsiLunMax()));
+				to_string(ControllerManager::GetLunMax(type) - 1));
 	}
 
 	if (controller_manager.HasDeviceForIdAndLun(id, lun)) {

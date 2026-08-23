@@ -9,6 +9,17 @@ import (
 	pb "github.com/piscsi/piscsi/go/proto"
 )
 
+const defaultMaxLUN int32 = 31
+
+// MaxLUN returns the highest addressable LUN for a device type. SASI targets
+// have a two-LUN limit, while SCSI targets support the daemon-wide maximum.
+func MaxLUN(deviceType pb.PbDeviceType) int32 {
+	if deviceType == pb.PbDeviceType_SAHD {
+		return 1
+	}
+	return defaultMaxLUN
+}
+
 // CommandBuilder provides methods to build protobuf commands for the piscsi daemon
 type CommandBuilder struct {
 	token  string

@@ -46,6 +46,7 @@ public:
 			scsi_defs::status = scsi_defs::status::check_condition) = 0;
 	virtual void Reset();
 	virtual int GetInitiatorId() const = 0;
+	virtual bool IsSasi() const { return false; }
 
 	// Get requested LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	virtual int GetEffectiveLun() const = 0;

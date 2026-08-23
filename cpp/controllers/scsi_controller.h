@@ -59,8 +59,6 @@ public:
 
 	bool Process(int) override;
 
-	int GetEffectiveLun() const override;
-
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::no_additional_sense_information,
 			scsi_defs::status status = scsi_defs::status::check_condition) override;
 
@@ -75,6 +73,14 @@ public:
 	void Status() override;
 	void DataIn() override;
 	void DataOut() override;
+
+protected:
+	ScsiController(BUS&, int, int);
+	virtual unsigned int GetMinimumExecutionTime() const { return MIN_EXEC_TIME; }
+
+	// SCSI controllers process an IDENTIFY message before using the CDB LUN.
+	// SASI controllers override this because SASI has no message phases.
+	int GetEffectiveLun() const override;
 
 private:
 
@@ -109,4 +115,3 @@ private:
 
 	scsi_t scsi = {};
 };
-
