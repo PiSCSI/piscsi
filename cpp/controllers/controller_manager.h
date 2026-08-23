@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "generated/piscsi_interface.pb.h"
 #include "hal/bus.h"
 #include "controllers/abstract_controller.h"
 #include <unordered_map>
@@ -20,6 +21,7 @@
 using namespace std;
 
 class ScsiController;
+class SasiController;
 class PrimaryDevice;
 
 class ControllerManager
@@ -41,10 +43,14 @@ public:
 
 	static int GetScsiIdMax() { return 8; }
 	static int GetScsiLunMax() { return 32; }
+	static int GetSasiLunMax() { return 2; }
+	static int GetLunMax(piscsi_interface::PbDeviceType type)
+		{ return type == piscsi_interface::SAHD ? GetSasiLunMax() : GetScsiLunMax(); }
 
 private:
 
 	shared_ptr<ScsiController> CreateScsiController(BUS&, int) const;
+	shared_ptr<SasiController> CreateSasiController(BUS&, int) const;
 
 	// Controllers mapped to their device IDs
 	unordered_map<int, shared_ptr<AbstractController>> controllers;

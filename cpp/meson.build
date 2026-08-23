@@ -2,6 +2,7 @@ controllers_src = [
     'controllers/abstract_controller.cpp',
     'controllers/controller_manager.cpp',
     'controllers/phase_handler.cpp',
+    'controllers/sasi_controller.cpp',
     'controllers/scsi_controller.cpp',
 ]
 devices_src = [
@@ -17,6 +18,7 @@ devices_src = [
     'devices/mode_page_device.cpp',
     'devices/primary_device.cpp',
     'devices/scsi_command_util.cpp',
+    'devices/sasi_hd.cpp',
     'devices/scsi_daynaport.cpp',
     'devices/scsi_printer.cpp',
     'devices/scsi_streamer.cpp',
@@ -109,6 +111,7 @@ test_src = [
     'test/primary_device_test.cpp',
     'test/protobuf_util_test.cpp',
     'test/scsi_command_util_test.cpp',
+    'test/sasi_hd_test.cpp',
     'test/scsi_controller_test.cpp',
     'test/scsi_daynaport_test.cpp',
     'test/scsi_printer_test.cpp',

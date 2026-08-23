@@ -67,3 +67,12 @@ func TestShutDown(t *testing.T) {
 		})
 	}
 }
+
+func TestMaxLUN(t *testing.T) {
+	if got := MaxLUN(pb.PbDeviceType_SAHD); got != 1 {
+		t.Errorf("MaxLUN(SAHD) = %d, want 1", got)
+	}
+	if got := MaxLUN(pb.PbDeviceType_SCHD); got != 31 {
+		t.Errorf("MaxLUN(SCHD) = %d, want 31", got)
+	}
+}

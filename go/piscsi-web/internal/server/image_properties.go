@@ -27,6 +27,7 @@ type propertyMetadata struct {
 func drivePresetTemplateData(drives []driveprops.DriveProperty) map[string][]map[string]interface{} {
 	data := map[string][]map[string]interface{}{
 		"HardDrives":      {},
+		"SASIDrives":      {},
 		"CDROMDrives":     {},
 		"RemovableDrives": {},
 		"TapeDrives":      {},
@@ -47,6 +48,8 @@ func drivePresetTemplateData(drives []driveprops.DriveProperty) map[string][]map
 
 		var category string
 		switch drive.DeviceType {
+		case "SAHD":
+			category = "SASIDrives"
 		case "SCHD":
 			category = "HardDrives"
 		case "SCCD":

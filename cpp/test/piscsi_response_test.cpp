@@ -171,7 +171,7 @@ TEST(PiscsiResponseTest, GetDeviceTypesInfo)
 
 	PbDeviceTypesInfo info;
 	response.GetDeviceTypesInfo(info);
-	EXPECT_EQ(8, info.properties().size());
+	EXPECT_EQ(9, info.properties().size());
 }
 
 TEST(PiscsiResponseTest, GetServerInfo)
@@ -259,5 +259,6 @@ TEST(PiscsiResponseTest, GetMappingInfo)
 
 	PbMappingInfo info;
 	response.GetMappingInfo(info);
-	EXPECT_EQ(14, info.mapping().size());
+	EXPECT_EQ(15, info.mapping().size());
+	EXPECT_EQ(SAHD, info.mapping().at("hdf"));
 }

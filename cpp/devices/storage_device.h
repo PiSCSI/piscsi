@@ -75,13 +75,13 @@ protected:
 	off_t GetFileSize() const;
 
 protected:
-	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
+	// Sector size shift count (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	uint32_t size_shift_count = 0;
 
 	unordered_set<uint32_t> supported_sector_sizes;
 
 	static inline const unordered_map<uint32_t, uint32_t> shift_counts =
-	{ { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
+	{ { 256, 8 }, { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
 
 	uint32_t configured_sector_size = 0;
 

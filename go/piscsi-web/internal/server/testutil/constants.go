@@ -66,6 +66,7 @@ const (
 // Device types
 const (
 	DeviceTypeHDD       = "SCHD" // Hard disk
+	DeviceTypeSASI      = "SAHD" // SASI hard disk
 	DeviceTypeCDROM     = "SCCD" // CD-ROM
 	DeviceTypeRemovable = "SCRM" // Removable media
 	DeviceTypeMO        = "SCMO" // Magneto-optical

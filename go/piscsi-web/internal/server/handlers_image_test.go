@@ -28,6 +28,7 @@ import (
 
 func TestImageSuffixesUsesDaemonMapping(t *testing.T) {
 	mapping := map[string]pb.PbDeviceType{
+		"hdf":    pb.PbDeviceType_SAHD,
 		"tap":    pb.PbDeviceType_SCTP,
 		"iso":    pb.PbDeviceType_SCCD,
 		"hdr":    pb.PbDeviceType_SCRM,
@@ -37,7 +38,7 @@ func TestImageSuffixesUsesDaemonMapping(t *testing.T) {
 		"ignore": pb.PbDeviceType_UNDEFINED,
 	}
 
-	want := []string{"hd1", "hda", "hdr", "mos", "iso", "tap"}
+	want := []string{"hdf", "hd1", "hda", "hdr", "mos", "iso", "tap"}
 	if got := imageSuffixes(mapping); !reflect.DeepEqual(got, want) {
 		t.Fatalf("imageSuffixes() = %v, want %v", got, want)
 	}
@@ -45,15 +46,16 @@ func TestImageSuffixesUsesDaemonMapping(t *testing.T) {
 
 func TestCreatableImageSuffixesUsesDaemonMapping(t *testing.T) {
 	mapping := map[string]pb.PbDeviceType{
-		"tap": pb.PbDeviceType_SCTP,
-		"iso": pb.PbDeviceType_SCCD,
-		"hdr": pb.PbDeviceType_SCRM,
-		"hd1": pb.PbDeviceType_SCHD,
-		"hda": pb.PbDeviceType_SCHD,
-		"hds": pb.PbDeviceType_SCHD,
-		"HDI": pb.PbDeviceType_SCHD,
-		"nhd": pb.PbDeviceType_SCHD,
-		"mos": pb.PbDeviceType_SCMO,
+		"hdf":  pb.PbDeviceType_SAHD,
+		"tap":  pb.PbDeviceType_SCTP,
+		"iso":  pb.PbDeviceType_SCCD,
+		"hdr":  pb.PbDeviceType_SCRM,
+		"hd1":  pb.PbDeviceType_SCHD,
+		"hda":  pb.PbDeviceType_SCHD,
+		"hds":  pb.PbDeviceType_SCHD,
+		"HDI":  pb.PbDeviceType_SCHD,
+		"nhd":  pb.PbDeviceType_SCHD,
+		"mos":  pb.PbDeviceType_SCMO,
 	}
 
 	got := creatableImageSuffixes(mapping)
@@ -61,7 +63,7 @@ func TestCreatableImageSuffixesUsesDaemonMapping(t *testing.T) {
 	for _, imageType := range got {
 		gotSuffixes = append(gotSuffixes, imageType.Suffix)
 	}
-	want := []string{"hds", "hda", "hd1", "hdr", "mos", "tap"}
+	want := []string{"hdf", "hds", "hda", "hd1", "hdr", "mos", "tap"}
 	if !reflect.DeepEqual(gotSuffixes, want) {
 		t.Fatalf("creatableImageSuffixes() = %v, want %v", gotSuffixes, want)
 	}
@@ -496,11 +498,13 @@ func TestImageAndPropertiesOperationsStaySynchronized(t *testing.T) {
 	}
 }
 
-func TestDrivePresetTemplateDataIncludesCDROMAndTape(t *testing.T) {
+func TestDrivePresetTemplateDataIncludesSASIAndOtherDriveTypes(t *testing.T) {
 	tap := "tap"
 	iso := "iso"
+	sasi := "img"
 	size := int64(52445184)
 	data := drivePresetTemplateData([]driveprops.DriveProperty{
+		{DeviceType: "SAHD", Name: "SASI", FileType: &sasi, Size: &size},
 		{DeviceType: "SCTP", Name: "Tape", FileType: &tap, Size: &size},
 		{DeviceType: "SCCD", Name: "CD", FileType: &iso},
 	})
@@ -509,6 +513,9 @@ func TestDrivePresetTemplateDataIncludesCDROMAndTape(t *testing.T) {
 	}
 	if len(data["TapeDrives"]) != 1 {
 		t.Fatalf("TapeDrives count = %d, want 1", len(data["TapeDrives"]))
+	}
+	if len(data["SASIDrives"]) != 1 {
+		t.Fatalf("SASIDrives count = %d, want 1", len(data["SASIDrives"]))
 	}
 	if got := data["TapeDrives"][0]["FileType"]; got != "tap" {
 		t.Fatalf("tape file type = %v, want tap", got)

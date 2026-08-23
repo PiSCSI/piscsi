@@ -26,7 +26,7 @@ using namespace protobuf_util;
 
 void PiscsiResponse::GetDeviceProperties(shared_ptr<Device> device, PbDeviceProperties& properties) const
 {
-	properties.set_luns(ControllerManager::GetScsiLunMax());
+	properties.set_luns(ControllerManager::GetLunMax(device->GetType()));
 	properties.set_read_only(device->IsReadOnly());
 	properties.set_protectable(device->IsProtectable());
 	properties.set_stoppable(device->IsStoppable());

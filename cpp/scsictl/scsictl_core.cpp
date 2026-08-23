@@ -33,7 +33,8 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 		cout << piscsi_util::Banner("(Controller App)")
 				<< "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] ...\n"
 				<< " where  ID[:LUN] ID := {0-" << (ControllerManager::GetScsiIdMax() - 1) << "},"
-				<< " LUN := {0-" << (ControllerManager::GetScsiLunMax() - 1) << "}, default is 0\n"
+				<< " LUN := {0-" << (ControllerManager::GetScsiLunMax() - 1)
+				<< "} for SCSI or {0-" << (ControllerManager::GetSasiLunMax() - 1) << "} for SASI, default is 0\n"
 				<< "Usage: " << args[0] << " -l\n"
 				<< "       Print device list.\n\n"
 				<< "DaynaPort profiles use one explicit parameter value, for example:\n"

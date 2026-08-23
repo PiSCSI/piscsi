@@ -61,6 +61,7 @@ Restore Mode: [PiSCSI host] ---> [SCSI Drive]
 Launch scsidump to restore/upload a drive image from the local file system to SCSI ID 0 with block size 1MiB:
 .Dl Nm scsidump -r -t 0 -f ./outimage.hda -s 1048576
 .Sh SEE ALSO
+.Xr sasidump 1 ,
 .Xr scsictl 1 ,
 .Xr piscsi 1 ,
 .Xr scsimon 1
