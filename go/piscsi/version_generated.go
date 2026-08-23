@@ -2,4 +2,4 @@
 
 package piscsi
 
-const ProjectVersion = "25.12.01"
+const ProjectVersion = "26.08.01"
