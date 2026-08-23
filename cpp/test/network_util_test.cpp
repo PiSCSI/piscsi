@@ -45,6 +45,7 @@ TEST(NetworkUtilTest, ReadProxyArpUplinkFile)
 {
 	const auto configuration = test_data_temp_path / "proxyarp-network.conf";
 	const auto directory = test_data_temp_path / "proxyarp-network.conf-directory";
+	filesystem::create_directories(test_data_temp_path);
 	filesystem::remove(configuration);
 	filesystem::remove_all(directory);
 	ASSERT_TRUE(filesystem::create_directory(directory));
