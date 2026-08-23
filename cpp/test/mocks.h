@@ -385,6 +385,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy 
 	FRIEND_TEST(ScsiHdNecTest, TestAddErrorPage);
 	FRIEND_TEST(ScsiHdNecTest, TestAddFormatPage);
 	FRIEND_TEST(ScsiHdNecTest, TestAddDrivePage);
+	FRIEND_TEST(ScsiHdNecTest, OpenHdnSetsPc98Geometry);
 	FRIEND_TEST(PiscsiExecutorTest, ProcessDeviceCmd);
 
 	using SCSIHD_NEC::SCSIHD_NEC;
