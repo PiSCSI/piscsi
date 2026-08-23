@@ -184,16 +184,15 @@ $(OBJ_GENERATED) : $(SRC_GENERATED) | $(OBJDIR)
 ## Build Targets:
 ##   all      : Rebuild all of the executable files and re-generate 
 ##              the text versions of the manpages
-##   docs     : Re-generate the text versions of the man pages
 ##   test     : Build and run unit tests
 ##   coverage : Build and run unit tests and create coverage SonarQube files.
 ##   lcov     : Build and run unit tests and create coverage HTML files.
 ##              Note that you have to run 'make clean' before switching
 ##              between coverage and non-coverage builds.
 .DEFAULT_GOAL := all
-.PHONY: all docs test coverage lcov
+.PHONY: all test coverage lcov
 
-all: $(SRC_GENERATED) $(BIN_ALL) docs
+all: $(SRC_GENERATED) $(BIN_ALL)
 
 test: $(SRC_GENERATED) $(BINDIR)/$(PISCSI_TEST)
 	$(BINDIR)/$(PISCSI_TEST)
@@ -205,8 +204,6 @@ lcov: CXXFLAGS += --coverage
 lcov: test
 	lcov -q -c -d . --include '*/cpp/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/piscsi_interface.pb*'
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
-
-docs: $(DOC_DIR)/piscsi_man_page.txt $(DOC_DIR)/scsictl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/scsidump_man_page.txt $(DOC_DIR)/scsiloop_man_page.txt
 
 $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) : $(SRC_GENERATED)
 
@@ -261,11 +258,6 @@ $(USR_LOCAL_BIN)/% : $(BINDIR)/%
 $(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 	@echo "-- Copying $@"
 	cp $< $@
-
-$(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
-	@echo "!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!" > $@
-	@echo "!!   ------ The native file is $(notdir $<). Re-run 'make docs' after updating\n\n" >> $@
-	MANWIDTH=80 man -l $< | col -bx >> $@
 
 $(SYSTEMD_CONF) : $(OS_FILES)/systemd/$(notdir $(SYSTEMD_CONF))
 	@echo "-- Copying $@"
