@@ -18,6 +18,7 @@ SOURCE_DIR = REPO_ROOT / "doc"
 DIST_DIR = ROOT / "dist"
 TEMPLATE = ROOT / "templates" / "page.html.tmpl"
 ASSETS_DIR = ROOT / "assets"
+LOGO = REPO_ROOT / "doc" / "logo" / "redpanda-32x32.png"
 
 
 class TextExtractor(HTMLParser):
@@ -29,14 +30,14 @@ class TextExtractor(HTMLParser):
         self.parts.append(data)
 
     def text(self) -> str:
-        return re.sub(r"\\s+", " ", " ".join(self.parts)).strip()
+        return re.sub(r"\s+", " ", " ".join(self.parts)).strip()
 
 
 def description_from_source(source: Path) -> str:
     for line in source.read_text(encoding="utf-8").splitlines():
-        match = re.match(r"^\\.Nd\\s+(.*)$", line)
+        match = re.match(r"^\.Nd\s+(.*)$", line)
         if match:
-            return re.sub(r"\\s+", " ", match.group(1)).strip()
+            return re.sub(r"\s+", " ", match.group(1)).strip()
     return "PiSCSI command reference"
 
 
@@ -63,7 +64,7 @@ def navigation(pages: list[dict[str, str]], current: str = "") -> str:
             f'<a class="nav-link{ " is-active" if active else ""}" href="{page["url"]}"{active}>'
             f'<span>{page["title"]}</span><small>{page["section"]}</small></a>'
         )
-    return "\\n".join(links)
+    return " ".join(links)
 
 
 def apply_template(template: str, *, title: str, description: str, nav: str, content: str, current: str = "") -> str:
@@ -100,6 +101,7 @@ def build() -> None:
         shutil.rmtree(DIST_DIR)
     DIST_DIR.mkdir(parents=True)
     shutil.copytree(ASSETS_DIR, DIST_DIR / "assets")
+    shutil.copy2(LOGO, DIST_DIR / "assets" / LOGO.name)
 
     for page in pages:
         content = (
@@ -117,7 +119,7 @@ def build() -> None:
         )
         (DIST_DIR / page["url"]).write_text(output, encoding="utf-8")
 
-    cards = "\\n".join(
+    cards = " ".join(
         f'<a class="page-card" href="{page["url"]}"><span class="card-kicker">man {page["section"]}</span>'
         f'<strong>{html.escape(page["title"])}</strong><span>{html.escape(page["description"])}</span></a>'
         for page in pages
@@ -126,7 +128,6 @@ def build() -> None:
         '<div class="hero"><span class="eyebrow">PiSCSI reference</span>'
         '<h1>Command documentation,<br><em>kept close to the metal.</em></h1>'
         '<p class="hero-copy">The official man pages for PiSCSI and its companion utilities, generated directly from the project sources.</p>'
-        '<div class="hero-meta"><span>Source: <code>doc/</code></span><span>Updated automatically</span></div></div>'
         f'<section class="page-list"><div class="section-label"><span>Reference library</span><span>{len(pages):02d} pages</span></div><div class="page-grid">{cards}</div></section>'
     )
     (DIST_DIR / "index.html").write_text(
