@@ -124,10 +124,18 @@ def build() -> None:
         f'<strong>{html.escape(page["title"])}</strong><span>{html.escape(page["description"])}</span></a>'
         for page in pages
     )
+    project_paragraphs = (
+        "PiSCSI is a virtual SCSI device emulator for Raspberry Pi hardware. It lets any computer with a SCSI interface use storage and peripherals comfortably.",
+        "Running in userspace, PiSCSI can emulate several SCSI devices at once, including hard disks, removable media, CD-ROM drives, tape drives, printers, and network adapters.",
+        "This reference collects the manual pages for the PiSCSI daemon and its companion utilities, with command options and operational details generated directly from the project sources.",
+    )
+    project_intro = "".join(
+        f'<p class="project-copy">{html.escape(paragraph)}</p>' for paragraph in project_paragraphs
+    )
     index_content = (
-        '<div class="hero"><span class="eyebrow">PiSCSI reference</span>'
-        '<h1>Command documentation,<br><em>kept close to the metal.</em></h1>'
+        '<div class="hero"><h1>PiSCSI Reference</h1>'
         '<p class="hero-copy">The official man pages for PiSCSI and its companion utilities, generated directly from the project sources.</p>'
+        f'{project_intro}</div>'
         f'<section class="page-list"><div class="section-label"><span>Reference library</span><span>{len(pages):02d} pages</span></div><div class="page-grid">{cards}</div></section>'
     )
     (DIST_DIR / "index.html").write_text(
