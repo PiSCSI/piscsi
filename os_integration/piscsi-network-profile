@@ -1,6 +1,8 @@
 #!/bin/sh
-# Configure only the named NetworkManager/PiSCSI objects used by DaynaPort.
-# This is deliberately not an installer: it never edits an existing connection.
+# Configure the named NetworkManager/PiSCSI objects used by DaynaPort.
+# Copyright (c) 2026, Daniel Markstedt <daniel@mindani.net>
+# Banner ASCII art by sonique6784
+# BSD 3-Clause License
 
 set -eu
 
@@ -9,6 +11,32 @@ bridge_port_name='PiSCSI wired bridge port'
 network_config=/etc/piscsi/network.conf
 dry_run=false
 acknowledged=false
+
+banner_network_wired(){
+    logo="""
+                                  .-~-.-~~~-.~-.\n
+     ╔═══════╗                  .(              )\n
+     ║|¯¯¯¯¯|║                 /               \`.\n
+     ║|_____|║>--------------<~               .   )\n
+     ║ .  __ ║                 (              :'-'\n
+     ╚╦═════╦╝                  ~-.________.:'\n
+      ¯¯¯¯¯¯¯\n
+    """
+    echo $logo
+}
+
+banner_network_wireless(){
+    logo="""
+                                  .-~-.-~~~-.~-.\n
+     ╔═══════╗        .(       .(              )\n
+     ║|¯¯¯¯¯|║  .(  .(        /               \`.\n
+     ║|_____|║ .o    o       ~               .   )\n
+     ║ .  __ ║  '(  '(        (              :'-'\n
+     ╚╦═════╦╝        '(       ~-.________.:'\n
+      ¯¯¯¯¯¯¯\n
+    """
+    echo $logo
+}
 
 usage() {
 	cat <<'EOF'
@@ -237,6 +265,11 @@ fi
 
 require_root
 require_network_manager
+if [ "$profile" = proxyarp ]; then
+    banner_network_wireless
+else
+    banner_network_wired
+fi
 if [ "$action" = apply ]; then
 	require_interface_name "$1"
 	case "$profile" in
