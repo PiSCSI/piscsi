@@ -102,6 +102,30 @@ TEST(ScsiHdNecTest, TestAddDrivePage)
 	EXPECT_EQ(1, pages.size()) << "Unexpected number of mode pages";
 }
 
+TEST(ScsiHdNecTest, OpenHdnSetsPc98Geometry)
+{
+	MockSCSIHD_NEC hd(0);
+
+	// One PC-9801-55 cylinder: 8 heads, 25 sectors per track, 512 bytes per sector.
+	path tmp = CreateTempFile(8 * 25 * 512);
+	const auto hdn = path((string)tmp + ".hdn");
+	rename(tmp, hdn);
+	hd.SetFilename(string(hdn));
+	hd.Open();
+
+	EXPECT_EQ(9, hd.GetSectorSizeShiftCount());
+	EXPECT_EQ(200, hd.GetBlockCount());
+
+	map<int, vector<byte>> pages;
+	hd.SetUpModePages(pages, 0x03, false);
+	const vector<byte>& format_page = pages[3];
+	EXPECT_EQ(8, GetInt16(format_page, 2));
+	EXPECT_EQ(25, GetInt16(format_page, 10));
+	EXPECT_EQ(512, GetInt16(format_page, 12));
+
+	remove(hdn);
+}
+
 TEST(ScsiHdNecTest, SetParameters)
 {
 	MockSCSIHD_NEC hd_hdn(0);

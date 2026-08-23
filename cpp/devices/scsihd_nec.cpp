@@ -41,7 +41,7 @@ void SCSIHD_NEC::Open()
 	// Determine parameters by extension
 	const auto [image_size, sector_size] = SetParameters(root_sector, static_cast<int>(size));
 
-	SetSectorSizeShiftCount(static_cast<uint32_t>(size));
+	SetSectorSizeShiftCount(CalculateShiftCount(sector_size));
 
 	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
