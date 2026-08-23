@@ -2,19 +2,19 @@ man_pages = [
   'piscsi.1',
 ]
 
-if to_build.contains('scsictl')
+if target.contains('scsictl')
     man_pages += 'scsictl.1'
 endif
 
-if to_build.contains('scsimon')
+if target.contains('scsimon')
     man_pages += 'scsimon.1'
 endif
 
-if to_build.contains('scsidump')
+if target.contains('scsidump')
     man_pages += 'scsidump.1'
 endif
 
-if to_build.contains('scsiloop')
+if target.contains('scsiloop')
     man_pages += 'scsiloop.1'
 endif
 

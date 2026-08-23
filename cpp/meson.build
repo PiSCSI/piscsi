@@ -138,7 +138,7 @@ test_src += test_platform_src
 
 subdir('generated')
 
-if to_build.contains('piscsi')
+if target.contains('piscsi')
     piscsi_bin = executable('piscsi',
         piscsi_core_src + piscsi_src + shared_src + protobuf_src + piscsi_interface_src[0],
         dependencies : common_deps + [pcap_dep, protobuf_dep],
@@ -146,7 +146,7 @@ if to_build.contains('piscsi')
     )
 endif
 
-if to_build.contains('scsictl')
+if target.contains('scsictl')
     scsictl_bin = executable('scsictl',
         scsictl_core_src + scsictl_src + shared_src + protobuf_src + piscsi_interface_src[0],
         dependencies : common_deps + [protobuf_dep],
@@ -154,7 +154,7 @@ if to_build.contains('scsictl')
     )
 endif
 
-if to_build.contains('scsimon')
+if target.contains('scsimon')
     scsimon_bin = executable('scsimon',
         scsimon_src + shared_src,
         dependencies : common_deps,
@@ -162,17 +162,17 @@ if to_build.contains('scsimon')
     )
 endif
 
-if to_build.contains('scsiloop') and host_machine.system() == 'linux'
+if target.contains('scsiloop') and host_machine.system() == 'linux'
     scsiloop_bin = executable('scsiloop',
         scsiloop_src + shared_src,
         dependencies : common_deps,
         install : true,
     )
-elif to_build.contains('scsiloop')
+elif target.contains('scsiloop')
     message('Skipping scsiloop: it requires Linux on Raspberry Pi GPIO hardware')
 endif
 
-if connect_type == 'FULLSPEC' and to_build.contains('scsidump')
+if connect_type == 'FULLSPEC' and target.contains('scsidump')
     scsidump_bin = executable('scsidump',
         scsidump_src + shared_src,
         dependencies : common_deps,
@@ -180,7 +180,7 @@ if connect_type == 'FULLSPEC' and to_build.contains('scsidump')
     )
 endif
 
-if gtest_dep.found() and gmock_dep.found() and to_build.contains('test')
+if gtest_dep.found() and gmock_dep.found() and target.contains('test')
     test_bin = executable('piscsi_test',
         piscsi_core_src + scsictl_core_src + test_src + shared_src + protobuf_src + piscsi_interface_src[0],
         dependencies : common_deps + [pcap_dep, protobuf_dep, gtest_dep, gmock_dep],

@@ -6,9 +6,9 @@ option(
     description : 'PiSCSI board type'
 )
 option(
-    'to_build',
+    'target',
     type : 'array',
     choices : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'test'],
     value : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'test'],
-    description : 'Binaries to build'
+    description : 'Targets to build'
 )
