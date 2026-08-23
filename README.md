@@ -19,6 +19,8 @@ PiSCSI is a fork of [RaSCSI](https://github.com/RaSCSI/RaSCSI) and maintains com
 
 Please check out the full story with much more detail on the [wiki](https://github.com/PiSCSI/piscsi/wiki)!
 
+Browse the generated [PiSCSI command documentation](https://piscsi.github.io/piscsi/).
+
 ## How do I contribute?
 
 PiSCSI is using a variant of the Gitflow Workflow. A quick overview:

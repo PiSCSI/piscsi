@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{DESCRIPTION}}">
+  <title>{{TITLE}}</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem('piscsi-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark">P</span><span>PiSCSI <small>DOCUMENTATION</small></span></a>
+    <div class="top-actions"><label class="search"><span aria-hidden="true">/</span><input id="search-input" type="search" placeholder="Search reference" autocomplete="off"><div id="search-results" class="search-results" hidden></div></label><button id="theme-toggle" class="icon-button" type="button" aria-label="Toggle color theme" title="Toggle color theme">◐</button></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar"><div class="sidebar-label">Manual pages</div><nav>{{NAV}}</nav><a class="back-link" href="https://github.com/PiSCSI/piscsi">View project on GitHub <span>↗</span></a></aside>
+    <main>{{CONTENT}}</main>
+  </div>
+  <footer><span>PiSCSI documentation</span><span>Built from the <code>doc/</code> sources</span></footer>
+  <script src="assets/dark-mode.js"></script>
+  <script src="assets/search.js"></script>
+</body>
+</html>
