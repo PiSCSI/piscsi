@@ -19,7 +19,7 @@ if host_machine.system() == 'linux'
   common_flags += '-Wno-psabi'
 endif
 
-to_build = get_option('to_build')
+target = get_option('target')
 connect_type = get_option('connect_type')
 common_flags += '-DCONNECT_TYPE_' + connect_type
 add_project_arguments(common_flags, language : 'cpp')
@@ -44,7 +44,7 @@ summary(
   {
     'Connect type': connect_type,
     'Build type': get_option('buildtype'),
-    'Targets': ', '.join(to_build),
+    'Targets': ', '.join(target),
     'Prefix': get_option('prefix'),
   },
   section : 'Configuration'
