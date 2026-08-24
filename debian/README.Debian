@@ -39,7 +39,8 @@ One-time Trixie build-host setup
 Trixie supplies Go 1.24, but this checkout's `go.mod` requires Go 1.25 and
 selects `go1.25.13`. For a local build, install a Go 1.25.13-or-newer toolchain
 outside the package build. Use the archive for the build host architecture,
-not the package target architecture.
+not the package target architecture; Go calls the native armhf archive
+`linux-armv6l`.
 
 Set the local toolchain explicitly. `GOTOOLCHAIN=local` prevents Go from
 downloading a toolchain during the package build.
@@ -50,8 +51,8 @@ Protocol Buffer bindings first: without them, `go mod vendor` mistakes the
 local `go/proto` package for a missing remote dependency.
 
 ```sh
-# Replace <host-arch> with amd64 or arm64 to match the Go installation below.
-export PATH=/opt/go1.25.13-<host-arch>/bin:$PATH
+# Replace <go-arch> with amd64, arm64, or armv6l to match the Go installation below.
+export PATH=/opt/go1.25.13-<go-arch>/bin:$PATH
 export GOTOOLCHAIN=local
 go version
 go env GOVERSION | awk -F. '($1 == "go1" && $2 >= 25) { ok = 1 } END { exit !ok }'
@@ -74,25 +75,27 @@ sudo apt install --yes devscripts equivs fakeroot \
   libspdlog-dev
 ```
 
-Native amd64 development test build
------------------------------------
+arm64
+-----
 
-Install the amd64 Go toolchain on an amd64 development host without replacing
-Trixie's `/usr/bin/go`. Verify the downloaded archive against the checksum on
-the [Go downloads page](https://go.dev/dl/) before extracting it.
+For a native amd64 production or development build, install the matching Go
+toolchain without replacing Trixie's `/usr/bin/go`. Verify the downloaded
+archive against the checksum on the [Go downloads page](https://go.dev/dl/)
+before extracting it. Run this on the native build host; `dpkg` selects the
+appropriate `amd64` or `arm64` archive and installation directory.
 
 ```sh
 cd /tmp
-curl -fLO https://go.dev/dl/go1.25.13.linux-amd64.tar.gz
-sudo install -d /opt/go1.25.13-amd64
-sudo tar -C /opt/go1.25.13-amd64 --strip-components=1 \
-  -xzf go1.25.13.linux-amd64.tar.gz
-```
-
-Build and run the full test suite on the development machine:
-
-```sh
-debuild --prepend-path=/opt/go1.25.13-amd64/bin -b -us -uc
+ARCH=$(dpkg --print-architecture)
+case "$ARCH" in
+  amd64|arm64) ;;
+  *) echo "unsupported native architecture: $ARCH" >&2; exit 1 ;;
+esac
+curl -fLO "https://go.dev/dl/go1.25.13.linux-${ARCH}.tar.gz"
+sudo install -d "/opt/go1.25.13-${ARCH}"
+sudo tar -C "/opt/go1.25.13-${ARCH}" --strip-components=1 \
+  -xzf "go1.25.13.linux-${ARCH}.tar.gz"
+debuild --prepend-path="/opt/go1.25.13-${ARCH}/bin" -b -us -uc
 ```
 
 `debuild` resets `PATH` by default, so an ordinary `PATH=... debuild` command
@@ -105,24 +108,9 @@ The resulting `.deb` files are written to the parent directory. Installation
 enables and starts every supplied service, which is the expected behaviour for
 the Raspberry Pi appliance image.
 
-arm64
------
-
-For a native arm64 build host, install the arm64 Go toolchain without replacing
-Trixie's `/usr/bin/go`:
-
-```sh
-cd /tmp
-curl -fLO https://go.dev/dl/go1.25.13.linux-arm64.tar.gz
-echo 'adad240fcb6bd180cf973b4b7c747baf4ec81d08b7d40ca35940ee4531971490  go1.25.13.linux-arm64.tar.gz' | sha256sum -c -
-sudo install -d /opt/go1.25.13-arm64
-sudo tar -C /opt/go1.25.13-arm64 --strip-components=1 \
-  -xzf go1.25.13.linux-arm64.tar.gz
-```
-
-For an amd64-to-arm64 cross-build, keep using the amd64 Go toolchain from the
-native amd64 section above; `debian/rules` selects `GOARCH=arm64` only while
-building the package binaries.
+For an amd64-to-arm64 cross-build, use the native amd64 Go toolchain installed
+above; `debian/rules` selects `GOARCH=arm64` only while building the package
+binaries.
 
 ```sh
 sudo dpkg --add-architecture arm64
@@ -137,6 +125,25 @@ The C++ rule expands the Debian host triplet to
 
 armhf
 -----
+
+For a native armhf development build, install Go's Linux ARMv6 toolchain. Its
+`linux-armv6l` name describes the minimum supported CPU, but it runs on
+Debian's ARMv7 armhf hosts. This toolchain is native to the host; do not use it
+for an amd64 cross-build. Verify the downloaded archive against the checksum
+on the [Go downloads page](https://go.dev/dl/) before extracting it.
+
+```sh
+cd /tmp
+curl -fLO https://go.dev/dl/go1.25.13.linux-armv6l.tar.gz
+sudo install -d /opt/go1.25.13-armv6l
+sudo tar -C /opt/go1.25.13-armv6l --strip-components=1 \
+  -xzf go1.25.13.linux-armv6l.tar.gz
+debuild --prepend-path=/opt/go1.25.13-armv6l/bin -b -us -uc
+```
+
+For an amd64-to-armhf cross-build, keep using the native amd64 Go toolchain
+from the section above. Install the armhf C++ cross toolchain and libraries,
+then build:
 
 ```sh
 sudo dpkg --add-architecture armhf
