@@ -164,6 +164,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(ScsiPowerViewTest, DecodesPaletteAndFrameBufferUpdates);
 	FRIEND_TEST(ScsiPowerViewTest, AppliesOffsetUpdatesToCapturedModes);
 	FRIEND_TEST(ScsiPowerViewTest, SupportsCapturedModesAndSurfaceEdges);
+	FRIEND_TEST(ScsiPowerViewTest, UsesCaControlByteToIdentifyFullRefreshes);
 	FRIEND_TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot);
 	FRIEND_TEST(ScsiPowerViewTest, RejectsInvalidDataOutLengths);
 	FRIEND_TEST(ScsiCdTest, ReadToc);

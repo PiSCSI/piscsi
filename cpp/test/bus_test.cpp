@@ -59,7 +59,7 @@ TEST(BusTest, GetCommandByteCount)
     EXPECT_EQ(6, BUS::GetCommandByteCount(0xc2));
     EXPECT_EQ(8, BUS::GetCommandByteCount(0xc8));
     EXPECT_EQ(8, BUS::GetCommandByteCount(0xc9));
-    EXPECT_EQ(8, BUS::GetCommandByteCount(0xca));
+    EXPECT_EQ(11, BUS::GetCommandByteCount(0xca));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0xcb));
     EXPECT_EQ(4, BUS::GetCommandByteCount(0xcc));
     EXPECT_EQ(0, BUS::GetCommandByteCount(0x1f));

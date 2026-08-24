@@ -191,7 +191,9 @@ void SCSIPowerView::WriteFrameBuffer()
 
 	const size_t pixels_per_byte = pixel_format == pixel_format_t::one_bit ? 8 :
 			pixel_format == pixel_format_t::four_bit ? 2 : 1;
-	if (!offset) {
+	// CA is an 11-byte CDB. The legacy implementation (and RadiusWare) use
+	// byte 9 to distinguish a complete refresh from an update at offset zero.
+	if (!offset && !GetController()->GetCmdByte(9)) {
 		SetScreenDimensions(width_bytes * pixels_per_byte, height);
 	}
 
@@ -309,8 +311,7 @@ void SCSIPowerView::ApplyFrameBufferUpdate(span<const uint8_t> data)
 		}
 	}
 
-	WriteSnapshot(update.row == 0 && update.column == 0 && update.width_pixels == screen_width &&
-			update.height == screen_height);
+	WriteSnapshot(update.full_refresh);
 }
 
 void SCSIPowerView::ApplyPalette(span<const uint8_t> data)
@@ -347,7 +348,8 @@ optional<SCSIPowerView::framebuffer_update_t> SCSIPowerView::GetFrameBufferUpdat
 		return nullopt;
 	}
 
-	return framebuffer_update_t { width_bytes, height, row, column, width_pixels };
+	const bool full_refresh = address == 0 && !GetController()->GetCmdByte(9);
+	return framebuffer_update_t { width_bytes, height, row, column, width_pixels, full_refresh };
 }
 
 bool SCSIPowerView::SetScreenDimensions(size_t width, size_t height)

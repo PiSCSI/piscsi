@@ -290,6 +290,34 @@ TEST(ScsiPowerViewTest, SupportsCapturedModesAndSurfaceEdges)
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
 
+TEST(ScsiPowerViewTest, UsesCaControlByteToIdentifyFullRefreshes)
+{
+	auto [controller, device] = CreateDevice(SCPV);
+	auto power_view = dynamic_pointer_cast<SCSIPowerView>(device);
+
+	controller->SetCmdByte(3, 1);
+	controller->SetCmdByte(4, 0);
+	EXPECT_CALL(*controller, DataOut());
+	device->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(256 * 4)));
+
+	// An offset-zero update with the CA control byte set must not be treated as
+	// a 800 by 600 mode change. The initial surface remains 640 by 400.
+	controller->SetCmdByte(1, 0);
+	controller->SetCmdByte(2, 0);
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 0x03);
+	controller->SetCmdByte(5, 0x20);
+	controller->SetCmdByte(6, 0x02);
+	controller->SetCmdByte(7, 0x58);
+	controller->SetCmdByte(9, 1);
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+	EXPECT_EQ(640, power_view->GetScreenWidth());
+	EXPECT_EQ(400, power_view->GetScreenHeight());
+}
+
 TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot)
 {
 	const path snapshot = test_data_temp_path / "powerview.ppm";

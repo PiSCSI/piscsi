@@ -160,6 +160,10 @@ string protobuf_util::ListDevices(const vector<PbDevice>& pb_devices)
 				filename = "SCSI Printer";
 				break;
 
+			case SCPV:
+				filename = "Radius PowerView";
+				break;
+
 			default:
 				filename = device.file().name();
 				break;

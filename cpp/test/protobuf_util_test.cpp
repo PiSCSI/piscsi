@@ -119,12 +119,16 @@ TEST(ProtobufUtil, ListDevices)
 	devices.push_back(device);
 	device.set_type(SCLP);
 	devices.push_back(device);
+	device.set_type(SCPV);
+	devices.push_back(device);
 	const string device_list = ListDevices(devices);
 	EXPECT_FALSE(device_list.empty());
 	EXPECT_NE(string::npos, device_list.find("X68000 HOST BRIDGE"));
 	EXPECT_NE(string::npos, device_list.find("DaynaPort SCSI/Link"));
 	EXPECT_NE(string::npos, device_list.find("Host Services"));
 	EXPECT_NE(string::npos, device_list.find("SCSI Printer"));
+	EXPECT_NE(string::npos, device_list.find("SCPV"));
+	EXPECT_NE(string::npos, device_list.find("Radius PowerView"));
 }
 
 TEST(ProtobufUtil, SetProductData)

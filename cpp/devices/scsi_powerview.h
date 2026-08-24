@@ -64,10 +64,11 @@ private:
 
 	struct framebuffer_update_t {
 		size_t width_bytes;
-		size_t height;
-		size_t row;
-		size_t column;
-		size_t width_pixels;
+		 size_t height;
+		 size_t row;
+		 size_t column;
+		 size_t width_pixels;
+		 bool full_refresh;
 	};
 
 	vector<uint8_t> InquiryInternal() const override;

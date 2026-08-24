@@ -210,9 +210,11 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")},
     {scsi_command::eCmdAssignDiskParameters, make_pair(6, "AssignDiskParameters")},
     // These CDB sizes are based on Radius PowerView bus captures, not SCSI group-code defaults.
+    // CA includes three trailing control bytes. They are not yet interpreted, but must be
+    // received so the command phase stays synchronized with RadiusWare.
     {scsi_command::eCmdPowerViewReadConfig, make_pair(8, "PowerViewReadConfig")},
     {scsi_command::eCmdPowerViewWriteConfig, make_pair(8, "PowerViewWriteConfig")},
-    {scsi_command::eCmdPowerViewWriteFrameBuffer, make_pair(8, "PowerViewWriteFrameBuffer")},
+    {scsi_command::eCmdPowerViewWriteFrameBuffer, make_pair(11, "PowerViewWriteFrameBuffer")},
     {scsi_command::eCmdPowerViewWriteColorPalette, make_pair(6, "PowerViewWriteColorPalette")},
     {scsi_command::eCmdPowerViewUnknownCC, make_pair(4, "PowerViewUnknownCC")}};
 }; // namespace scsi_defs
