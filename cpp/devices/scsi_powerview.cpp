@@ -287,7 +287,7 @@ void SCSIPowerView::ApplyFrameBufferUpdate(span<const uint8_t> data)
 	const auto& update = *pending_framebuffer_update;
 	for (size_t y = 0; y < update.height; ++y) {
 		for (size_t x = 0; x < update.width_pixels; ++x) {
-			uint8_t color_index;
+			uint8_t color_index = 0;
 			switch (pixel_format) {
 			case pixel_format_t::one_bit:
 				// The adapter shifts pixels least-significant bit first after reversing each byte.
