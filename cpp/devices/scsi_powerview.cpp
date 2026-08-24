@@ -34,10 +34,18 @@ constexpr array<uint8_t, 0x4b> inquiry_response = {
 	0x05, 0x00, 0x00, 0x00, 0x00, 0x06, 0x43, 0xf9,
 	0x00, 0x00, 0xff
 };
+
+uint8_t ReverseBits(uint8_t value)
+{
+	value = static_cast<uint8_t>(((value & 0xf0) >> 4) | ((value & 0x0f) << 4));
+	value = static_cast<uint8_t>(((value & 0xcc) >> 2) | ((value & 0x33) << 2));
+	return static_cast<uint8_t>(((value & 0xaa) >> 1) | ((value & 0x55) << 1));
+}
 }
 
 SCSIPowerView::SCSIPowerView(int lun) : PrimaryDevice(SCPV, lun)
 {
+	ClearVideoState();
 	SetReady(true);
 }
 
@@ -60,6 +68,8 @@ void SCSIPowerView::Reset()
 {
 	pending_transfer = transfer_t::none;
 	pending_transfer_length = 0;
+	pending_framebuffer_update.reset();
+	ClearVideoState();
 
 	PrimaryDevice::Reset();
 }
@@ -119,21 +129,31 @@ void SCSIPowerView::WriteConfiguration()
 
 void SCSIPowerView::WriteFrameBuffer()
 {
-	const size_t width = (static_cast<size_t>(GetController()->GetCmdByte(4)) << 8) |
+	const size_t offset = (static_cast<size_t>(GetController()->GetCmdByte(1)) << 16) |
+			(static_cast<size_t>(GetController()->GetCmdByte(2)) << 8) |
+			static_cast<uint8_t>(GetController()->GetCmdByte(3));
+	const size_t width_bytes = (static_cast<size_t>(GetController()->GetCmdByte(4)) << 8) |
 			static_cast<uint8_t>(GetController()->GetCmdByte(5));
 	const size_t height = (static_cast<size_t>(GetController()->GetCmdByte(6)) << 8) |
 			static_cast<uint8_t>(GetController()->GetCmdByte(7));
 
-	if (!width || !height || width > MAX_FRAMEBUFFER_BYTES / height) {
+	if (!width_bytes || !height || width_bytes > MAX_FRAMEBUFFER_BYTES / height) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
-	const size_t length = width * height;
-	if (length > MAX_FRAMEBUFFER_BYTES) {
+	const size_t pixels_per_byte = pixel_format == pixel_format_t::one_bit ? 8 :
+			pixel_format == pixel_format_t::four_bit ? 2 : 1;
+	if (!offset) {
+		SetScreenDimensions(width_bytes * pixels_per_byte, height);
+	}
+
+	const auto update = GetFrameBufferUpdate();
+	if (!update) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
-	StartDataOut(transfer_t::framebuffer, length);
+	StartDataOut(transfer_t::framebuffer, width_bytes * height);
+	pending_framebuffer_update = update;
 }
 
 void SCSIPowerView::WriteColorPalette()
@@ -146,6 +166,15 @@ void SCSIPowerView::WriteColorPalette()
 
 	// The black-and-white mode advertises one entry, but transfers black and white.
 	const size_t length = entries == 1 ? 8 : entries * 4;
+	if (entries == 1) {
+		pixel_format = pixel_format_t::one_bit;
+	}
+	else if (entries == 16) {
+		pixel_format = pixel_format_t::four_bit;
+	}
+	else if (entries == 256) {
+		pixel_format = pixel_format_t::eight_bit;
+	}
 	StartDataOut(transfer_t::palette, length);
 }
 
@@ -156,6 +185,7 @@ void SCSIPowerView::WriteUnknownCC()
 
 void SCSIPowerView::StartDataOut(transfer_t transfer, size_t length)
 {
+	pending_framebuffer_update.reset();
 	GetController()->AllocateBuffer(length);
 	GetController()->SetBlocks(1);
 	GetController()->SetLength(static_cast<uint32_t>(length));
@@ -179,6 +209,7 @@ bool SCSIPowerView::WriteByteSequence(span<const uint8_t> data)
 
 	case transfer_t::palette:
 		palette_data.assign(data.begin(), data.end());
+		ApplyPalette(data);
 		break;
 
 	case transfer_t::unknown_cc:
@@ -186,7 +217,11 @@ bool SCSIPowerView::WriteByteSequence(span<const uint8_t> data)
 		break;
 
 	case transfer_t::framebuffer:
-		// Framebuffer decoding is implemented by the in-memory video model in step 3.
+		if (!pending_framebuffer_update) {
+			LogWarn("Missing PowerView framebuffer update state");
+			return false;
+		}
+		ApplyFrameBufferUpdate(data);
 		break;
 
 	case transfer_t::none:
@@ -195,5 +230,94 @@ bool SCSIPowerView::WriteByteSequence(span<const uint8_t> data)
 
 	pending_transfer = transfer_t::none;
 	pending_transfer_length = 0;
+	pending_framebuffer_update.reset();
 	return true;
+}
+
+void SCSIPowerView::ApplyFrameBufferUpdate(span<const uint8_t> data)
+{
+	const auto& update = *pending_framebuffer_update;
+	for (size_t y = 0; y < update.height; ++y) {
+		for (size_t x = 0; x < update.width_pixels; ++x) {
+			uint8_t color_index;
+			switch (pixel_format) {
+			case pixel_format_t::one_bit:
+				// The adapter shifts pixels least-significant bit first after reversing each byte.
+				color_index = (ReverseBits(data[y * update.width_bytes + x / 8]) >> (x % 8)) & 1 ? 0x00 : 0x80;
+				break;
+
+			case pixel_format_t::four_bit: {
+				const uint8_t packed = data[y * update.width_bytes + x / 2];
+				color_index = x % 2 ? packed & 0x0f : packed >> 4;
+				break;
+			}
+
+			case pixel_format_t::eight_bit:
+				color_index = data[y * update.width_bytes + x];
+				break;
+			}
+
+			framebuffer[(update.row + y) * MAX_WIDTH + update.column + x] = color_index;
+		}
+	}
+}
+
+void SCSIPowerView::ApplyPalette(span<const uint8_t> data)
+{
+	for (size_t i = 0; i < data.size(); i += 4) {
+		palette[data[i]] = { data[i + 1], data[i + 2], data[i + 3] };
+	}
+}
+
+optional<SCSIPowerView::framebuffer_update_t> SCSIPowerView::GetFrameBufferUpdate() const
+{
+	const size_t address = (static_cast<size_t>(GetController()->GetCmdByte(1)) << 16) |
+			(static_cast<size_t>(GetController()->GetCmdByte(2)) << 8) |
+			static_cast<uint8_t>(GetController()->GetCmdByte(3));
+	const size_t width_bytes = (static_cast<size_t>(GetController()->GetCmdByte(4)) << 8) |
+			static_cast<uint8_t>(GetController()->GetCmdByte(5));
+	const size_t height = (static_cast<size_t>(GetController()->GetCmdByte(6)) << 8) |
+			static_cast<uint8_t>(GetController()->GetCmdByte(7));
+
+	const size_t pixels_per_byte = pixel_format == pixel_format_t::one_bit ? 8 :
+			pixel_format == pixel_format_t::four_bit ? 2 : 1;
+	if (!height || (pixel_format != pixel_format_t::eight_bit && address % 2) ||
+			width_bytes > MAX_FRAMEBUFFER_BYTES / height) {
+		return nullopt;
+	}
+
+	const size_t byte_offset = pixel_format == pixel_format_t::eight_bit ? address : address / 2;
+	const size_t bytes_per_row = screen_width / pixels_per_byte;
+	const size_t row = byte_offset / bytes_per_row;
+	const size_t column = (byte_offset % bytes_per_row) * pixels_per_byte;
+	const size_t width_pixels = width_bytes * pixels_per_byte;
+	if (!width_bytes || !height || row >= screen_height || column >= screen_width ||
+			width_pixels > screen_width - column || height > screen_height - row) {
+		return nullopt;
+	}
+
+	return framebuffer_update_t { width_bytes, height, row, column, width_pixels };
+}
+
+bool SCSIPowerView::SetScreenDimensions(size_t width, size_t height)
+{
+	if (!((width == 640 && (height == 400 || height == 480)) || (width == 800 && height == 600))) {
+		return false;
+	}
+
+	if (screen_width != width || screen_height != height) {
+		screen_width = static_cast<uint16_t>(width);
+		screen_height = static_cast<uint16_t>(height);
+		framebuffer.fill(0);
+	}
+	return true;
+}
+
+void SCSIPowerView::ClearVideoState()
+{
+	screen_width = 640;
+	screen_height = 400;
+	pixel_format = pixel_format_t::one_bit;
+	framebuffer.fill(0);
+	palette.fill({});
 }
