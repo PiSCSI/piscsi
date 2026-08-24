@@ -88,7 +88,6 @@ bool SCSIPowerView::Init(const param_map& params)
 		}
 	}
 
-	AddCommand(scsi_command::eCmdRead6, [this] { Read6(); });
 	AddCommand(scsi_command::eCmdPowerViewReadConfig, [this] { ReadConfiguration(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteConfig, [this] { WriteConfiguration(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteFrameBuffer, [this] { WriteFrameBuffer(); });
@@ -120,15 +119,6 @@ void SCSIPowerView::Reset()
 vector<uint8_t> SCSIPowerView::InquiryInternal() const
 {
 	return { inquiry_response.begin(), inquiry_response.end() };
-}
-
-void SCSIPowerView::Read6() const
-{
-	// Classic Mac OS probes every SCSI target with READ(6), including this
-	// processor device. The original PowerView implementation inherited Disk;
-	// without backing storage that path reported "medium not present". Preserve
-	// that observable behavior instead of treating the command as unsupported.
-	throw scsi_exception(sense_key::not_ready, asc::medium_not_present);
 }
 
 void SCSIPowerView::ReadConfiguration()
