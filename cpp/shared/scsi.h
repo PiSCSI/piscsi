@@ -120,7 +120,13 @@ enum class scsi_command {
     eCmdReportLuns                 = 0xA0,
     // SASI/OMTI Assign Disk Parameters. The CDB is six bytes and is followed
     // by a ten-byte parameter list in the data-out phase.
-    eCmdAssignDiskParameters       = 0xC2
+    eCmdAssignDiskParameters       = 0xC2,
+    // Radius PowerView vendor-specific commands
+    eCmdPowerViewReadConfig        = 0xC8,
+    eCmdPowerViewWriteConfig       = 0xC9,
+    eCmdPowerViewWriteFrameBuffer  = 0xCA,
+    eCmdPowerViewWriteColorPalette = 0xCB,
+    eCmdPowerViewUnknownCC         = 0xCC
 };
 
 enum class status {
@@ -202,5 +208,11 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdReadCapacity16_ReadLong16, make_pair(16, "ReadCapacity16/ReadLong16")},
     {scsi_command::eCmdWriteLong16, make_pair(16, "WriteLong16")},
     {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")},
-    {scsi_command::eCmdAssignDiskParameters, make_pair(6, "AssignDiskParameters")}};
+    {scsi_command::eCmdAssignDiskParameters, make_pair(6, "AssignDiskParameters")},
+    // These CDB sizes are based on Radius PowerView bus captures, not SCSI group-code defaults.
+    {scsi_command::eCmdPowerViewReadConfig, make_pair(8, "PowerViewReadConfig")},
+    {scsi_command::eCmdPowerViewWriteConfig, make_pair(8, "PowerViewWriteConfig")},
+    {scsi_command::eCmdPowerViewWriteFrameBuffer, make_pair(8, "PowerViewWriteFrameBuffer")},
+    {scsi_command::eCmdPowerViewWriteColorPalette, make_pair(6, "PowerViewWriteColorPalette")},
+    {scsi_command::eCmdPowerViewUnknownCC, make_pair(4, "PowerViewUnknownCC")}};
 }; // namespace scsi_defs

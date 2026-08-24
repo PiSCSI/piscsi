@@ -43,6 +43,10 @@ enum PbDeviceType {
     SCLP = 9;
     // Streamer (tape) device
     SCTP = 10;
+    // Linux SG driver not yet supported, but declared for SCSI2PI compatibility
+    SCSG = 11 [deprecated = true];
+    // Radius PowerView video adapter
+    SCPV = 12;
 }
 
 // piscsi remote operations, returning PbResult
