@@ -8,6 +8,11 @@
 #include "mocks.h"
 #include "devices/scsi_powerview.h"
 #include "shared/piscsi_exceptions.h"
+#include <array>
+#include <filesystem>
+#include <fstream>
+
+using namespace filesystem;
 
 TEST(ScsiPowerViewTest, Inquiry)
 {
@@ -283,6 +288,70 @@ TEST(ScsiPowerViewTest, SupportsCapturedModesAndSurfaceEdges)
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+}
+
+TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot)
+{
+	const path snapshot = test_data_temp_path / "powerview.ppm";
+	create_directories(snapshot.parent_path());
+	remove(snapshot);
+	remove(snapshot.string() + ".tmp");
+
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
+	auto power_view = make_shared<SCSIPowerView>(0);
+	EXPECT_TRUE(power_view->Init({ { "snapshot", snapshot.string() }, { "snapshot_interval", "60000" } }));
+	EXPECT_TRUE(controller->AddDevice(power_view));
+
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 1);
+	EXPECT_CALL(*controller, DataOut());
+	power_view->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{
+			0x00, 0xff, 0xff, 0xff, 0x80, 0x00, 0x00, 0x00
+	}));
+
+	controller->SetCmdByte(1, 0);
+	controller->SetCmdByte(2, 0);
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 0);
+	controller->SetCmdByte(5, 1);
+	controller->SetCmdByte(6, 0);
+	controller->SetCmdByte(7, 1);
+	EXPECT_CALL(*controller, DataOut());
+	power_view->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{ 0x80 }));
+
+	ifstream input(snapshot, ios::binary);
+	ASSERT_TRUE(input);
+	string header;
+	getline(input, header);
+	EXPECT_EQ("P6", header);
+	getline(input, header);
+	EXPECT_EQ("640 400", header);
+	getline(input, header);
+	EXPECT_EQ("255", header);
+
+	array<uint8_t, 6> pixels {};
+	input.read(reinterpret_cast<char*>(pixels.data()), static_cast<streamsize>(pixels.size()));
+	const array<uint8_t, 6> expected_pixels = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
+	EXPECT_EQ(expected_pixels, pixels);
+	EXPECT_FALSE(exists(snapshot.string() + ".tmp"));
+
+	EXPECT_CALL(*controller, DataOut());
+	power_view->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{ 0x00 }));
+	EXPECT_EQ(0x80, power_view->GetPixel(0, 0));
+
+	ifstream throttled_input(snapshot, ios::binary);
+	getline(throttled_input, header);
+	getline(throttled_input, header);
+	getline(throttled_input, header);
+	array<uint8_t, 3> throttled_pixel {};
+	throttled_input.read(reinterpret_cast<char*>(throttled_pixel.data()), static_cast<streamsize>(throttled_pixel.size()));
+	const array<uint8_t, 3> expected_throttled_pixel = { 0xff, 0xff, 0xff };
+	EXPECT_EQ(expected_throttled_pixel, throttled_pixel);
+
+	remove(snapshot);
 }
 
 TEST(ScsiPowerViewTest, RejectsInvalidDataOutLengths)

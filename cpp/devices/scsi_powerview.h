@@ -17,6 +17,7 @@
 
 #include "primary_device.h"
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <optional>
 #include <span>
@@ -37,6 +38,7 @@ public:
 
 	bool Init(const param_map&) override;
 	void Reset() override;
+	param_map GetDefaultParams() const override;
 
 	bool WriteByteSequence(span<const uint8_t>) override;
 
@@ -81,6 +83,7 @@ private:
 	optional<framebuffer_update_t> GetFrameBufferUpdate() const;
 	bool SetScreenDimensions(size_t width, size_t height);
 	void ClearVideoState();
+	void WriteSnapshot(bool);
 
 	transfer_t pending_transfer = transfer_t::none;
 	size_t pending_transfer_length = 0;
@@ -91,6 +94,11 @@ private:
 	pixel_format_t pixel_format = pixel_format_t::one_bit;
 	array<uint8_t, MAX_FRAMEBUFFER_BYTES> framebuffer {};
 	array<color_t, 256> palette {};
+
+	string snapshot_path;
+	chrono::milliseconds snapshot_interval { 250 };
+	chrono::steady_clock::time_point last_snapshot {};
+	bool snapshot_full_refresh_only = false;
 
 	// Retained for diagnostic use.
 	vector<uint8_t> configuration_data;

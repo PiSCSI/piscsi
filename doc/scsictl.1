@@ -166,6 +166,9 @@ Attach a DaynaPort to the preconfigured wired bridge. Its mode and interface is 
 .Pp
 Attach a DaynaPort through a configured Wi-Fi proxy-ARP uplink:
 .Dl Nm scsictl Fl i No 6 Fl c No attach Fl t No scdp Fl f No "mode=proxyarp:interface=wlan0"
+.Pp
+Attach a Radius PowerView at SCSI ID 6 and write a throttled debug snapshot whenever the framebuffer changes:
+.Dl Nm scsictl Fl i No 6 Fl c No attach Fl t No scpv Fl f No "snapshot=/tmp/powerview.ppm:snapshot_interval=250"
 .Sh SEE ALSO
 .Xr piscsi 1 ,
 .Xr scsimon 1 ,

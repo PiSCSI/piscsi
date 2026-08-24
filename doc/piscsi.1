@@ -110,6 +110,8 @@ SCSI Host Services (used for special host services)
 SCSI Printer (generic line printer)
 .It Dv SCMO
 SCSI Magneto-Optical Drive (takes image, removable)
+.It Dv SCPV
+PowerView video adapter
 .It Dv SCRM
 SCSI Removable Hard Disk (takes image, removable)
 .It Dv SCTP
@@ -334,7 +336,7 @@ u is the optional LUN (logical unit): 0-31 for SCSI and 0-1 for SASI.
 The default LUN is 0.
 .Pp
 FILE is the name of the image file to use for a SCSI or SASI mass storage device.
-For devices that do not support an image file (SCBR, SCDP, SCLP, SCHS) the filename may have a special meaning
+For devices that do not support an image file (SCBR, SCDP, SCHS, SCLP, SCPV) the filename may have a special meaning
 or a dummy name can be provided. For SCBR and SCDP it selects the host networking profile; see
 .Sx NETWORK INTERFACES .
 For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".

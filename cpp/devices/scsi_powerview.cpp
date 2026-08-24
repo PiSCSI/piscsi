@@ -14,11 +14,15 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
+#include "shared/piscsi_util.h"
 #include "scsi_powerview.h"
 #include <algorithm>
 #include <array>
+#include <filesystem>
+#include <fstream>
 
 using namespace scsi_defs;
+using namespace piscsi_util;
 
 namespace
 {
@@ -45,6 +49,7 @@ uint8_t ReverseBits(uint8_t value)
 
 SCSIPowerView::SCSIPowerView(int lun) : PrimaryDevice(SCPV, lun)
 {
+	SupportsParams(true);
 	ClearVideoState();
 	SetReady(true);
 }
@@ -55,6 +60,40 @@ bool SCSIPowerView::Init(const param_map& params)
 		return false;
 	}
 
+	if (int interval; !GetAsUnsignedInt(GetParam("snapshot_interval"), interval)) {
+		LogError("Invalid PowerView snapshot interval");
+		return false;
+	}
+	else {
+		snapshot_interval = chrono::milliseconds(interval);
+	}
+
+	const string full_refresh_only = GetParam("snapshot_full_refresh_only");
+	if (full_refresh_only == "true") {
+		snapshot_full_refresh_only = true;
+	}
+	else if (full_refresh_only == "false") {
+		snapshot_full_refresh_only = false;
+	}
+	else {
+		LogError("Invalid PowerView snapshot_full_refresh_only setting");
+		return false;
+	}
+
+	snapshot_path = GetParam("snapshot");
+	if (!snapshot_path.empty()) {
+		const filesystem::path path(snapshot_path);
+		error_code error;
+		if (!path.parent_path().empty() && !filesystem::is_directory(path.parent_path(), error)) {
+			LogError("Invalid PowerView snapshot path '" + snapshot_path + "'");
+			return false;
+		}
+		if (error || (filesystem::exists(path, error) && filesystem::is_directory(path, error)) || error) {
+			LogError("Invalid PowerView snapshot path '" + snapshot_path + "'");
+			return false;
+		}
+	}
+
 	AddCommand(scsi_command::eCmdPowerViewReadConfig, [this] { ReadConfiguration(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteConfig, [this] { WriteConfiguration(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteFrameBuffer, [this] { WriteFrameBuffer(); });
@@ -62,6 +101,15 @@ bool SCSIPowerView::Init(const param_map& params)
 	AddCommand(scsi_command::eCmdPowerViewUnknownCC, [this] { WriteUnknownCC(); });
 
 	return true;
+}
+
+param_map SCSIPowerView::GetDefaultParams() const
+{
+	return {
+		{ "snapshot", "" },
+		{ "snapshot_interval", "250" },
+		{ "snapshot_full_refresh_only", "false" }
+	};
 }
 
 void SCSIPowerView::Reset()
@@ -260,6 +308,9 @@ void SCSIPowerView::ApplyFrameBufferUpdate(span<const uint8_t> data)
 			framebuffer[(update.row + y) * MAX_WIDTH + update.column + x] = color_index;
 		}
 	}
+
+	WriteSnapshot(update.row == 0 && update.column == 0 && update.width_pixels == screen_width &&
+			update.height == screen_height);
 }
 
 void SCSIPowerView::ApplyPalette(span<const uint8_t> data)
@@ -320,4 +371,59 @@ void SCSIPowerView::ClearVideoState()
 	pixel_format = pixel_format_t::one_bit;
 	framebuffer.fill(0);
 	palette.fill({});
+}
+
+void SCSIPowerView::WriteSnapshot(bool full_refresh)
+{
+	if (snapshot_path.empty() || (snapshot_full_refresh_only && !full_refresh)) {
+		return;
+	}
+
+	const auto now = chrono::steady_clock::now();
+	if (last_snapshot != chrono::steady_clock::time_point {} && now - last_snapshot < snapshot_interval) {
+		return;
+	}
+
+	vector<uint8_t> rgb;
+	rgb.reserve(static_cast<size_t>(screen_width) * screen_height * 3);
+	for (size_t y = 0; y < screen_height; ++y) {
+		for (size_t x = 0; x < screen_width; ++x) {
+			const auto& color = palette[framebuffer[y * MAX_WIDTH + x]];
+			rgb.insert(rgb.end(), color.begin(), color.end());
+		}
+	}
+
+	const filesystem::path target(snapshot_path);
+	const filesystem::path temporary = target.string() + ".tmp";
+	bool write_failed = false;
+	{
+		ofstream output(temporary, ios::binary | ios::trunc);
+		if (!output) {
+			LogWarn("Unable to open PowerView snapshot '" + temporary.string() + "'");
+		}
+		else {
+			output << "P6\n" << screen_width << ' ' << screen_height << "\n255\n";
+			output.write(reinterpret_cast<const char*>(rgb.data()), static_cast<streamsize>(rgb.size()));
+			if (!output) {
+				LogWarn("Unable to write PowerView snapshot '" + temporary.string() + "'");
+			}
+		}
+		write_failed = !output;
+	}
+
+	if (write_failed) {
+		error_code error;
+		filesystem::remove(temporary, error);
+		return;
+	}
+
+	error_code error;
+	filesystem::rename(temporary, target, error);
+	if (error) {
+		LogWarn("Unable to publish PowerView snapshot '" + target.string() + "'");
+		filesystem::remove(temporary, error);
+		return;
+	}
+
+	last_snapshot = now;
 }
