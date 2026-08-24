@@ -172,6 +172,12 @@ TEST(PiscsiResponseTest, GetDeviceTypesInfo)
 	PbDeviceTypesInfo info;
 	response.GetDeviceTypesInfo(info);
 	EXPECT_EQ(10, info.properties().size());
+
+	bool has_powerview = false;
+	for (const auto& properties : info.properties()) {
+		has_powerview |= properties.type() == SCPV;
+	}
+	EXPECT_TRUE(has_powerview);
 }
 
 TEST(PiscsiResponseTest, GetServerInfo)

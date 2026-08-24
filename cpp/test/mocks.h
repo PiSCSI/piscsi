@@ -158,6 +158,10 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(HostServicesTest, ModeSense10);
 	FRIEND_TEST(HostServicesTest, SetUpModePages);
 	FRIEND_TEST(ScsiPrinterTest, Print);
+	FRIEND_TEST(ScsiPowerViewTest, Inquiry);
+	FRIEND_TEST(ScsiPowerViewTest, ReadConfiguration);
+	FRIEND_TEST(ScsiPowerViewTest, DataOutCommands);
+	FRIEND_TEST(ScsiPowerViewTest, RejectsInvalidDataOutLengths);
 	FRIEND_TEST(ScsiCdTest, ReadToc);
 	FRIEND_TEST(ScsiCdTest, ReadTocAllocationLength);
 	FRIEND_TEST(SasiHdTest, X68000TestUnitReadyProbe);

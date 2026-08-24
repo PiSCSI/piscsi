@@ -15,6 +15,7 @@
 #include "scsicd.h"
 #include "scsi_printer.h"
 #include "scsi_host_bridge.h"
+#include "scsi_powerview.h"
 #include "scsi_daynaport.h"
 #include "host_services.h"
 #include "device_factory.h"
@@ -111,6 +112,13 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	case SCTP:
 		device = make_shared<SCSIST>(lun);
 		device->SetProduct("SCSI TAPE");
+		break;
+
+	case SCPV:
+		device = make_shared<SCSIPowerView>(lun);
+		device->SetVendor("RADIUS");
+		device->SetProduct("PowerView");
+		device->SetRevision("V1.0");
 		break;
 
 	default:
