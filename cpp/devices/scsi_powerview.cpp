@@ -39,12 +39,6 @@ constexpr array<uint8_t, 0x4b> inquiry_response = {
 	0x00, 0x00, 0xff
 };
 
-uint8_t ReverseBits(uint8_t value)
-{
-	value = static_cast<uint8_t>(((value & 0xf0) >> 4) | ((value & 0x0f) << 4));
-	value = static_cast<uint8_t>(((value & 0xcc) >> 2) | ((value & 0x33) << 2));
-	return static_cast<uint8_t>(((value & 0xaa) >> 1) | ((value & 0x55) << 1));
-}
 }
 
 SCSIPowerView::SCSIPowerView(int lun) : PrimaryDevice(SCPV, lun)
@@ -220,13 +214,17 @@ void SCSIPowerView::WriteColorPalette()
 {
 	const size_t entries = (static_cast<size_t>(GetController()->GetCmdByte(3)) << 8) |
 			static_cast<uint8_t>(GetController()->GetCmdByte(4));
-	if (!entries || entries > 256) {
-		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+	if (!entries) {
+		// A zero depth has no payload and does not change the currently latched
+		// pixel format.
+		EnterStatusPhase();
+		return;
 	}
 
-	// The black-and-white mode advertises one entry, but transfers black and white.
-	const size_t length = entries == 1 ? 8 : entries * 4;
-	if (entries == 1) {
+	// The depth code is also the number of 32-bit palette entries on the
+	// wire. In particular, CB 00 00 01 transfers four bytes, not eight.
+	const size_t length = entries * 4;
+	if (entries == 1 || entries == 2) {
 		pixel_format = pixel_format_t::one_bit;
 	}
 	else if (entries == 16) {
@@ -240,7 +238,16 @@ void SCSIPowerView::WriteColorPalette()
 
 void SCSIPowerView::WriteUnknownCC()
 {
-	StartDataOut(transfer_t::unknown_cc, UNKNOWN_CC_LENGTH);
+	// The CDB stores a bit count in bytes 1:2. RadiusWare transfers the
+	// corresponding byte count, which is not always the historical 0x8bb.
+	const size_t length = ((static_cast<size_t>(GetController()->GetCmdByte(1)) << 8) |
+			static_cast<uint8_t>(GetController()->GetCmdByte(2))) >> 3;
+	if (!length) {
+		EnterStatusPhase();
+		return;
+	}
+
+	StartDataOut(transfer_t::unknown_cc, length);
 }
 
 void SCSIPowerView::StartDataOut(transfer_t transfer, size_t length)
@@ -302,8 +309,10 @@ void SCSIPowerView::ApplyFrameBufferUpdate(span<const uint8_t> data)
 			uint8_t color_index = 0;
 			switch (pixel_format) {
 			case pixel_format_t::one_bit:
-				// The adapter shifts pixels least-significant bit first after reversing each byte.
-				color_index = (ReverseBits(data[y * update.width_bytes + x / 8]) >> (x % 8)) & 1 ? 0x00 : 0x80;
+				// PowerView stores the leftmost pixel in the most-significant bit.
+				// Its monochrome palette is addressed as 0x00 (clear/white) and
+				// 0x80 (set/black), rather than as palette slots 0 and 1.
+				color_index = (data[y * update.width_bytes + x / 8] >> (7 - (x % 8))) & 1 ? 0x80 : 0x00;
 				break;
 
 			case pixel_format_t::four_bit: {
@@ -383,6 +392,10 @@ void SCSIPowerView::ClearVideoState()
 	pixel_format = pixel_format_t::one_bit;
 	framebuffer.fill(0);
 	palette.fill({});
+	// Permit a useful monochrome image even if the first framebuffer write
+	// arrives before the first palette update.
+	palette[0x00] = { 0xff, 0xff, 0xff };
+	palette[0x80] = { 0x00, 0x00, 0x00 };
 }
 
 void SCSIPowerView::WriteSnapshot(bool full_refresh)

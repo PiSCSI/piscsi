@@ -86,8 +86,8 @@ TEST(ScsiPowerViewTest, DataOutCommands)
 	controller->SetCmdByte(4, 1);
 	EXPECT_CALL(*controller, DataOut());
 	device->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
-	EXPECT_EQ(8, controller->GetLength());
-	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(8)));
+	EXPECT_EQ(4, controller->GetLength());
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(4)));
 
 	controller->SetCmdByte(4, 0);
 	controller->SetCmdByte(5, 80);
@@ -98,10 +98,12 @@ TEST(ScsiPowerViewTest, DataOutCommands)
 	EXPECT_EQ(80 * 400, controller->GetLength());
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(80 * 400)));
 
+	controller->SetCmdByte(1, 0x45);
+	controller->SetCmdByte(2, 0xe0);
 	EXPECT_CALL(*controller, DataOut());
 	device->Dispatch(scsi_command::eCmdPowerViewUnknownCC);
-	EXPECT_EQ(SCSIPowerView::UNKNOWN_CC_LENGTH, controller->GetLength());
-	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(SCSIPowerView::UNKNOWN_CC_LENGTH)));
+	EXPECT_EQ(0x8bc, controller->GetLength());
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(0x8bc)));
 }
 
 TEST(ScsiPowerViewTest, DecodesPaletteAndFrameBufferUpdates)
@@ -110,7 +112,7 @@ TEST(ScsiPowerViewTest, DecodesPaletteAndFrameBufferUpdates)
 	auto power_view = dynamic_pointer_cast<SCSIPowerView>(device);
 
 	controller->SetCmdByte(3, 0);
-	controller->SetCmdByte(4, 1);
+	controller->SetCmdByte(4, 2);
 	EXPECT_CALL(*controller, DataOut());
 	device->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{
@@ -129,9 +131,9 @@ TEST(ScsiPowerViewTest, DecodesPaletteAndFrameBufferUpdates)
 	EXPECT_CALL(*controller, DataOut());
 	device->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{ 0x81 }));
-	EXPECT_EQ(0x00, power_view->GetPixel(0, 0));
-	EXPECT_EQ(0x80, power_view->GetPixel(1, 0));
-	EXPECT_EQ(0x00, power_view->GetPixel(7, 0));
+	EXPECT_EQ(0x80, power_view->GetPixel(0, 0));
+	EXPECT_EQ(0x00, power_view->GetPixel(1, 0));
+	EXPECT_EQ(0x80, power_view->GetPixel(7, 0));
 
 	controller->SetCmdByte(3, 0);
 	controller->SetCmdByte(4, 16);
@@ -178,13 +180,35 @@ TEST(ScsiPowerViewTest, DecodesPaletteAndFrameBufferUpdates)
 	EXPECT_EQ(0x34, power_view->GetPixel(1, 0));
 }
 
+TEST(ScsiPowerViewTest, UsesVisibleMonochromeDefaultsBeforePaletteUpdate)
+{
+	auto [controller, device] = CreateDevice(SCPV);
+	auto power_view = dynamic_pointer_cast<SCSIPowerView>(device);
+
+	EXPECT_EQ((SCSIPowerView::color_t { 0xff, 0xff, 0xff }), power_view->GetPalette()[0x00]);
+	EXPECT_EQ((SCSIPowerView::color_t { 0x00, 0x00, 0x00 }), power_view->GetPalette()[0x80]);
+
+	controller->SetCmdByte(1, 0);
+	controller->SetCmdByte(2, 0);
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 0);
+	controller->SetCmdByte(5, 1);
+	controller->SetCmdByte(6, 0);
+	controller->SetCmdByte(7, 1);
+	EXPECT_CALL(*controller, DataOut());
+	device->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{ 0x80 }));
+	EXPECT_EQ(0x80, power_view->GetPixel(0, 0));
+	EXPECT_EQ(0x00, power_view->GetPixel(1, 0));
+}
+
 TEST(ScsiPowerViewTest, AppliesOffsetUpdatesToCapturedModes)
 {
 	auto [controller, device] = CreateDevice(SCPV);
 	auto power_view = dynamic_pointer_cast<SCSIPowerView>(device);
 
 	controller->SetCmdByte(3, 0);
-	controller->SetCmdByte(4, 1);
+	controller->SetCmdByte(4, 2);
 	EXPECT_CALL(*controller, DataOut());
 	device->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{
@@ -203,7 +227,7 @@ TEST(ScsiPowerViewTest, AppliesOffsetUpdatesToCapturedModes)
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(80 * 480)));
 	EXPECT_EQ(640, power_view->GetScreenWidth());
 	EXPECT_EQ(480, power_view->GetScreenHeight());
-	EXPECT_EQ(0x80, power_view->GetPixel(15, 10));
+	EXPECT_EQ(0x00, power_view->GetPixel(15, 10));
 
 	// Captured command CA 01 1E A8 00 01 00 03, with data FFFFFF.
 	// Its 1-bit word address maps to byte 36692, row 458, column 416.
@@ -217,10 +241,10 @@ TEST(ScsiPowerViewTest, AppliesOffsetUpdatesToCapturedModes)
 	EXPECT_CALL(*controller, DataOut());
 	device->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{ 0xff, 0xff, 0xff }));
-	EXPECT_EQ(0x80, power_view->GetPixel(415, 458));
-	EXPECT_EQ(0x00, power_view->GetPixel(416, 458));
-	EXPECT_EQ(0x00, power_view->GetPixel(423, 460));
-	EXPECT_EQ(0x80, power_view->GetPixel(416, 461));
+	EXPECT_EQ(0x00, power_view->GetPixel(415, 458));
+	EXPECT_EQ(0x80, power_view->GetPixel(416, 458));
+	EXPECT_EQ(0x80, power_view->GetPixel(423, 460));
+	EXPECT_EQ(0x00, power_view->GetPixel(416, 461));
 }
 
 TEST(ScsiPowerViewTest, SupportsCapturedModesAndSurfaceEdges)
@@ -229,7 +253,7 @@ TEST(ScsiPowerViewTest, SupportsCapturedModesAndSurfaceEdges)
 	auto power_view = dynamic_pointer_cast<SCSIPowerView>(device);
 
 	controller->SetCmdByte(3, 0);
-	controller->SetCmdByte(4, 1);
+	controller->SetCmdByte(4, 2);
 	EXPECT_CALL(*controller, DataOut());
 	device->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{
@@ -249,7 +273,7 @@ TEST(ScsiPowerViewTest, SupportsCapturedModesAndSurfaceEdges)
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(80 * 400, 0xff)));
 	EXPECT_EQ(640, power_view->GetScreenWidth());
 	EXPECT_EQ(400, power_view->GetScreenHeight());
-	EXPECT_EQ(0x00, power_view->GetPixel(639, 399));
+	EXPECT_EQ(0x80, power_view->GetPixel(639, 399));
 
 	controller->SetCmdByte(3, 1);
 	controller->SetCmdByte(4, 0);
@@ -341,7 +365,7 @@ TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot)
 	EXPECT_TRUE(controller->AddDevice(power_view));
 
 	controller->SetCmdByte(3, 0);
-	controller->SetCmdByte(4, 1);
+	controller->SetCmdByte(4, 2);
 	EXPECT_CALL(*controller, DataOut());
 	power_view->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{
@@ -371,14 +395,14 @@ TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot)
 
 	array<uint8_t, 6> pixels {};
 	input.read(reinterpret_cast<char*>(pixels.data()), static_cast<streamsize>(pixels.size()));
-	const array<uint8_t, 6> expected_pixels = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
+	const array<uint8_t, 6> expected_pixels = { 0x00, 0x00, 0x00, 0xff, 0xff, 0xff };
 	EXPECT_EQ(expected_pixels, pixels);
 	EXPECT_FALSE(exists(snapshot.string() + ".tmp"));
 
 	EXPECT_CALL(*controller, DataOut());
 	power_view->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{ 0x00 }));
-	EXPECT_EQ(0x80, power_view->GetPixel(0, 0));
+	EXPECT_EQ(0x00, power_view->GetPixel(0, 0));
 
 	ifstream throttled_input(snapshot, ios::binary);
 	getline(throttled_input, header);
@@ -386,7 +410,7 @@ TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot)
 	getline(throttled_input, header);
 	array<uint8_t, 3> throttled_pixel {};
 	throttled_input.read(reinterpret_cast<char*>(throttled_pixel.data()), static_cast<streamsize>(throttled_pixel.size()));
-	const array<uint8_t, 3> expected_throttled_pixel = { 0xff, 0xff, 0xff };
+	const array<uint8_t, 3> expected_throttled_pixel = { 0x00, 0x00, 0x00 };
 	EXPECT_EQ(expected_throttled_pixel, throttled_pixel);
 
 	remove(snapshot);
@@ -395,12 +419,6 @@ TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot)
 TEST(ScsiPowerViewTest, RejectsInvalidDataOutLengths)
 {
 	auto [controller, device] = CreateDevice(SCPV);
-
-	controller->SetCmdByte(3, 1);
-	controller->SetCmdByte(4, 1);
-	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 
 	controller->SetCmdByte(4, 0x03);
 	controller->SetCmdByte(5, 0x21);

@@ -31,8 +31,6 @@ public:
 	static constexpr size_t MAX_WIDTH = 800;
 	static constexpr size_t MAX_HEIGHT = 600;
 	static constexpr size_t MAX_FRAMEBUFFER_BYTES = MAX_WIDTH * MAX_HEIGHT;
-	static constexpr size_t UNKNOWN_CC_LENGTH = 0x8bb;
-
 	explicit SCSIPowerView(int lun);
 	~SCSIPowerView() override = default;
 
