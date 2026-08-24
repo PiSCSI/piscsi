@@ -32,6 +32,16 @@ TEST(ScsiPowerViewTest, Inquiry)
 	EXPECT_EQ("V1.0", string(buffer.begin() + 32, buffer.begin() + 36));
 }
 
+TEST(ScsiPowerViewTest, Read6ReportsNoMediumLikeTheLegacyDevice)
+{
+	auto [controller, device] = CreateDevice(SCPV);
+
+	// RadiusWare's boot-time probe is READ(6) LBA 0 for one block.
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+			Property(&scsi_exception::get_asc, asc::medium_not_present))));
+}
+
 TEST(ScsiPowerViewTest, ReadConfiguration)
 {
 	auto [controller, device] = CreateDevice(SCPV);
