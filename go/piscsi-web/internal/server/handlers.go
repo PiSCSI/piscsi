@@ -524,7 +524,7 @@ func deviceTypeName(deviceType pb.PbDeviceType) string {
 		return "Host Services"
 	case pb.PbDeviceType_SCTP:
 		return "SCSI Tape"
-	case pb.PbDeviceType_SCVP:
+	case pb.PbDeviceType_SCPV:
 		return "Display Adapter"
 	default:
 		return deviceType.String()
