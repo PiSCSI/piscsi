@@ -126,7 +126,7 @@ void ScsiController::Selection()
 	if (!GetBus().GetSEL() && GetBus().GetBSY()) {
 		LogTrace("Selection completed");
 
-		// SASI has no message phases. SCSI enters message out if ATN is asserted.
+		// SASI omits message out. SCSI enters message out if ATN is asserted.
 		if (!IsSasi() && GetBus().GetATN()) {
 			MsgOut();
 		} else {
@@ -494,10 +494,6 @@ void ScsiController::Send()
 			break;
 
 		case phase_t::status:
-			if (IsSasi()) {
-				BusFree();
-				break;
-			}
 			SetLength(1);
 			SetBlocks(1);
 			GetBuffer()[0] = (uint8_t)GetMessage();

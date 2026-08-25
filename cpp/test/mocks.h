@@ -160,6 +160,8 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(ScsiPrinterTest, Print);
 	FRIEND_TEST(ScsiCdTest, ReadToc);
 	FRIEND_TEST(ScsiCdTest, ReadTocAllocationLength);
+	FRIEND_TEST(SasiHdTest, X68000TestUnitReadyProbe);
+	FRIEND_TEST(SasiHdTest, X68000TestUnitReadyProbeSuccess);
 
 public:
 

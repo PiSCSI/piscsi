@@ -117,7 +117,10 @@ enum class scsi_command {
     eCmdSynchronizeCache16         = 0x91,
     eCmdReadCapacity16_ReadLong16  = 0x9E,
     eCmdWriteLong16                = 0x9F,
-    eCmdReportLuns                 = 0xA0
+    eCmdReportLuns                 = 0xA0,
+    // SASI/OMTI Assign Disk Parameters. The CDB is six bytes and is followed
+    // by a ten-byte parameter list in the data-out phase.
+    eCmdAssignDiskParameters       = 0xC2
 };
 
 enum class status {
@@ -198,5 +201,6 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdSynchronizeCache16, make_pair(16, "SynchronizeCache16")},
     {scsi_command::eCmdReadCapacity16_ReadLong16, make_pair(16, "ReadCapacity16/ReadLong16")},
     {scsi_command::eCmdWriteLong16, make_pair(16, "WriteLong16")},
-    {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")}};
+    {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")},
+    {scsi_command::eCmdAssignDiskParameters, make_pair(6, "AssignDiskParameters")}};
 }; // namespace scsi_defs

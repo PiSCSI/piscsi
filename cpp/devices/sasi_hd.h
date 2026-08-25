@@ -25,5 +25,7 @@ public:
 
 private:
 	vector<uint8_t> InquiryInternal() const override { return {}; }
+	void TestUnitReady() override;
+	void AssignDiskParameters();
 	void ReadCapacity();
 };

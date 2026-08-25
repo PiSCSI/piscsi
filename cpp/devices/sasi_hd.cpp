@@ -25,8 +25,40 @@ bool SasiHd::Init(const param_map& params)
 	// SASI uses opcode 0x05 for READ CAPACITY and has a legacy FORMAT opcode at 0x06.
 	AddCommand(scsi_command::eCmdReadBlockLimits, [this] { ReadCapacity(); });
 	AddCommand(scsi_command::eCmdFormatLegacy, [this] { Dispatch(scsi_command::eCmdFormatUnit); });
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdAssignDiskParameters, [this] { AssignDiskParameters(); });
 
 	return true;
+}
+
+void SasiHd::TestUnitReady()
+{
+	// X68000 SASI firmware probes a target with 00 28 and requires CHECK
+	// CONDITION (with no sense data). 00 03 is the corresponding ready probe.
+	if (GetController()->GetCmdByte(1) == 0x28) {
+		GetController()->SetStatus(status::check_condition);
+		EnterStatusPhase();
+		return;
+	}
+	if (GetController()->GetCmdByte(1) == 0x03) {
+		GetController()->SetStatus(status::good);
+		EnterStatusPhase();
+		return;
+	}
+
+	CheckReady();
+	EnterStatusPhase();
+}
+
+void SasiHd::AssignDiskParameters()
+{
+	CheckReady();
+
+	// SASI initiators such as the X68000 configure geometry with this
+	// six-byte command followed by ten parameter bytes. Geometry is derived
+	// from the image, so consume and ignore the parameter list.
+	GetController()->SetLength(10);
+	EnterDataOutPhase();
 }
 
 void SasiHd::Open()
