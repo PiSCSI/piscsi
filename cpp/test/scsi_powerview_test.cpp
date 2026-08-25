@@ -11,6 +11,7 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
+#include <thread>
 
 using namespace filesystem;
 
@@ -384,6 +385,9 @@ TEST(ScsiPowerViewTest, WritesThrottledPpmSnapshot)
 	EXPECT_CALL(*controller, DataOut());
 	power_view->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
 	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>{ 0x80 }));
+	for (int attempts = 0; attempts < 100 && !exists(snapshot); ++attempts) {
+		this_thread::sleep_for(chrono::milliseconds(10));
+	}
 
 	ifstream input(snapshot, ios::binary);
 	ASSERT_TRUE(input);

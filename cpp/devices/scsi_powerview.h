@@ -3,6 +3,7 @@
 // SCSI Target Emulator PiSCSI for Raspberry Pi
 //
 // Copyright (C) 2026 Daniel Markstedt <daniel@mindani.net>
+// Copyright (C) 2026 Eric Helgeson
 // Copyright (C) 2020-2023 akuker
 // Copyright (C) 2020 joshua stein <jcs@jcs.org>
 //
@@ -19,8 +20,12 @@
 #include <array>
 #include <chrono>
 #include <cstddef>
+#include <condition_variable>
+#include <mutex>
 #include <optional>
 #include <span>
+#include <stop_token>
+#include <thread>
 #include <vector>
 
 class SCSIPowerView : public PrimaryDevice
@@ -32,7 +37,7 @@ public:
 	static constexpr size_t MAX_HEIGHT = 600;
 	static constexpr size_t MAX_FRAMEBUFFER_BYTES = MAX_WIDTH * MAX_HEIGHT;
 	explicit SCSIPowerView(int lun);
-	~SCSIPowerView() override = default;
+	~SCSIPowerView() override;
 
 	bool Init(const param_map&) override;
 	void Reset() override;
@@ -69,6 +74,13 @@ private:
 		 bool full_refresh;
 	};
 
+	struct snapshot_t {
+		uint16_t width;
+		uint16_t height;
+		vector<uint8_t> pixels;
+		array<color_t, 256> palette;
+	};
+
 	vector<uint8_t> InquiryInternal() const override;
 
 	void ReadConfiguration();
@@ -82,7 +94,9 @@ private:
 	optional<framebuffer_update_t> GetFrameBufferUpdate() const;
 	bool SetScreenDimensions(size_t width, size_t height);
 	void ClearVideoState();
-	void WriteSnapshot(bool);
+	void QueueSnapshot(bool);
+	void ProcessSnapshots(stop_token);
+	void WriteSnapshot(const snapshot_t&) const;
 
 	transfer_t pending_transfer = transfer_t::none;
 	size_t pending_transfer_length = 0;
@@ -98,6 +112,10 @@ private:
 	chrono::milliseconds snapshot_interval { 250 };
 	chrono::steady_clock::time_point last_snapshot {};
 	bool snapshot_full_refresh_only = false;
+	mutex snapshot_mutex;
+	condition_variable snapshot_condition;
+	optional<snapshot_t> pending_snapshot;
+	jthread snapshot_worker;
 
 	// Retained for diagnostic use.
 	vector<uint8_t> configuration_data;

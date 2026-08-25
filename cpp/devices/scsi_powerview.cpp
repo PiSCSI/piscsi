@@ -3,6 +3,7 @@
 // SCSI Target Emulator PiSCSI for Raspberry Pi
 //
 // Copyright (C) 2026 Daniel Markstedt <daniel@mindani.net>
+// Copyright (C) 2026 Eric Helgeson
 // Copyright (C) 2020-2023 akuker
 // Copyright (C) 2020 joshua stein <jcs@jcs.org>
 //
@@ -48,6 +49,14 @@ SCSIPowerView::SCSIPowerView(int lun) : PrimaryDevice(SCPV, lun)
 	SetReady(true);
 }
 
+SCSIPowerView::~SCSIPowerView()
+{
+	if (snapshot_worker.joinable()) {
+		snapshot_worker.request_stop();
+		snapshot_condition.notify_one();
+	}
+}
+
 bool SCSIPowerView::Init(const param_map& params)
 {
 	if (!PrimaryDevice::Init(params)) {
@@ -87,6 +96,9 @@ bool SCSIPowerView::Init(const param_map& params)
 			return false;
 		}
 	}
+	if (!snapshot_path.empty()) {
+		snapshot_worker = jthread([this] (stop_token stop) { ProcessSnapshots(stop); });
+	}
 
 	AddCommand(scsi_command::eCmdPowerViewReadConfig, [this] { ReadConfiguration(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteConfig, [this] { WriteConfiguration(); });
@@ -124,6 +136,8 @@ vector<uint8_t> SCSIPowerView::InquiryInternal() const
 void SCSIPowerView::ReadConfiguration()
 {
 	const size_t length = static_cast<uint8_t>(GetController()->GetCmdByte(6));
+	LogDebug("PowerView: C8 configuration read, selector " + to_string(GetController()->GetCmdByte(3)) + ":"
+			+ to_string(GetController()->GetCmdByte(4)) + ", " + to_string(length) + " byte(s)");
 	GetController()->AllocateBuffer(length);
 
 	auto& buffer = GetController()->GetBuffer();
@@ -161,6 +175,8 @@ void SCSIPowerView::ReadConfiguration()
 void SCSIPowerView::WriteConfiguration()
 {
 	const size_t length = static_cast<uint8_t>(GetController()->GetCmdByte(6));
+	LogDebug("PowerView: C9 configuration write, selector " + to_string(GetController()->GetCmdByte(3)) + ":"
+			+ to_string(GetController()->GetCmdByte(4)) + ", " + to_string(length) + " byte(s)");
 	if (!length) {
 		EnterStatusPhase();
 		return;
@@ -195,6 +211,8 @@ void SCSIPowerView::WriteFrameBuffer()
 	if (!update) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
+	LogDebug("PowerView: CA framebuffer write, offset " + to_string(offset) + ", " + to_string(width_bytes) + " by "
+			+ to_string(height) + " packed bytes/pixels");
 
 	StartDataOut(transfer_t::framebuffer, width_bytes * height);
 	pending_framebuffer_update = update;
@@ -214,6 +232,7 @@ void SCSIPowerView::WriteColorPalette()
 	// The depth code is also the number of 32-bit palette entries on the
 	// wire. In particular, CB 00 00 01 transfers four bytes, not eight.
 	const size_t length = entries * 4;
+	LogDebug("PowerView: CB palette write, " + to_string(entries) + " entries, " + to_string(length) + " byte(s)");
 	if (entries == 1 || entries == 2) {
 		pixel_format = pixel_format_t::one_bit;
 	}
@@ -236,6 +255,7 @@ void SCSIPowerView::WriteUnknownCC()
 		EnterStatusPhase();
 		return;
 	}
+	LogDebug("PowerView: CC script write, " + to_string(length) + " byte(s)");
 
 	StartDataOut(transfer_t::unknown_cc, length);
 }
@@ -320,7 +340,7 @@ void SCSIPowerView::ApplyFrameBufferUpdate(span<const uint8_t> data)
 		}
 	}
 
-	WriteSnapshot(update.full_refresh);
+	QueueSnapshot(update.full_refresh);
 }
 
 void SCSIPowerView::ApplyPalette(span<const uint8_t> data)
@@ -388,7 +408,7 @@ void SCSIPowerView::ClearVideoState()
 	palette[0x80] = { 0x00, 0x00, 0x00 };
 }
 
-void SCSIPowerView::WriteSnapshot(bool full_refresh)
+void SCSIPowerView::QueueSnapshot(bool full_refresh)
 {
 	if (snapshot_path.empty() || (snapshot_full_refresh_only && !full_refresh)) {
 		return;
@@ -399,13 +419,48 @@ void SCSIPowerView::WriteSnapshot(bool full_refresh)
 		return;
 	}
 
-	vector<uint8_t> rgb;
-	rgb.reserve(static_cast<size_t>(screen_width) * screen_height * 3);
+	snapshot_t snapshot { screen_width, screen_height, {}, palette };
+	snapshot.pixels.reserve(static_cast<size_t>(screen_width) * screen_height);
 	for (size_t y = 0; y < screen_height; ++y) {
-		for (size_t x = 0; x < screen_width; ++x) {
-			const auto& color = palette[framebuffer[y * MAX_WIDTH + x]];
-			rgb.insert(rgb.end(), color.begin(), color.end());
+		const auto row_start = framebuffer.begin() + static_cast<ptrdiff_t>(y * MAX_WIDTH);
+		snapshot.pixels.insert(snapshot.pixels.end(), row_start, row_start + screen_width);
+	}
+
+	{
+		const lock_guard<mutex> lock(snapshot_mutex);
+		// Only the newest image is useful. Replacing an unprocessed job bounds
+		// memory use and prevents rendering from falling behind SCSI traffic.
+		pending_snapshot = std::move(snapshot);
+	}
+	snapshot_condition.notify_one();
+	last_snapshot = now;
+}
+
+void SCSIPowerView::ProcessSnapshots(stop_token stop)
+{
+	while (!stop.stop_requested()) {
+		optional<snapshot_t> snapshot;
+		{
+			unique_lock<mutex> lock(snapshot_mutex);
+			snapshot_condition.wait(lock, [this, &stop] { return stop.stop_requested() || pending_snapshot.has_value(); });
+			if (stop.stop_requested()) {
+				return;
+			}
+			snapshot = std::move(pending_snapshot);
+			pending_snapshot.reset();
 		}
+
+		WriteSnapshot(*snapshot);
+	}
+}
+
+void SCSIPowerView::WriteSnapshot(const snapshot_t& snapshot) const
+{
+	vector<uint8_t> rgb;
+	rgb.reserve(snapshot.pixels.size() * 3);
+	for (const uint8_t pixel : snapshot.pixels) {
+		const auto& color = snapshot.palette[pixel];
+		rgb.insert(rgb.end(), color.begin(), color.end());
 	}
 
 	const filesystem::path target(snapshot_path);
@@ -417,7 +472,7 @@ void SCSIPowerView::WriteSnapshot(bool full_refresh)
 			LogWarn("Unable to open PowerView snapshot '" + temporary.string() + "'");
 		}
 		else {
-			output << "P6\n" << screen_width << ' ' << screen_height << "\n255\n";
+			output << "P6\n" << snapshot.width << ' ' << snapshot.height << "\n255\n";
 			output.write(reinterpret_cast<const char*>(rgb.data()), static_cast<streamsize>(rgb.size()));
 			if (!output) {
 				LogWarn("Unable to write PowerView snapshot '" + temporary.string() + "'");
@@ -440,5 +495,4 @@ void SCSIPowerView::WriteSnapshot(bool full_refresh)
 		return;
 	}
 
-	last_snapshot = now;
 }
