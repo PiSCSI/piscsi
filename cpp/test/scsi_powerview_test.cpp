@@ -33,16 +33,15 @@ TEST(ScsiPowerViewTest, Inquiry)
 	EXPECT_EQ("V1.0", string(buffer.begin() + 32, buffer.begin() + 36));
 }
 
-TEST(ScsiPowerViewTest, Read6IsUnsupportedForProcessorDevice)
+TEST(ScsiPowerViewTest, Read6ReportsNoMediumForRadiusWareV101)
 {
 	auto [controller, device] = CreateDevice(SCPV);
 
-	// Classic Mac OS probes every SCSI target with READ(6). A PowerView has
-	// no block medium, so it must be identified as a processor device rather
-	// than as an empty disk.
+	// RadiusWare v1.01 probes every target with READ(6), including the
+	// PowerView processor device. It expects the legacy no-medium response.
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
-			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
+			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 }
 
 TEST(ScsiPowerViewTest, ReadConfiguration)
