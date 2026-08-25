@@ -21,6 +21,8 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 
 using namespace scsi_defs;
 using namespace piscsi_util;
@@ -39,6 +41,22 @@ constexpr array<uint8_t, 0x4b> inquiry_response = {
 	0x05, 0x00, 0x00, 0x00, 0x00, 0x06, 0x43, 0xf9,
 	0x00, 0x00, 0xff
 };
+
+string FormatBytes(span<const uint8_t> data, size_t maximum = 16)
+{
+	ostringstream result;
+	result << hex << setfill('0');
+	for (size_t i = 0; i < min(data.size(), maximum); ++i) {
+		if (i) {
+			result << ' ';
+		}
+		result << setw(2) << static_cast<unsigned int>(data[i]);
+	}
+	if (data.size() > maximum) {
+		result << " ...";
+	}
+	return result.str();
+}
 
 }
 
@@ -282,10 +300,12 @@ bool SCSIPowerView::WriteByteSequence(span<const uint8_t> data)
 	switch (pending_transfer) {
 	case transfer_t::configuration:
 		configuration_data.assign(data.begin(), data.end());
+		LogDebug("PowerView: C9 payload " + FormatBytes(data));
 		break;
 
 	case transfer_t::palette:
 		palette_data.assign(data.begin(), data.end());
+		LogDebug("PowerView: CB payload " + FormatBytes(data));
 		ApplyPalette(data);
 		break;
 
@@ -314,6 +334,8 @@ bool SCSIPowerView::WriteByteSequence(span<const uint8_t> data)
 void SCSIPowerView::ApplyFrameBufferUpdate(span<const uint8_t> data)
 {
 	const auto& update = *pending_framebuffer_update;
+	const size_t nonzero_bytes = count_if(data.begin(), data.end(), [] (uint8_t byte) { return byte != 0; });
+	LogDebug("PowerView: CA payload has " + to_string(nonzero_bytes) + " nonzero packed byte(s) of " + to_string(data.size()));
 	for (size_t y = 0; y < update.height; ++y) {
 		for (size_t x = 0; x < update.width_pixels; ++x) {
 			uint8_t color_index = 0;
