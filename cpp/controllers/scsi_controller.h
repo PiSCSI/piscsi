@@ -79,7 +79,7 @@ protected:
 	virtual unsigned int GetMinimumExecutionTime() const { return MIN_EXEC_TIME; }
 
 	// SCSI controllers process an IDENTIFY message before using the CDB LUN.
-	// SASI controllers override this because SASI has no message phases.
+	// SASI controllers override this because SASI has no message-out phase.
 	int GetEffectiveLun() const override;
 
 private:

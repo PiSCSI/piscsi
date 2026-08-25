@@ -33,6 +33,39 @@ TEST(SasiHdTest, RequestSense)
 	EXPECT_EQ(0, controller->GetBuffer()[1]);
 }
 
+TEST(SasiHdTest, X68000TestUnitReadyProbe)
+{
+	auto [controller, hd] = CreateDevice(SAHD);
+
+	controller->SetCmdByte(1, 0x28);
+	EXPECT_CALL(*controller, Status());
+	EXPECT_NO_THROW(hd->Dispatch(scsi_command::eCmdTestUnitReady));
+	EXPECT_EQ(status::check_condition, controller->GetStatus());
+}
+
+TEST(SasiHdTest, X68000TestUnitReadyProbeSuccess)
+{
+	auto [controller, hd] = CreateDevice(SAHD);
+
+	controller->SetCmdByte(1, 0x03);
+	EXPECT_CALL(*controller, Status());
+	EXPECT_NO_THROW(hd->Dispatch(scsi_command::eCmdTestUnitReady));
+	EXPECT_EQ(status::good, controller->GetStatus());
+}
+
+TEST(SasiHdTest, AssignDiskParameters)
+{
+	auto [controller, hd] = CreateDevice(SAHD);
+	auto sasi_hd = dynamic_pointer_cast<SasiHd>(hd);
+	const path filename = CreateTempFile(256);
+	sasi_hd->SetFilename(filename.string());
+	sasi_hd->Open();
+
+	EXPECT_CALL(*controller, DataOut());
+	EXPECT_NO_THROW(hd->Dispatch(scsi_command::eCmdAssignDiskParameters));
+	EXPECT_EQ(10, controller->GetLength());
+}
+
 TEST(SasiHdTest, BlockSizesAndOpen)
 {
 	SasiHd hd(0);
