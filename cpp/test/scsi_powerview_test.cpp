@@ -33,15 +33,16 @@ TEST(ScsiPowerViewTest, Inquiry)
 	EXPECT_EQ("V1.0", string(buffer.begin() + 32, buffer.begin() + 36));
 }
 
-TEST(ScsiPowerViewTest, Read6ReportsNoMediumForRadiusWareV101)
+TEST(ScsiPowerViewTest, Read6IsUnsupportedForProcessorDevice)
 {
 	auto [controller, device] = CreateDevice(SCPV);
 
-	// RadiusWare v1.01 probes every target with READ(6), including the
-	// PowerView processor device. It expects the legacy no-medium response.
+	// The PowerView is a processor device without a block medium. Its
+	// READ(6) response must be an unsupported opcode, not a disk-like
+	// no-medium response.
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
-			Property(&scsi_exception::get_asc, asc::medium_not_present))));
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 }
 
 TEST(ScsiPowerViewTest, ReadConfiguration)
