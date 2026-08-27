@@ -416,10 +416,10 @@ function installWebmin() {
 
 function installScsiexec() {
     sudo apt-get install clang cmake --no-install-recommends --assume-yes </dev/null
-    wget -O "$BASE/scsiexec.tar.gz" "https://github.com/BlueSCSI/scsiexec/archive/refs/tags/v0.1.0.tar.gz"
-    cd "$BASE" || exit 1
-    tar -xzf scsiexec.tar.gz
-    rm scsiexec.tar.gz
+    wget -O "$BASE/scsiexec.tar.gz" "https://github.com/BlueSCSI/scsiexec/archive/refs/tags/0.1.0.tar.gz"
+    mkdir -p "$BASE/scsiexec"
+    tar -xzf "$BASE/scsiexec.tar.gz" -C "$BASE/scsiexec" --strip-components=1
+    rm "$BASE/scsiexec.tar.gz"
     cd "$BASE/scsiexec" || exit 1
     cmake -B build
     cmake --build build -j
