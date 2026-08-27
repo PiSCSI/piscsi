@@ -14,6 +14,10 @@ if target.contains('scsidump')
     man_pages += 'scsidump.1'
 endif
 
+if target.contains('sasidump')
+    man_pages += 'sasidump.1'
+endif
+
 if target.contains('scsiloop')
     man_pages += 'scsiloop.1'
 endif

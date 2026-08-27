@@ -8,7 +8,7 @@ option(
 option(
     'target',
     type : 'array',
-    choices : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'test'],
-    value : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'test'],
+    choices : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'sasidump', 'test'],
+    value : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'sasidump', 'test'],
     description : 'Targets to build'
 )
