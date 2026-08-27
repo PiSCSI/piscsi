@@ -29,7 +29,7 @@ jobs:
       - name: Build documentation site
         run: python3 docs-site/build.py
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs-site/dist
 
