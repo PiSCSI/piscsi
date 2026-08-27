@@ -24,6 +24,10 @@ install_data(
     install_dir : '/usr/lib/systemd/system',
 )
 install_data(
+    'systemd/piscsi.service',
+    install_dir : '/usr/lib/systemd/system',
+)
+install_data(
     'proxyarp/90-piscsi-proxyarp.rules',
     install_dir : '/usr/lib/udev/rules.d',
 )
