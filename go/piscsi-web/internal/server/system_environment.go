@@ -10,7 +10,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -70,40 +69,18 @@ func (s *Server) systemIPAddress() string {
 }
 
 func (s *Server) companionServices() serviceStatus {
-	output, err := s.runSystemCommand("ps", "-eo", "comm=,args=")
-	if err != nil {
-		if s.logger != nil {
-			s.logger.Warn("Failed to inspect companion services", "error", err)
-		}
-		return serviceStatus{}
+	return serviceStatus{
+		Netatalk: s.systemdServiceActive("netatalk"),
+		Samba:    s.systemdServiceActive("smbd"),
+		FTP:      s.systemdServiceActive("vsftpd"),
+		Macproxy: s.systemdServiceActive("macproxy"),
+		Webmin:   s.systemdServiceActive("webmin"),
 	}
-	return parseServiceStatus(string(output))
 }
 
-func parseServiceStatus(processes string) serviceStatus {
-	status := serviceStatus{}
-	for _, line := range strings.Split(processes, "\n") {
-		fields := strings.Fields(line)
-		if len(fields) == 0 {
-			continue
-		}
-		for _, field := range fields {
-			name := filepath.Base(field)
-			switch name {
-			case "afpd":
-				status.Netatalk = true
-			case "smbd":
-				status.Samba = true
-			case "vsftpd":
-				status.FTP = true
-			case "macproxy", "macproxy.py":
-				status.Macproxy = true
-			case "miniserv.pl":
-				status.Webmin = true
-			}
-		}
-	}
-	return status
+func (s *Server) systemdServiceActive(service string) bool {
+	_, err := s.runSystemCommand("systemctl", "is-active", "--quiet", service)
+	return err == nil
 }
 
 func (s *Server) throttleNotices() []throttleNotice {

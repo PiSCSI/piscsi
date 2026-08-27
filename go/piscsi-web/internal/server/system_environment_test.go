@@ -12,19 +12,34 @@ import (
 	"github.com/piscsi/piscsi/go/piscsi-web/web"
 )
 
-func TestParseServiceStatus(t *testing.T) {
-	processes := `
-afpd             /usr/sbin/afpd -d
-smbd             /usr/sbin/smbd --foreground
-python3          python3 /opt/macproxy/macproxy.py
-perl             /usr/share/webmin/miniserv.pl /etc/webmin/miniserv.conf
-`
-	got := parseServiceStatus(processes)
-	if !got.Netatalk || !got.Samba || !got.Macproxy || !got.Webmin {
-		t.Fatalf("parseServiceStatus() = %+v, expected detected services", got)
+func TestCompanionServicesUsesSystemd(t *testing.T) {
+	active := map[string]bool{
+		"netatalk": true,
+		"smbd":     true,
+		"macproxy": true,
+		"webmin":   true,
 	}
-	if got.FTP {
-		t.Fatalf("parseServiceStatus() = %+v, expected FTP to be disabled", got)
+	var calls []string
+	server := &Server{
+		systemCommand: func(name string, args ...string) ([]byte, error) {
+			if name != "systemctl" || len(args) != 3 || args[0] != "is-active" || args[1] != "--quiet" {
+				t.Fatalf("command = %q %q, want systemctl is-active --quiet SERVICE", name, args)
+			}
+			calls = append(calls, args[2])
+			if active[args[2]] {
+				return nil, nil
+			}
+			return nil, errors.New("exit status 3")
+		},
+	}
+
+	got := server.companionServices()
+	want := serviceStatus{Netatalk: true, Samba: true, Macproxy: true, Webmin: true}
+	if got != want {
+		t.Fatalf("companionServices() = %+v, want %+v", got, want)
+	}
+	if got, want := strings.Join(calls, ","), "netatalk,smbd,vsftpd,macproxy,webmin"; got != want {
+		t.Errorf("checked services = %q, want %q", got, want)
 	}
 }
 
