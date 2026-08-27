@@ -66,6 +66,12 @@ scsidump_core_src = [
 scsidump_src = [
     'scsidump/scsidump.cpp',
 ] + scsidump_core_src + hal_src
+sasidump_core_src = [
+    'sasidump/sasidump_core.cpp',
+]
+sasidump_src = [
+    'sasidump/sasidump.cpp',
+] + sasidump_core_src + hal_src
 scsiloop_src = [
     'scsiloop/scsiloop.cpp',
     'scsiloop/scsiloop_core.cpp',
@@ -179,6 +185,14 @@ if connect_type == 'FULLSPEC' and target.contains('scsidump')
     scsidump_bin = executable('scsidump',
         scsidump_src + shared_src,
         dependencies : common_deps,
+        install : true,
+    )
+endif
+
+if connect_type == 'FULLSPEC' and target.contains('sasidump')
+    sasidump_bin = executable('sasidump',
+        sasidump_src + shared_src,
+        dependencies : common_deps + [protobuf_dep],
         install : true,
     )
 endif

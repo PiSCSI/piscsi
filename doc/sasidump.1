@@ -1,0 +1,66 @@
+.Dd August 26, 2026
+.Dt SASIDUMP 1
+.Os PiSCSI
+.Sh NAME
+.Nm sasidump
+.Nd SASI disk dumping tool for PiSCSI
+.Sh SYNOPSIS
+.Nm
+.Fl i Ar ID
+.Op Fl u Ar UNIT
+.Op Fl b Ar BLOCK_SIZE
+.Fl c Ar COUNT
+.Fl f Ar FILE
+.Op Fl r
+.Sh DESCRIPTION
+.Nm
+copies data between a physical SASI disk and a local image file.
+In its default dump mode, it copies from the SASI disk to the local file.
+With restore mode enabled, it copies from the local file to the SASI disk.
+.Pp
+The disk geometry is not available through SASI, so the block count and block
+size must be supplied explicitly.
+.Sh NOTES
+.Nm
+requires either a direct connection (one without transceivers) or a FULLSPEC
+PiSCSI/RaSCSI board.
+.Pp
+SASI uses a target ID and unit ID rather than SCSI target and initiator IDs.
+The PiSCSI board operates as the SASI initiator.
+.Pp
+Restoring overwrites data on the physical SASI disk.
+Verify the target ID, unit ID, block size, and block count before proceeding.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl i Ar ID
+SASI ID of the target device (0-7).
+.It Fl u Ar UNIT
+Unit ID of the target device (0-1).
+The default is 0.
+.It Fl b Ar BLOCK_SIZE
+Block size in bytes.
+Supported values are 256, 512, and 1024.
+The default is 256.
+.It Fl c Ar COUNT
+Number of blocks to transfer.
+The maximum is 2,097,152, the largest addressable SASI disk size.
+.It Fl f Ar FILE
+Path to the image file.
+.It Fl r
+Run in restore mode.
+Dump mode is the default.
+.El
+.Sh EXAMPLES
+Dump a 10 MiB X68000 SASI disk with 256-byte blocks from SASI ID 0:
+.Pp
+.Dl Nm sasidump -i 0 -b 256 -c 40788 -f ./x68000.hds
+.Pp
+Restore that image to the same SASI disk:
+.Pp
+.Dl Nm sasidump -i 0 -b 256 -c 40788 -f ./x68000.hds -r
+.Sh SEE ALSO
+.Xr piscsi 1 ,
+.Xr scsidump 1 ,
+.Xr scsimon 1
+.Pp
+Full documentation is available at: <https://www.piscsi.com>
