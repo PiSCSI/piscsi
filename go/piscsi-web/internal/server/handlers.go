@@ -2956,9 +2956,9 @@ func (s *Server) handleSysAdmin(c *gin.Context) {
 	locales := []Locale{
 		{Language: "en", DisplayName: "English"},
 		{Language: "de", DisplayName: "Deutsch"},
-		{Language: "sv", DisplayName: "Svenska"},
-		{Language: "fr", DisplayName: "Français"},
-		{Language: "es", DisplayName: "Español"},
+		{Language: "sv", DisplayName: "svenska"},
+		{Language: "fr", DisplayName: "français"},
+		{Language: "es", DisplayName: "español"},
 		{Language: "zh", DisplayName: "中文"},
 	}
 	data["Locales"] = locales
