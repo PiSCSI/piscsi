@@ -251,9 +251,9 @@ void ScsiController::Status()
 		// Minimum execution time
 		// TODO Why is a delay needed? Is this covered by the SCSI specification?
 		if (execstart > 0) {
-			Sleep();
+			Sleep(GetMinimumExecutionTime());
 		} else {
-			SysTimer::SleepUsec(5);
+			SysTimer::SleepUsec(GetMinimumStatusPhaseTime());
 		}
 
 		stringstream s;
@@ -328,7 +328,7 @@ void ScsiController::DataIn()
 	if (!IsDataIn()) {
 		// Minimum execution time
 		if (execstart > 0) {
-			Sleep();
+			Sleep(GetMinimumDataPhaseTime());
 		}
 
 		// If the length is 0, go to the status phase
@@ -357,7 +357,7 @@ void ScsiController::DataOut()
 	if (!IsDataOut()) {
 		// Minimum execution time
 		if (execstart > 0) {
-			Sleep();
+			Sleep(GetMinimumDataPhaseTime());
 		}
 
 		// If the length is 0, go to the status phase
@@ -981,10 +981,10 @@ int ScsiController::GetEffectiveLun() const
 	return identified_lun != -1 ? identified_lun : GetLun();
 }
 
-void ScsiController::Sleep()
+void ScsiController::Sleep(unsigned int minimum_time)
 {
-	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < GetMinimumExecutionTime()) {
-		SysTimer::SleepUsec(GetMinimumExecutionTime() - time);
+	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < minimum_time) {
+		SysTimer::SleepUsec(minimum_time - time);
 	}
 	execstart = 0;
 }

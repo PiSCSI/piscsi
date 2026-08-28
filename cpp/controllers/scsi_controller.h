@@ -77,6 +77,8 @@ public:
 protected:
 	ScsiController(BUS&, int, int);
 	virtual unsigned int GetMinimumExecutionTime() const { return MIN_EXEC_TIME; }
+	virtual unsigned int GetMinimumDataPhaseTime() const { return GetMinimumExecutionTime(); }
+	virtual unsigned int GetMinimumStatusPhaseTime() const { return 5; }
 
 	// SCSI controllers process an IDENTIFY message before using the CDB LUN.
 	// SASI controllers override this because SASI has no message-out phase.
@@ -111,7 +113,7 @@ private:
 	void ParseMessage();
 	void ProcessMessage();
 
-	void Sleep();
+	void Sleep(unsigned int);
 
 	scsi_t scsi = {};
 };
