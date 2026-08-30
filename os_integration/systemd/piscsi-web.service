@@ -1,6 +1,6 @@
 [Unit]
 Description=PiSCSI Web Interface
-Documentation=https://github.com/PiSCSI/piscsi
+Documentation=https://piscsi.com
 After=network.target piscsi.service
 Wants=piscsi.service
 
