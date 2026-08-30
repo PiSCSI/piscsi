@@ -7,6 +7,7 @@ controllers_src = [
 ]
 devices_src = [
     'devices/cd_track.cpp',
+    'devices/cfilesystem.cpp',
     'devices/ctapdriver.cpp',
     'devices/device_factory.cpp',
     'devices/device_logger.cpp',
@@ -20,6 +21,7 @@ devices_src = [
     'devices/scsi_command_util.cpp',
     'devices/sasi_hd.cpp',
     'devices/scsi_daynaport.cpp',
+    'devices/scsi_host_bridge.cpp',
     'devices/scsi_printer.cpp',
     'devices/scsi_streamer.cpp',
     'devices/scsicd.cpp',
@@ -122,6 +124,7 @@ test_src = [
     'test/sasi_hd_test.cpp',
     'test/scsi_controller_test.cpp',
     'test/scsi_daynaport_test.cpp',
+    'test/scsi_host_bridge_test.cpp',
     'test/scsi_printer_test.cpp',
     'test/scsicd_test.cpp',
     'test/scsictl_commands_test.cpp',
@@ -152,7 +155,7 @@ subdir('generated')
 if target.contains('piscsi')
     piscsi_bin = executable('piscsi',
         piscsi_core_src + piscsi_src + shared_src + protobuf_src + piscsi_interface_src[0],
-        dependencies : common_deps + [pcap_dep, protobuf_dep],
+        dependencies : common_deps + iconv_deps + [pcap_dep, protobuf_dep],
         install : true,
     )
 endif
@@ -202,7 +205,7 @@ endif
 if gtest_dep.found() and gmock_dep.found() and target.contains('test')
     test_bin = executable('piscsi_test',
         piscsi_core_src + scsictl_core_src + test_src + shared_src + protobuf_src + piscsi_interface_src[0],
-        dependencies : common_deps + [pcap_dep, protobuf_dep, gtest_dep, gmock_dep],
+        dependencies : common_deps + iconv_deps + [pcap_dep, protobuf_dep, gtest_dep, gmock_dep],
         link_args : test_link_args,
         install : false
     )

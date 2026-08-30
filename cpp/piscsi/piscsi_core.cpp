@@ -17,6 +17,7 @@
 #include "shared/piscsi_version.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_logger.h"
+#include "devices/scsi_host_bridge.h"
 #include "devices/storage_device.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
@@ -46,10 +47,10 @@ void Piscsi::Banner(span<char *> args) const
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
 		cout << "\nUsage: " << args[0] << " [-C CONNECT_TYPE] [-idID[:LUN] FILE] ...\n\n"
+				<< " CONNECT_TYPE is FULLSPEC, STANDARD, or GAMERNIUM; FULLSPEC is the default.\n"
 				<< " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
 				<< " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n"
-				<< " FILE is a disk image file, \"daynaport\", \"printer\" or \"services\".\n"
-				<< " CONNECT_TYPE is FULLSPEC, STANDARD, or GAMERNIUM; FULLSPEC is the default.\n"
+				<< " FILE is a disk image file, \"bridge\", \"daynaport\", \"printer\" or \"services\".\n"
 				<< " Image type is detected based on file extension if no explicit type is specified.\n\n"
 				<< "See the piscsi man page for a full list of supported parameters\n"
 				<< flush;
@@ -149,7 +150,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:s:t:z:D:F:L:P:R:C:v")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:c:d:n:p:r:s:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
 			// The two options below are kind of a compound option with two letters
 			case 'i':
@@ -165,6 +166,10 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 				if (!GetAsUnsignedInt(optarg, block_size)) {
 					throw parser_exception("Invalid block size " + string(optarg));
 				}
+				continue;
+
+			case 'c':
+				SetRasctlControlMode(optarg);
 				continue;
 
 			case 'z':
@@ -261,6 +266,34 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 	}
 
 	return locale;
+}
+
+void Piscsi::SetRasctlControlMode(string_view value)
+{
+	string mode(value);
+	ranges::transform(mode, mode.begin(), ::tolower);
+
+	if (mode == "off") {
+		rasctl_control_mode = SCSIBR::rasctl_control_mode::disabled;
+	}
+	else if (mode == "media") {
+		rasctl_control_mode = SCSIBR::rasctl_control_mode::media;
+	}
+	else if (mode == "full") {
+		rasctl_control_mode = SCSIBR::rasctl_control_mode::full;
+	}
+	else {
+		throw parser_exception("Invalid RASCTL control mode '" + mode + "', must be off, media, or full");
+	}
+}
+
+void Piscsi::ConfigureRasctlControlChannels()
+{
+	for (const auto& device : controller_manager.GetAllDevices()) {
+		if (const auto bridge = dynamic_pointer_cast<SCSIBR>(device); bridge != nullptr) {
+			bridge->SetRasctlControlMode(rasctl_control_mode);
+		}
+	}
 }
 
 PbDeviceType Piscsi::ParseDeviceType(const string& value)
@@ -462,7 +495,9 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 bool Piscsi::ExecuteWithLock(const CommandContext& context)
 {
 	scoped_lock<mutex> lock(execution_locker);
-	return executor->ProcessCmd(context);
+	const bool success = executor->ProcessCmd(context);
+	ConfigureRasctlControlChannels();
+	return success;
 }
 
 bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation operation) const
@@ -544,6 +579,8 @@ int Piscsi::run(span<char *> args)
 		}
 	}
 
+	ConfigureRasctlControlChannels();
+
 	// Display and log the device list
 	PbServerInfo server_info;
 	response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
@@ -617,8 +654,147 @@ void Piscsi::Process()
 				// When the bus is free PiSCSI or the Pi may be shut down.
 				ShutDown(shutdown_mode);
 			}
+
+			// Compatibility channel for the X68000 RASCTL control application. It
+			// writes a request and reads its response in the following SCSI command,
+			// so process it here while the controller-manager lock is still held.
+			ProcessRasctlControlCommands();
 		}
 	}
+}
+
+void Piscsi::ProcessRasctlControlCommands()
+{
+	for (const auto& device : controller_manager.GetAllDevices()) {
+		const auto bridge = dynamic_pointer_cast<SCSIBR>(device);
+		if (bridge == nullptr) {
+			continue;
+		}
+
+		if (const auto request = bridge->TakeRasctlControlRequest(); request) {
+			SCSIBR::rasctl_shutdown_mode shutdown_mode = SCSIBR::rasctl_shutdown_mode::none;
+			bridge->SetRasctlControlResponse(ExecuteRasctlControlCommand(*request, shutdown_mode), shutdown_mode);
+		}
+
+		switch (bridge->TakeRasctlShutdownMode()) {
+			case SCSIBR::rasctl_shutdown_mode::stop_piscsi:
+				ShutDown(AbstractController::piscsi_shutdown_mode::STOP_PISCSI);
+				return;
+
+			case SCSIBR::rasctl_shutdown_mode::stop_system:
+				ShutDown(AbstractController::piscsi_shutdown_mode::STOP_PI);
+				return;
+
+			case SCSIBR::rasctl_shutdown_mode::none:
+				break;
+		}
+	}
+}
+
+string Piscsi::ExecuteRasctlControlCommand(const string& request, SCSIBR::rasctl_shutdown_mode& shutdown_mode)
+{
+	istringstream input(request);
+	string operation;
+	input >> operation;
+	ranges::transform(operation, operation.begin(), ::tolower);
+
+	if (operation == "list") {
+		PbServerInfo server_info;
+		response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
+		const vector<PbDevice> devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
+		return ListDevices(devices);
+	}
+
+	if (operation == "stop") {
+		if (rasctl_control_mode != SCSIBR::rasctl_control_mode::full) {
+			return "Error: RASCTL shutdown control is disabled\n";
+		}
+
+		shutdown_mode = SCSIBR::rasctl_shutdown_mode::stop_piscsi;
+		return "PiSCSI shutdown requested\n";
+	}
+
+	if (operation == "shutdown") {
+		if (rasctl_control_mode != SCSIBR::rasctl_control_mode::full) {
+			return "Error: RASCTL shutdown control is disabled\n";
+		}
+
+		shutdown_mode = SCSIBR::rasctl_shutdown_mode::stop_system;
+		return "System shutdown requested\n";
+	}
+
+	int id;
+	int lun;
+	int rasctl_operation;
+	int rasctl_type;
+	string file;
+	if (!(input >> id >> lun >> rasctl_operation >> rasctl_type >> file)) {
+		return "Error: Invalid RASCTL control command\n";
+	}
+
+	PbCommand command;
+	PbDeviceDefinition *device = command.add_devices();
+	device->set_id(id);
+	device->set_unit(lun);
+
+	switch (rasctl_operation) {
+		case 0: // Attach
+			command.set_operation(ATTACH);
+			switch (rasctl_type) {
+				case 0: // Select SASI/SCSI from the image extension, like RaSCSI
+					device->set_type(UNDEFINED);
+					break;
+
+				case 2:
+					device->set_type(SCMO);
+					break;
+
+				case 3:
+					device->set_type(SCCD);
+					break;
+
+				case 4:
+					device->set_type(SCBR);
+					SetParam(*device, "mode", "bridge");
+					SetParam(*device, "interface", "piscsi_bridge");
+					break;
+
+				default:
+					return "Error: Invalid device type\n";
+			}
+			break;
+
+		case 1:
+			command.set_operation(DETACH);
+			break;
+
+		case 2:
+			command.set_operation(INSERT);
+			break;
+
+		case 3:
+			command.set_operation(EJECT);
+			break;
+
+		case 4: { // RASCTL toggles MO write protection
+			const auto existing = controller_manager.GetDeviceForIdAndLun(id, lun);
+			if (existing == nullptr || existing->GetType() != SCMO) {
+				return "Error: Write protection is supported for MO devices only\n";
+			}
+			command.set_operation(existing->IsProtected() ? UNPROTECT : PROTECT);
+			break;
+		}
+
+		default:
+			return "Error: Invalid command\n";
+	}
+
+	if (file != "-") {
+		SetParam(*device, "file", file);
+	}
+
+	const CommandContext context(command, piscsi_image.GetDefaultFolder(), "en");
+	return executor->ProcessCmd(context) ? "" : "Error: Command failed\n";
 }
 
 // Shutdown on a remote interface command

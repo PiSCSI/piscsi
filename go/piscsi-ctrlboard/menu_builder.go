@@ -85,6 +85,9 @@ func slotLabel(slot SCSISlot, deviceCount int) string {
 	if slot.Device == nil {
 		return fmt.Sprintf("%d: (empty)", slot.ID)
 	}
+	if slot.Device.GetType() == pb.PbDeviceType_SCBR {
+		return fmt.Sprintf("%d: Host Bridge", slot.ID)
+	}
 	if slot.Device.GetType() == pb.PbDeviceType_SCDP {
 		return fmt.Sprintf("%d: Daynaport", slot.ID)
 	}

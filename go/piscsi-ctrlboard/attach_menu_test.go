@@ -33,7 +33,7 @@ func TestDeviceTypeMenuUsesDaemonTypesAndRetainsSlot(t *testing.T) {
 }
 
 func TestNetworkTopologyMenuOnlyOffersReadySupportedProfiles(t *testing.T) {
-	menu, err := NewNetworkTopologyMenu(SCSISlot{ID: 2}, []*pb.PbNetworkInterface{
+	menu, err := NewNetworkTopologyMenu(SCSISlot{ID: 2}, pb.PbDeviceType_SCDP, []*pb.PbNetworkInterface{
 		{Name: "wlan0", Up: true, SupportedMode: []string{"proxyarp", "ignored"}},
 		{Name: "eth0", Up: true, SupportedMode: []string{"bridge"}},
 		{Name: "eth1", Up: false, SupportedMode: []string{"bridge"}},
@@ -48,7 +48,20 @@ func TestNetworkTopologyMenuOnlyOffersReadySupportedProfiles(t *testing.T) {
 		t.Fatalf("second topology = %q, want %q", got, want)
 	}
 	selection, ok := menu.Items[1].Data.(NetworkTopologySelection)
-	if !ok || selection.Mode != "bridge" || selection.Interface != "eth0" {
+	if !ok || selection.Type != pb.PbDeviceType_SCDP || selection.Mode != "bridge" || selection.Interface != "eth0" {
+		t.Fatalf("topology selection = %#v", menu.Items[1].Data)
+	}
+}
+
+func TestNetworkTopologyMenuRetainsHostBridgeType(t *testing.T) {
+	menu, err := NewNetworkTopologyMenu(SCSISlot{ID: 2}, pb.PbDeviceType_SCBR, []*pb.PbNetworkInterface{
+		{Name: "eth0", Up: true, SupportedMode: []string{"bridge"}},
+	}, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	selection, ok := menu.Items[1].Data.(NetworkTopologySelection)
+	if !ok || selection.Type != pb.PbDeviceType_SCBR {
 		t.Fatalf("topology selection = %#v", menu.Items[1].Data)
 	}
 }

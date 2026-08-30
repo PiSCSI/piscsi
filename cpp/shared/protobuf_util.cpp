@@ -144,6 +144,10 @@ string protobuf_util::ListDevices(const vector<PbDevice>& pb_devices)
 	for (const auto& device : devices) {
 		string filename;
 		switch (device.type()) {
+			case SCBR:
+				filename = "X68000 HOST BRIDGE";
+				break;
+
 			case SCDP:
 				filename = "DaynaPort SCSI/Link";
 				break;

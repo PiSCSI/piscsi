@@ -31,6 +31,10 @@ spdlog_dep = dependency('spdlog', required : true)
 fmt_dep = dependency('fmt', required : true)
 gtest_dep = dependency('gtest', required : false)
 gmock_dep = dependency('gmock', required : false)
+iconv_deps = []
+if host_machine.system() == 'darwin'
+  iconv_deps += meson.get_compiler('cpp').find_library('iconv', required : true)
+endif
 
 common_deps = [pthread_dep, spdlog_dep, fmt_dep]
 

@@ -161,8 +161,8 @@ func (s *Server) handleIndex(c *gin.Context) {
 	validScsiIds, recommendedScsiId := validSCSIIDs(reserved, occupiedIDs)
 
 	// Build the attachment catalog from the daemon's advertised device
-	// capabilities. Typed network interfaces advertise the valid DaynaPort
-	// topology/profile combinations.
+	// capabilities. Typed network interfaces advertise valid topology/profile
+	// combinations for network devices.
 	var deviceTypesInfo *pb.PbDeviceTypesInfo
 	if result, err := s.piscsiClient.SendCommand(cmdBuilder.GetDeviceTypesInfo()); err == nil && result.GetStatus() {
 		deviceTypesInfo = result.GetDeviceTypesInfo()
@@ -514,6 +514,8 @@ func deviceTypeName(deviceType pb.PbDeviceType) string {
 		return "SCSI Magneto-Optical"
 	case pb.PbDeviceType_SCCD:
 		return "SCSI CD-ROM"
+	case pb.PbDeviceType_SCBR:
+		return "Host Bridge"
 	case pb.PbDeviceType_SCDP:
 		return "Ethernet Adapter"
 	case pb.PbDeviceType_SCLP:
@@ -541,12 +543,13 @@ type deviceCatalogEntry struct {
 	Removable     bool
 	SupportsFile  bool
 	Parameters    []deviceParameterControl
-	DaynaProfiles []daynaPortProfile
-	Files         []map[string]interface{}
-	DriveProfiles []string
+	UsesNetworkTopology bool
+	NetworkProfiles     []networkTopology
+	Files               []map[string]interface{}
+	DriveProfiles       []string
 }
 
-type daynaPortProfile struct {
+type networkTopology struct {
 	Mode      string
 	Interface string
 	Label     string
@@ -572,11 +575,12 @@ func (s *Server) buildDeviceCatalog(
 
 		properties := typeProperties.GetProperties()
 		entry := deviceCatalogEntry{
-			Key:          deviceType.String(),
-			Name:         deviceTypeName(deviceType),
-			MaxLUN:       piscsi.MaxLUN(deviceType),
-			Removable:    properties.GetRemovable(),
-			SupportsFile: properties.GetSupportsFile(),
+			Key:                 deviceType.String(),
+			Name:                deviceTypeName(deviceType),
+			MaxLUN:              piscsi.MaxLUN(deviceType),
+			Removable:           properties.GetRemovable(),
+			SupportsFile:        properties.GetSupportsFile(),
+			UsesNetworkTopology: networkTopologyDeviceType(deviceType),
 		}
 
 		paramKeys := make([]string, 0, len(properties.GetDefaultParams()))
@@ -585,7 +589,7 @@ func (s *Server) buildDeviceCatalog(
 		}
 		sort.Strings(paramKeys)
 		for _, key := range paramKeys {
-			if deviceType == pb.PbDeviceType_SCDP && (key == "interface" || key == "mode") {
+			if entry.UsesNetworkTopology && (key == "interface" || key == "mode") {
 				continue
 			}
 			defaultValue := properties.GetDefaultParams()[key]
@@ -606,13 +610,13 @@ func (s *Server) buildDeviceCatalog(
 			}
 			entry.Parameters = append(entry.Parameters, control)
 		}
-		if deviceType == pb.PbDeviceType_SCDP {
+		if entry.UsesNetworkTopology {
 			for _, networkInterface := range networkInterfaces {
 				if !networkInterface.GetUp() {
 					continue
 				}
 				for _, mode := range networkInterface.GetSupportedMode() {
-					profile := daynaPortProfile{Mode: mode, Interface: networkInterface.GetName()}
+					profile := networkTopology{Mode: mode, Interface: networkInterface.GetName()}
 					switch mode {
 					case "bridge":
 						profile.Label = "Wired bridge"
@@ -621,14 +625,14 @@ func (s *Server) buildDeviceCatalog(
 					default:
 						continue
 					}
-					entry.DaynaProfiles = append(entry.DaynaProfiles, profile)
+					entry.NetworkProfiles = append(entry.NetworkProfiles, profile)
 				}
 			}
-			sort.Slice(entry.DaynaProfiles, func(i, j int) bool {
-				if entry.DaynaProfiles[i].Mode == entry.DaynaProfiles[j].Mode {
-					return entry.DaynaProfiles[i].Interface < entry.DaynaProfiles[j].Interface
+			sort.Slice(entry.NetworkProfiles, func(i, j int) bool {
+				if entry.NetworkProfiles[i].Mode == entry.NetworkProfiles[j].Mode {
+					return entry.NetworkProfiles[i].Interface < entry.NetworkProfiles[j].Interface
 				}
-				return entry.DaynaProfiles[i].Mode == "bridge"
+				return entry.NetworkProfiles[i].Mode == "bridge"
 			})
 		}
 
@@ -762,23 +766,29 @@ func (s *Server) handleAttach(c *gin.Context) {
 
 	cmdBuilder := s.getCommandBuilder(c)
 
-	// DaynaPort attachments always use an explicit mode/interface pair. The
+	// Network-device attachments always use an explicit mode/interface pair. The
 	// profile selector is the web form representation; direct clients may send
 	// param_mode and param_interface instead.
 	profileMessage := ""
-	if pbType == pb.PbDeviceType_SCDP {
-		if profile := c.PostForm("daynaport_profile"); profile != "" {
-			mode, interfaceName, profileErr := parseDaynaPortProfile(profile)
+	if networkTopologyDeviceType(pbType) {
+		profile := c.PostForm("network_topology")
+		if profile == "" && pbType == pb.PbDeviceType_SCDP {
+			// Keep existing DaynaPort form submissions working while the UI
+			// switches to the device-neutral field name.
+			profile = c.PostForm("daynaport_profile")
+		}
+		if profile != "" {
+			mode, interfaceName, profileErr := parseNetworkTopology(profile)
 			if profileErr != nil {
 				s.respond(c, ResponseOptions{Error: true, Message: profileErr.Error()})
 				return
 			}
 			if requestedMode, ok := params["mode"]; ok && requestedMode != mode {
-				s.respond(c, ResponseOptions{Error: true, Message: "DaynaPort mode does not match the selected profile"})
+				s.respond(c, ResponseOptions{Error: true, Message: "Network mode does not match the selected topology"})
 				return
 			}
 			if requestedInterface, ok := params["interface"]; ok && requestedInterface != interfaceName {
-				s.respond(c, ResponseOptions{Error: true, Message: "DaynaPort interface does not match the selected profile"})
+				s.respond(c, ResponseOptions{Error: true, Message: "Network interface does not match the selected topology"})
 				return
 			}
 			params["mode"] = mode
@@ -788,7 +798,7 @@ func (s *Server) handleAttach(c *gin.Context) {
 		mode := params["mode"]
 		interfaceName := params["interface"]
 		if mode == "" || interfaceName == "" {
-			s.respond(c, ResponseOptions{Error: true, Message: "Select a DaynaPort network profile (mode and interface)"})
+			s.respond(c, ResponseOptions{Error: true, Message: "Select a network topology (mode and interface)"})
 			return
 		}
 		networkResult, networkErr := s.piscsiClient.SendCommand(cmdBuilder.GetNetworkInfo())
@@ -807,7 +817,7 @@ func (s *Server) handleAttach(c *gin.Context) {
 			s.respond(c, ResponseOptions{Error: true, Message: fmt.Sprintf("Network interface %s is not available", interfaceName)})
 			return
 		}
-		profileReady, message := daynaPortProfileStatus(mode, selectedInterface)
+		profileReady, message := networkTopologyStatus(mode, selectedInterface)
 		if !profileReady {
 			s.respond(c, ResponseOptions{Error: true, Message: message})
 			return

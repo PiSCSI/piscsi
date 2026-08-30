@@ -37,6 +37,7 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.suffix.iso"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.tar"), SCTP);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.tap"), SCTP);
+	EXPECT_EQ(device_factory.GetTypeForFile("bridge"), SCBR);
 	EXPECT_EQ(device_factory.GetTypeForFile("daynaport"), SCDP);
 	EXPECT_EQ(device_factory.GetTypeForFile("printer"), SCLP);
 	EXPECT_EQ(device_factory.GetTypeForFile("services"), SCHS);
@@ -179,6 +180,19 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_EQ("SCSI CD-ROM", device->GetProduct());
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+}
+
+TEST(DeviceFactoryTest, SCBR_Device_Defaults)
+{
+	DeviceFactory device_factory;
+
+	auto device = device_factory.CreateDevice(UNDEFINED, 0, "bridge");
+	ASSERT_NE(nullptr, device);
+	EXPECT_EQ(SCBR, device->GetType());
+	EXPECT_FALSE(device->SupportsFile());
+	EXPECT_TRUE(device->SupportsParams());
+	EXPECT_EQ("PiSCSI", device->GetVendor());
+	EXPECT_EQ("RASCSI BRIDGE", device->GetProduct());
 }
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)

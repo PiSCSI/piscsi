@@ -20,6 +20,15 @@ TEST(ScsiDaynaportTest, GetDefaultParams)
 	EXPECT_FALSE(params.contains("inet"));
 }
 
+TEST(ScsiDaynaportTest, DeriveMac)
+{
+	const array<uint8_t, 6> uplink_mac = { 0xb8, 0x27, 0xeb, 0xb5, 0xa3, 0x15 };
+	EXPECT_EQ((array<uint8_t, 6> { 0x00, 0x80, 0x19, 0xb5, 0xa3, 0x15 }), SCSIDaynaPort::DeriveMac(uplink_mac));
+
+	const array<uint8_t, 5> invalid_mac = { 0, 1, 2, 3, 4 };
+	EXPECT_EQ((array<uint8_t, 6> {}), SCSIDaynaPort::DeriveMac(invalid_mac));
+}
+
 TEST(ScsiDaynaportTest, Inquiry)
 {
 	TestInquiry::Inquiry(SCDP, device_type::processor, scsi_level::scsi_2, "Dayna   SCSI/Link       1.4a", 0x20, false);

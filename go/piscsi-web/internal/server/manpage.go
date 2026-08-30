@@ -54,7 +54,7 @@ var piscsiManpages = []manpage{
 	{App: "scsidump", Section: 1, Description: "SCSI disk dumping tool for PiSCSI."},
 	{App: "scsiloop", Section: 1, Description: "Tests a PiSCSI board with a loopback adapter."},
 	{App: "scsimon", Section: 1, Description: "Captures traffic on the SCSI bus."},
-	{App: "piscsi-network-profile", Section: 8, Description: "Manages PiSCSI DaynaPort network profiles."},
+	{App: "piscsi-network-profile", Section: 8, Description: "Manages PiSCSI network profiles on the Linux host."},
 }
 
 // findSystemManpage finds a source manpage in the system locations used by

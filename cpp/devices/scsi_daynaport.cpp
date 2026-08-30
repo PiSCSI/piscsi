@@ -62,8 +62,9 @@ bool SCSIDaynaPort::Init(const param_map& params)
 		return false;
 #endif
 	} else {
-		array<uint8_t, 6> mac = {};
-		tap.GetMacAddr(mac.data());
+		array<uint8_t, 6> uplink_mac = {};
+		tap.GetUplinkMacAddr(uplink_mac.data());
+		const auto mac = DeriveMac(uplink_mac);
 		memcpy(m_scsi_link_stats.mac_address.data(), mac.data(), mac.size());
 		LogTrace("Tap interface created");
 	}
@@ -73,6 +74,17 @@ bool SCSIDaynaPort::Init(const param_map& params)
 	SetReset(false);
 
 	return true;
+}
+
+array<uint8_t, 6> SCSIDaynaPort::DeriveMac(span<const uint8_t> uplink_mac)
+{
+	if (uplink_mac.size() != 6) {
+		return {};
+	}
+
+	// Retain the Dayna OUI and derive the unique suffix from the selected
+	// bridge or proxy-ARP uplink.
+	return { 0x00, 0x80, 0x19, uplink_mac[3], uplink_mac[4], uplink_mac[5] };
 }
 
 void SCSIDaynaPort::CleanUp()

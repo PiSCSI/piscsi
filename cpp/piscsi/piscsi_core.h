@@ -10,6 +10,7 @@
 #pragma once
 
 #include "controllers/controller_manager.h"
+#include "devices/scsi_host_bridge.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
 #include "piscsi/piscsi_image.h"
@@ -45,6 +46,8 @@ private:
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
 	string ParseArguments(span<char *>, PbCommand&, int&, string&);
+	void SetRasctlControlMode(string_view);
+	void ConfigureRasctlControlChannels();
 	void Process();
 	bool IsNotBusy() const;
 
@@ -54,6 +57,9 @@ private:
 	bool ExecuteCommand(const CommandContext&);
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
+	// Translates the historic X68000 RASCTL text protocol into normal PiSCSI commands.
+	void ProcessRasctlControlCommands();
+	string ExecuteRasctlControlCommand(const string&, SCSIBR::rasctl_shutdown_mode&);
 
 	bool SetLogLevel(const string&) const;
 
@@ -64,6 +70,7 @@ private:
 	mutex execution_locker;
 
 	string access_token;
+	SCSIBR::rasctl_control_mode rasctl_control_mode = SCSIBR::rasctl_control_mode::disabled;
 
 	PiscsiImage piscsi_image;
 

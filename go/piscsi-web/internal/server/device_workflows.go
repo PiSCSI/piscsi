@@ -143,24 +143,28 @@ func removableDeviceType(deviceType pb.PbDeviceType) bool {
 	}
 }
 
-func parseDaynaPortProfile(value string) (string, string, error) {
+func networkTopologyDeviceType(deviceType pb.PbDeviceType) bool {
+	return deviceType == pb.PbDeviceType_SCBR || deviceType == pb.PbDeviceType_SCDP
+}
+
+func parseNetworkTopology(value string) (string, string, error) {
 	mode, interfaceName, found := strings.Cut(value, ":")
 	if !found || mode == "" || interfaceName == "" || strings.Contains(interfaceName, ":") {
-		return "", "", fmt.Errorf("invalid DaynaPort network profile")
+		return "", "", fmt.Errorf("invalid network topology")
 	}
 	if mode != "bridge" && mode != "proxyarp" {
-		return "", "", fmt.Errorf("unsupported DaynaPort network mode %q", mode)
+		return "", "", fmt.Errorf("unsupported network mode %q", mode)
 	}
 	return mode, interfaceName, nil
 }
 
-// daynaPortProfileStatus validates the topology advertised by the daemon. The
+// networkTopologyStatus validates the topology advertised by the daemon. The
 // daemon is also responsible for the final host-side validation (notably the
 // configured proxy-ARP uplink), so the web app never infers readiness from
 // obsolete NAT, dhcpcd, or ifupdown files.
-func daynaPortProfileStatus(mode string, networkInterface *pb.PbNetworkInterface) (bool, string) {
+func networkTopologyStatus(mode string, networkInterface *pb.PbNetworkInterface) (bool, string) {
 	if mode != "bridge" && mode != "proxyarp" {
-		return false, fmt.Sprintf("Unsupported DaynaPort network mode %q", mode)
+		return false, fmt.Sprintf("Unsupported network mode %q", mode)
 	}
 	if networkInterface == nil {
 		return false, "The selected network interface is not advertised by the PiSCSI daemon"
@@ -177,5 +181,5 @@ func daynaPortProfileStatus(mode string, networkInterface *pb.PbNetworkInterface
 		}
 		return true, "Wi-Fi proxy-ARP profile is active and ready (IPv4 unicast and DHCP only)"
 	}
-	return false, fmt.Sprintf("Network interface %s does not support the DaynaPort %s profile", networkInterface.GetName(), mode)
+	return false, fmt.Sprintf("Network interface %s does not support the selected %s topology", networkInterface.GetName(), mode)
 }

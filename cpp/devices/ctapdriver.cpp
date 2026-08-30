@@ -18,6 +18,7 @@
 #include <spdlog/spdlog.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 
@@ -106,22 +107,22 @@ bool CTapDriver::Init(const param_map& const_params)
 			return false;
 		}
 		if (*configured_uplink != interface) {
-			spdlog::error("DaynaPort proxy-ARP interface '" + interface + "' does not match configured uplink '" +
+			spdlog::error("PiSCSI proxy-ARP interface '" + interface + "' does not match configured uplink '" +
 					*configured_uplink + "'");
 			return false;
 		}
 	}
 
 	if (m_hTAP != -1) {
-		spdlog::error("DaynaPort TAP device is already active");
+		spdlog::error("PiSCSI TAP device piscsi0 is already active");
 		return false;
 	}
 	const auto interface_mac = GetMacAddress(interface);
-	if (interface_mac.size() != m_MacAddr.size()) {
-		spdlog::error("Can't determine the MAC address of DaynaPort network interface '" + interface + "'");
+	if (interface_mac.size() != m_UplinkMac.size()) {
+		spdlog::error("Can't determine the MAC address of PiSCSI network interface '" + interface + "'");
 		return false;
 	}
-	m_MacAddr = DeriveDaynaPortMac(interface_mac);
+	copy_n(interface_mac.begin(), m_UplinkMac.size(), m_UplinkMac.begin());
 
 	if (!CreateTap()) {
 		return false;
@@ -141,8 +142,8 @@ bool CTapDriver::Init(const param_map& const_params)
 		}
 	}
 
-	spdlog::info("Tap device piscsi0 created for DaynaPort " + mode + " mode (TAP MAC " +
-			FormatMac(m_TapMac) + ", DaynaPort MAC " + FormatMac(m_MacAddr) + ")");
+	spdlog::info("PiSCSI TAP device piscsi0 created for " + mode + " mode (TAP MAC " +
+			FormatMac(m_TapMac) + ")");
 
 	return true;
 #endif
@@ -152,30 +153,30 @@ string CTapDriver::GetProfileValidationError(const string& mode, const string& i
 		const network_interface_map& interfaces)
 {
 	if (mode != DEFAULT_MODE && mode != "proxyarp") {
-		return "Unsupported DaynaPort network mode '" + mode + "'";
+		return "Unsupported PiSCSI network mode '" + mode + "'";
 	}
 	if (interfaces.contains("piscsi0")) {
-		return "DaynaPort TAP device piscsi0 is already in use";
+		return "PiSCSI TAP device piscsi0 is already in use";
 	}
 	if (!IsValidInterfaceName(interface)) {
-		return "Invalid DaynaPort network interface '" + interface + "'";
+		return "Invalid PiSCSI network interface '" + interface + "'";
 	}
 	if (mode == DEFAULT_MODE && interface != BRIDGE_NAME) {
-		return "DaynaPort bridge mode requires the pre-configured " + BRIDGE_NAME + " interface";
+		return "PiSCSI bridge mode requires the pre-configured " + BRIDGE_NAME + " interface";
 	}
 
 	const auto it = interfaces.find(interface);
 	if (it == interfaces.end()) {
-		return "DaynaPort network interface '" + interface + "' does not exist";
+		return "PiSCSI network interface '" + interface + "' does not exist";
 	}
 	if (!it->second.up) {
-		return "DaynaPort network interface '" + interface + "' is down";
+		return "PiSCSI network interface '" + interface + "' is down";
 	}
 	if (mode == DEFAULT_MODE && it->second.type != NetworkInterfaceType::BRIDGE) {
-		return "DaynaPort bridge mode requires " + BRIDGE_NAME + " to be a Linux bridge";
+		return "PiSCSI bridge mode requires " + BRIDGE_NAME + " to be a Linux bridge";
 	}
 	if (mode == "proxyarp" && it->second.type != NetworkInterfaceType::WIFI) {
-		return "DaynaPort proxyarp mode requires an active Wi-Fi interface";
+		return "PiSCSI proxyarp mode requires an active Wi-Fi interface";
 	}
 
 	return "";
@@ -303,11 +304,11 @@ void CTapDriver::Flush() const
 	}
 }
 
-void CTapDriver::GetMacAddr(uint8_t *mac) const
+void CTapDriver::GetUplinkMacAddr(uint8_t *mac) const
 {
 	assert(mac);
 
-	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
+	memcpy(mac, m_UplinkMac.data(), m_UplinkMac.size());
 }
 
 bool CTapDriver::HasPendingPackets() const
@@ -335,17 +336,6 @@ uint32_t CTapDriver::Crc32(span<const uint8_t> data) {
       }
    }
    return ~crc;
-}
-
-array<uint8_t, 6> CTapDriver::DeriveDaynaPortMac(span<const uint8_t> interface_mac)
-{
-	if (interface_mac.size() != 6) {
-		return {};
-	}
-
-	// Retain the Dayna OUI and derive the unique suffix from
-	// the selected bridge or proxy-ARP uplink.
-	return { 0x00, 0x80, 0x19, interface_mac[3], interface_mac[4], interface_mac[5] };
 }
 
 int CTapDriver::Receive(uint8_t *buf) const

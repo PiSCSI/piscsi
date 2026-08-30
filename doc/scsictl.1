@@ -116,6 +116,8 @@ Specifies the device type. This type overrides the type derived from the file ex
 .It
 cd: CD-ROM
 .It
+bridge: X68000 host bridge (networking and host file system)
+.It
 daynaport: DaynaPort Network Adapter
 .It
 hd: Hard Disk
@@ -159,10 +161,10 @@ Example output:
 Request the PiSCSI process to attach a disk to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
 .Dl Nm scsictl Fl c No a Fl i No 0 Fl f No HDIIMAGE0.HDS
 .Pp
-Attach a DaynaPort to the preconfigured wired bridge. DaynaPort mode and interface are a single, explicit parameter value:
+Attach a DaynaPort to the preconfigured wired bridge. Its mode and interface is a single, explicit parameter value:
 .Dl Nm scsictl Fl i No 6 Fl c No attach Fl t No scdp Fl f No "mode=bridge:interface=piscsi_bridge"
 .Pp
-Attach a DaynaPort through a configured Wi-Fi proxy-ARP uplink. This profile supports IPv4 unicast and DHCP only; it is not an Ethernet bridge:
+Attach a DaynaPort through a configured Wi-Fi proxy-ARP uplink:
 .Dl Nm scsictl Fl i No 6 Fl c No attach Fl t No scdp Fl f No "mode=proxyarp:interface=wlan0"
 .Sh SEE ALSO
 .Xr piscsi 1 ,
