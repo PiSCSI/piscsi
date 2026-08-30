@@ -96,7 +96,8 @@ Scan for image files recursively, up to a depth of SCAN_DEPTH. Depth 0 means to 
 .It Fl r Ar RESERVED_IDS
 Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
 .It Fl s Ar MICROSECONDS
-Minimum execution time for SCSI commands in microseconds. Default is 50. Higher values may be needed for some older SCSI initiators to work properly.
+Minimum execution time for SCSI commands in microseconds. Default is 50 for SCSI and 100 for SASI.
+Higher values may be needed for some older SCSI initiators to work properly.
 .It Fl t Ar TYPE
 The optional case-insensitive device type (see list of type codes above). If no type is specified for devices that support an image file, piscsi tries to derive the type from the file extension.
 .It Fl v
