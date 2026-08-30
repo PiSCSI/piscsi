@@ -74,6 +74,7 @@ public:
 	void EnableInterface() const;
 
 	vector<PbStatistics> GetStatistics() const override;
+	static array<uint8_t, 6> DeriveMac(span<const uint8_t>);
 
 	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 

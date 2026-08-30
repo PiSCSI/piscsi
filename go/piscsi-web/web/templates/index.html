@@ -400,13 +400,13 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
         <td>
             <form action="/scsi/attach" method="post" class="device-attach">
                 <input name="type" type="hidden" value="{{.Key}}">
-                {{if eq .Key "SCDP"}}
-                <label for="daynaport_profile_{{.Key}}">Topology:</label>
-                <select name="daynaport_profile" id="daynaport_profile_{{.Key}}" required>
-                    {{if not .DaynaProfiles}}
+                {{if .UsesNetworkTopology}}
+                <label for="network_topology_{{.Key}}">Topology:</label>
+                <select name="network_topology" id="network_topology_{{.Key}}" required>
+                    {{if not .NetworkProfiles}}
                     <option value="" selected disabled>No active wired bridge or Wi-Fi proxy-ARP profile</option>
                     {{end}}
-                    {{range .DaynaProfiles}}
+                    {{range .NetworkProfiles}}
                     <option value="{{.Mode}}:{{.Interface}}">{{.Label}} ({{.Interface}})</option>
                     {{end}}
                 </select>

@@ -1,10 +1,10 @@
 # PiSCSI NetworkManager profiles
 
-PiSCSI supports two explicitly selected DaynaPort topologies on Raspberry Pi
-OS Trixie and Forky with NetworkManager. Installing the PiSCSI package only
-installs inert templates, services, and `/etc/piscsi/network.conf`; it never
-creates a bridge, changes an active connection, starts proxy-ARP, or changes
-firewall state.
+PiSCSI supports two explicitly selected network-adapter topologies on Raspberry
+Pi OS Trixie and Forky with NetworkManager. DaynaPort and Host Bridge use the
+same host-side profiles. Installing the PiSCSI package only installs inert
+templates, services, and `/etc/piscsi/network.conf`; it never creates a bridge,
+changes an active connection, starts proxy-ARP, or changes firewall state.
 
 The required `parprouted` and `dhcp-helper` packages are suggested rather than
 installed automatically. This prevents `dhcp-helper`'s generic service from
@@ -12,10 +12,12 @@ binding DHCP on an existing host interface before the user selects proxy-ARP.
 
 ## Wired bridge
 
-Bridge mode is the protocol-complete choice: it supports DHCP, AppleTalk,
-multicast, and non-IP Ethernet protocols. NetworkManager must own the bridge,
-the physical Ethernet port, and the bridge address. PiSCSI owns only the
-ephemeral `piscsi0` TAP membership while a DaynaPort is attached.
+Bridge mode is the protocol-complete host-side choice: it supports DHCP,
+AppleTalk, multicast, and non-IP Ethernet protocols. NetworkManager must own
+the bridge, the physical Ethernet port, and the bridge address. PiSCSI owns
+only the ephemeral `piscsi0` TAP membership while a network adapter is
+attached. DaynaPort can use that complete Ethernet service; the Host Bridge
+driver accepts only its own unicast frames and Ethernet broadcasts.
 
 From a local console, preview and apply the named profile with:
 
@@ -34,8 +36,8 @@ For manual configuration, the package provides inert keyfile templates in
 `/usr/share/piscsi/network/`. Substitute unique UUIDs, the physical NIC, and
 the physical Ethernet MAC in the templates, copy them to
 `/etc/NetworkManager/system-connections/` with mode `0600`, then reload
-NetworkManager. The bridge MAC must remain distinct from the DaynaPort TAP
-MAC. The equivalent commands are:
+NetworkManager. The bridge MAC must remain distinct from the emulated client
+MAC on `piscsi0`. The equivalent commands are:
 
 ```sh
 ethernet_mac=$(cat /sys/class/net/eth0/address)
@@ -46,14 +48,16 @@ nmcli connection up 'PiSCSI wired bridge'
 
 Replace `eth0` with the selected physical Ethernet interface. Verify that the
 bridge owns DHCP and the selected Ethernet MAC, and that the physical port has
-no independent IP address before attaching a DaynaPort with
+no independent IP address before attaching a PiSCSI network adapter with
 `mode=bridge:interface=piscsi_bridge`.
 
 ## Wi-Fi proxy ARP
 
-Proxy-ARP exposes a DaynaPort client directly on the Wi-Fi IPv4 LAN. It
-supports IPv4 unicast and DHCP only. It does not provide IPv6, AppleTalk,
-multicast, mDNS reflection, or general Ethernet bridging.
+Proxy-ARP exposes a PiSCSI network-adapter client directly on the Wi-Fi IPv4
+LAN. It supports IPv4 unicast and DHCP only. It does not provide IPv6,
+AppleTalk, multicast, mDNS reflection, or general Ethernet bridging. The Host
+Bridge driver additionally accepts only its own unicast frames and Ethernet
+broadcasts, regardless of the selected profile.
 
 Before selecting this profile, remove any legacy PiSCSI NAT/firewall rules
 manually. The package and profile command never remove, flush, or rewrite
@@ -98,13 +102,15 @@ On detach, PiSCSI removes only the exact `/32` it added to `piscsi0`, stops
 only PiSCSI-owned processes, and restores promiscuous mode only when it had
 changed it. It does not flush addresses, routes, or firewall state.
 
-## DaynaPort attachment
+## Network-adapter attachment
 
 Always submit a complete mode/interface pair. For example:
 
 ```sh
 scsictl -i 6 -c attach -t scdp -f 'mode=bridge:interface=piscsi_bridge'
 scsictl -i 6 -c attach -t scdp -f 'mode=proxyarp:interface=wlan0'
+scsictl -i 5 -c attach -t scbr -f 'mode=bridge:interface=piscsi_bridge'
+scsictl -i 5 -c attach -t scbr -f 'mode=proxyarp:interface=wlan0'
 ```
 
 Do not use the retired `inet` parameter or a comma-separated interface list.

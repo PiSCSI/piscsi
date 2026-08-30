@@ -517,6 +517,7 @@ table#attached-devices tr.reserved td {
     background-image: url("icons/device-optical.svg");
   }
 
+  table#attached-devices tr.device-scbr td.name,
   table#attached-devices tr.device-scdp td.name {
     background-image: url("icons/device-network.svg");
   }

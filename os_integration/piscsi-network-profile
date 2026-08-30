@@ -1,5 +1,5 @@
 #!/bin/sh
-# Configure the named NetworkManager/PiSCSI objects used by DaynaPort.
+# Configure the named NetworkManager/PiSCSI objects used by PiSCSI network adapters.
 # Copyright (c) 2026, Daniel Markstedt <daniel@mindani.net>
 # Banner ASCII art by sonique6784
 # BSD 3-Clause License
@@ -154,7 +154,8 @@ write_proxyarp_config() {
 	trap 'rm -f "$tmp"' EXIT HUP INT TERM
 	cat >"$tmp" <<EOF
 # Managed by piscsi-network-profile. Wi-Fi proxy-ARP is active only while a
-# DaynaPort is attached with mode=proxyarp.
+# PiSCSI network adapter (DaynaPort or Host Bridge) is attached with
+# mode=proxyarp.
 PISCSI_PROXYARP_UPLINK=$uplink
 PISCSI_PROXYARP_PROMISC=true
 EOF

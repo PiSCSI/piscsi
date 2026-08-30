@@ -1,9 +1,9 @@
-.Dd August 22, 2026
+.Dd August 30, 2026
 .Dt PISCSI-NETWORK-PROFILE 8
 .Os PiSCSI
 .Sh NAME
 .Nm piscsi-network-profile
-.Nd explicitly manage PiSCSI DaynaPort network profiles
+.Nd manage PiSCSI network profiles on the Linux host
 .Sh SYNOPSIS
 .Nm
 .Op Fl Fl dry-run
@@ -23,7 +23,7 @@
 .Sh DESCRIPTION
 .Nm
 creates or removes only the named NetworkManager connections and PiSCSI
-configuration used by the DaynaPort network adapter.
+configuration used by the DaynaPort and Host Bridge network adapters.
 It is not a general installer and does not modify existing user connections,
 routes, addresses, or firewall rules.
 .Pp
@@ -36,8 +36,13 @@ and
 NetworkManager connections, then activates the bridge.
 It disables STP to avoid an unnecessary forwarding delay and pins the bridge
 MAC address to the selected physical Ethernet interface, keeping it distinct
-from the DaynaPort TAP MAC.
-It is the protocol-complete profile for a wired connection.
+from the emulated client MAC address on the
+.Pa piscsi0
+TAP interface.
+It is the protocol-complete host-side profile for a wired connection.
+DaynaPort can use the complete Ethernet service it provides.
+Host Bridge uses the same profile, but its native driver receives only its own
+unicast frames and Ethernet broadcasts; it does not receive multicast traffic.
 .Pp
 The
 .Cm proxyarp
@@ -51,9 +56,9 @@ It requires the separately installed
 and
 .Nm dhcp-helper
 programs.
-Proxy ARP supports IPv4 unicast and DHCP only; it is not an Ethernet bridge
-and does not support IPv6, AppleTalk, multicast, mDNS, or other non-IP
-Ethernet traffic.
+Both adapters can use proxy ARP for IPv4 unicast and DHCP.
+It is not an Ethernet bridge and does not support IPv6, AppleTalk, multicast,
+mDNS, or other non-IP Ethernet traffic.
 .Sh SAFETY
 .Fl Fl dry-run
 prints the complete plan without changing the system.

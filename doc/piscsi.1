@@ -1,4 +1,4 @@
-.Dd August 23, 2026
+.Dd August 30, 2026
 .Dt PISCSI 1
 .Os PiSCSI
 .Sh NAME
@@ -7,6 +7,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl b Ar BLOCK_SIZE
+.Op Fl c Ar RASCTL_CONTROL
 .Op Fl F Ar FOLDER
 .Op Fl L Ar LOG_LEVEL Ns Oo : Ar ID Ns Oo : Ar LUN Oc Oc
 .Op Fl n Ar VENDOR:PRODUCT:REVISION
@@ -38,35 +39,6 @@ However, typically SCSI ID 7 is reserved for the "initiator" (the host computer)
 The LUN is limited from 0-31.
 SASI hard disks support LUNs 0-1 only.
 .Pp
-PiSCSI will determine the type of device based upon the file extension of the FILE argument.
-    hds: Hard Disk image (generic, non-removable)
-    hd1: Hard Disk image (generic, non-removable, SCSI-1 compatibility mode)
-    hdr: Hard Disk image (generic, removable)
-    hdn: Hard Disk image (NEC compatible - only used with PC-98 computers)
-    hdi: Hard Disk image (Anex86 proprietary - only used with PC-98 computers)
-    nhd: Hard Disk image (T98Next proprietary - only used with PC-98 computers)
-    hda: Hard Disk image (Apple compatible - typically used with Macintosh computers)
-    hdf: Hard Disk image (XM6 SASI HD image - typically used with X68000)
-    mos: Magneto-Optical image (generic - typically used with NeXT, X68000, etc.)
-    iso: CD-ROM or DVD-ROM image (ISO 9660 image)
-    is1: CD-ROM or DVD-ROM image (ISO 9660 image, SCSI-1 compatibility mode)
-    tap: Tape image (raw tape image containing non-block data)
-    tar: Tape archive (tape block data in tar format)
-.Pp
-If the file extension is not recognized, the device type can be specified explicitly using the -t option and a four letter code.
-    SAHD: SASI Hard Disk (raw, non-removable)
-    SCCD: SCSI CD-ROM (generic CD-ROM or DVD-ROM drive)
-    SCDP: SCSI DaynaPort (DaynaPort compatible network adapter)
-    SCHD: SCSI Hard Disk (generic, non-removable)
-    SCHS: SCSI Host Services (used for special host services)
-    SCLP: SCSI Printer (generic line printer)
-    SCMO: SCSI Magneto-Optical Drive (generic MO drive)
-    SCRM: SCSI Removable Hard Disk (generic, removable)
-    SCTP: SCSI Tape Drive (generic tape, or streamer, drive)
-.Pp
-For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
-    sudo piscsi -ID0 /path/to/drive/hdimage.hda
-.Pp
 Note: PiSCSI cannot be run in parallel with other applications that use the same GPIO pins, such as RaSCSI or SCSI2Pi.
 .Pp
 Once PiSCSI starts, it will open a socket (default port is 6868) to allow external management commands.
@@ -74,11 +46,11 @@ If another process is using this port, PiSCSI will terminate.
 Once PiSCSI has initialized, the scsictl utility can be used to send commands.
 .Pp
 To quit PiSCSI, press Control + C. If it is running in the background, you can kill it using an INT signal.
-.Sh CONNECTION TYPE
+.Sh CONNECTION TYPES
 The GPIO-facing tools select the board layout when they start. Use
 .Fl C
 to select one of the following types:
-.Bl -tag -width GAMERNIUM
+.Bl -tag -offset indent-two -width GAMERNIUM
 .It Dv FULLSPEC
 For boards with initiator support.
 .It Dv STANDARD
@@ -115,6 +87,202 @@ The supplied systemd service defaults to
 Override its
 .Ev PISCSI_CONNECTION_TYPE
 environment variable and restart the service to use a different mapping.
+.Sh DEVICE TYPES
+PiSCSI can emulate the following device types.
+The four letter code (case insensitive) can be passed to the -t option to select the device.
+A non-removable disk drive must be attached with an image file,
+while a removable disk drive can be attached either empty or with an image file.
+The other device types may require other parameters to attach, see the FILE argument documentation below.
+.Bl -tag -offset indent-two -width SAHD
+.It Dv SAHD
+SASI Hard Disk (takes image, non-removable)
+.It Dv SCBR
+SCSI Host Bridge (X68000 host bridge and Neptune-X compatible network adapter)
+.It Dv SCCD
+SCSI CD-ROM (CD-ROM or DVD-ROM drive, takes images, removable)
+.It Dv SCDP
+SCSI DaynaPort (DaynaPort SCSI/Link compatible network adapter)
+.It Dv SCHD
+SCSI Hard Disk (takes image, non-removable)
+.It Dv SCHS
+SCSI Host Services (used for special host services)
+.It Dv SCLP
+SCSI Printer (generic line printer)
+.It Dv SCMO
+SCSI Magneto-Optical Drive (takes image, removable)
+.It Dv SCRM
+SCSI Removable Hard Disk (takes image, removable)
+.It Dv SCTP
+SCSI Tape Drive (takes image, removable)
+.El
+.Pp
+If the device type is not specified as described above,
+PiSCSI will determine the type of device based upon the file extension of the FILE argument.
+.Bl -tag -offset indent-two -width toast
+.It Dv hds
+Hard Disk image (generic, non-removable)
+.It Dv hd1
+Hard Disk image (generic, non-removable, SCSI-1 compatibility mode)
+.It Dv hdr
+Hard Disk image (generic, removable)
+.It Dv hdn
+Hard Disk image (NEC compatible - only used with PC-98 computers)
+.It Dv hdi
+Hard Disk image (Anex86 proprietary - only used with PC-98 computers)
+.It Dv nhd
+Hard Disk image (T98Next proprietary - only used with PC-98 computers)
+.It Dv hda
+Hard Disk image (Apple compatible - typically used with Macintosh computers)
+.It Dv hdf
+Hard Disk image (raw SASI HD image - typically used with X68000)
+.It Dv mos
+Magneto-Optical image (generic, typically used with NeXT, X68000, etc.)
+.It Dv iso
+CD-ROM or DVD-ROM image (ISO 9660 image)
+.It Dv cdr
+CD-ROM or DVD-ROM image (ISO 9660 image)
+.It Dv toast
+CD-ROM or DVD-ROM image (ISO 9660 image)
+.It Dv is1
+CD-ROM or DVD-ROM image (ISO 9660 image, SCSI-1 compatibility mode)
+.It Dv tap
+Tape image (raw tape image containing non-block data)
+.It Dv tar
+Tape archive (tape block data in tar format)
+.El
+.Pp
+For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
+    sudo piscsi -ID0 /path/to/drive/hdimage.hda
+.Sh IMAGE FILE FORMATS
+File extensions are case-insensitive.
+They select the default device type as described above, and some also enable
+compatibility handling or cause PiSCSI to read an image-format header.
+Most other hard disk images are raw block images and have no PiSCSI-specific
+on-disk header.
+.Ss Apple hard disks
+The
+.Pa .hda
+extension selects a generic hard disk with the INQUIRY identification
+.Dq QUANTUM FIREBALL .
+This compatibility identity allows Apple HD SC Setup on classic Mac OS to
+recognize and format the hard disk.
+.Ss PC-98 hard disks
+The
+.Pa .hdn ,
+.Pa .hdi ,
+and
+.Pa .nhd
+extensions select the PC-98 hard-disk implementation.
+It reports SCSI-1 CCS inquiry data and supplies PC-98 disk geometry in MODE
+SENSE pages.
+.Pp
+.Pa .hdn
+is a raw NEC PC-9801-55-style image.
+PiSCSI treats its data as beginning at offset zero and uses a geometry of 512
+bytes per sector, 25 sectors per track, and 8 heads.
+.Pp
+.Pa .hdi
+is the Anex86 format.
+PiSCSI reads its 512-byte image header for the data offset, image size, sector
+size, and geometry.
+.Pp
+.Pa .nhd
+is the T98Next format.
+PiSCSI requires the
+.Dq T98HDDIMAGE.R0
+signature in its header and reads the data offset and geometry from that
+header.
+For both formats, this metadata determines how PiSCSI accesses the payload;
+it is not interpreted as a PC-98 boot sector.
+.Ss SASI hard disks
+The
+.Pa .hdf
+extension selects a SASI hard disk, typically used with X68000 systems.
+It is a raw image, not a separately parsed HDF container.
+The default sector size is 256 bytes; use
+.Fl b
+to select 256, 512, or 1024 bytes.
+SASI addressing limits an image to 2,097,152 blocks.
+.Pp
+PiSCSI derives the capacity from the file length; it does not recognize
+capacity-specific HDF variants.
+.Ss Other extension-specific handling
+.Pa .hd1
+and
+.Pa .is1
+select SCSI-1 CCS compatibility for hard disks and CD-ROMs, respectively.
+.Pa .hdr
+selects a removable hard disk.
+.Pa .mos
+selects a removable magneto-optical disk; several common medium capacities
+have predefined geometry.
+.Pp
+.Pa .iso ,
+.Pa .cdr ,
+and
+.Pa .toast
+select a read-only CD-ROM.
+PiSCSI inspects the beginning of the file to distinguish a raw Mode 1 CD image
+from a normal ISO image; CUE sheets are detected and rejected.
+.Sh NETWORK INTERFACES
+PiSCSI emulates two SCSI network interfaces: SCDP (DaynaPort) and SCBR (Host Bridge).
+For these devices, the
+.Ar FILE
+argument is not an image file; it selects a host networking profile with a complete
+.Cm mode
+and
+.Cm interface
+pair.
+For example, use
+.Dq mode=bridge:interface=piscsi_bridge
+or
+.Dq mode=proxyarp:interface=wlan0 .
+The
+.Xr piscsi-network-profile 8
+script configures the host-side profile before the network adapter is attached;
+see its manual page for setup instructions and examples.
+.Ss Device compatibility
+SCDP is reverse engineered from the DaynaPort SCSI/Link Ethernet adapter and uses its drivers or compatible drivers.
+SCBR is reverse engineered from the Neptune-X Ethernet adapter and uses its drivers or compatible drivers, including the RASETHER driver from the RaSCSI project.
+SCBR also provides the X68000 host bridge, including its host file-system service and support for the RASCTL wire protocol.
+.Ss Wired bridge
+The
+.Cm bridge
+profile connects the emulated adapter to a preconfigured wired Linux bridge and provides complete Ethernet service, including DHCP, AppleTalk, multicast, and non-IP Ethernet protocols.
+Configure this profile with a NetworkManager-managed Ethernet interface.
+It creates the
+.Pa piscsi_bridge
+bridge, which owns the physical Ethernet port, its address, and DHCP configuration.
+Attach an adapter using
+.Dq mode=bridge:interface=piscsi_bridge .
+SCDP can use the complete Ethernet service; the SCBR driver accepts only its own unicast frames and Ethernet broadcasts.
+.Ss Wi-Fi proxy ARP
+The
+.Cm proxyarp
+profile connects an emulated adapter to a NetworkManager-managed Wi-Fi uplink.
+Configure it with the Wi-Fi interface holding the Pi's IPv4 lease.
+This profile requires the
+.Pa parprouted
+and
+.Pa dhcp-helper
+packages.
+It provides IPv4 unicast and DHCP only; it is not an Ethernet bridge and does not support IPv6, AppleTalk, multicast, mDNS, or other non-IP Ethernet traffic.
+Attach an adapter using
+.Dq mode=proxyarp:interface=wlan0 .
+The SCBR driver remains limited to its own unicast frames and Ethernet broadcasts.
+.Ss Profile management
+The profile script manages only the named PiSCSI NetworkManager connections and
+.Pa /etc/piscsi/network.conf .
+Applying or removing a profile may interrupt host connectivity; see
+.Xr piscsi-network-profile 8
+for its usage and examples.
+Always provide both
+.Cm mode
+and
+.Cm interface ;
+the retired
+.Cm inet
+parameter and comma-separated interface lists are not supported.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl b Ar BLOCK_SIZE
@@ -125,6 +293,16 @@ Other disk devices support 512, 1024, 2048, or 4096 bytes and default to 512 byt
 Select the board connection type for this process. See
 .Sx CONNECTION TYPE
 for the available mappings and their appropriate boards.
+.It Fl c Ar RASCTL_CONTROL
+Enable the unauthenticated RASCTL compatibility control channel on SCBR host bridges.
+The default is
+.Dq off .
+Use
+.Dq media
+to permit listing and media-management commands, or
+.Dq full
+to additionally permit PiSCSI and system shutdown commands.
+Only enable this option when all SCSI initiators are trusted.
 .It Fl F Ar FOLDER
 The default folder for image files. For files in this folder no absolute path needs to be specified. The folder must already exist. The initial default folder is '/var/lib/piscsi/images'.
 .It Fl h
@@ -155,7 +333,11 @@ n is the SCSI or SASI ID number (0-7).
 u is the optional LUN (logical unit): 0-31 for SCSI and 0-1 for SASI.
 The default LUN is 0.
 .Pp
-FILE is the name of the image file to use for a SCSI or SASI mass storage device. For devices that do not support an image file (SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCDP it selects one explicit host networking profile: \fBmode=bridge:interface=piscsi_bridge\fR for a preconfigured wired Linux bridge, or \fBmode=proxyarp:interface=wlan0\fR for the configured Wi-Fi proxy-ARP uplink. The proxy-ARP profile supports IPv4 unicast and DHCP only; it is not an Ethernet bridge and does not support IPv6, AppleTalk, multicast, mDNS, or other non-IP Ethernet traffic. For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
+FILE is the name of the image file to use for a SCSI or SASI mass storage device.
+For devices that do not support an image file (SCBR, SCDP, SCLP, SCHS) the filename may have a special meaning
+or a dummy name can be provided. For SCBR and SCDP it selects the host networking profile; see
+.Sx NETWORK INTERFACES .
+For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
 .El
 .Sh EXAMPLES
 Launch PiSCSI with no emulated drives attached:

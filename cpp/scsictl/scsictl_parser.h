@@ -38,6 +38,7 @@ private:
 	};
 
 	const unordered_map<int, PbDeviceType> device_types = {
+			{ 'b', SCBR },
 			{ 'c', SCCD },
 			{ 'd', SCDP },
 			{ 'h', SCHD },

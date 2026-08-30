@@ -29,10 +29,11 @@ type DeviceAttachSelection struct {
 	Params map[string]string
 }
 
-// NetworkTopologySelection identifies the daemon-advertised DaynaPort mode
-// and host interface selected by the user.
+// NetworkTopologySelection identifies the daemon-advertised network mode and
+// host interface selected by the user.
 type NetworkTopologySelection struct {
 	Slot      SCSISlot
+	Type      pb.PbDeviceType
 	Mode      string
 	Interface string
 }
@@ -104,9 +105,9 @@ func AddAttachWithoutMediaOption(menu *Menu, selection DeviceTypeSelection) {
 	menu.Items[1] = item
 }
 
-// NewNetworkTopologyMenu shows the DaynaPort profiles actively advertised by
-// the daemon. Down interfaces and unsupported modes are deliberately omitted.
-func NewNetworkTopologyMenu(slot SCSISlot, interfaces []*pb.PbNetworkInterface, pageSize int) (*Menu, error) {
+// NewNetworkTopologyMenu shows the network profiles actively advertised by the
+// daemon. Down interfaces and unsupported modes are deliberately omitted.
+func NewNetworkTopologyMenu(slot SCSISlot, deviceType pb.PbDeviceType, interfaces []*pb.PbNetworkInterface, pageSize int) (*Menu, error) {
 	profiles := make([]NetworkTopologySelection, 0)
 	for _, networkInterface := range interfaces {
 		if networkInterface == nil || !networkInterface.GetUp() || networkInterface.GetName() == "" {
@@ -114,7 +115,7 @@ func NewNetworkTopologyMenu(slot SCSISlot, interfaces []*pb.PbNetworkInterface, 
 		}
 		for _, mode := range networkInterface.GetSupportedMode() {
 			if mode == "bridge" || mode == "proxyarp" {
-				profiles = append(profiles, NetworkTopologySelection{Slot: slot, Mode: mode, Interface: networkInterface.GetName()})
+				profiles = append(profiles, NetworkTopologySelection{Slot: slot, Type: deviceType, Mode: mode, Interface: networkInterface.GetName()})
 			}
 		}
 	}
@@ -154,6 +155,8 @@ func deviceTypeName(deviceType pb.PbDeviceType) string {
 		return "SCSI Magneto-Optical"
 	case pb.PbDeviceType_SCCD:
 		return "SCSI CD-ROM"
+	case pb.PbDeviceType_SCBR:
+		return "Host Bridge"
 	case pb.PbDeviceType_SCDP:
 		return "Ethernet Adapter"
 	case pb.PbDeviceType_SCHS:

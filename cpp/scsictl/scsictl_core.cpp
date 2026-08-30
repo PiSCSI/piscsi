@@ -37,7 +37,7 @@ void ScsiCtl::Banner(const vector<char *>& args) const
 				<< "} for SCSI or {0-" << (ControllerManager::GetSasiLunMax() - 1) << "} for SASI, default is 0\n"
 				<< "Usage: " << args[0] << " -l\n"
 				<< "       Print device list.\n\n"
-				<< "DaynaPort profiles use one explicit parameter value, for example:\n"
+				<< "DaynaPort and Host Bridge profiles use one explicit parameter value, for example:\n"
 				<< "       -f 'mode=bridge:interface=piscsi_bridge'\n"
 				<< "       -f 'mode=proxyarp:interface=wlan0'\n\n"
 				<< "See the scsictl man page for all supported commands, types, and other parameters\n"
@@ -267,7 +267,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 		}
 		else {
 			ParseParameters(*device, param);
-			if (command.operation() == ATTACH && device->type() == SCDP) {
+			if (command.operation() == ATTACH && (device->type() == SCDP || device->type() == SCBR)) {
 				const bool has_mode = device->params().contains("mode");
 				const bool has_interface = device->params().contains("interface");
 				if (!has_mode && !has_interface) {
@@ -275,7 +275,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 					SetParam(*device, "interface", "piscsi_bridge");
 				}
 				else if (has_mode != has_interface) {
-					cerr << "Error: DaynaPort attachments require both mode and interface, for example "
+					cerr << "Error: DaynaPort and Host Bridge attachments require both mode and interface, for example "
 							"-f 'mode=proxyarp:interface=wlan0'" << endl;
 					return EXIT_FAILURE;
 				}

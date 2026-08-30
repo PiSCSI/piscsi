@@ -50,21 +50,11 @@ TEST(CTapDriverTest, CleanupAndMacAreSafeWithoutATap)
 	CTapDriver driver;
 	array<uint8_t, 6> mac;
 	mac.fill(0xff);
-	driver.GetMacAddr(mac.data());
+	driver.GetUplinkMacAddr(mac.data());
 	EXPECT_THAT(mac, Each(0));
 
 	driver.CleanUp();
 	driver.CleanUp();
-}
-
-TEST(CTapDriverTest, DeriveDaynaPortMac)
-{
-	const array<uint8_t, 6> interface_mac = { 0xb8, 0x27, 0xeb, 0xb5, 0xa3, 0x15 };
-	EXPECT_EQ((array<uint8_t, 6> { 0x00, 0x80, 0x19, 0xb5, 0xa3, 0x15 }),
-			CTapDriver::DeriveDaynaPortMac(interface_mac));
-
-	const array<uint8_t, 5> invalid_mac = { 0, 1, 2, 3, 4 };
-	EXPECT_EQ((array<uint8_t, 6> {}), CTapDriver::DeriveDaynaPortMac(invalid_mac));
 }
 
 TEST(CTapDriverTest, Crc32)

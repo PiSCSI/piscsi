@@ -14,6 +14,7 @@
 #include "scsimo.h"
 #include "scsicd.h"
 #include "scsi_printer.h"
+#include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "host_services.h"
 #include "device_factory.h"
@@ -80,6 +81,11 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device = make_shared<SCSICD>(lun,
             GetExtensionLowerCase(filename) == "is1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
 		device->SetProduct("SCSI CD-ROM");
+		break;
+
+	case SCBR:
+		device = make_shared<SCSIBR>(lun);
+		device->SetProduct("RASCSI BRIDGE");
 		break;
 
 	case SCDP:

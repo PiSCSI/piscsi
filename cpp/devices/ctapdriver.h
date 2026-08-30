@@ -47,7 +47,9 @@ public:
 	param_map GetDefaultParams() const;
 	static string GetProfileValidationError(const string&, const string&, const network_util::network_interface_map&);
 
-	void GetMacAddr(uint8_t *) const;
+	// The selected bridge or proxy-ARP uplink MAC is transport information.
+	// Each emulated Ethernet device derives its own client MAC from it.
+	void GetUplinkMacAddr(uint8_t *) const;
 	int Receive(uint8_t *) const;
 	int Send(const uint8_t *, int) const;
 	bool HasPendingPackets() const;		// Check if there are IP packets available
@@ -55,8 +57,6 @@ public:
 	void Flush() const;			// Purge all of the packets that are waiting to be processed
 
 	static uint32_t Crc32(span<const uint8_t>);
-	static array<uint8_t, 6> DeriveDaynaPortMac(span<const uint8_t>);
-
 private:
 
 	bool CreateTap();
@@ -64,9 +64,7 @@ private:
 	string AttachTapToBridge();
 	void ReleaseTap();
 
-	// The kernel TAP port and emulated DaynaPort must use different MACs. A
-	// bridge treats a port's MAC as local and will not forward frames for it.
-	array<uint8_t, 6> m_MacAddr {};
+	array<uint8_t, 6> m_UplinkMac {};
 #ifdef __linux__
 	array<uint8_t, 6> m_TapMac {};
 #endif

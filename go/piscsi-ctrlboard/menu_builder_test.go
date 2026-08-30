@@ -33,3 +33,14 @@ func TestSCSIMenuBuilderLabelsReservedAndAttachedSlots(t *testing.T) {
 		t.Fatalf("slot 3 = %q, want %q", got, want)
 	}
 }
+
+func TestSlotLabelRecognizesBothNetworkAdapters(t *testing.T) {
+	for deviceType, want := range map[pb.PbDeviceType]string{
+		pb.PbDeviceType_SCBR: "2: Host Bridge",
+		pb.PbDeviceType_SCDP: "2: Daynaport",
+	} {
+		if got := slotLabel(SCSISlot{ID: 2, Device: &pb.PbDevice{Type: deviceType}}, 1); got != want {
+			t.Fatalf("slot label for %s = %q, want %q", deviceType, got, want)
+		}
+	}
+}

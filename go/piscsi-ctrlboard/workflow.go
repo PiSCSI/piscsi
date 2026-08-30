@@ -226,9 +226,9 @@ func (w *SCSIWorkflow) BuildDeviceTypeMenu(ctx context.Context, slot SCSISlot, p
 	return NewDeviceTypeMenu(slot, result.GetDeviceTypesInfo().GetProperties(), pageSize)
 }
 
-// BuildNetworkTopologyMenu retrieves the DaynaPort profiles advertised by the
+// BuildNetworkTopologyMenu retrieves the network profiles advertised by the
 // daemon, including their live interface state and supported modes.
-func (w *SCSIWorkflow) BuildNetworkTopologyMenu(ctx context.Context, slot SCSISlot, pageSize int) (*Menu, error) {
+func (w *SCSIWorkflow) BuildNetworkTopologyMenu(ctx context.Context, slot SCSISlot, deviceType pb.PbDeviceType, pageSize int) (*Menu, error) {
 	if err := w.ready(ctx); err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (w *SCSIWorkflow) BuildNetworkTopologyMenu(ctx context.Context, slot SCSISl
 	if !result.GetStatus() {
 		return nil, resultError("list network topologies", result)
 	}
-	return NewNetworkTopologyMenu(slot, result.GetNetworkInterfacesInfo().GetInterfaces(), pageSize)
+	return NewNetworkTopologyMenu(slot, deviceType, result.GetNetworkInterfacesInfo().GetInterfaces(), pageSize)
 }
 
 // AttachDevice attaches a file-less device using its selected defaults.
@@ -530,9 +530,9 @@ func (c *WorkflowController) Handle(item MenuItem) {
 			})
 			return
 		}
-		if selected.Type == pb.PbDeviceType_SCDP {
+		if selected.Type == pb.PbDeviceType_SCBR || selected.Type == pb.PbDeviceType_SCDP {
 			c.start("Loading topologies", func(ctx context.Context) (string, error) {
-				topologies, err := c.workflow.BuildNetworkTopologyMenu(ctx, selected.Slot, c.pageSize)
+				topologies, err := c.workflow.BuildNetworkTopologyMenu(ctx, selected.Slot, selected.Type, c.pageSize)
 				if err == nil {
 					err = c.menu.Push(topologies)
 				}
@@ -555,7 +555,7 @@ func (c *WorkflowController) Handle(item MenuItem) {
 	case NetworkTopologySelection:
 		c.start("Working", func(ctx context.Context) (string, error) {
 			return c.workflow.AttachDevice(ctx, DeviceAttachSelection{
-				Slot: selected.Slot, Type: pb.PbDeviceType_SCDP,
+				Slot: selected.Slot, Type: selected.Type,
 				Params: map[string]string{"mode": selected.Mode, "interface": selected.Interface},
 			})
 		})
