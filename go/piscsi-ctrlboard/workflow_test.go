@@ -66,6 +66,25 @@ func TestBuildImageMenuIncludesEmptyState(t *testing.T) {
 	}
 }
 
+func TestBuildImageMenuForTypeFiltersDaemonMappedImages(t *testing.T) {
+	workflow := NewSCSIWorkflow(&workflowClient{results: []*pb.PbResult{{
+		Status: true, Result: &pb.PbResult_ImageFilesInfo{ImageFilesInfo: &pb.PbImageFilesInfo{ImageFiles: []*pb.PbImageFile{
+			{Name: "disk.hds", Type: pb.PbDeviceType_SCHD},
+			{Name: "media.mos", Type: pb.PbDeviceType_SCMO},
+		}}},
+	}}}, "")
+	menu, err := workflow.BuildImageMenuForType(context.Background(), SCSISlot{ID: 1}, pb.PbDeviceType_SCMO, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := len(menu.Items), 2; got != want {
+		t.Fatalf("image item count = %d, want %d", got, want)
+	}
+	if got, want := menu.Items[1].Label, "media.mos [SCMO]"; got != want {
+		t.Fatalf("filtered image = %q, want %q", got, want)
+	}
+}
+
 func TestAttachOrInsertUsesInsertForEmptyRemovableDevice(t *testing.T) {
 	client := &workflowClient{results: []*pb.PbResult{{Status: true}}}
 	device := &pb.PbDevice{
@@ -91,6 +110,23 @@ func TestAttachOrInsertUsesInsertForEmptyRemovableDevice(t *testing.T) {
 	}
 	if got, want := command.GetDevices()[0].GetUnit(), int32(1); got != want {
 		t.Fatalf("LUN = %d, want %d", got, want)
+	}
+}
+
+func TestAttachDeviceUsesPrinterDefaultCommand(t *testing.T) {
+	client := &workflowClient{results: []*pb.PbResult{{Status: true}}}
+	message, err := NewSCSIWorkflow(client, "").AttachDevice(context.Background(), DeviceAttachSelection{
+		Slot: SCSISlot{ID: 3}, Type: pb.PbDeviceType_SCLP, Params: map[string]string{"cmd": "different"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := message, "Attached ID 3"; got != want {
+		t.Fatalf("message = %q, want %q", got, want)
+	}
+	device := client.commands[0].GetDevices()[0]
+	if got, want := device.GetParams()["cmd"], defaultPrinterCommand; got != want {
+		t.Fatalf("printer command = %q, want %q", got, want)
 	}
 }
 

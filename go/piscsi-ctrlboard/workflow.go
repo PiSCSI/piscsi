@@ -117,6 +117,20 @@ func (w *SCSIWorkflow) RunSystemCommand(ctx context.Context, selection SystemCom
 // minimal request as the Python Control Board, then returns a name-sorted
 // picker with a Return entry.
 func (w *SCSIWorkflow) BuildImageMenu(ctx context.Context, slot SCSISlot, pageSize int) (*Menu, error) {
+	return w.buildImageMenu(ctx, slot, pb.PbDeviceType_UNDEFINED, pageSize)
+}
+
+// BuildImageMenuForType lists only image files mapped by the daemon to the
+// selected device type. This is used for removable media and file-backed
+// device types selected for an empty SCSI ID.
+func (w *SCSIWorkflow) BuildImageMenuForType(ctx context.Context, slot SCSISlot, deviceType pb.PbDeviceType, pageSize int) (*Menu, error) {
+	if deviceType == pb.PbDeviceType_UNDEFINED {
+		return nil, fmt.Errorf("a device type is required to filter images")
+	}
+	return w.buildImageMenu(ctx, slot, deviceType, pageSize)
+}
+
+func (w *SCSIWorkflow) buildImageMenu(ctx context.Context, slot SCSISlot, deviceType pb.PbDeviceType, pageSize int) (*Menu, error) {
 	if err := w.ready(ctx); err != nil {
 		return nil, err
 	}
@@ -140,7 +154,7 @@ func (w *SCSIWorkflow) BuildImageMenu(ctx context.Context, slot SCSISlot, pageSi
 	items := make([]MenuItem, 0, len(images)+1)
 	items = append(items, MenuItem{ID: "return", Label: "Return", Data: SlotAction{Kind: SlotActionReturn, Slot: slot}})
 	for _, image := range images {
-		if image == nil || image.GetName() == "" {
+		if image == nil || image.GetName() == "" || (deviceType != pb.PbDeviceType_UNDEFINED && image.GetType() != deviceType) {
 			continue
 		}
 		items = append(items, MenuItem{
@@ -152,7 +166,11 @@ func (w *SCSIWorkflow) BuildImageMenu(ctx context.Context, slot SCSISlot, pageSi
 	if len(items) == 1 {
 		items = append(items, MenuItem{ID: "empty", Label: "(No image files found)"})
 	}
-	return NewMenu("Select Image", items, pageSize)
+	title := "Select Image"
+	if deviceType != pb.PbDeviceType_UNDEFINED {
+		title = "Select " + deviceTypeName(deviceType) + " Image"
+	}
+	return NewMenu(title, items, pageSize)
 }
 
 func (w *SCSIWorkflow) reportImageList(diagnostic ImageListDiagnostic) {
@@ -190,6 +208,71 @@ func (w *SCSIWorkflow) AttachOrInsert(ctx context.Context, selection ImageSelect
 		return "", resultError(lower(verb)+" image", result)
 	}
 	return fmt.Sprintf("%s ID %d", verb, selection.Slot.ID), nil
+}
+
+// BuildDeviceTypeMenu retrieves the device types supported by the connected
+// daemon so unsupported and legacy-only types are never offered.
+func (w *SCSIWorkflow) BuildDeviceTypeMenu(ctx context.Context, slot SCSISlot, pageSize int) (*Menu, error) {
+	if err := w.ready(ctx); err != nil {
+		return nil, err
+	}
+	result, err := w.client.SendCommand(w.commands.GetDeviceTypesInfo())
+	if err != nil {
+		return nil, fmt.Errorf("list device types: %w", err)
+	}
+	if !result.GetStatus() {
+		return nil, resultError("list device types", result)
+	}
+	return NewDeviceTypeMenu(slot, result.GetDeviceTypesInfo().GetProperties(), pageSize)
+}
+
+// BuildNetworkTopologyMenu retrieves the DaynaPort profiles advertised by the
+// daemon, including their live interface state and supported modes.
+func (w *SCSIWorkflow) BuildNetworkTopologyMenu(ctx context.Context, slot SCSISlot, pageSize int) (*Menu, error) {
+	if err := w.ready(ctx); err != nil {
+		return nil, err
+	}
+	result, err := w.client.SendCommand(w.commands.GetNetworkInfo())
+	if err != nil {
+		return nil, fmt.Errorf("list network topologies: %w", err)
+	}
+	if !result.GetStatus() {
+		return nil, resultError("list network topologies", result)
+	}
+	return NewNetworkTopologyMenu(slot, result.GetNetworkInterfacesInfo().GetInterfaces(), pageSize)
+}
+
+// AttachDevice attaches a file-less device using its selected defaults.
+// Printers explicitly use PiSCSI's documented raw lp command so the intended
+// default remains stable even when talking to an older daemon.
+func (w *SCSIWorkflow) AttachDevice(ctx context.Context, selection DeviceAttachSelection) (string, error) {
+	if err := w.ready(ctx); err != nil {
+		return "", err
+	}
+	if selection.Slot.Reserved {
+		return "", fmt.Errorf("SCSI ID %d is reserved", selection.Slot.ID)
+	}
+	if selection.Slot.Device != nil {
+		return "", fmt.Errorf("SCSI ID %d already has a device", selection.Slot.ID)
+	}
+	if selection.Type == pb.PbDeviceType_UNDEFINED {
+		return "", fmt.Errorf("selected device has no supported type")
+	}
+	params := copyParams(selection.Params)
+	if selection.Type == pb.PbDeviceType_SCLP {
+		if params == nil {
+			params = make(map[string]string)
+		}
+		params["cmd"] = defaultPrinterCommand
+	}
+	result, err := w.client.SendCommand(w.commands.AttachDevice(selection.Slot.ID, 0, selection.Type, "", 0, params))
+	if err != nil {
+		return "", fmt.Errorf("attach device: %w", err)
+	}
+	if !result.GetStatus() {
+		return "", resultError("attach device", result)
+	}
+	return fmt.Sprintf("Attached ID %d", selection.Slot.ID), nil
 }
 
 // DetachOrEject preserves the existing UI convention: removable media that is
@@ -355,10 +438,24 @@ func (c *WorkflowController) Handle(item MenuItem) {
 		case SlotActionReturn:
 			c.menu.Pop()
 		case SlotActionAttachInsert:
-			c.start("Loading images", func(ctx context.Context) (string, error) {
-				images, err := c.workflow.BuildImageMenu(ctx, selected.Slot, c.pageSize)
+			if device := selected.Slot.Device; device != nil {
+				if !device.GetProperties().GetRemovable() || !device.GetStatus().GetRemoved() {
+					c.report(fmt.Errorf("SCSI ID %d is not an empty removable device", selected.Slot.ID))
+					return
+				}
+				c.start("Loading images", func(ctx context.Context) (string, error) {
+					images, err := c.workflow.BuildImageMenuForType(ctx, selected.Slot, device.GetType(), c.pageSize)
+					if err == nil {
+						err = c.menu.Push(images)
+					}
+					return "", err
+				})
+				return
+			}
+			c.start("Loading devices", func(ctx context.Context) (string, error) {
+				devices, err := c.workflow.BuildDeviceTypeMenu(ctx, selected.Slot, c.pageSize)
 				if err == nil {
-					err = c.menu.Push(images)
+					err = c.menu.Push(devices)
 				}
 				return "", err
 			})
@@ -414,6 +511,53 @@ func (c *WorkflowController) Handle(item MenuItem) {
 	case ImageSelection:
 		c.start("Working", func(ctx context.Context) (string, error) {
 			return c.workflow.AttachOrInsert(ctx, selected)
+		})
+	case DeviceTypeSelection:
+		if selected.Properties.GetSupportsFile() {
+			c.start("Loading images", func(ctx context.Context) (string, error) {
+				images, err := c.workflow.BuildImageMenuForType(ctx, selected.Slot, selected.Type, c.pageSize)
+				if err == nil {
+					AddAttachWithoutMediaOption(images, selected)
+					err = c.menu.Push(images)
+				}
+				return "", err
+			})
+			return
+		}
+		if !selected.Properties.GetSupportsParams() {
+			c.start("Working", func(ctx context.Context) (string, error) {
+				return c.workflow.AttachDevice(ctx, DeviceAttachSelection{Slot: selected.Slot, Type: selected.Type})
+			})
+			return
+		}
+		if selected.Type == pb.PbDeviceType_SCDP {
+			c.start("Loading topologies", func(ctx context.Context) (string, error) {
+				topologies, err := c.workflow.BuildNetworkTopologyMenu(ctx, selected.Slot, c.pageSize)
+				if err == nil {
+					err = c.menu.Push(topologies)
+				}
+				return "", err
+			})
+			return
+		}
+		options, err := NewDeviceOptionMenu(selected, c.pageSize)
+		if err != nil {
+			c.report(err)
+			return
+		}
+		if err := c.menu.Push(options); err != nil {
+			c.report(err)
+		}
+	case DeviceAttachSelection:
+		c.start("Working", func(ctx context.Context) (string, error) {
+			return c.workflow.AttachDevice(ctx, selected)
+		})
+	case NetworkTopologySelection:
+		c.start("Working", func(ctx context.Context) (string, error) {
+			return c.workflow.AttachDevice(ctx, DeviceAttachSelection{
+				Slot: selected.Slot, Type: pb.PbDeviceType_SCDP,
+				Params: map[string]string{"mode": selected.Mode, "interface": selected.Interface},
+			})
 		})
 	case ProfileSelection:
 		c.start("Loading profile", func(ctx context.Context) (string, error) {
