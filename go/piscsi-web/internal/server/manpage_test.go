@@ -86,6 +86,7 @@ func TestPiSCSIManpagesListsDocumentedPages(t *testing.T) {
 		"piscsi-web":             1,
 		"piscsi-oled":            1,
 		"piscsi-ctrlboard":       1,
+		"sasidump":               1,
 		"scsictl":                1,
 		"scsidump":               1,
 		"scsiloop":               1,
