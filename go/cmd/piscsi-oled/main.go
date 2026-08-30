@@ -119,17 +119,17 @@ func main() {
 	}
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
-	var statusLines, visibleLines []string
+	var statusLines, visibleLines []oled.StatusLine
 	var horizontalScroll oled.HorizontalScroller
 	for {
 		now := time.Now()
-		lines, err := monitor.Poll(ctx)
+		lines, err := monitor.PollStatus(ctx)
 		if err != nil {
 			if ctx.Err() != nil {
 				break
 			}
 			logger.Warn("could not refresh PiSCSI status; retaining last screen", "error", err)
-		} else if !slices.Equal(lines, statusLines) {
+		} else if !slices.EqualFunc(lines, statusLines, func(a, b oled.StatusLine) bool { return a == b }) {
 			statusLines = slices.Clone(lines)
 			visibleLines = slices.Clone(lines)
 			horizontalScroll.Reset(len(visibleLines))
@@ -147,7 +147,7 @@ func main() {
 				if active, redraw := ipScreensaver.Update(now, lineCount); active {
 					showStatus = false
 					if redraw {
-						if err := display.Present(renderer.RenderLineAt(statusLines[len(statusLines)-1], ipScreensaver.Row())); err != nil {
+						if err := display.Present(renderer.RenderLineAt(statusLines[len(statusLines)-1].Text(), ipScreensaver.Row())); err != nil {
 							logger.Error("present screensaver", "error", err)
 						}
 					}
@@ -164,14 +164,10 @@ func main() {
 				}
 			}
 			if showStatus {
-				if err := display.Present(renderer.RenderScrolled(visibleLines, horizontalScroll.Offsets())); err != nil {
+				if err := display.Present(renderer.RenderStatusScrolled(visibleLines, horizontalScroll.Offsets())); err != nil {
 					logger.Error("present screen", "error", err)
 				}
-				widths := make([]int, len(visibleLines))
-				for i, line := range visibleLines {
-					widths[i] = renderer.TextWidth(line)
-				}
-				horizontalScroll.Advance(widths, *horizontalScrollStep)
+				horizontalScroll.Advance(renderer.ParameterScrollLimits(visibleLines), *horizontalScrollStep)
 				if len(visibleLines) > lineCount {
 					visibleLines = append(visibleLines[1:], visibleLines[0])
 					horizontalScroll.Rotate()

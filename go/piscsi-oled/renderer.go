@@ -47,27 +47,72 @@ func NewRenderer(height, rotation int) (*Renderer, error) {
 func (r *Renderer) Close() error { return r.face.Close() }
 
 func (r *Renderer) Render(lines []string) Frame {
-	return r.RenderScrolled(lines, nil)
-}
-
-// RenderScrolled renders each line with its own horizontal pixel offset.
-// Positive offsets move text towards the left, exposing the part of a long
-// line that would otherwise be clipped at the right edge of the display.
-func (r *Renderer) RenderScrolled(lines []string, offsets []int) Frame {
 	canvas := image.NewGray(image.Rect(0, 0, Width, r.height))
 	drawer := &font.Drawer{Dst: canvas, Src: image.NewUniform(color.White), Face: r.face}
 	for i, line := range lines {
 		if i*lineSpacing >= r.height {
 			break
 		}
+		drawer.Dot = fixedPoint(0, i*lineSpacing+7)
+		drawer.DrawString(line)
+	}
+	return r.frame(canvas)
+}
+
+// RenderStatus renders structured lines at their initial parameter offsets.
+func (r *Renderer) RenderStatus(lines []StatusLine) Frame {
+	return r.RenderStatusScrolled(lines, nil)
+}
+
+// RenderStatusScrolled renders each parameter segment at its own pixel offset.
+// The fixed SCSI identifier/type prefix remains anchored at column zero.
+func (r *Renderer) RenderStatusScrolled(lines []StatusLine, offsets []int) Frame {
+	canvas := image.NewGray(image.Rect(0, 0, Width, r.height))
+	drawer := &font.Drawer{Dst: canvas, Src: image.NewUniform(color.White), Face: r.face}
+	parameterCanvas := image.NewGray(canvas.Bounds())
+	parameterDrawer := &font.Drawer{Dst: parameterCanvas, Src: image.NewUniform(color.White), Face: r.face}
+	for i, line := range lines {
+		row := i * lineSpacing
+		if row >= r.height {
+			break
+		}
+		parameterX := 0
+		if line.Fixed != "" {
+			prefix := line.Fixed
+			if line.Parameter != "" {
+				prefix += " "
+			}
+			drawer.Dot = fixedPoint(0, row+7)
+			drawer.DrawString(prefix)
+			parameterX = r.TextWidth(prefix)
+		}
+		if line.Parameter == "" || parameterX >= Width {
+			continue
+		}
 		offset := 0
 		if i < len(offsets) {
 			offset = offsets[i]
 		}
-		drawer.Dot = fixedPoint(-offset, i*lineSpacing+7)
-		drawer.DrawString(line)
+		parameterDrawer.Dot = fixedPoint(parameterX-offset, row+7)
+		parameterDrawer.DrawString(line.Parameter)
+		parameterBounds := image.Rect(parameterX, row, Width, row+lineSpacing)
+		draw.Draw(canvas, parameterBounds, parameterCanvas, parameterBounds.Min, draw.Src)
 	}
 	return r.frame(canvas)
+}
+
+// ParameterScrollLimits returns the maximum pixel offset for each parameter
+// segment after reserving its fixed prefix column.
+func (r *Renderer) ParameterScrollLimits(lines []StatusLine) []int {
+	limits := make([]int, len(lines))
+	for i, line := range lines {
+		parameterX := 0
+		if line.Fixed != "" && line.Parameter != "" {
+			parameterX = r.TextWidth(line.Fixed + " ")
+		}
+		limits[i] = max(r.TextWidth(line.Parameter)-(Width-parameterX), 0)
+	}
+	return limits
 }
 
 // TextWidth returns the rendered width of a line in pixels.

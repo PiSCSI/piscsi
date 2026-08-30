@@ -64,9 +64,23 @@ func (m *Monitor) LoadDeviceTypes(ctx context.Context) error {
 	return nil
 }
 
-// Poll returns a fully formatted status screen. Context is checked before each
-// request; the shared client supplies bounded connection and I/O timeouts.
+// Poll returns a fully formatted status screen. It is kept for callers that
+// consume plain text; new display code should use PollStatus.
 func (m *Monitor) Poll(ctx context.Context) ([]string, error) {
+	status, err := m.PollStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+	lines := make([]string, len(status))
+	for i, line := range status {
+		lines[i] = line.Text()
+	}
+	return lines, nil
+}
+
+// PollStatus returns structured display text. Context is checked before each
+// request; the shared client supplies bounded connection and I/O timeouts.
+func (m *Monitor) PollStatus(ctx context.Context) ([]StatusLine, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -81,7 +95,7 @@ func (m *Monitor) Poll(ctx context.Context) ([]string, error) {
 		return nil, fmt.Errorf("check authentication: %w", err)
 	}
 	if !auth.GetStatus() {
-		return withNetwork([]string{"Permission denied!"}, m.ip, m.hostname), nil
+		return withNetworkStatus([]StatusLine{{Parameter: "Permission denied!"}}, m.ip, m.hostname), nil
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -93,13 +107,24 @@ func (m *Monitor) Poll(ctx context.Context) ([]string, error) {
 	if !devices.GetStatus() {
 		return nil, fmt.Errorf("list devices: %s", devices.GetMsg())
 	}
-	return m.Format(devices.GetDevicesInfo().GetDevices()), nil
+	return m.FormatStatus(devices.GetDevicesInfo().GetDevices()), nil
 }
 
 func (m *Monitor) Format(devices []*pb.PbDevice) []string {
-	lines := make([]string, 0, len(devices)+1)
+	statusLines := m.FormatStatus(devices)
+	lines := make([]string, len(statusLines))
+	for i, line := range statusLines {
+		lines[i] = line.Text()
+	}
+	return lines
+}
+
+// FormatStatus returns display lines with the SCSI address/type kept apart
+// from the parameter field so the latter can scroll independently.
+func (m *Monitor) FormatStatus(devices []*pb.PbDevice) []StatusLine {
+	lines := make([]StatusLine, 0, len(devices)+1)
 	if len(devices) == 0 {
-		lines = append(lines, "No device attached!")
+		lines = append(lines, StatusLine{Parameter: "No device attached!"})
 	} else {
 		hasLUNs := false
 		for _, device := range devices {
@@ -109,34 +134,41 @@ func (m *Monitor) Format(devices []*pb.PbDevice) []string {
 			}
 		}
 		for _, device := range devices {
-			line := []string{fmt.Sprint(device.GetId())}
+			prefix := []string{fmt.Sprint(device.GetId())}
 			if hasLUNs {
-				line = append(line, fmt.Sprint(device.GetUnit()))
+				prefix = append(prefix, fmt.Sprint(device.GetUnit()))
 			}
-			line = append(line, typeSuffix(device.GetType()))
+			prefix = append(prefix, typeSuffix(device.GetType()))
+			parameter := make([]string, 0, 3)
 			filename := device.GetFile().GetName()
 			if filename == "" {
 				filename = device.GetParams()["file"]
 			}
 			if filename != "" {
-				line = append(line, filepath.Base(filename))
+				parameter = append(parameter, filepath.Base(filename))
 			} else if m.removable[device.GetType()] || device.GetProperties().GetRemovable() {
-				line = append(line, "[No Media]")
+				parameter = append(parameter, "[No Media]")
 			}
-			if vendor := strings.TrimSpace(device.GetVendor()); vendor != "" && vendor != "PiSCSI" {
-				line = append(line, vendor)
-				if product := strings.TrimSpace(device.GetProduct()); product != "" {
-					line = append(line, product)
-				}
+			vendor := strings.TrimSpace(device.GetVendor())
+			product := strings.TrimSpace(device.GetProduct())
+			showVendor := vendor != "" && vendor != "PiSCSI"
+			if showVendor {
+				parameter = append(parameter, vendor)
 			}
-			lines = append(lines, strings.Join(line, " "))
+			if product != "" && (showVendor || !device.GetProperties().GetSupportsFile()) {
+				parameter = append(parameter, product)
+			}
+			lines = append(lines, StatusLine{Fixed: strings.Join(prefix, " "), Parameter: strings.Join(parameter, " ")})
 		}
 	}
-	return withNetwork(lines, m.ip, m.hostname)
+	return withNetworkStatus(lines, m.ip, m.hostname)
 }
 
 func typeSuffix(deviceType pb.PbDeviceType) string {
 	name := deviceType.String()
+	if name == "SAHD" {
+		return "SA"
+	}
 	if len(name) >= 4 {
 		return name[2:4]
 	}
@@ -148,4 +180,11 @@ func withNetwork(lines []string, ip, hostname string) []string {
 		return append(lines, "No network connection")
 	}
 	return append(lines, fmt.Sprintf("IP %s - %s", ip, hostname))
+}
+
+func withNetworkStatus(lines []StatusLine, ip, hostname string) []StatusLine {
+	if ip == "" {
+		return append(lines, StatusLine{Parameter: "No network connection"})
+	}
+	return append(lines, StatusLine{Parameter: fmt.Sprintf("IP %s - %s", ip, hostname)})
 }
