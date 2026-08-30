@@ -65,20 +65,26 @@ func TestRendererRendersLineAtRequestedRow(t *testing.T) {
 	}
 }
 
-func TestRendererHorizontalScrollChangesVisiblePixels(t *testing.T) {
+func TestRendererStatusLineKeepsPrefixAtColumnZero(t *testing.T) {
 	renderer, err := NewRenderer(32, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer renderer.Close()
-	line := "a very long device filename that exceeds the display width"
-	if renderer.TextWidth(line) <= Width {
-		t.Fatalf("test line width = %d, want more than %d", renderer.TextWidth(line), Width)
-	}
-	first := renderer.RenderScrolled([]string{line}, []int{0})
-	shifted := renderer.RenderScrolled([]string{line}, []int{1})
+	prefix := "6 HD "
+	line := StatusLine{Fixed: "6 HD", Parameter: "a long device filename that exceeds the available parameter column"}
+	first := renderer.RenderStatusScrolled([]StatusLine{line}, []int{0})
+	shifted := renderer.RenderStatusScrolled([]StatusLine{line}, []int{1})
 	if bytes.Equal(first.Pix, shifted.Pix) {
-		t.Fatal("horizontal scroll offset did not change rendered pixels")
+		t.Fatal("pixel offset did not change the rendered parameter segment")
+	}
+	static := renderer.Render([]string{prefix})
+	for y := 0; y < first.Height; y++ {
+		for x := 0; x < renderer.TextWidth(prefix); x++ {
+			if first.At(x, y) != static.At(x, y) || shifted.At(x, y) != static.At(x, y) {
+				t.Fatalf("prefix pixel (%d,%d) moved while scrolling", x, y)
+			}
+		}
 	}
 }
 
@@ -90,6 +96,19 @@ func TestRendererEmbeddedFontUsesSixPixelGlyphAdvance(t *testing.T) {
 	defer renderer.Close()
 	if got := renderer.TextWidth("M"); got != DefaultHorizontalScrollStep {
 		t.Fatalf("glyph advance = %d, want %d", got, DefaultHorizontalScrollStep)
+	}
+}
+
+func TestRendererParameterScrollLimitsReserveFixedPrefix(t *testing.T) {
+	renderer, err := NewRenderer(32, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer renderer.Close()
+	line := StatusLine{Fixed: "6 HD", Parameter: "a very long device filename"}
+	want := renderer.TextWidth(line.Parameter) - (Width - renderer.TextWidth("6 HD "))
+	if got := renderer.ParameterScrollLimits([]StatusLine{line}); got[0] != want {
+		t.Fatalf("ParameterScrollLimits() = %v, want [%d]", got, want)
 	}
 }
 

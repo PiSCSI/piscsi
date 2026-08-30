@@ -2,12 +2,11 @@
 
 `piscsi-oled` is the standalone Go status monitor for 128×32 and 128×64
 SSD1306 I2C displays. It shares the PiSCSI daemon client and protobuf bindings
-with the web application.
+with piscsi-web and piscsi-ctrlboard.
 
 ## I2C prerequisites
 
-On Raspberry Pi OS, install the screen package baseline used by
-`easyinstall.sh`, then enable I2C:
+On Raspberry Pi OS, install supporting tools and enable I2C:
 
 ```sh
 sudo apt-get update
@@ -44,7 +43,7 @@ milliseconds. Useful flags are:
 - `--rotation=0|180`
 - `--height=32|64`
 - `--refresh_interval=1000`
-- `--horizontal_scroll_step=6` (pixels moved per screen refresh; `0` pauses scrolling)
+- `--horizontal_scroll_step=6` (parameter pixels moved per screen refresh; `0` pauses scrolling). SCSI ID and device type remain fixed while the parameter field scrolls. Each scroll cycle holds its starting position for three frames, moves to the end, holds that final position for one additional frame, then restarts at the beginning.
 - `--password=TOKEN`
 - `--host=localhost` and `--port=6868`
 - `--i2c-device=/dev/i2c-1` and `--i2c-address=0x3c`

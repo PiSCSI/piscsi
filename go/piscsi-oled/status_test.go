@@ -64,6 +64,59 @@ func TestFormat(t *testing.T) {
 	})
 }
 
+func TestFormatStatusSeparatesFixedPrefixFromParameter(t *testing.T) {
+	monitor := NewMonitor(&fakeSender{}, "")
+	monitor.ip, monitor.hostname = "192.0.2.5", "piscsi"
+	devices := []*pb.PbDevice{{
+		Id:   3,
+		Type: pb.PbDeviceType_SCHD,
+		File: &pb.PbImageFile{Name: "/var/lib/piscsi/images/a-long-disk-name.hds"},
+	}}
+	want := []StatusLine{
+		{Fixed: "3 HD", Parameter: "a-long-disk-name.hds"},
+		{Parameter: "IP 192.0.2.5 - piscsi"},
+	}
+	if got := monitor.FormatStatus(devices); !reflect.DeepEqual(got, want) {
+		t.Errorf("FormatStatus() = %#v, want %#v", got, want)
+	}
+}
+
+func TestFormatStatusUsesProductForNonFileDevices(t *testing.T) {
+	monitor := NewMonitor(&fakeSender{}, "")
+	monitor.ip, monitor.hostname = "192.0.2.5", "piscsi"
+	devices := []*pb.PbDevice{
+		{
+			Id: 3, Type: pb.PbDeviceType_SCHS,
+			Properties: &pb.PbDeviceProperties{SupportsFile: false},
+			Vendor:     "PiSCSI",
+			Product:    "Host Services",
+		},
+		{
+			Id: 4, Type: pb.PbDeviceType_SCDP,
+			Properties: &pb.PbDeviceProperties{SupportsFile: false},
+			Vendor:     "Dayna",
+			Product:    "SCSI/Link",
+		},
+	}
+	want := []StatusLine{
+		{Fixed: "3 HS", Parameter: "Host Services"},
+		{Fixed: "4 DP", Parameter: "Dayna SCSI/Link"},
+		{Parameter: "IP 192.0.2.5 - piscsi"},
+	}
+	if got := monitor.FormatStatus(devices); !reflect.DeepEqual(got, want) {
+		t.Errorf("FormatStatus() = %#v, want %#v", got, want)
+	}
+}
+
+func TestTypeSuffix(t *testing.T) {
+	if got := typeSuffix(pb.PbDeviceType_SCCD); got != "CD" {
+		t.Errorf("typeSuffix(SCCD) = %q, want CD", got)
+	}
+	if got := typeSuffix(pb.PbDeviceType_SAHD); got != "SA" {
+		t.Errorf("typeSuffix(SAHD) = %q, want SA", got)
+	}
+}
+
 func TestPollAuthenticationAndDaemonFailures(t *testing.T) {
 	t.Run("permission denied", func(t *testing.T) {
 		monitor := NewMonitor(&fakeSender{results: []*pb.PbResult{{Status: false}}}, "")
