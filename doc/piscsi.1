@@ -106,7 +106,7 @@ Display the piscsi version.
 Sets the default locale for client-facing error messages. The client can override the locale.
 .It Fl ID Ar n Ns Oo : Ar u Oc Ar FILE
 n is the SCSI or SASI ID number (0-7).
-u is the optional LUN (logical unit): 0-31 for SCSI and 0-1 for SAHD.
+u is the optional LUN (logical unit): 0-31 for SCSI and 0-1 for SASI.
 The default LUN is 0.
 .Pp
 FILE is the name of the image file to use for a SCSI or SASI mass storage device. For devices that do not support an image file (SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCDP it selects one explicit host networking profile: \fBmode=bridge:interface=piscsi_bridge\fR for a preconfigured wired Linux bridge, or \fBmode=proxyarp:interface=wlan0\fR for the configured Wi-Fi proxy-ARP uplink. The proxy-ARP profile supports IPv4 unicast and DHCP only; it is not an Ethernet bridge and does not support IPv6, AppleTalk, multicast, mDNS, or other non-IP Ethernet traffic. For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
