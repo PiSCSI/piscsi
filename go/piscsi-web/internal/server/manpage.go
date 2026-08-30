@@ -49,6 +49,7 @@ var piscsiManpages = []manpage{
 	{App: "piscsi-web", Section: 1, Description: "Web control interface for PiSCSI."},
 	{App: "piscsi-oled", Section: 1, Description: "Displays PiSCSI status on an SSD1306 OLED panel."},
 	{App: "piscsi-ctrlboard", Section: 1, Description: "Operates PiSCSI with the PiSCSI Control Board."},
+	{App: "sasidump", Section: 1, Description: "SASI disk dumping tool for PiSCSI."},
 	{App: "scsictl", Section: 1, Description: "Sends management commands to the piscsi process."},
 	{App: "scsidump", Section: 1, Description: "SCSI disk dumping tool for PiSCSI."},
 	{App: "scsiloop", Section: 1, Description: "Tests a PiSCSI board with a loopback adapter."},
