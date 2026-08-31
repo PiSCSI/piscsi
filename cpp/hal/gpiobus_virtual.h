@@ -146,7 +146,9 @@ class GPIOBUS_Virtual final : public GPIOBUS
     void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength
 
-    array<int, 19> SignalTable;
+    void MakeSignalTable();
+
+    array<int, 19> SignalTable = {};
     shared_ptr<uint32_t> signals; // All bus signals
 
     unique_ptr<DataSample> GetSample(uint64_t timestamp) override

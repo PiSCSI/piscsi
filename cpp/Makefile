@@ -35,18 +35,6 @@ CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -DSPDL
 CXXFLAGS += $(EXTRA_FLAGS)
 
 
-##   CONNECT_TYPE=FULLSPEC : Specify the type of PiSCSI board type
-##              that you are using. The typical options are 
-##              STANDARD or FULLSPEC. The default is FULLSPEC
-##              * THIS IS TYPICALLY THE ONLY COMPILE OPTION YOU 
-##              * NEED TO SPECIFY
-# If its not specified, build for FULLSPEC configuration
-CONNECT_TYPE ?= FULLSPEC
-
-ifdef CONNECT_TYPE
-	CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
-endif
-
 PISCSI = piscsi
 SCSICTL = scsictl
 SCSIDUMP = scsidump
@@ -75,11 +63,8 @@ BIN_ALL = \
 	$(BINDIR)/$(SCSIMON) \
 	$(BINDIR)/$(SCSILOOP)
 
-# scsidump requires initiator support
-ifeq ($(CONNECT_TYPE), FULLSPEC)
-	BIN_ALL += $(BINDIR)/$(SCSIDUMP)
-	BIN_ALL += $(BINDIR)/$(SASIDUMP)
-endif
+BIN_ALL += $(BINDIR)/$(SCSIDUMP)
+BIN_ALL += $(BINDIR)/$(SASIDUMP)
 
 SRC_PROTOC = ../proto/piscsi_interface.proto
 
@@ -147,20 +132,16 @@ OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
 BINARIES = $(USR_LOCAL_BIN)/$(SCSICTL) \
 	$(USR_LOCAL_BIN)/$(PISCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
-	$(USR_LOCAL_BIN)/$(SCSILOOP)
-ifeq ($(CONNECT_TYPE), FULLSPEC)
-	BINARIES += $(USR_LOCAL_BIN)/$(SCSIDUMP)
-	BINARIES += $(USR_LOCAL_BIN)/$(SASIDUMP)
-endif
+	$(USR_LOCAL_BIN)/$(SCSILOOP) \
+	$(USR_LOCAL_BIN)/$(SCSIDUMP) \
+	$(USR_LOCAL_BIN)/$(SASIDUMP)
 
 MAN_PAGES = $(MAN_PAGE_DIR)/piscsi.1 \
 	$(MAN_PAGE_DIR)/scsictl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
-	$(MAN_PAGE_DIR)/scsiloop.1
-ifeq ($(CONNECT_TYPE), FULLSPEC)
-	MAN_PAGES += $(MAN_PAGE_DIR)/scsidump.1
-	MAN_PAGES += $(MAN_PAGE_DIR)/sasidump.1
-endif
+	$(MAN_PAGE_DIR)/scsiloop.1 \
+	$(MAN_PAGE_DIR)/scsidump.1 \
+	$(MAN_PAGE_DIR)/sasidump.1
 
 GENERATED_DIR := generated
 

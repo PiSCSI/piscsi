@@ -230,19 +230,14 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // RAM copy of GPFSEL0-4  values (GPIO Function Select)
     array<uint32_t, 4> gpfsel;
 
-#if SIGNAL_CONTROL_MODE == 0
     // Data mask table
     array<array<uint32_t, 256>, 3> tblDatMsk;
     // Data setting table
     array<array<uint32_t, 256>, 3> tblDatSet;
-#else
-    // Data mask table
-    array<uint32_t, 256> tblDatMsk = {};
-    // Table setting table
-    array<uint32_t, 256> tblDatSet = {};
-#endif
 
-    static const array<int, 19> SignalTable;
+    array<int, 19> SignalTable = {};
+
+    void MakeSignalTable();
 
     const static int GPIO_FSEL_0     = 0;
     const static int GPIO_FSEL_1     = 1;

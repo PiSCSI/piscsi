@@ -45,10 +45,11 @@ void Piscsi::Banner(span<char *> args) const
 	cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
-		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n"
+		cout << "\nUsage: " << args[0] << " [-C CONNECT_TYPE] [-idID[:LUN] FILE] ...\n\n"
 				<< " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
 				<< " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n"
 				<< " FILE is a disk image file, \"daynaport\", \"printer\" or \"services\".\n"
+				<< " CONNECT_TYPE is FULLSPEC, STANDARD, or GAMERNIUM; FULLSPEC is the default.\n"
 				<< " Image type is detected based on file extension if no explicit type is specified.\n\n"
 				<< "See the piscsi man page for a full list of supported parameters\n"
 				<< flush;

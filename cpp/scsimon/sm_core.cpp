@@ -77,7 +77,7 @@ void ScsiMon::ParseArguments(const vector<char *> &args)
 void ScsiMon::PrintHelpText(const vector<char *> &args) const
 {
     spdlog::info("SCSI Target Emulator PiSCSI (SCSI Monitor Capture Tool)\n\n");
-    spdlog::info("Usage: " + string(args[0]) + " -i [input file json] -b [buffer size] [output file]\n\n");
+    spdlog::info("Usage: " + string(args[0]) + " [-C CONNECT_TYPE] -i [input file json] -b [buffer size] [output file]\n\n");
 }
 
 void ScsiMon::Banner() const
@@ -86,7 +86,7 @@ void ScsiMon::Banner() const
     	spdlog::info("Reading input file: " + input_file_name);
     } else {
     	spdlog::info("Reading live data from the GPIO pins");
-		spdlog::info("    Connection type: " + CONNECT_DESC);
+		spdlog::info("    Connection type: " + string(CONNECT_DESC));
     }
     spdlog::info("    Data buffer size: " + to_string(buff_size));
     spdlog::info(" ");

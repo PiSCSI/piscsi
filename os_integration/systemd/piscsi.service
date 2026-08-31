@@ -6,7 +6,8 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/piscsi -r 7
+Environment=PISCSI_CONNECTION_TYPE=FULLSPEC
+ExecStart=/usr/bin/piscsi -C ${PISCSI_CONNECTION_TYPE} -r 7
 ExecStop=/usr/bin/scsictl -X
 SyslogIdentifier=PISCSI
 

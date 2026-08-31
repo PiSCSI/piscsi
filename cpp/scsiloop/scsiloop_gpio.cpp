@@ -16,18 +16,6 @@
 #include <chrono>
 #include <thread>
 
-#if defined CONNECT_TYPE_STANDARD
-#include "hal/connection_type/connection_standard.h"
-#elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/connection_type/connection_fullspec.h"
-#elif defined CONNECT_TYPE_AIBOM
-#include "hal/connection_type/connection_aibom.h"
-#elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/connection_type/connection_gamernium.h"
-#else
-#error Invalid connection type or none specified
-#endif
-
 ScsiLoop_GPIO::ScsiLoop_GPIO()
 {
     bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
@@ -170,7 +158,7 @@ void ScsiLoop_GPIO::set_tad_in()
 // will set all of the transceivers to inputs.
 void ScsiLoop_GPIO::set_output_channel(int out_gpio)
 {
-    LOGTRACE("%s tad: %d dtd: %d ind: %d", CONNECT_DESC.c_str(), (int)local_pin_tad, (int)local_pin_dtd,
+    LOGTRACE("%s tad: %d dtd: %d ind: %d", CONNECT_DESC.data(), (int)local_pin_tad, (int)local_pin_dtd,
              (int)local_pin_ind);
     if (out_gpio == local_pin_tad)
         set_tad_out();

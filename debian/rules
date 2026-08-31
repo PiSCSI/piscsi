@@ -10,7 +10,6 @@ PISCSI_RPI_ZERO ?= 0
 RPI_ZERO_CXXFLAGS =
 
 CPP_MAKE_FLAGS = \
-	CONNECT_TYPE=FULLSPEC \
 	DEFAULT_IMAGE_FOLDER=/var/lib/piscsi/images \
 	CROSS_COMPILE=$(DEB_HOST_GNU_TYPE)- \
 	EXTRA_FLAGS="$(shell dpkg-buildflags --get CPPFLAGS) $(shell dpkg-buildflags --get CXXFLAGS) $(RPI_ZERO_CXXFLAGS)" \

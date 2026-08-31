@@ -19,6 +19,7 @@
 .Op Fl z Ar LOCALE
 .Op Fl IDn Ns Oo :u Oc Ar FILE
 .Nm
+.Op Fl C Ar TYPE
 .Op Fl h
 .Nm
 .Op Fl v
@@ -73,12 +74,57 @@ If another process is using this port, PiSCSI will terminate.
 Once PiSCSI has initialized, the scsictl utility can be used to send commands.
 .Pp
 To quit PiSCSI, press Control + C. If it is running in the background, you can kill it using an INT signal.
+.Sh CONNECTION TYPE
+The GPIO-facing tools select the board layout when they start. Use
+.Fl C
+to select one of the following types:
+.Bl -tag -width GAMERNIUM
+.It Dv FULLSPEC
+For boards with initiator support.
+.It Dv STANDARD
+For simpler boards that use fewer pins.
+.It Dv GAMERNIUM
+For the early GAMERnium.com board variant.
+.El
+.Pp
+Note: As of PiSCSI v26.8.1, the
+.Dv AIBOM
+board variant is no longer supported.
+.Pp
+Use the board's silkscreen or the Hardware Versions wiki page at
+.Lk https://github.com/PiSCSI/piscsi/wiki/Hardware-Versions
+to identify it. Selecting the wrong type can prevent devices from appearing on
+the SCSI bus.
+.Pp
+The default is
+.Dv FULLSPEC .
+For example:
+.Dl sudo piscsi Fl C Ar STANDARD Fl r Ar 7
+.Pp
+.Nm ,
+.Xr scsimon 1 ,
+.Xr scsiloop 1 ,
+.Xr scsidump 1 ,
+and
+.Xr sasidump 1
+support this option. The type is fixed for the lifetime of the process; stop
+and restart a tool before choosing another mapping.
+.Pp
+The supplied systemd service defaults to
+.Dv FULLSPEC .
+Override its
+.Ev PISCSI_CONNECTION_TYPE
+environment variable and restart the service to use a different mapping.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl b Ar BLOCK_SIZE
 The optional block size.
 SASI hard disks support 256, 512, or 1024 bytes per sector and default to 256 bytes.
 Other disk devices support 512, 1024, 2048, or 4096 bytes and default to 512 bytes.
+.It Fl C Ar TYPE
+Select the board connection type for this process. See
+.Sx CONNECTION TYPE
+for the available mappings and their appropriate boards.
 .It Fl F Ar FOLDER
 The default folder for image files. For files in this folder no absolute path needs to be specified. The folder must already exist. The initial default folder is '/var/lib/piscsi/images'.
 .It Fl h

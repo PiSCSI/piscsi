@@ -58,7 +58,8 @@ bool SasiDump::Banner(span<char*> args) const
     cout << piscsi_util::Banner("(SASI Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -i ID [-u UNIT] [-b BLOCK_SIZE] -c COUNT -f FILE [-r]\n"
+        cout << "Usage: " << args[0] << " [-C CONNECT_TYPE] -i ID [-u UNIT] [-b BLOCK_SIZE] -c COUNT -f FILE [-r]\n"
+             << "CONNECT_TYPE is FULLSPEC, STANDARD, or GAMERNIUM; FULLSPEC is the default.\n"
              << "See the sasidump man page for all supported parameters\n";
         return false;
     }

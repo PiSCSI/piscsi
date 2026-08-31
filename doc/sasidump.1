@@ -6,6 +6,7 @@
 .Nd SASI disk dumping tool for PiSCSI
 .Sh SYNOPSIS
 .Nm
+.Op Fl C Ar TYPE
 .Fl i Ar ID
 .Op Fl u Ar UNIT
 .Op Fl b Ar BLOCK_SIZE
@@ -32,6 +33,8 @@ Restoring overwrites data on the physical SASI disk.
 Verify the target ID, unit ID, block size, and block count before proceeding.
 .Sh OPTIONS
 .Bl -tag -width Ds
+.It Fl C Ar TYPE
+Select STANDARD, FULLSPEC, or GAMERNIUM. FULLSPEC is the default.
 .It Fl i Ar ID
 SASI ID of the target device (0-7).
 .It Fl u Ar UNIT

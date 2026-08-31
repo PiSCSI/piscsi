@@ -6,6 +6,7 @@
 .Nd Acts as a data capture tool for all traffic on the SCSI bus. Data is stored in a Value Change Dump (VCD) file.
 .Sh SYNOPSIS
 .Nm
+.Op Fl C Ar TYPE
 .Op Fl i Ar input_file_json
 .Op Fl b Ar buffer_size
 .Op Ar output_file
@@ -21,6 +22,9 @@ To quit scsimon, press Control + C.
 .Sh OPTIONS
 .Fl i Ar input_file_json
 scsimon will parse the json file instead of capturing new data. If -i option is not specified, scsimon will read the gpio pins.
+.Fl C Ar TYPE
+Select STANDARD, FULLSPEC, or GAMERNIUM for live GPIO capture. FULLSPEC is the
+default. Capture files record their selected type and use it when imported.
 .Fl b Ar buffer_size
 Override the default buffer size of 1000000.
 .Ar output_file
