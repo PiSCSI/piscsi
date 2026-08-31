@@ -42,15 +42,15 @@ Thank you to all of the GitHub sponsors who support the development community!
 
 Extra special thank you to the Gold level sponsors!
 
-- @mikelord68
-- @SamplerSpa-dev
+- [@mikelord68](https://github.com/mikelord68)
+- [@SamplerSpa-dev](https://github.com/SamplerSpa-de)
 
 Special thank you to the Silver level sponsors!
 
-- @stinkerton18
-- @hsiboy
-- @pendleton115
-- @Teufelhunden-0311
+- [@stinkerton18](https://github.com/stinkerton18)
+- [@hsiboy](https://github.com/hsiboy)
+- [@pendleton115](https://github.com/pendleton115)
+- [@Teufelhunden-0311](https://github.com/Teufelhunden-0311)
 - Private sponsor ;]
 
 Thank you to Lin van der Slikke for the red panda logo design!
