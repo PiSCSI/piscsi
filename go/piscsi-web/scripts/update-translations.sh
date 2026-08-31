@@ -30,7 +30,9 @@ source_pot="${PROJECT_DIR}/messages.pot"
 
 (
   cd "${GO_ROOT}"
-  go run ./piscsi-web/cmd/extract-translations --output "${generated_pot}"
+  go run ./piscsi-web/cmd/extract-translations \
+    --root "${PROJECT_DIR}" \
+    --output "${generated_pot}"
 )
 msgfmt --check-format --output-file=/dev/null "${generated_pot}"
 
