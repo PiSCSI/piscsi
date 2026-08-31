@@ -30,6 +30,7 @@ devices_src = [
 ]
 hal_src = [
     'hal/bus.cpp',
+    'hal/connection_profile.cpp',
     'hal/data_sample.cpp',
     'hal/gpiobus_factory.cpp',
     'hal/gpiobus_raspberry.cpp',
@@ -98,6 +99,7 @@ test_src = [
     'test/abstract_controller_test.cpp',
     'test/bus_test.cpp',
     'test/command_context_test.cpp',
+    'test/connection_profile_test.cpp',
     'test/controller_manager_test.cpp',
     'test/ctapdriver_test.cpp',
     'test/device_factory_test.cpp',
@@ -166,7 +168,7 @@ endif
 if target.contains('scsimon')
     scsimon_bin = executable('scsimon',
         scsimon_src + shared_src,
-        dependencies : common_deps,
+        dependencies : common_deps + [protobuf_dep],
         install : true,
     )
 endif
@@ -181,15 +183,15 @@ elif target.contains('scsiloop')
     message('Skipping scsiloop: it requires Linux on Raspberry Pi GPIO hardware')
 endif
 
-if connect_type == 'FULLSPEC' and target.contains('scsidump')
+if target.contains('scsidump')
     scsidump_bin = executable('scsidump',
         scsidump_src + shared_src,
-        dependencies : common_deps,
+        dependencies : common_deps + [protobuf_dep],
         install : true,
     )
 endif
 
-if connect_type == 'FULLSPEC' and target.contains('sasidump')
+if target.contains('sasidump')
     sasidump_bin = executable('sasidump',
         sasidump_src + shared_src,
         dependencies : common_deps + [protobuf_dep],

@@ -1,11 +1,4 @@
 option(
-    'connect_type',
-    type : 'combo',
-    choices : ['AIBOM', 'FULLSPEC', 'GAMERNIUM', 'STANDARD'],
-    value : 'FULLSPEC',
-    description : 'PiSCSI board type'
-)
-option(
     'target',
     type : 'array',
     choices : ['piscsi', 'scsictl', 'scsimon', 'scsiloop', 'scsidump', 'sasidump', 'test'],

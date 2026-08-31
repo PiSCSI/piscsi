@@ -8,13 +8,21 @@
 //
 //---------------------------------------------------------------------------
 
+#include "hal/connection_profile.h"
 #include "scsiloop/scsiloop_core.h"
+
+#include <iostream>
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-	const vector<char *> args(argv, argv + argc);
+    vector<char*> args(argv, argv + argc);
+    string error;
+    if (!ConfigureConnectionType(args, error)) {
+        cerr << error << '\n';
+        return EXIT_FAILURE;
+    }
 
-	return ScsiLoop().run(args);
+    return ScsiLoop().run(args);
 }

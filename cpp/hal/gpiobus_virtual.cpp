@@ -30,6 +30,7 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
 {
     GPIO_FUNCTION_TRACE
     GPIOBUS::Init(mode);
+    MakeSignalTable();
 
 #ifdef SHARED_MEMORY_GPIO
     // Create a shared memory region that can be accessed as a virtual "SCSI bus"
@@ -418,6 +419,12 @@ void GPIOBUS_Virtual::SetDAT(uint8_t dat)
 void GPIOBUS_Virtual::MakeTable(void)
 {
     GPIO_FUNCTION_TRACE
+}
+
+void GPIOBUS_Virtual::MakeSignalTable()
+{
+    SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP,  PIN_SEL,
+                   PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY, PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1};
 }
 
 //---------------------------------------------------------------------------

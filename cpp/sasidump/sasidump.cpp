@@ -9,13 +9,21 @@
 //
 //---------------------------------------------------------------------------
 
+#include "hal/connection_profile.h"
 #include "sasidump/sasidump_core.h"
+
+#include <iostream>
 
 using namespace std;
 
 int main(int argc, char* argv[])
 {
     vector<char*> args(argv, argv + argc);
+    string error;
+    if (!ConfigureConnectionType(args, error)) {
+        cerr << error << '\n';
+        return EXIT_FAILURE;
+    }
 
     return SasiDump().run(args);
 }

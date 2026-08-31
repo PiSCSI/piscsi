@@ -100,40 +100,24 @@ The web interface and the optional OLED/control-board programs are built with
 Go. Start with the [web interface README](go/piscsi-web/README.md); the OLED
 and control-board directories each have their own README as well.
 
-## Select the board connection type
-
-The C++ daemon must be built for the GPIO layout of the PiSCSI board:
-
-- `FULLSPEC` is the default and is appropriate for PiSCSI 2.1 and newer.
-- `STANDARD` is for PiSCSI 1.6 and older.
-- `AIBOM` and `GAMERNIUM` are for the early board variants with their own GPIO
-  layouts.
-
-Use the board's silkscreen or the [Hardware Versions wiki page](https://github.com/PiSCSI/piscsi/wiki/Hardware-Versions)
-to identify it. Selecting the wrong type can prevent devices from appearing on
-the SCSI bus.
-
-The examples below use `FULLSPEC`; replace it with the appropriate value for
-your hardware.
-
 ## Build with Meson
 
 Meson is configured from the repository root. A separate build directory keeps
 generated files out of the checkout.
 
 ```sh
-meson setup build -Dconnect_type=FULLSPEC
+meson setup build
 meson compile -C build
 ```
 
 The default target set builds `piscsi`, `scsictl`, `scsimon`, `scsiloop`,
-`scsidump`, and the unit tests. `scsidump` is only built for `FULLSPEC`, and
-`scsiloop` requires Linux on Raspberry Pi GPIO hardware.
+`scsidump`, and the unit tests. `scsiloop` requires Linux on Raspberry Pi GPIO
+hardware.
 
 To select targets explicitly, pass a Meson array option:
 
 ```sh
-meson setup build -Dconnect_type=STANDARD -Dtarget=piscsi,scsictl
+meson setup build -Dtarget=piscsi,scsictl
 meson compile -C build
 ```
 
@@ -141,14 +125,6 @@ Run unit tests when the Google Test/Mock packages are installed:
 
 ```sh
 meson test -C build
-```
-
-To change an existing build directory, use `meson configure` rather than
-creating it again:
-
-```sh
-meson configure build -Dconnect_type=STANDARD
-meson compile -C build
 ```
 
 Install the Meson-built binaries and installed data with:
@@ -169,29 +145,28 @@ writes binaries to `cpp/bin/`.
 
 ```sh
 cd cpp
-make -j"$(nproc)" all CONNECT_TYPE=FULLSPEC
+make -j"$(nproc)" all
 ```
 
 For a development build with debug symbols and no optimization:
 
 ```sh
-make -j"$(nproc)" DEBUG=1 all CONNECT_TYPE=FULLSPEC
+make -j"$(nproc)" DEBUG=1 all
 ```
 
 Run the C++ unit tests:
 
 ```sh
-make -j"$(nproc)" test CONNECT_TYPE=FULLSPEC
+make -j"$(nproc)" test
 ```
 
-The Makefile supports the same `CONNECT_TYPE` values as Meson. It also accepts
-`CROSS_COMPILE`, for example `CROSS_COMPILE=arm-linux-gnueabihf-`, and
+The Makefile accepts `CROSS_COMPILE`, for example `CROSS_COMPILE=arm-linux-gnueabihf-`, and
 `DEFAULT_IMAGE_FOLDER` to change the compiled default image directory.
 
 Install the Make-built development files with:
 
 ```sh
-sudo make install CONNECT_TYPE=FULLSPEC
+sudo make install
 ```
 
 After a Makefile installation, reload logging and enable/start the service as
@@ -219,7 +194,7 @@ For Meson, remove the build directory and configure it again:
 
 ```sh
 rm -rf build
-meson setup build -Dconnect_type=FULLSPEC
+meson setup build
 ```
 
 The two build systems can be used in parallel, but they do not share build artifacts.

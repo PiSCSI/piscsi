@@ -56,11 +56,12 @@ bool ScsiDump::Banner(span<char *> args) const
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE\n"
+		cout << "Usage: " << args[0] << " [-C CONNECT_TYPE] -t ID[:LUN] [-i BID] -f FILE\n"
 				<< " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
 				<< " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
 				<< " Default is 0.\n"
 				<< " BID is the PiSCSI board ID (0-7). Default is 7.\n"
+				<< " CONNECT_TYPE is FULLSPEC, STANDARD, or GAMERNIUM; FULLSPEC is the default.\n"
 				<< " FILE is the dump file path.\n\n"
 				<< "See the scsidump man page for all supported parameters\n"
 				<< flush;

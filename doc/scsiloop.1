@@ -6,6 +6,7 @@
 .Nd Tool for testing the PiSCSI board with a loopback adapter installed
 .Sh SYNOPSIS
 .Nm
+.Op Fl C Ar TYPE
 .Op Fl L Ar LOG_LEVEL
 .Sh DESCRIPTION
 .Nm
@@ -29,6 +30,8 @@ The loopback connections for the DB25 connector are shown here:
 .Ed
 .Sh OPTIONS
 .Bl -tag -width Ds
+.It Fl C Ar TYPE
+Select STANDARD, FULLSPEC, or GAMERNIUM. FULLSPEC is the default.
 .It Fl L Ar LOG_LEVEL
 The piscsi log level (trace, debug, info, warn, err, off). The default log level is 'info'.
 .El

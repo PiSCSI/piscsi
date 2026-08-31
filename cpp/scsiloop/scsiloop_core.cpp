@@ -29,18 +29,6 @@
 #include <string_view>
 #include <signal.h>
 
-#if defined CONNECT_TYPE_STANDARD
-#include "hal/connection_type/connection_standard.h"
-#elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/connection_type/connection_fullspec.h"
-#elif defined CONNECT_TYPE_AIBOM
-#include "hal/connection_type/connection_aibom.h"
-#elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/connection_type/connection_gamernium.h"
-#else
-#error Invalid connection type or none specified
-#endif
-
 using namespace std;
 using namespace spdlog;
 
@@ -71,7 +59,7 @@ void ScsiLoop::Banner(const vector<char *> &args) const
     cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
     if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)) {
-        cout << "\nUsage: " << args[0] << " [-L log_level] ...\n\n";
+        cout << "\nUsage: " << args[0] << " [-C CONNECT_TYPE] [-L log_level] ...\n\n";
         exit(EXIT_SUCCESS);
     }
 }

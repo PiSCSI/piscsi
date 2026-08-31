@@ -66,6 +66,7 @@ uint32_t GPIOBUS_Raspberry::bcm_host_get_peripheral_address()
 bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
+    MakeSignalTable();
 
 #if !defined(__linux__) || defined(__x86_64__) || defined(__X86__)
     (void)baseaddr;
@@ -143,14 +144,8 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // Set Drive Strength to 16mA
     DrvConfig(7);
 
-    // Set pull up/pull down
-#if SIGNAL_CONTROL_MODE == 0
-    int pullmode = GPIO_PULLNONE;
-#elif SIGNAL_CONTROL_MODE == 1
-    int pullmode = GPIO_PULLUP;
-#else
-    int pullmode = GPIO_PULLDOWN;
-#endif
+    // All supported profiles use SCSI logical signal control.
+    const int pullmode = GPIO_PULLNONE;
 
     // Initialize all signals
     for (i = 0; SignalTable[i] >= 0; i++) {
@@ -194,11 +189,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     strcpy(selevreq.consumer_label, "PiSCSI");
     selevreq.lineoffset  = PIN_SEL;
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
-#if SIGNAL_CONTROL_MODE < 2
     selevreq.eventflags  = GPIOEVENT_REQUEST_FALLING_EDGE;
-#else
-    selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
-#endif // SIGNAL_CONTROL_MODE
 
     // Get event request
     if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
@@ -217,11 +208,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
 #else
     // Edge detection setting
-#if SIGNAL_CONTROL_MODE == 2
-    gpio[GPIO_AREN_0] = 1 << PIN_SEL;
-#else
     gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
-#endif // SIGNAL_CONTROL_MODE
 
     // Clear event - GPIO Pin Event Detect Status
     gpio[GPIO_EDS_0] = 1 << PIN_SEL;
@@ -610,7 +597,6 @@ uint8_t GPIOBUS_Raspberry::GetDAT()
 void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
 {
     // Write to ports
-#if SIGNAL_CONTROL_MODE == 0
     uint32_t fsel = gpfsel[0];
     fsel &= tblDatMsk[0][dat];
     fsel |= tblDatSet[0][dat];
@@ -628,10 +614,6 @@ void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
     fsel |= tblDatSet[2][dat];
     gpfsel[2] = fsel;
     gpio[GPIO_FSEL_2] = fsel;
-#else
-    gpio[GPIO_CLR_0] = tblDatMsk[dat];
-    gpio[GPIO_SET_0] = tblDatSet[dat];
-#endif
 }
 
 //---------------------------------------------------------------------------
@@ -639,9 +621,11 @@ void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const array<int, 19> GPIOBUS_Raspberry::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6,
-                                                       PIN_DT7, PIN_DP,  PIN_SEL, PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY,
-                                                       PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1};
+void GPIOBUS_Raspberry::MakeSignalTable()
+{
+    SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP,  PIN_SEL,
+                   PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY, PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1};
+}
 
 //---------------------------------------------------------------------------
 //
@@ -666,7 +650,6 @@ void GPIOBUS_Raspberry::MakeTable(void)
         tblParity[i] = parity & 1;
     }
 
-#if SIGNAL_CONTROL_MODE == 0
     // Mask and setting data generation
     for (auto &tbl : tblDatMsk) {
         tbl.fill(-1);
@@ -701,37 +684,6 @@ void GPIOBUS_Raspberry::MakeTable(void)
             bits >>= 1;
         }
     }
-#else
-    for (uint32_t i = 0; i < 0x100; i++) {
-        // Bit string for inspection
-        uint32_t bits = i;
-
-        // Get parity
-        if (tblParity[i]) {
-            bits |= (1 << 8);
-        }
-
-#if SIGNAL_CONTROL_MODE == 1
-        // Negative logic is inverted
-        bits = ~bits;
-#endif
-
-        // Create GPIO register information
-        uint32_t gpclr = 0;
-        uint32_t gpset = 0;
-        for (int j = 0; j < 9; j++) {
-            if (bits & 1) {
-                gpset |= (1 << pintbl[j]);
-            } else {
-                gpclr |= (1 << pintbl[j]);
-            }
-            bits >>= 1;
-        }
-
-        tblDatMsk[i] = gpclr;
-        tblDatSet[i] = gpset;
-    }
-#endif
 }
 
 //---------------------------------------------------------------------------
@@ -754,11 +706,9 @@ void GPIOBUS_Raspberry::SetControl(int pin, bool ast)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetMode(int pin, int mode)
 {
-#if SIGNAL_CONTROL_MODE == 0
     if (mode == OUT) {
         return;
     }
-#endif // SIGNAL_CONTROL_MODE
 
     int index     = pin / 10;
     int shift     = (pin % 10) * 3;
@@ -791,7 +741,6 @@ bool GPIOBUS_Raspberry::GetSignal(int pin) const
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 {
-#if SIGNAL_CONTROL_MODE == 0
     int index     = pin / 10;
     int shift     = (pin % 10) * 3;
     uint32_t data = gpfsel[index];
@@ -802,19 +751,6 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
     }
     gpio[index]   = data;
     gpfsel[index] = data;
-#elif SIGNAL_CONTROL_MODE == 1
-    if (ast) {
-        gpio[GPIO_CLR_0] = 0x1 << pin;
-    } else {
-        gpio[GPIO_SET_0] = 0x1 << pin;
-    }
-#elif SIGNAL_CONTROL_MODE == 2
-    if (ast) {
-        gpio[GPIO_SET_0] = 0x1 << pin;
-    } else {
-        gpio[GPIO_CLR_0] = 0x1 << pin;
-    }
-#endif // SIGNAL_CONTROL_MODE
 }
 
 void GPIOBUS_Raspberry::DisableIRQ()
@@ -958,10 +894,8 @@ uint32_t GPIOBUS_Raspberry::Acquire()
 {
     signals = *level;
 
-#if SIGNAL_CONTROL_MODE < 2
-    // Invert if negative logic (internal processing is unified to positive logic)
+    // SCSI logical signal control is active-low internally.
     signals = ~signals;
-#endif // SIGNAL_CONTROL_MODE
 
     return signals;
 }

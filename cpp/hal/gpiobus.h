@@ -19,27 +19,7 @@
 #include <linux/gpio.h>
 #endif
 
-//---------------------------------------------------------------------------
-//
-//	Connection method definitions
-//
-//---------------------------------------------------------------------------
-//#define CONNECT_TYPE_STANDARD		// Standard (SCSI logic, standard pin assignment)
-//#define CONNECT_TYPE_FULLSPEC		// Full spec (SCSI logic, standard pin assignment)
-//#define CONNECT_TYPE_AIBOM		// AIBOM version (positive logic, unique pin assignment)
-//#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
-
-#if defined CONNECT_TYPE_STANDARD
-#include "hal/connection_type/connection_standard.h"
-#elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/connection_type/connection_fullspec.h"
-#elif defined CONNECT_TYPE_AIBOM
-#include "hal/connection_type/connection_aibom.h"
-#elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/connection_type/connection_gamernium.h"
-#else
-#error Invalid connection type or none specified
-#endif
+#include "hal/connection_profile.h"
 
 // #define ENABLE_GPIO_TRACE
 #ifdef ENABLE_GPIO_TRACE
@@ -49,35 +29,6 @@
 #endif
 
 using namespace std;
-
-//---------------------------------------------------------------------------
-//
-//	Signal control logic and pin assignment customization
-//
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//
-//	SIGNAL_CONTROL_MODE: Signal control mode selection
-//	 You can customize the signal control logic from Version 1.22
-//
-//	 0:SCSI logical specification
-//	    Conversion board using 74LS641-1 etc. directly connected or published on HP
-//	  True  : 0V
-//	  False : Open collector output (disconnect from bus)
-//
-//	 1:Negative logic specification (when using conversion board for negative logic -> SCSI logic)
-//	    There is no conversion board with this specification at this time
-//	  True  : 0V   -> (CONVERT) -> 0V
-//	  False : 3.3V -> (CONVERT) -> Open collector output
-//
-//	 2:Positive logic specification (when using the conversion board for positive logic -> SCSI logic)
-//	    PiSCSI Adapter Rev.C @132sync etc.
-//
-//	  True  : 3.3V -> (CONVERT) -> 0V
-//	  False : 0V   -> (CONVERT) -> Open collector output
-//
-//---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //

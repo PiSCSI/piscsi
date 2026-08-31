@@ -6,6 +6,7 @@
 .Nd SCSI disk dumping tool for PiSCSI
 .Sh SYNOPSIS
 .Nm
+.Op Fl C Ar TYPE
 .Op Fl I Ar ID Ns Oo : Ar LUN Oc
 .Op Fl i Ar BID
 .Fl f Ar FILE
@@ -29,6 +30,8 @@ requires either a direct connection (one without transceivers) or a FULLSPEC PiS
 If the generated drive image is intended to be used with PiSCSI, the drive image should be moved to /var/lib/piscsi/images (or the location specified to the piscsi service).
 .Sh OPTIONS
 .Bl -tag -width Ds
+.It Fl C Ar TYPE
+Select STANDARD, FULLSPEC, or GAMERNIUM. FULLSPEC is the default.
 .It Fl I Ar ID Ns Oo : Ar LUN Oc
 Display INQUIRY data of ID[:LUN].
 .It Fl i Ar BID
