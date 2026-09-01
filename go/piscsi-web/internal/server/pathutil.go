@@ -6,10 +6,14 @@
 package server
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 )
+
+var errNotRegularFile = errors.New("not a regular file")
 
 // resolvePathWithin converts a browser-facing relative path into an absolute
 // path below root. It rejects absolute paths and lexical traversal.
@@ -99,4 +103,39 @@ func uploadDestinationPath(root, subdirectory string) (string, error) {
 		return "", fmt.Errorf("destination escapes the configured directory")
 	}
 	return target, nil
+}
+
+// openRegularFileWithin opens name beneath root without following a symlink
+// outside root. Symlink leaves are rejected so callers do not serve a file
+// selected by a locally planted link.
+func openRegularFileWithin(root, name string) (*os.File, os.FileInfo, error) {
+	rootHandle, err := os.OpenRoot(root)
+	if err != nil {
+		return nil, nil, fmt.Errorf("open root directory: %w", err)
+	}
+	defer rootHandle.Close()
+
+	entryInfo, err := rootHandle.Lstat(name)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !entryInfo.Mode().IsRegular() {
+		return nil, nil, errNotRegularFile
+	}
+
+	file, err := rootHandle.Open(name)
+	if err != nil {
+		return nil, nil, err
+	}
+	info, err := file.Stat()
+	if err != nil {
+		file.Close()
+		return nil, nil, err
+	}
+	if !info.Mode().IsRegular() {
+		file.Close()
+		return nil, nil, errNotRegularFile
+	}
+
+	return file, info, nil
 }
