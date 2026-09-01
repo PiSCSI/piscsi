@@ -2154,22 +2154,67 @@ func (s *Server) handleLogsLevel(c *gin.Context) {
 	})
 }
 
+const (
+	defaultSystemLogLines = 100
+	maxSystemLogLines     = 1000
+	systemLogTimeout      = 10 * time.Second
+)
+
+var systemLogScopes = map[string]struct{}{
+	"piscsi":           {},
+	"piscsi-web":       {},
+	"piscsi-oled":      {},
+	"piscsi-ctrlboard": {},
+}
+
+func parseSystemLogRequest(linesValue, scope string) (int, string, error) {
+	lines := defaultSystemLogLines
+	if linesValue != "" {
+		parsed, err := strconv.Atoi(linesValue)
+		if err != nil || parsed < 1 || parsed > maxSystemLogLines {
+			return 0, "", fmt.Errorf("log lines must be between 1 and %d", maxSystemLogLines)
+		}
+		lines = parsed
+	}
+
+	if scope != "" {
+		if _, ok := systemLogScopes[scope]; !ok {
+			return 0, "", fmt.Errorf("invalid log scope")
+		}
+	}
+
+	return lines, scope, nil
+}
+
 // displays system logs
 func (s *Server) handleLogsShow(c *gin.Context) {
-	lines := c.DefaultPostForm("lines", "100")
+	linesValue := c.PostForm("lines")
 	scope := c.PostForm("scope")
+	lines, scope, err := parseSystemLogRequest(linesValue, scope)
+	if err != nil {
+		s.respond(c, ResponseOptions{
+			Error:    true,
+			Message:  err.Error(),
+			Template: "logs.html",
+			TemplateData: gin.H{
+				"Title": "PiSCSI System Logs",
+				"Scope": "All logs",
+				"Lines": defaultSystemLogLines,
+			},
+		})
+		return
+	}
 
 	// Build journalctl command
-	args := []string{}
-	if lines != "" {
-		args = append(args, "-n", lines)
-	}
+	args := []string{"--no-pager", "--lines=" + strconv.Itoa(lines)}
 	if scope != "" {
-		args = append(args, "-u", scope)
+		args = append(args, "--unit="+scope)
 	}
 
 	// Execute journalctl command
-	output, err := s.runSystemCommand("journalctl", args...)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), systemLogTimeout)
+	defer cancel()
+	output, err := s.runSystemCommandContext(ctx, "journalctl", args...)
 
 	logs := string(output)
 	if err != nil {
@@ -2193,7 +2238,7 @@ func (s *Server) handleLogsShow(c *gin.Context) {
 	// Render the logs template
 	data := s.getBaseTemplateData(c)
 	data["Scope"] = scopeDisplay
-	data["Lines"] = lines
+	data["Lines"] = strconv.Itoa(lines)
 	data["Logs"] = logs
 	data["Title"] = "PiSCSI System Logs"
 
