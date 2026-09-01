@@ -8,7 +8,8 @@ on:
     paths:
       - '.github/workflows/cpp.yml'
       - 'cpp/**'
-      - 'python/**'
+      - 'go/**'
+      - 'proto/**'
   pull_request:
     branches:
       - develop
@@ -20,7 +21,8 @@ on:
     paths:
       - '.github/workflows/cpp.yml'
       - 'cpp/**'
-      - 'python/**'
+      - 'go/**'
+      - 'proto/**'
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev meson ninja-build
@@ -82,7 +84,7 @@ jobs:
       == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' && github.actor
       != 'dependabot')
     env:
-      BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out"
+      BUILD_WRAPPER_OUT_DIR: ${{ github.workspace }}/.build_wrapper_out
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -94,10 +96,21 @@ jobs:
       - name: Install Build Wrapper
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
 
-      - name: Generate coverage
-        run: >-
-          (mkdir -p ${{ env.BUILD_WRAPPER_OUT_DIR }} || true) &&
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make -j $(nproc) -C cpp coverage
+      - name: Generate coverage and compilation database
+        run: |
+          mkdir -p "${{ env.BUILD_WRAPPER_OUT_DIR }}"
+          build-wrapper-linux-x86-64 --out-dir "${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+            make -j "$(nproc)" -C cpp coverage
+
+      - name: Validate compilation database
+        env:
+          COMPILATION_DATABASE: >-
+            ${{ env.BUILD_WRAPPER_OUT_DIR }}/compile_commands.json
+        run: |
+          test -s "$COMPILATION_DATABASE"
+          jq -e 'type == "array" and length > 0' "$COMPILATION_DATABASE" > /dev/null
+          jq -r '.[].file' "$COMPILATION_DATABASE" | sort -u \
+            | wc -l
 
       - name: Run gcov
         working-directory: cpp
@@ -113,9 +126,7 @@ jobs:
             --define sonar.cfamily.compile-commands=${{ env.BUILD_WRAPPER_OUT_DIR }}/compile_commands.json
             --define sonar.projectKey=akuker-PISCSI
             --define sonar.organization=piscsi
-            --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
-            --define sonar.cfamily.gcov.reportsPath=.
-            --define sonar.coverage.exclusions="cpp/**/test/**"
-            --define sonar.cpd.exclusions="cpp/**/test/**"
-            --define sonar.inclusions="cpp/**,python/**"
-            --define sonar.python.version=3.9,3.11
+            --define sonar.sources=cpp,go
+            --define sonar.cfamily.gcov.reportsPath=cpp
+            --define sonar.coverage.exclusions=cpp/test/**
+            --define sonar.cpd.exclusions=cpp/test/**
