@@ -21,6 +21,7 @@
 #include <iconv.h>
 #include <utime.h>
 
+#include <new>
 #include <string_view>
 
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
@@ -1230,18 +1231,15 @@ CHostPath::~CHostPath()
 //
 /// File name memory allocation
 ///
-/// In most cases, the length of the host side file name is way shorter
-/// than the size of the buffer. In addition, file names may be created in huge volumes.
-/// Therefore, allocate variable lengths that correspond to the number of chars.
+/// A directory entry contains a CHostFilename object. Allocate and construct
+/// the complete object so that its C++ lifetime and storage are both valid.
 //
 //---------------------------------------------------------------------------
-CHostPath::ring_t* CHostPath::Alloc(size_t nLength)	// static
+CHostPath::ring_t* CHostPath::Alloc()	// static
 {
-	assert(nLength < FILEPATH_MAX);
-
-	const size_t n = offsetof(ring_t, f) + CHostFilename::Offset() + (nLength + 1) * sizeof(TCHAR);
-	auto p = (ring_t*)malloc(n);
-	assert(p);
+	auto p = new (std::nothrow) ring_t;
+	if (p == nullptr)
+		return nullptr;
 
 	p->r.Init();	// This is nothing to worry about!
 
@@ -1257,8 +1255,7 @@ void CHostPath::Free(ring_t* pRing)	// static
 {
 	assert(pRing);
 
-	pRing->~ring_t();
-	free(pRing);
+	delete pRing;
 }
 
 //---------------------------------------------------------------------------
@@ -1614,7 +1611,9 @@ void CHostPath::Refresh()
 			continue;
 
 		// Allocate file name memory
-		ring_t* pRing = Alloc(filename_length);
+		ring_t* pRing = Alloc();
+		if (pRing == nullptr)
+			break;
 		CHostFilename* pFilename = &pRing->f;
 		if (!pFilename->SetHost(filename)) {
 			Free(pRing);

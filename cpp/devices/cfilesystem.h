@@ -430,8 +430,6 @@ public:
 	CHostFilename() = default;
 	~CHostFilename() = default;
 
-	static size_t Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
-
 	bool SetHost(const TCHAR* szHost);					///< Set the name of the host
 	const TCHAR* GetHost() const { return m_szHost; }	///< Get the name of the host
 	void ConvertHuman(int nCount = -1);					///< Convert the Human68k name
@@ -541,7 +539,7 @@ public:
 	static void InitId() { g_nId = 0; }					///< Initialize the counter for the unique ID generation
 
 private:
-	static ring_t* Alloc(size_t nLength);					///< Allocate memory for the file name
+	static ring_t* Alloc();									///< Allocate memory for the file name
 	static void Free(ring_t* pRing);					///< Release memory for the file name
 	static int Compare(const uint8_t* pFirst, const uint8_t* pLast, const uint8_t* pBufFirst, const uint8_t* pBufLast);
 										///< Compare string (with support for wildcards)
