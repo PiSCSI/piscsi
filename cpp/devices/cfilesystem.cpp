@@ -103,6 +103,12 @@ static bool AppendString(TCHAR* destination, size_t destination_size, std::strin
 	return true;
 }
 
+template <size_t N>
+static bool BuildPath(TCHAR (&destination)[N], const TCHAR* base, std::string_view component)
+{
+	return CopyString(destination, base) && AppendString(destination, N, component);
+}
+
 //---------------------------------------------------------------------------
 //
 //  Kanji code conversion
@@ -879,7 +885,10 @@ void CHostFilename::ConvertHuman(int nCount)
 	// Don't do conversion for special directory names
 	if (m_szHost[0] == '.' &&
 		(m_szHost[1] == '\0' || (m_szHost[1] == '.' && m_szHost[2] == '\0'))) {
-		strcpy((char*)m_szHuman, m_szHost);
+		if (!CopyBytes(m_szHuman, (const uint8_t*)m_szHost)) {
+			m_bCorrect = false;
+			return;
+		}
 
 		m_bCorrect = true;
 		m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
@@ -1561,13 +1570,12 @@ int AsciiSort(const dirent **a, const dirent **b)
 //---------------------------------------------------------------------------
 void CHostPath::Refresh()
 {
-	assert(strlen(m_szHost) + 22 < FILEPATH_MAX);
+	const size_t host_length = strnlen(m_szHost, ARRAY_SIZE(m_szHost));
+	if (host_length == ARRAY_SIZE(m_szHost) || host_length > ARRAY_SIZE(m_szHost) - 1 - 22)
+		return;
 
 	// Store time stamp
 	Backup();
-
-	TCHAR szPath[FILEPATH_MAX];
-	strcpy(szPath, m_szHost);
 
 	// Update refresh flag
 	m_bRefresh = false;
@@ -1583,7 +1591,7 @@ void CHostPath::Refresh()
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
 	for (int i = 0; i < maxent; i++) {
 		if (pd == nullptr) {
-			nument = scandir(S2U(szPath), &pd, nullptr, AsciiSort);
+			nument = scandir(S2U(m_szHost), &pd, nullptr, AsciiSort);
 			if (nument == -1) {
 				pd = nullptr;
 				break;
@@ -1643,8 +1651,10 @@ void CHostPath::Refresh()
 					const CHostFilename* pCheck = FindFilename(pFilename->GetHuman());
 					if (pCheck == nullptr) {
 						// If no match, confirm existence of real file
-						strcpy(szPath, m_szHost);
-						strcat(szPath, (const char*)pFilename->GetHuman());
+						TCHAR szPath[FILEPATH_MAX];
+						const size_t human_length = strnlen((const char*)pFilename->GetHuman(), 24);
+						if (!BuildPath(szPath, m_szHost, std::string_view((const char*)pFilename->GetHuman(), human_length)))
+							break;	// Discover available patterns
 						if (struct stat sb; stat(S2U(szPath), &sb))
 							break;	// Discover available patterns
 					}
@@ -1658,8 +1668,12 @@ void CHostPath::Refresh()
 		pFilename->SetEntryName();
 
 		// Get data
-		strcpy(szPath, m_szHost);
-		strcat(szPath, U2S(pe->d_name));
+		TCHAR szPath[FILEPATH_MAX];
+		const TCHAR* const host_name = U2S(pe->d_name);
+		const size_t host_name_length = strnlen(host_name, IC_BUF_SIZE);
+		if (host_name_length == IC_BUF_SIZE ||
+			!BuildPath(szPath, m_szHost, std::string_view(host_name, host_name_length)))
+			continue;
 
 		struct stat sb;
 		if (stat(S2U(szPath), &sb))
@@ -1729,10 +1743,10 @@ void CHostPath::Refresh()
 void CHostPath::Backup()
 {
 	assert(m_szHost);
-	assert(strlen(m_szHost) < FILEPATH_MAX);
 
 	TCHAR szPath[FILEPATH_MAX];
-	strcpy(szPath, m_szHost);
+	if (!CopyString(szPath, m_szHost))
+		return;
 	size_t len = strlen(szPath);
 
 	m_tBackup = 0;
@@ -1753,10 +1767,10 @@ void CHostPath::Backup()
 void CHostPath::Restore() const
 {
 	assert(m_szHost);
-	assert(strlen(m_szHost) < FILEPATH_MAX);
 
 	TCHAR szPath[FILEPATH_MAX];
-	strcpy(szPath, m_szHost);
+	if (!CopyString(szPath, m_szHost))
+		return;
 	size_t len = strlen(szPath);
 
 	if (m_tBackup) {
@@ -2700,7 +2714,8 @@ void CFileSys::Init()
 	uint32_t nDrives = m_nDrives;
 	if (nDrives == 0) {
 		// Use root directory instead of per-path settings
-		strcpy(m_szBase[0], "/");
+		m_szBase[0][0] = '/';
+		m_szBase[0][1] = '\0';
 		m_nFlag[0] = 0;
 		nDrives++;
 	}
@@ -2845,11 +2860,10 @@ int CFileSys::RemoveDir(uint32_t nUnit, const Human68k::namests_t* pNamests) con
 
 	// Delete cache
 	uint8_t szHuman[HUMAN68K_PATH_MAX + 24];
-	assert(strlen((const char*)f.GetHumanPath()) +
-		strlen((const char*)f.GetHumanFilename()) < HUMAN68K_PATH_MAX + 24);
-	strcpy((char*)szHuman, (const char*)f.GetHumanPath());
-	strcat((char*)szHuman, (const char*)f.GetHumanFilename());
-	strcat((char*)szHuman, "/");
+	if (!CopyBytes(szHuman, f.GetHumanPath()) ||
+		!AppendString((char*)szHuman, ARRAY_SIZE(szHuman), (const char*)f.GetHumanFilename()) ||
+		!AppendString((char*)szHuman, ARRAY_SIZE(szHuman), "/"))
+		return FS_INVALIDPATH;
 	m_cEntry.DeleteCache(nUnit, szHuman);
 
 	// Delete directory
@@ -3103,7 +3117,10 @@ int CFileSys::Files(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* pN
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
 	pFiles->size = pHostFiles->GetSize();
-	strcpy((char*)pFiles->full, (const char*)pHostFiles->GetHumanResult());
+	if (!CopyBytes(pFiles->full, pHostFiles->GetHumanResult())) {
+		m_cFiles.Free(pHostFiles);
+		return FS_INVALIDPATH;
+	}
 
 	// Specify pseudo-directory entry
 	pFiles->sector = nKey;
@@ -3151,7 +3168,10 @@ int CFileSys::NFiles(uint32_t nUnit, uint32_t nKey, Human68k::files_t* pFiles)
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
 	pFiles->size = pHostFiles->GetSize();
-	strcpy((char*)pFiles->full, (const char*)pHostFiles->GetHumanResult());
+	if (!CopyBytes(pFiles->full, pHostFiles->GetHumanResult())) {
+		m_cFiles.Free(pHostFiles);
+		return FS_INVALIDPATH;
+	}
 
 	return 0;
 }
