@@ -116,12 +116,15 @@ static bool BuildPath(TCHAR (&destination)[N], const TCHAR* base, std::string_vi
 //
 //---------------------------------------------------------------------------
 static const int IC_BUF_SIZE = 1024;
-static char convert_buf[IC_BUF_SIZE];
+static thread_local char convert_buf[IC_BUF_SIZE];
 #define CONVERT(src, dest, inbuf, outbuf, outsize) \
 	convert(src, dest, (char *)inbuf, outbuf, outsize)
 static void convert(char const *src, char const *dest,
 	char *inbuf, char *outbuf, size_t outsize)
 {
+	if (outsize == 0)
+		return;
+
 	*outbuf = '\0';
 	size_t in = strlen(inbuf);
 	size_t out = outsize - 1;
@@ -131,10 +134,7 @@ static void convert(char const *src, char const *dest,
 		return;
 	}
 
-	if (const size_t ret = iconv(cd, &inbuf, &in, &outbuf, &out); ret == (size_t)-1) {
-		return;
-	}
-
+	iconv(cd, &inbuf, &in, &outbuf, &out);
 	iconv_close(cd);
 	*outbuf = '\0';
 }
