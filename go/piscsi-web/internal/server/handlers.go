@@ -515,11 +515,11 @@ func deviceTypeName(deviceType pb.PbDeviceType) string {
 	case pb.PbDeviceType_SCCD:
 		return "SCSI CD-ROM"
 	case pb.PbDeviceType_SCBR:
-		return "Host Bridge"
+		return "X68000 Host Bridge"
 	case pb.PbDeviceType_SCDP:
-		return "Ethernet Adapter"
+		return "DaynaPort Ethernet Adapter"
 	case pb.PbDeviceType_SCLP:
-		return "Printer"
+		return "SCSI Printer"
 	case pb.PbDeviceType_SCHS:
 		return "Host Services"
 	case pb.PbDeviceType_SCTP:

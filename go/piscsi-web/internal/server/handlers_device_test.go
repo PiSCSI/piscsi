@@ -289,7 +289,7 @@ func TestBuildDeviceCatalogUsesDaemonCapabilities(t *testing.T) {
 	if catalog[0].Parameters[1].Kind != "number" {
 		t.Fatalf("timeout control = %#v, want number", catalog[0].Parameters[1])
 	}
-	if catalog[1].Key != "SCBR" || catalog[1].Name != "Host Bridge" || len(catalog[1].Parameters) != 0 {
+	if catalog[1].Key != "SCBR" || catalog[1].Name != "X68000 Host Bridge" || len(catalog[1].Parameters) != 0 {
 		t.Fatalf("unexpected Host Bridge catalog entry: %#v", catalog[1])
 	}
 	if !catalog[1].UsesNetworkTopology || len(catalog[1].NetworkProfiles) != 2 ||
