@@ -22,9 +22,8 @@ using namespace filesystem;
 
 // Inlude the process id in the temp file path so that multiple instances of the test procedures
 // could run on the same host.
-const path test_data_temp_path(temp_directory_path() /
-                               path(fmt::format("piscsi-test-{}",
-                                                getpid()))); // NOSONAR Publicly writable directory is fine here
+const path test_data_temp_path(temp_directory_path() / //NOSONAR Publicly writable directory is fine for tests
+                               path(fmt::format("piscsi-test-{}", getpid())));
 
 pair<shared_ptr<MockAbstractController>, shared_ptr<PrimaryDevice>> CreateDevice(PbDeviceType type, const string& extension)
 {
