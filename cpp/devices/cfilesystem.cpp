@@ -46,6 +46,33 @@ static bool CopyString(TCHAR (&destination)[N], std::string_view source)
 	return true;
 }
 
+template <size_t N>
+static bool CopyString(TCHAR (&destination)[N], const TCHAR* source)
+{
+	if (source == nullptr)
+		return false;
+
+	const size_t length = strnlen(source, N);
+	if (length == N)
+		return false;
+
+	return CopyString(destination, std::string_view(source, length));
+}
+
+template <size_t N>
+static bool CopyBytes(uint8_t (&destination)[N], const uint8_t* source)
+{
+	if (source == nullptr)
+		return false;
+
+	const size_t length = strnlen((const char*)source, N);
+	if (length == N)
+		return false;
+
+	memcpy(destination, source, length + 1);
+	return true;
+}
+
 static const uint8_t* FindNul(const uint8_t* first, const uint8_t* last)
 {
 	const auto length = static_cast<size_t>(last - first);
@@ -268,7 +295,6 @@ CHostDrv::~CHostDrv()
 void CHostDrv::Init(const TCHAR* szBase, uint32_t nFlag)
 {
 	assert(szBase);
-	assert(strlen(szBase) < FILEPATH_MAX);
 	assert(!m_bWriteProtect);
 	assert(!m_bEnable);
 	assert(m_capCache.sectors == 0);
@@ -283,9 +309,10 @@ void CHostDrv::Init(const TCHAR* szBase, uint32_t nFlag)
 	m_capCache.sectors = 0;
 
 	// Receive parameters
+	if (!CopyString(m_szBase, szBase))
+		return;
 	if (nFlag & FSFLAG_WRITE_PROTECT)
 		m_bWriteProtect = true;
-	strcpy(m_szBase, szBase);
 
 	// Remove the last path delimiter in the base path
 	// @warning needs to be modified when using Unicode
@@ -609,7 +636,8 @@ CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 	}
 
 	// Store the host side path
-	pFiles->SetResult(pPath->GetHost());
+	if (!pFiles->SetResult(pPath->GetHost()))
+		return nullptr;
 
 	return pPath;
 }
@@ -684,8 +712,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 				assert(pPath);
 				m_nRing++;
 			}
-			pPath->SetHuman(szHumanPath);
-			pPath->SetHost(szHostPath);
+			if (!pPath->SetHuman(szHumanPath) || !pPath->SetHost(szHostPath))
+				return nullptr;
 
 			// Update status
 			pPath->Refresh();
@@ -731,7 +759,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	}
 
 	// Store the host side path name
-	pFiles->SetResult(szHostPath);
+	if (!pFiles->SetResult(szHostPath))
+		return nullptr;
 
 	return pPath;
 }
@@ -758,7 +787,8 @@ bool CHostDrv::Find(CHostFiles* pFiles)
 	}
 
 	// Store host side path
-	pFiles->SetResult(pPath->GetHost());
+	if (!pFiles->SetResult(pPath->GetHost()))
+		return false;
 
 	// Exit if only path name
 	if (pFiles->isPathOnly()) {
@@ -775,7 +805,8 @@ bool CHostDrv::Find(CHostFiles* pFiles)
 	pFiles->SetEntry(pFilename);
 
 	// Store the host side full path name
-	pFiles->AddResult(pFilename->GetHost());
+	if (!pFiles->AddResult(pFilename->GetHost()))
+		return false;
 
 	return true;
 }
@@ -791,12 +822,11 @@ bool CHostDrv::Find(CHostFiles* pFiles)
 /// Set host side name
 //
 //---------------------------------------------------------------------------
-void CHostFilename::SetHost(const TCHAR* szHost)
+bool CHostFilename::SetHost(const TCHAR* szHost)
 {
 	assert(szHost);
-	assert(strlen(szHost) < FILEPATH_MAX);
 
-	strcpy(m_szHost, szHost);
+	return CopyString(m_szHost, szHost);
 }
 
 //---------------------------------------------------------------------------
@@ -1229,12 +1259,11 @@ void CHostPath::Clean()
 /// Specify Human68k side names directly
 //
 //---------------------------------------------------------------------------
-void CHostPath::SetHuman(const uint8_t* szHuman)
+bool CHostPath::SetHuman(const uint8_t* szHuman)
 {
 	assert(szHuman);
-	assert(strlen((const char*)szHuman) < HUMAN68K_PATH_MAX);
 
-	strcpy((char*)m_szHuman, (const char*)szHuman);
+	return CopyBytes(m_szHuman, szHuman);
 }
 
 //---------------------------------------------------------------------------
@@ -1242,12 +1271,11 @@ void CHostPath::SetHuman(const uint8_t* szHuman)
 /// Specify host side names directly
 //
 //---------------------------------------------------------------------------
-void CHostPath::SetHost(const TCHAR* szHost)
+bool CHostPath::SetHost(const TCHAR* szHost)
 {
 	assert(szHost);
-	assert(strlen(szHost) < FILEPATH_MAX);
 
-	strcpy(m_szHost, szHost);
+	return CopyString(m_szHost, szHost);
 }
 
 //---------------------------------------------------------------------------
@@ -1540,7 +1568,6 @@ void CHostPath::Refresh()
 	int nument = 0;
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
 	for (int i = 0; i < maxent; i++) {
-		TCHAR szFilename[FILEPATH_MAX];
 		if (pd == nullptr) {
 			nument = scandir(S2U(szPath), &pd, nullptr, AsciiSort);
 			if (nument == -1) {
@@ -1559,12 +1586,18 @@ void CHostPath::Refresh()
 		}
 
 		// Get file name
-		strcpy(szFilename, U2S(pe->d_name));
+		const TCHAR* const filename = U2S(pe->d_name);
+		const size_t filename_length = strnlen(filename, FILEPATH_MAX);
+		if (filename_length == FILEPATH_MAX)
+			continue;
 
 		// Allocate file name memory
-		ring_t* pRing = Alloc(strlen(szFilename));
+		ring_t* pRing = Alloc(filename_length);
 		CHostFilename* pFilename = &pRing->f;
-		pFilename->SetHost(szFilename);
+		if (!pFilename->SetHost(filename)) {
+			Free(pRing);
+			continue;
+		}
 
 		// If there is a relevant file name in the previous cache, prioritize that for the Human68k name
 		auto pCache = (ring_t*)cRingBackup.Next();
@@ -2133,7 +2166,8 @@ void CHostFiles::SetEntry(const CHostFilename* pFilename)
 	memcpy(&m_dirHuman, pFilename->GetEntry(), sizeof(m_dirHuman));
 
 	// Stire Human68k file name
-	strcpy((char*)m_szHumanResult, (const char*)pFilename->GetHuman());
+	if (!CopyBytes(m_szHumanResult, pFilename->GetHuman()))
+		m_szHumanResult[0] = '\0';
 }
 
 //---------------------------------------------------------------------------
@@ -2141,12 +2175,11 @@ void CHostFiles::SetEntry(const CHostFilename* pFilename)
 /// Set host side name
 //
 //---------------------------------------------------------------------------
-void CHostFiles::SetResult(const TCHAR* szPath)
+bool CHostFiles::SetResult(const TCHAR* szPath)
 {
 	assert(szPath);
-	assert(strlen(szPath) < FILEPATH_MAX);
 
-	strcpy(m_szHostResult, szPath);
+	return CopyString(m_szHostResult, szPath);
 }
 
 //---------------------------------------------------------------------------
@@ -2154,12 +2187,14 @@ void CHostFiles::SetResult(const TCHAR* szPath)
 /// Add file name to the host side name
 //
 //---------------------------------------------------------------------------
-void CHostFiles::AddResult(const TCHAR* szPath)
+bool CHostFiles::AddResult(const TCHAR* szPath)
 {
 	assert(szPath);
-	assert(strlen(m_szHostResult) + strlen(szPath) < FILEPATH_MAX);
 
-	strcat(m_szHostResult, szPath);
+	if (szPath == nullptr)
+		return false;
+	const size_t length = strnlen(szPath, FILEPATH_MAX);
+	return length < FILEPATH_MAX && AppendString(m_szHostResult, ARRAY_SIZE(m_szHostResult), std::string_view(szPath, length));
 }
 
 //---------------------------------------------------------------------------
@@ -2167,10 +2202,11 @@ void CHostFiles::AddResult(const TCHAR* szPath)
 /// Add a new Human68k file name to the host side name
 //
 //---------------------------------------------------------------------------
-void CHostFiles::AddFilename()
+bool CHostFiles::AddFilename()
 {
-	assert(strlen(m_szHostResult) + strlen((const char*)m_szHumanFilename) < FILEPATH_MAX);
-	strncat(m_szHostResult, (const char*)m_szHumanFilename, ARRAY_SIZE(m_szHumanFilename));
+	const size_t length = strnlen((const char*)m_szHumanFilename, ARRAY_SIZE(m_szHumanFilename));
+	return length < ARRAY_SIZE(m_szHumanFilename) &&
+		AppendString(m_szHostResult, ARRAY_SIZE(m_szHostResult), std::string_view((const char*)m_szHumanFilename, length));
 }
 
 //===========================================================================
@@ -2298,20 +2334,18 @@ bool CHostFcb::SetMode(uint32_t nHumanMode)
 	return true;
 }
 
-void CHostFcb::SetFilename(const TCHAR* szFilename)
+bool CHostFcb::SetFilename(const TCHAR* szFilename)
 {
 	assert(szFilename);
-	assert(strlen(szFilename) < FILEPATH_MAX);
 
-	strcpy(m_szFilename, szFilename);
+	return CopyString(m_szFilename, szFilename);
 }
 
-void CHostFcb::SetHumanPath(const uint8_t* szHumanPath)
+bool CHostFcb::SetHumanPath(const uint8_t* szHumanPath)
 {
 	assert(szHumanPath);
-	assert(strlen((const char*)szHumanPath) < HUMAN68K_PATH_MAX);
 
-	strcpy((char*)m_szHumanPath, (const char*)szHumanPath);
+	return CopyBytes(m_szHumanPath, szHumanPath);
 }
 
 //---------------------------------------------------------------------------
@@ -2751,7 +2785,8 @@ int CFileSys::MakeDir(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 	f.SetPathOnly();
 	if (!f.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
-	f.AddFilename();
+	if (!f.AddFilename())
+		return FS_INVALIDPATH;
 
 	// Create directory
 	if (mkdir(S2U(f.GetPath()), 0777))
@@ -2849,7 +2884,8 @@ int CFileSys::Rename(uint32_t nUnit, const Human68k::namests_t* pNamests, const 
 	fNew.SetPathOnly();
 	if (!fNew.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
-	fNew.AddFilename();
+	if (!fNew.AddFilename())
+		return FS_INVALIDPATH;
 
 	// Update cache
 	if (f.GetAttribute() & Human68k::AT_DIRECTORY)
@@ -3142,7 +3178,8 @@ int CFileSys::Create(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* p
 	f.SetPathOnly();
 	if (!f.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
-	f.AddFilename();
+	if (!f.AddFilename())
+		return FS_INVALIDPATH;
 
 	// Attribute check
 	if (nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME))
@@ -3152,8 +3189,10 @@ int CFileSys::Create(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* p
 	CHostFcb* pHostFcb = m_cFcb.Alloc(nKey);
 	if (pHostFcb == nullptr)
 		return FS_OUTOFMEM;
-	pHostFcb->SetFilename(f.GetPath());
-	pHostFcb->SetHumanPath(f.GetHumanPath());
+	if (!pHostFcb->SetFilename(f.GetPath()) || !pHostFcb->SetHumanPath(f.GetHumanPath())) {
+		m_cFcb.Free(pHostFcb);
+		return FS_INVALIDPATH;
+	}
 
 	// Set open mode
 	pFcb->mode = (uint16_t)((pFcb->mode & ~Human68k::OP_MASK) | Human68k::OP_FULL);
@@ -3227,8 +3266,10 @@ int CFileSys::Open(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* pNa
 	CHostFcb* pHostFcb = m_cFcb.Alloc(nKey);
 	if (pHostFcb == nullptr)
 		return FS_OUTOFMEM;
-	pHostFcb->SetFilename(f.GetPath());
-	pHostFcb->SetHumanPath(f.GetHumanPath());
+	if (!pHostFcb->SetFilename(f.GetPath()) || !pHostFcb->SetHumanPath(f.GetHumanPath())) {
+		m_cFcb.Free(pHostFcb);
+		return FS_INVALIDPATH;
+	}
 
 	// Set open mode
 	if (!pHostFcb->SetMode(pFcb->mode)) {
@@ -3675,7 +3716,8 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 		if (pHostFiles) {
 			// Generate pseudo-sector
 			CHostFcb f;
-			f.SetFilename(pHostFiles->GetPath());
+			if (!f.SetFilename(pHostFiles->GetPath()))
+				return FS_INVALIDPRM;
 			f.SetMode(Human68k::OP_READ);
 			if (!f.Open())
 				return FS_INVALIDPRM;

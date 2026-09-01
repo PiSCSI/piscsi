@@ -431,7 +431,7 @@ public:
 
 	static size_t Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
 
-	void SetHost(const TCHAR* szHost);					///< Set the name of the host
+	bool SetHost(const TCHAR* szHost);					///< Set the name of the host
 	const TCHAR* GetHost() const { return m_szHost; }	///< Get the name of the host
 	void ConvertHuman(int nCount = -1);					///< Convert the Human68k name
 	void CopyHuman(const uint8_t* szHuman);					///< Copy the Human68k name
@@ -521,8 +521,8 @@ public:
 
 	void Clean();								///< Initialialize for reuse
 
-	void SetHuman(const uint8_t* szHuman);					///< Directly specify the name on the Human68k side
-	void SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
+	bool SetHuman(const uint8_t* szHuman);					///< Directly specify the name on the Human68k side
+	bool SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
 	bool isSameHuman(const uint8_t* szHuman) const;				///< Compare the name on the Human68k side
 	bool isSameChild(const uint8_t* szHuman) const;				///< Compare the name on the Human68k side
 	const TCHAR* GetHost() const { return m_szHost; }	///< Obtain the name on the host side
@@ -594,9 +594,9 @@ public:
 	bool Find(uint32_t nUnit, const class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
 	const CHostFilename* Find(const CHostPath* pPath);					///< Find file name
 	void SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
-	void SetResult(const TCHAR* szPath);						///< Set names on the host side
-	void AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
-	void AddFilename();								///< Add the new Human68k file name to the name on the host side
+	bool SetResult(const TCHAR* szPath);						///< Set names on the host side
+	bool AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
+	bool AddFilename();								///< Add the new Human68k file name to the name on the host side
 
 	const TCHAR* GetPath() const { return m_szHostResult; }		///< Get the name on the host side
 
@@ -667,8 +667,8 @@ public:
 	void SetUpdate() { m_bUpdate = true; }				///< Update
 	bool isUpdate() const { return m_bUpdate; }			///< Get update state
 	bool SetMode(uint32_t nHumanMode);						///< Set file open mode
-	void SetFilename(const TCHAR* szFilename);					///< Set file name
-	void SetHumanPath(const uint8_t* szHumanPath);					///< Set Human68k path name
+	bool SetFilename(const TCHAR* szFilename);					///< Set file name
+	bool SetHumanPath(const uint8_t* szHumanPath);					///< Set Human68k path name
 	const uint8_t* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
 	bool Create(uint32_t nHumanAttribute, bool bForce);	///< Create file
