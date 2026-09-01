@@ -95,3 +95,81 @@ func TestHandleLogsShowReturnsErrorWhenJournalctlFails(t *testing.T) {
 		t.Errorf("body = %q, want journal error details", response.Body.String())
 	}
 }
+
+func TestHandleLogsShowValidatesAndBoundsRequestParameters(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, requestBody := range []string{
+		"lines=0",
+		"lines=1001",
+		"lines=all",
+		"scope=sshd",
+	} {
+		t.Run(requestBody, func(t *testing.T) {
+			journalctlCalled := false
+			server := &Server{
+				systemCommand: func(name string, _ ...string) ([]byte, error) {
+					if name == "journalctl" {
+						journalctlCalled = true
+					}
+					return nil, nil
+				},
+				sessionStore: sessions.NewCookieStore([]byte("test-secret-key")),
+			}
+			templates, err := web.GetTemplates()
+			if err != nil {
+				t.Fatal(err)
+			}
+			router := gin.New()
+			router.SetHTMLTemplate(templates)
+			router.POST("/logs/show", server.handleLogsShow)
+			request := httptest.NewRequest(http.MethodPost, "/logs/show", strings.NewReader(requestBody))
+			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			response := httptest.NewRecorder()
+			router.ServeHTTP(response, request)
+
+			if response.Code != http.StatusBadRequest {
+				t.Fatalf("status = %d, want %d", response.Code, http.StatusBadRequest)
+			}
+			if journalctlCalled {
+				t.Error("journalctl was called for an invalid request")
+			}
+		})
+	}
+}
+
+func TestHandleLogsShowPassesBoundedArgumentsToJournalctl(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var gotName string
+	var gotArgs []string
+	server := &Server{
+		systemCommand: func(name string, args ...string) ([]byte, error) {
+			if name == "journalctl" {
+				gotName = name
+				gotArgs = append([]string(nil), args...)
+			}
+			return []byte("test log"), nil
+		},
+		sessionStore: sessions.NewCookieStore([]byte("test-secret-key")),
+	}
+	templates, err := web.GetTemplates()
+	if err != nil {
+		t.Fatal(err)
+	}
+	router := gin.New()
+	router.SetHTMLTemplate(templates)
+	router.POST("/logs/show", server.handleLogsShow)
+	request := httptest.NewRequest(http.MethodPost, "/logs/show", strings.NewReader("lines=200&scope=piscsi-web"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+	if gotName != "journalctl" {
+		t.Fatalf("command = %q, want journalctl", gotName)
+	}
+	if got, want := strings.Join(gotArgs, ","), "--no-pager,--lines=200,--unit=piscsi-web"; got != want {
+		t.Errorf("arguments = %q, want %q", got, want)
+	}
+}

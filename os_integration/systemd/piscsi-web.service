@@ -8,6 +8,7 @@ Wants=piscsi.service
 Type=simple
 User=piscsi-web
 Group=piscsi
+SupplementaryGroups=systemd-journal
 UMask=0007
 ExecStart=/usr/bin/piscsi-web
 EnvironmentFile=/etc/piscsi-web/piscsi-web.env

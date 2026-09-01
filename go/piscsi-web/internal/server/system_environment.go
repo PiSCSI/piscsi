@@ -6,6 +6,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -32,10 +33,14 @@ type serviceStatus struct {
 }
 
 func (s *Server) runSystemCommand(name string, args ...string) ([]byte, error) {
+	return s.runSystemCommandContext(context.Background(), name, args...)
+}
+
+func (s *Server) runSystemCommandContext(ctx context.Context, name string, args ...string) ([]byte, error) {
 	if s.systemCommand != nil {
 		return s.systemCommand(name, args...)
 	}
-	return exec.Command(name, args...).CombinedOutput()
+	return exec.CommandContext(ctx, name, args...).CombinedOutput()
 }
 
 func (s *Server) systemHostname() string {
