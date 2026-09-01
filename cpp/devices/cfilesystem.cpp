@@ -52,6 +52,20 @@ static const uint8_t* FindNul(const uint8_t* first, const uint8_t* last)
 	return static_cast<const uint8_t*>(memchr(first, '\0', length));
 }
 
+static bool AppendString(TCHAR* destination, size_t destination_size, std::string_view source)
+{
+	if (destination_size == 0)
+		return false;
+
+	const size_t length = strnlen(destination, destination_size);
+	if (length == destination_size || source.size() >= destination_size - length)
+		return false;
+
+	memcpy(destination + length, source.data(), source.size());
+	destination[length + source.size()] = '\0';
+	return true;
+}
+
 //---------------------------------------------------------------------------
 //
 //  Kanji code conversion
@@ -633,8 +647,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	size_t nHumanPath = 0;
 
 	TCHAR szHostPath[FILEPATH_MAX];
-	strcpy(szHostPath, m_szBase);
-	size_t nHostPath = strlen(szHostPath);
+	if (!CopyString(szHostPath, std::string_view(m_szBase)))
+		return nullptr;
 
 	CHostPath* pPath;
 	const uint8_t* p = pFiles->GetHumanPath();
@@ -644,10 +658,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 			return nullptr;				// Error: The Human68k path is too long
 		szHumanPath[nHumanPath++] = '/';
 		szHumanPath[nHumanPath] = '\0';
-		if (nHostPath + 1 >= FILEPATH_MAX)
+		if (!AppendString(szHostPath, ARRAY_SIZE(szHostPath), "/"))
 			return nullptr;				// Error: The host side path is too long
-		szHostPath[nHostPath++] = '/';
-		szHostPath[nHostPath] = '\0';
 
 		// Insert one file
 		uint8_t szHumanFilename[24];		// File name part
@@ -705,14 +717,13 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 			return nullptr;				// Error: Could not find path or file names in the middle
 
 		// Link path name
-		strcpy((char*)szHumanPath + nHumanPath, (const char*)szHumanFilename);
+		memcpy(szHumanPath + nHumanPath, szHumanFilename, n + 1);
 		nHumanPath += n;
 
-		n = strlen(pFilename->GetHost());
-		if (nHostPath + n >= FILEPATH_MAX)
+		const std::string_view host_filename(pFilename->GetHost());
+		n = host_filename.size();
+		if (!AppendString(szHostPath, ARRAY_SIZE(szHostPath), host_filename))
 			return nullptr;				// Error: Host side path is too long
-		strcpy(szHostPath + nHostPath, pFilename->GetHost());
-		nHostPath += n;
 
 		// PLEASE CONTINUE
 		if (*p == '\0')
@@ -866,9 +877,7 @@ void CHostFilename::ConvertHuman(int nCount)
 	uint8_t* pExt = nullptr;
 
 	{
-		char szHost[FILEPATH_MAX];
-		strcpy(szHost, m_szHost);
-		auto pRead = (const uint8_t*)szHost;
+		auto pRead = (const uint8_t*)m_szHost;
 		uint8_t* pWrite = szHuman;
 		const auto pPeriod = SeparateExt(pRead);
 
@@ -1048,11 +1057,19 @@ void CHostFilename::ConvertHuman(int nCount)
 void CHostFilename::CopyHuman(const uint8_t* szHuman)
 {
 	assert(szHuman);
-	assert(strlen((const char*)szHuman) < 23);
+	const size_t length = strnlen((const char*)szHuman, ARRAY_SIZE(m_szHuman));
+	assert(length < 23);
+	if (length >= 23) {
+		m_szHuman[0] = '\0';
+		m_bCorrect = false;
+		m_pszHumanLast = m_szHuman;
+		m_pszHumanExt = m_szHuman;
+		return;
+	}
 
-	strcpy((char*)m_szHuman, (const char*)szHuman);
+	memcpy(m_szHuman, szHuman, length + 1);
 	m_bCorrect = true;
-	m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
+	m_pszHumanLast = m_szHuman + length;
 	m_pszHumanExt = SeparateExt(m_szHuman);
 }
 
