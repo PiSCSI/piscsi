@@ -23,29 +23,10 @@ on:
       - 'cpp/**'
 
 jobs:
-  fullspec:
+  arm-build:
     uses: ./.github/workflows/arm_cross_compile.yml
-    with:
-      connect-type: "FULLSPEC"
 
-  standard:
+  arm-debug:
     uses: ./.github/workflows/arm_cross_compile.yml
     with:
-      connect-type: "STANDARD"
-
-  aibom:
-    uses: ./.github/workflows/arm_cross_compile.yml
-    with:
-      connect-type: "AIBOM"
-
-  gamernium:
-    uses: ./.github/workflows/arm_cross_compile.yml
-    with:
-      connect-type: "GAMERNIUM"
-
-  # The fullspec connection board is the most common
-  debug-fullspec:
-    uses: ./.github/workflows/arm_cross_compile.yml
-    with:
-      connect-type: "FULLSPEC"
       debug-flag: true

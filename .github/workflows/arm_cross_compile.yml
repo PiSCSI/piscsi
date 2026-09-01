@@ -1,17 +1,13 @@
 on:
   workflow_call:
     inputs:
-      connect-type:
-        required: true
-        type: string
-      # Debug flag indicates whether to build a debug build (no optimization, debugger symbols)
       debug-flag:
         required: false
         type: boolean
 
 jobs:
   build_arm:
-    name: ${{ matrix.name }} (${{ inputs.connect-type }})
+    name: ${{ matrix.name }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -59,7 +55,7 @@ jobs:
           echo "debug_flag_filename=debug-" >> $GITHUB_ENV
 
       - name: Compile
-        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }} CROSS_COMPILE=${{ matrix.cross_compile }}
+        run: make all -j 6 ${{ env.debug_flag_compile }} CROSS_COMPILE=${{ matrix.cross_compile }}
 
       # We need to tar the binary outputs to retain the executable
       # file permission. Currently, actions/upload-artifact only
