@@ -153,22 +153,25 @@ test_src += test_platform_src
 subdir('generated')
 
 if target.contains('piscsi')
+    summary_targets += 'piscsi'
     piscsi_bin = executable('piscsi',
-        piscsi_core_src + piscsi_src + shared_src + protobuf_src + piscsi_interface_src[0],
+        piscsi_core_src + piscsi_src + shared_src + protobuf_src + piscsi_interface_src,
         dependencies : common_deps + iconv_deps + [pcap_dep, protobuf_dep],
         install : true,
     )
 endif
 
 if target.contains('scsictl')
+    summary_targets += 'scsictl'
     scsictl_bin = executable('scsictl',
-        scsictl_core_src + scsictl_src + shared_src + protobuf_src + piscsi_interface_src[0],
+        scsictl_core_src + scsictl_src + shared_src + protobuf_src + piscsi_interface_src,
         dependencies : common_deps + [protobuf_dep],
         install : true,
     )
 endif
 
 if target.contains('scsimon')
+    summary_targets += 'scsimon'
     scsimon_bin = executable('scsimon',
         scsimon_src + shared_src,
         dependencies : common_deps + [protobuf_dep],
@@ -177,6 +180,7 @@ if target.contains('scsimon')
 endif
 
 if target.contains('scsiloop') and host_machine.system() == 'linux'
+    summary_targets += 'scsiloop'
     scsiloop_bin = executable('scsiloop',
         scsiloop_src + shared_src,
         dependencies : common_deps,
@@ -187,6 +191,7 @@ elif target.contains('scsiloop')
 endif
 
 if target.contains('scsidump')
+    summary_targets += 'scsidump'
     scsidump_bin = executable('scsidump',
         scsidump_src + shared_src,
         dependencies : common_deps + [protobuf_dep],
@@ -195,6 +200,7 @@ if target.contains('scsidump')
 endif
 
 if target.contains('sasidump')
+    summary_targets += 'sasidump'
     sasidump_bin = executable('sasidump',
         sasidump_src + shared_src,
         dependencies : common_deps + [protobuf_dep],
@@ -203,8 +209,9 @@ if target.contains('sasidump')
 endif
 
 if gtest_dep.found() and gmock_dep.found() and target.contains('test')
+    summary_targets += 'test'
     test_bin = executable('piscsi_test',
-        piscsi_core_src + scsictl_core_src + test_src + shared_src + protobuf_src + piscsi_interface_src[0],
+        piscsi_core_src + scsictl_core_src + test_src + shared_src + protobuf_src + piscsi_interface_src,
         dependencies : common_deps + iconv_deps + [pcap_dep, protobuf_dep, gtest_dep, gmock_dep],
         link_args : test_link_args,
         install : false

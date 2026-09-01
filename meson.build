@@ -1,7 +1,7 @@
 project(
     'piscsi',
     'cpp',
-    version : '24.4.1',
+    version : '26.8.1',
     default_options : ['cpp_std=c++20', 'warning_level=2']
 )
 
@@ -20,6 +20,7 @@ if host_machine.system() == 'linux'
 endif
 
 target = get_option('target')
+summary_targets = []
 add_project_arguments(common_flags, language : 'cpp')
 
 # Dependencies
@@ -45,7 +46,7 @@ subdir('os_integration')
 summary(
   {
     'Build type': get_option('buildtype'),
-    'Targets': ', '.join(target),
+    'Targets': ', '.join(summary_targets),
     'Prefix': get_option('prefix'),
   },
   section : 'Configuration'
