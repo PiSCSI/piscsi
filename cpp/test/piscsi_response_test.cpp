@@ -171,7 +171,7 @@ TEST(PiscsiResponseTest, GetDeviceTypesInfo)
 
 	PbDeviceTypesInfo info;
 	response.GetDeviceTypesInfo(info);
-	EXPECT_EQ(10, info.properties().size());
+	EXPECT_EQ(11, info.properties().size());
 
 	bool has_powerview = false;
 	for (const auto& properties : info.properties()) {
