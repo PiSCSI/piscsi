@@ -21,7 +21,36 @@
 #include <iconv.h>
 #include <utime.h>
 
+#include <string_view>
+
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
+
+//---------------------------------------------------------------------------
+//
+// Bounded C string helpers
+//
+// The Human68k protocol uses NUL-terminated byte strings, but those strings
+// are not necessarily supplied by trusted host code. Keep the byte semantics
+// while making every fixed-size destination explicit.
+//
+//---------------------------------------------------------------------------
+template <size_t N>
+static bool CopyString(TCHAR (&destination)[N], std::string_view source)
+{
+	static_assert(N > 0);
+	if (source.size() >= N)
+		return false;
+
+	memcpy(destination, source.data(), source.size());
+	destination[source.size()] = '\0';
+	return true;
+}
+
+static const uint8_t* FindNul(const uint8_t* first, const uint8_t* last)
+{
+	const auto length = static_cast<size_t>(last - first);
+	return static_cast<const uint8_t*>(memchr(first, '\0', length));
+}
 
 //---------------------------------------------------------------------------
 //
@@ -3825,16 +3854,25 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 	// Initialize number of drives
 	m_nDrives = 0;
 
-	const uint8_t* pp = pArgument->buf;
-	pp += strlen((const char*)pp) + 1;
+	const uint8_t* const begin = pArgument->buf;
+	const uint8_t* const end = begin + sizeof(pArgument->buf);
+	const uint8_t* pp = FindNul(begin, end);
+	if (pp == nullptr)
+		return; // The program name is not terminated inside the protocol buffer.
+	pp++;
 
 	uint32_t nOption = m_nOptionDefault;
-	for (;;) {
-		assert(pp < pArgument->buf + sizeof(*pArgument));
-		const uint8_t* p = pp;
-		uint8_t c = *p++;
-		if (c == '\0')
+	while (pp < end) {
+		const uint8_t* const terminator = FindNul(pp, end);
+		if (terminator == nullptr)
+			return; // Never scan beyond the fixed 256-byte argument buffer.
+
+		const std::string_view argument((const char*)pp, (size_t)(terminator - pp));
+		pp = terminator + 1;
+		if (argument.empty())
 			break;
+
+		const uint8_t c = (uint8_t)argument.front();
 
 		uint32_t nMode;
 		if (c == '+') {
@@ -3844,22 +3882,17 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 		} else if (c == '/') {
 			// Specify default base path
 			if (m_nDrives < CHostEntry::DRIVE_MAX) {
-				p--;
-				strcpy(m_szBase[m_nDrives], (const char *)p);
-				m_nDrives++;
+				if (CopyString(m_szBase[m_nDrives], argument))
+					m_nDrives++;
 			}
-			pp += strlen((const char*)pp) + 1;
 			continue;
 		} else {
 			// Continue since no option is specified
-			pp += strlen((const char*)pp) + 1;
 			continue;
 		}
 
-		for (;;) {
-			c = *p++;
-			if (c == '\0')
-				break;
+		for (size_t index = 1; index < argument.size(); index++) {
+			const uint8_t c = (uint8_t)argument[index];
 
 			uint32_t nBit = 0;
 			switch (c) {
@@ -3889,8 +3922,6 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 			else
 				nOption &= ~nBit;
 		}
-
-		pp = p;
 	}
 
 	// Set options
