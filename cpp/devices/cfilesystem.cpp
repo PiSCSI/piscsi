@@ -46,6 +46,16 @@ static bool CopyString(TCHAR (&destination)[N], std::string_view source)
 	return true;
 }
 
+static bool CopyString(TCHAR* destination, size_t destination_size, std::string_view source)
+{
+	if (destination == nullptr || destination_size == 0 || source.size() >= destination_size)
+		return false;
+
+	memcpy(destination, source.data(), source.size());
+	destination[source.size()] = '\0';
+	return true;
+}
+
 template <size_t N>
 static bool CopyString(TCHAR (&destination)[N], const TCHAR* source)
 {
@@ -436,24 +446,27 @@ void CHostDrv::Eject()
 // Get volume label
 //
 //---------------------------------------------------------------------------
-void CHostDrv::GetVolume(TCHAR* szLabel)
+bool CHostDrv::GetVolume(TCHAR* szLabel, size_t label_size)
 {
 	assert(szLabel);
 	assert(m_bEnable);
 
 	// Get volume label
-	strcpy(m_szVolumeCache, "RASDRV ");
+	if (!CopyString(m_szVolumeCache, std::string_view("RASDRV ")))
+		return false;
 	if (m_szBase[0]) {
-		strcat(m_szVolumeCache, m_szBase);
+		if (!AppendString(m_szVolumeCache, ARRAY_SIZE(m_szVolumeCache), m_szBase))
+			return false;
 	} else {
-		strcat(m_szVolumeCache, "/");
+		if (!AppendString(m_szVolumeCache, ARRAY_SIZE(m_szVolumeCache), "/"))
+			return false;
 	}
 
 	// Cache update
 	m_bVolumeCache = true;
 
 	// Transfer content
-	strcpy(szLabel, m_szVolumeCache);
+	return CopyString(szLabel, label_size, m_szVolumeCache);
 }
 
 //---------------------------------------------------------------------------
@@ -464,12 +477,13 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 /// Return true if the cache contents are valid.
 //
 //---------------------------------------------------------------------------
-bool CHostDrv::GetVolumeCache(TCHAR* szLabel) const
+bool CHostDrv::GetVolumeCache(TCHAR* szLabel, size_t label_size) const
 {
 	assert(szLabel);
 
 	// Transfer contents
-	strcpy(szLabel, m_szVolumeCache);
+	if (!CopyString(szLabel, label_size, m_szVolumeCache))
+		return false;
 
 	return m_bVolumeCache;
 }
@@ -2008,12 +2022,12 @@ void CHostEntry::Eject(uint32_t nUnit) const
 /// Get volume label
 //
 //---------------------------------------------------------------------------
-void CHostEntry::GetVolume(uint32_t nUnit, TCHAR* szLabel) const
+bool CHostEntry::GetVolume(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const
 {
 	assert(nUnit < DRIVE_MAX);
 	assert(m_pDrv[nUnit]);
 
-	m_pDrv[nUnit]->GetVolume(szLabel);
+	return m_pDrv[nUnit]->GetVolume(szLabel, label_size);
 }
 
 //---------------------------------------------------------------------------
@@ -2021,12 +2035,12 @@ void CHostEntry::GetVolume(uint32_t nUnit, TCHAR* szLabel) const
 /// Get volume label from cache
 //
 //---------------------------------------------------------------------------
-bool CHostEntry::GetVolumeCache(uint32_t nUnit, TCHAR* szLabel) const
+bool CHostEntry::GetVolumeCache(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const
 {
 	assert(nUnit < DRIVE_MAX);
 	assert(m_pDrv[nUnit]);
 
-	return m_pDrv[nUnit]->GetVolumeCache(szLabel);
+	return m_pDrv[nUnit]->GetVolumeCache(szLabel, label_size);
 }
 
 //---------------------------------------------------------------------------
@@ -3999,8 +4013,8 @@ bool CFileSys::FilesVolume(uint32_t nUnit, Human68k::files_t* pFiles) const
 	assert(pFiles);
 
 	// Get volume label
-	TCHAR szVolume[32];
-	if (bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); !bResult) {
+	TCHAR szVolume[VOLUME_LABEL_MAX];
+	if (bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume, ARRAY_SIZE(szVolume)); !bResult) {
 		// Carry out an extra media check here because it may be skipped when doing a manual eject
 		if (!m_cEntry.isEnable(nUnit))
 			return false;
@@ -4010,7 +4024,8 @@ bool CFileSys::FilesVolume(uint32_t nUnit, Human68k::files_t* pFiles) const
 			return false;
 
 		// Get volume label
-		m_cEntry.GetVolume(nUnit, szVolume);
+		if (!m_cEntry.GetVolume(nUnit, szVolume, ARRAY_SIZE(szVolume)))
+			return false;
 	}
 	if (szVolume[0] == '\0')
 		return false;
@@ -4021,9 +4036,11 @@ bool CFileSys::FilesVolume(uint32_t nUnit, Human68k::files_t* pFiles) const
 	pFiles->size = 0;
 
 	CHostFilename fname;
-	fname.SetHost(szVolume);
+	if (!fname.SetHost(szVolume))
+		return false;
 	fname.ConvertHuman();
-	strcpy((char*)pFiles->full, (const char*)fname.GetHuman());
+	if (!CopyBytes(pFiles->full, fname.GetHuman()))
+		return false;
 
 	return true;
 }

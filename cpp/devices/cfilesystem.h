@@ -27,6 +27,7 @@
 using TCHAR = char;
 
 static const int FILEPATH_MAX = 260;
+static const int VOLUME_LABEL_MAX = FILEPATH_MAX + 8;
 
 //---------------------------------------------------------------------------
 //
@@ -743,8 +744,8 @@ public:
 	bool CheckMedia();							///< Check if media was changed
 	void Update();								///< Update media status
 	void Eject();
-	void GetVolume(TCHAR* szLabel);					///< Get volume label
-	bool GetVolumeCache(TCHAR* szLabel) const;				///< Get volume label from cache
+	bool GetVolume(TCHAR* szLabel, size_t label_size);			///< Get volume label
+	bool GetVolumeCache(TCHAR* szLabel, size_t label_size) const;		///< Get volume label from cache
 	uint32_t GetCapacity(Human68k::capacity_t* pCapacity);
 	bool GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
 
@@ -775,7 +776,7 @@ private:
 	CRing m_cRing;							///< For attaching to CHostPath
 	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
 	bool m_bVolumeCache = false;						///< TRUE if the volume label has been read
-	TCHAR m_szVolumeCache[24] = {};					///< Volume label cache
+	TCHAR m_szVolumeCache[VOLUME_LABEL_MAX] = {};			///< Volume label cache
 	TCHAR m_szBase[FILEPATH_MAX] = {};					///< Base path
 };
 
@@ -817,8 +818,8 @@ public:
 	uint32_t GetStatus(uint32_t nUnit) const;					///< Get drive status
 	bool CheckMedia(uint32_t nUnit) const;						///< Media change check
 	void Eject(uint32_t nUnit) const;
-	void GetVolume(uint32_t nUnit, TCHAR* szLabel) const;				///< Get volume label
-	bool GetVolumeCache(uint32_t nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
+	bool GetVolume(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const;		///< Get volume label
+	bool GetVolumeCache(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const;	///< Get volume label from cache
 	uint32_t GetCapacity(uint32_t nUnit, Human68k::capacity_t* pCapacity) const;
 	bool GetCapacityCache(uint32_t nUnit, Human68k::capacity_t* pCapacity) const;		///< Get cluster size from cache
 
