@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -69,5 +70,26 @@ func TestUploadDestinationPathRejectsEscapingSymlink(t *testing.T) {
 
 	if _, err := uploadDestinationPath(root, "outside-link"); err == nil {
 		t.Fatal("uploadDestinationPath() accepted a symlink outside the configured directory")
+	}
+}
+
+func TestOpenRegularFileWithinRejectsSymlink(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "secret.json")
+	if err := os.WriteFile(outside, []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "download.json")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Skipf("create symbolic link: %v", err)
+	}
+
+	file, _, err := openRegularFileWithin(root, "download.json")
+	if file != nil {
+		file.Close()
+		t.Fatal("openRegularFileWithin() opened a symbolic link")
+	}
+	if !errors.Is(err, errNotRegularFile) {
+		t.Fatalf("openRegularFileWithin() error = %v, want errNotRegularFile", err)
 	}
 }

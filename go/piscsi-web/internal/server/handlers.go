@@ -1395,6 +1395,22 @@ func (s *Server) handleFilesDownload(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Invalid filename")
 		return
 	}
+	if source == "config" {
+		file, info, err := openRegularFileWithin(sourcePath, filename)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				c.String(http.StatusNotFound, "File not found")
+			} else {
+				c.String(http.StatusBadRequest, "Invalid file")
+			}
+			return
+		}
+		defer file.Close()
+
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filepath.Base(filename)))
+		http.ServeContent(c.Writer, c.Request, filepath.Base(filename), info.ModTime(), file)
+		return
+	}
 
 	// Check if file exists
 	if _, err := os.Stat(realPath); os.IsNotExist(err) {
@@ -1998,27 +2014,21 @@ func (s *Server) handleFilesDownloadConfig(c *gin.Context) {
 		return
 	}
 
-	// Construct full path
-	fullPath := filepath.Join(s.config.ConfigDir, fileName)
-
-	// Verify path is within config directory
-	cleanPath := filepath.Clean(fullPath)
-	configDir := filepath.Clean(s.config.ConfigDir)
-	if !strings.HasPrefix(cleanPath, configDir) {
-		c.String(http.StatusBadRequest, "Invalid file path")
+	file, info, err := openRegularFileWithin(s.config.ConfigDir, fileName)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			c.String(http.StatusNotFound, "File not found: %s", fileName)
+		} else {
+			c.String(http.StatusBadRequest, "Invalid file")
+		}
 		return
 	}
-
-	// Check if file exists
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		c.String(http.StatusNotFound, "File not found: %s", fileName)
-		return
-	}
+	defer file.Close()
 
 	// Serve the file for download
 	c.Header("Content-Description", "File Transfer")
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
-	c.File(fullPath)
+	http.ServeContent(c.Writer, c.Request, fileName, info.ModTime(), file)
 }
 
 // performs an action on a configuration file (load, delete, or send)
