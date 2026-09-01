@@ -179,7 +179,7 @@ $(OBJ_GENERATED) : $(SRC_GENERATED) | $(OBJDIR)
 ##   all      : Rebuild all of the executable files and re-generate 
 ##              the text versions of the manpages
 ##   test     : Build and run unit tests
-##   coverage : Build and run unit tests and create coverage SonarQube files.
+##   coverage : Build all binaries, run unit tests, and create coverage SonarQube files.
 ##   lcov     : Build and run unit tests and create coverage HTML files.
 ##              Note that you have to run 'make clean' before switching
 ##              between coverage and non-coverage builds.
@@ -192,7 +192,7 @@ test: $(SRC_GENERATED) $(BINDIR)/$(PISCSI_TEST)
 	$(BINDIR)/$(PISCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
-coverage: test
+coverage: all test
 
 lcov: CXXFLAGS += --coverage
 lcov: test
