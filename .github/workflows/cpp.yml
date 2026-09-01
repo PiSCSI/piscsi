@@ -25,7 +25,8 @@ on:
       - 'proto/**'
 
 env:
-  APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev meson ninja-build
+  APT_PACKAGES: groff libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev meson ninja-build
+  GO_VERSION: '1.25.13'
 
 jobs:
   unit_tests:
@@ -93,6 +94,11 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install ${{ env.APT_PACKAGES }}
 
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go/go.sum
+
       - name: Install Build Wrapper
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
 
@@ -116,6 +122,17 @@ jobs:
         working-directory: cpp
         run: gcov --preserve-paths $(find -name '*.gcno')
 
+      - name: Generate Go sources
+        working-directory: go
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          make proto
+
+      - name: Generate Go coverage
+        working-directory: go
+        run: go test -tags nomsgpack -coverprofile=coverage.txt -covermode=atomic ./...
+
       - name: Run sonar-scanner
         uses: sonarsource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         env:
@@ -128,5 +145,6 @@ jobs:
             --define sonar.organization=piscsi
             --define sonar.sources=cpp,go
             --define sonar.cfamily.gcov.reportsPath=cpp
+            --define sonar.go.coverage.reportPaths=go/coverage.txt
             --define sonar.coverage.exclusions=cpp/test/**
             --define sonar.cpd.exclusions=cpp/test/**
