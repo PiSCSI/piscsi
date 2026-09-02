@@ -11,6 +11,7 @@ Group=piscsi
 SupplementaryGroups=systemd-journal
 UMask=0007
 ExecStart=/usr/bin/piscsi-web
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 EnvironmentFile=/etc/piscsi-web/piscsi-web.env
 NoNewPrivileges=true
 PrivateTmp=true
