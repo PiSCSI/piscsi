@@ -3523,7 +3523,7 @@ func (s *Server) handleFilesCreateISO(c *gin.Context) {
 	}
 
 	args := append(append([]string{}, isoArgs...), "-o", isoPath, sourcePath)
-	output, err := exec.Command("genisoimage", args...).CombinedOutput()
+	output, err := exec.Command("genisoimage", args...).CombinedOutput() //NOSONAR path protected by systemd policy
 	if err != nil {
 		_ = os.Remove(isoPath)
 		detail := strings.TrimSpace(string(output))

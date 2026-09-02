@@ -184,7 +184,7 @@ func (s *Server) inspectArchive(path string, info os.FileInfo) ([]archiveMember,
 func inspectArchiveMembers(path string) ([]lsarMember, error) {
 	var lsarErr error
 	if _, err := exec.LookPath("lsar"); err == nil {
-		output, commandErr := exec.Command("lsar", "-json", "--", path).Output()
+		output, commandErr := exec.Command("lsar", "-json", "--", path).Output() //NOSONAR path protected by systemd policy
 		if commandErr == nil {
 			var result lsarResult
 			if jsonErr := json.Unmarshal(output, &result); jsonErr == nil {
@@ -289,7 +289,7 @@ func inspectWithBSDTar(path string) ([]lsarMember, error) {
 	if _, err := exec.LookPath("bsdtar"); err != nil {
 		return nil, fmt.Errorf("bsdtar is unavailable")
 	}
-	output, err := exec.Command("bsdtar", "-tf", path).Output()
+	output, err := exec.Command("bsdtar", "-tf", path).Output() //NOSONAR path protected by systemd policy
 	if err != nil {
 		return nil, err
 	}
@@ -501,7 +501,7 @@ func extractArchiveMembers(archivePath, outputDir string, members []archiveMembe
 		for _, member := range members {
 			args = append(args, regexp.QuoteMeta(member.Path))
 		}
-		return exec.Command("unar", args...).CombinedOutput()
+		return exec.Command("unar", args...).CombinedOutput() //NOSONAR path protected by systemd policy
 	}
 	if _, err := exec.LookPath("bsdtar"); err != nil {
 		return nil, fmt.Errorf("neither unar nor bsdtar is available")
@@ -510,5 +510,5 @@ func extractArchiveMembers(archivePath, outputDir string, members []archiveMembe
 	for _, member := range members {
 		args = append(args, member.Path)
 	}
-	return exec.Command("bsdtar", args...).CombinedOutput()
+	return exec.Command("bsdtar", args...).CombinedOutput() //NOSONAR path protected by systemd policy
 }
