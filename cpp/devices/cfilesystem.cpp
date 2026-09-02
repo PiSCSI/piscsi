@@ -2842,7 +2842,7 @@ int CFileSys::MakeDir(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 
 	// Create directory
 	char utf8_path[IC_BUF_SIZE];
-	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || mkdir(utf8_path, 0777))
+	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || mkdir(utf8_path, 0777)) //NOSONAR needed for host filesystem
 		return FS_INVALIDPATH;
 
 	// Update cache
