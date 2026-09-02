@@ -115,15 +115,11 @@ static bool BuildPath(TCHAR (&destination)[N], const TCHAR* base, std::string_vi
 //  Kanji code conversion
 //
 //---------------------------------------------------------------------------
-static const int IC_BUF_SIZE = 1024;
-static thread_local char convert_buf[IC_BUF_SIZE];
-#define CONVERT(src, dest, inbuf, outbuf, outsize) \
-	convert(src, dest, (char *)inbuf, outbuf, outsize)
-static void convert(char const *src, char const *dest,
-	char *inbuf, char *outbuf, size_t outsize)
+static constexpr size_t IC_BUF_SIZE = 1024;
+static bool convert(const char *src, const char *dest, const char *inbuf, char *outbuf, size_t outsize)
 {
-	if (outsize == 0)
-		return;
+	if (inbuf == nullptr || outbuf == nullptr || outsize == 0)
+		return false;
 
 	*outbuf = '\0';
 	size_t in = strlen(inbuf);
@@ -131,12 +127,14 @@ static void convert(char const *src, char const *dest,
 
 	iconv_t cd = iconv_open(dest, src);
 	if (cd == (iconv_t)-1) {
-		return;
+		return false;
 	}
 
-	iconv(cd, &inbuf, &in, &outbuf, &out);
+	char *input = const_cast<char *>(inbuf); // iconv() does not modify the input bytes.
+	const size_t result = iconv(cd, &input, &in, &outbuf, &out);
 	iconv_close(cd);
 	*outbuf = '\0';
+	return result != static_cast<size_t>(-1) && in == 0;
 }
 
 //---------------------------------------------------------------------------
@@ -144,10 +142,9 @@ static void convert(char const *src, char const *dest,
 // SJIS->UTF8 conversion
 //
 //---------------------------------------------------------------------------
-static char* SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
+static bool SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
 {
-	CONVERT("SJIS", "UTF-8", sjis, utf8, bufsize);
-	return convert_buf;
+	return convert("SJIS", "UTF-8", sjis, utf8, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -155,10 +152,9 @@ static char* SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
 // UTF8->SJIS conversion
 //
 //---------------------------------------------------------------------------
-static char* UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
+static bool UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
 {
-	CONVERT("UTF-8", "SJIS", utf8, sjis, bufsize);
-	return convert_buf;
+	return convert("UTF-8", "SJIS", utf8, sjis, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -166,10 +162,9 @@ static char* UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
 // SJIS->UTF8 conversion (simplified versoin)
 //
 //---------------------------------------------------------------------------
-static char* S2U(const char *sjis)
+static bool S2U(const char *sjis, char *utf8, size_t bufsize)
 {
-	SJIS2UTF8(sjis, convert_buf, IC_BUF_SIZE);
-	return convert_buf;
+	return SJIS2UTF8(sjis, utf8, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -177,10 +172,9 @@ static char* S2U(const char *sjis)
 // UTF8->SJIS conversion (simplified version)
 //
 //---------------------------------------------------------------------------
-static char* U2S(const char *utf8)
+static bool U2S(const char *utf8, char *sjis, size_t bufsize)
 {
-	UTF82SJIS(utf8, convert_buf, IC_BUF_SIZE);
-	return convert_buf;
+	return UTF82SJIS(utf8, sjis, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -1588,7 +1582,10 @@ void CHostPath::Refresh()
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
 	for (int i = 0; i < maxent; i++) {
 		if (pd == nullptr) {
-			nument = scandir(S2U(m_szHost), &pd, nullptr, AsciiSort);
+			char utf8_host[IC_BUF_SIZE];
+			if (!S2U(m_szHost, utf8_host, sizeof(utf8_host)))
+				break;
+			nument = scandir(utf8_host, &pd, nullptr, AsciiSort);
 			if (nument == -1) {
 				pd = nullptr;
 				break;
@@ -1605,7 +1602,9 @@ void CHostPath::Refresh()
 		}
 
 		// Get file name
-		const TCHAR* const filename = U2S(pe->d_name);
+		TCHAR filename[IC_BUF_SIZE];
+		if (!U2S(pe->d_name, filename, sizeof(filename)))
+			continue;
 		const size_t filename_length = strnlen(filename, FILEPATH_MAX);
 		if (filename_length == FILEPATH_MAX)
 			continue;
@@ -1654,7 +1653,10 @@ void CHostPath::Refresh()
 						const size_t human_length = strnlen((const char*)pFilename->GetHuman(), 24);
 						if (!BuildPath(szPath, m_szHost, std::string_view((const char*)pFilename->GetHuman(), human_length)))
 							break;	// Discover available patterns
-						if (struct stat sb; stat(S2U(szPath), &sb))
+						char utf8_path[IC_BUF_SIZE];
+						if (!S2U(szPath, utf8_path, sizeof(utf8_path)))
+							break;	// Discover available patterns
+						if (struct stat sb; stat(utf8_path, &sb))
 							break;	// Discover available patterns
 					}
 				}
@@ -1668,14 +1670,17 @@ void CHostPath::Refresh()
 
 		// Get data
 		TCHAR szPath[FILEPATH_MAX];
-		const TCHAR* const host_name = U2S(pe->d_name);
+		TCHAR host_name[IC_BUF_SIZE];
+		if (!U2S(pe->d_name, host_name, sizeof(host_name)))
+			continue;
 		const size_t host_name_length = strnlen(host_name, IC_BUF_SIZE);
 		if (host_name_length == IC_BUF_SIZE ||
 			!BuildPath(szPath, m_szHost, std::string_view(host_name, host_name_length)))
 			continue;
 
 		struct stat sb;
-		if (stat(S2U(szPath), &sb))
+		char utf8_path[IC_BUF_SIZE];
+		if (!S2U(szPath, utf8_path, sizeof(utf8_path)) || stat(utf8_path, &sb))
 			continue;
 
 		uint8_t nHumanAttribute = Human68k::AT_ARCHIVE;
@@ -1753,8 +1758,12 @@ void CHostPath::Backup()
 		len--;
 		assert(szPath[len] == '/');
 		szPath[len] = '\0';
-		if (struct stat sb; stat(S2U(szPath), &sb) == 0)
-			m_tBackup = sb.st_mtime;
+		char utf8_path[IC_BUF_SIZE];
+		if (S2U(szPath, utf8_path, sizeof(utf8_path))) {
+			struct stat sb;
+			if (stat(utf8_path, &sb) == 0)
+				m_tBackup = sb.st_mtime;
+		}
 	}
 }
 
@@ -2390,12 +2399,18 @@ bool CHostFcb::Create(uint32_t, bool bForce)
 
 	// Duplication check
 	if (!bForce) {
-		if (struct stat sb; stat(S2U(m_szFilename), &sb) == 0)
+		char utf8_filename[IC_BUF_SIZE];
+		if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
+			return false;
+		if (struct stat sb; stat(utf8_filename, &sb) == 0)
 			return false;
 	}
 
 	// Create file
-	m_pFile = fopen(S2U(m_szFilename), "w+b");	/// @warning The ideal operation is to overwrite each attribute
+	char utf8_filename[IC_BUF_SIZE];
+	if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
+		return false;
+	m_pFile = fopen(utf8_filename, "w+b");	/// @warning The ideal operation is to overwrite each attribute
 
 	return m_pFile != nullptr;
 }
@@ -2410,17 +2425,25 @@ bool CHostFcb::Create(uint32_t, bool bForce)
 bool CHostFcb::Open()
 {
 	assert(strlen(m_szFilename) > 0);
+	if (m_pFile != nullptr)
+		return true;
 
-	// Fail if directory
-	if (struct stat st; stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
-		return false || m_bFlag;
+	char utf8_filename[IC_BUF_SIZE];
+	if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
+		return m_bFlag;
+
+	FILE* file = fopen(utf8_filename, m_pszMode);
+	if (file == nullptr)
+		return m_bFlag;
+
+	struct stat st;
+	if (fstat(fileno(file), &st) != 0 || S_ISDIR(st.st_mode)) {
+		fclose(file);
+		return m_bFlag;
 	}
 
-	// File open
-	if (m_pFile == nullptr)
-		m_pFile = fopen(S2U(m_szFilename), m_pszMode);
-
-	return m_pFile != nullptr || m_bFlag;
+	m_pFile = file;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -2536,7 +2559,8 @@ bool CHostFcb::TimeStamp(uint32_t nHumanTime) const
 	// Flush and synchronize before updating the time stamp.
 	fflush(m_pFile);
 
-	return utime(S2U(m_szFilename), &ut) == 0 || m_bFlag;
+	char utf8_filename[IC_BUF_SIZE];
+	return (S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)) && utime(utf8_filename, &ut) == 0) || m_bFlag;
 }
 
 //---------------------------------------------------------------------------
@@ -2817,7 +2841,8 @@ int CFileSys::MakeDir(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 		return FS_INVALIDPATH;
 
 	// Create directory
-	if (mkdir(S2U(f.GetPath()), 0777))
+	char utf8_path[IC_BUF_SIZE];
+	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || mkdir(utf8_path, 0777))
 		return FS_INVALIDPATH;
 
 	// Update cache
@@ -2866,7 +2891,8 @@ int CFileSys::RemoveDir(uint32_t nUnit, const Human68k::namests_t* pNamests) con
 	m_cEntry.DeleteCache(nUnit, szHuman);
 
 	// Delete directory
-	if (rmdir(S2U(f.GetPath())))
+	char utf8_path[IC_BUF_SIZE];
+	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || rmdir(utf8_path))
 		return FS_CANTDELETE;
 
 	// Update cache
@@ -2921,8 +2947,9 @@ int CFileSys::Rename(uint32_t nUnit, const Human68k::namests_t* pNamests, const 
 	// Change file name
 	char szFrom[FILENAME_MAX];
 	char szTo[FILENAME_MAX];
-	SJIS2UTF8(f.GetPath(), szFrom, FILENAME_MAX);
-	SJIS2UTF8(fNew.GetPath(), szTo, FILENAME_MAX);
+	if (!SJIS2UTF8(f.GetPath(), szFrom, sizeof(szFrom)) ||
+		!SJIS2UTF8(fNew.GetPath(), szTo, sizeof(szTo)))
+		return FS_INVALIDPATH;
 	if (rename(szFrom, szTo)) {
 		return FS_FILENOTFND;
 	}
@@ -2965,7 +2992,8 @@ int CFileSys::Delete(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 		return FS_FILENOTFND;
 
 	// Delete file
-	if (unlink(S2U(f.GetPath())))
+	char utf8_path[IC_BUF_SIZE];
+	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || unlink(utf8_path))
 		return FS_CANTDELETE;
 
 	// Update cache
@@ -3015,8 +3043,11 @@ int CFileSys::Attribute(uint32_t nUnit, const Human68k::namests_t* pNamests, uin
 	// Generate attribute
 	if (uint32_t nAttribute = (nHumanAttribute & Human68k::AT_READONLY) | (f.GetAttribute() & ~Human68k::AT_READONLY);
 		f.GetAttribute() != nAttribute) {
+		char utf8_path[IC_BUF_SIZE];
+		if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)))
+			return FS_FILENOTFND;
 		struct stat sb;
-		if (stat(S2U(f.GetPath()), &sb))
+		if (stat(utf8_path, &sb))
 			return FS_FILENOTFND;
 		mode_t m = sb.st_mode & 0777;
 		if (nAttribute & Human68k::AT_READONLY)
@@ -3025,7 +3056,7 @@ int CFileSys::Attribute(uint32_t nUnit, const Human68k::namests_t* pNamests, uin
 			m |= 0200;	// u+w
 
 		// Set attribute
-		if (chmod(S2U(f.GetPath()), m))
+		if (chmod(utf8_path, m))
 			return FS_FILENOTFND;
 	}
 
