@@ -31,6 +31,12 @@ import (
 	pb "github.com/piscsi/piscsi/go/proto"
 )
 
+const (
+	contentDescriptionHeader = "Content-Description"
+	contentDispositionHeader = "Content-Disposition"
+	fileTransferDescription  = "File Transfer"
+)
+
 // serves the main control page
 func (s *Server) handleIndex(c *gin.Context) {
 	// Get base template data
@@ -1361,6 +1367,15 @@ func (s *Server) uploadDestination(formValues map[string]string) (string, error)
 	}
 }
 
+func setAttachmentHeader(c *gin.Context, filename string) {
+	c.Header(contentDispositionHeader, fmt.Sprintf("attachment; filename=%s", filename))
+}
+
+func setFileDownloadHeaders(c *gin.Context, filename string) {
+	c.Header(contentDescriptionHeader, fileTransferDescription)
+	setAttachmentHeader(c, filename)
+}
+
 // handles file downloads
 func (s *Server) handleFilesDownload(c *gin.Context) {
 	filename := c.Query("file")
@@ -1407,7 +1422,7 @@ func (s *Server) handleFilesDownload(c *gin.Context) {
 		}
 		defer file.Close()
 
-		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filepath.Base(filename)))
+		setAttachmentHeader(c, filepath.Base(filename))
 		http.ServeContent(c.Writer, c.Request, filepath.Base(filename), info.ModTime(), file)
 		return
 	}
@@ -2026,8 +2041,7 @@ func (s *Server) handleFilesDownloadConfig(c *gin.Context) {
 	defer file.Close()
 
 	// Serve the file for download
-	c.Header("Content-Description", "File Transfer")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	setFileDownloadHeaders(c, fileName)
 	http.ServeContent(c.Writer, c.Request, fileName, info.ModTime(), file)
 }
 
@@ -2097,8 +2111,7 @@ func (s *Server) handleConfigAction(c *gin.Context) {
 			return
 		}
 
-		c.Header("Content-Description", "File Transfer")
-		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+		setFileDownloadHeaders(c, fileName)
 		c.File(fullPath)
 		return
 	}
@@ -2158,6 +2171,9 @@ const (
 	defaultSystemLogLines = 100
 	maxSystemLogLines     = 1000
 	systemLogTimeout      = 10 * time.Second
+	logsTemplate          = "logs.html"
+	systemLogsTitle       = "PiSCSI System Logs"
+	allLogsScope          = "All logs"
 )
 
 var systemLogScopes = map[string]struct{}{
@@ -2195,10 +2211,10 @@ func (s *Server) handleLogsShow(c *gin.Context) {
 		s.respond(c, ResponseOptions{
 			Error:    true,
 			Message:  err.Error(),
-			Template: "logs.html",
+			Template: logsTemplate,
 			TemplateData: gin.H{
-				"Title": "PiSCSI System Logs",
-				"Scope": "All logs",
+				"Title": systemLogsTitle,
+				"Scope": allLogsScope,
 				"Lines": defaultSystemLogLines,
 			},
 		})
@@ -2223,14 +2239,14 @@ func (s *Server) handleLogsShow(c *gin.Context) {
 			message += ": " + details
 		}
 		data := s.getBaseTemplateData(c)
-		data["Title"] = "PiSCSI System Logs"
+		data["Title"] = systemLogsTitle
 		data["ErrorMessage"] = message
-		c.HTML(http.StatusInternalServerError, "logs.html", data)
+		c.HTML(http.StatusInternalServerError, logsTemplate, data)
 		return
 	}
 
 	// Prepare scope display text
-	scopeDisplay := "All logs"
+	scopeDisplay := allLogsScope
 	if scope != "" {
 		scopeDisplay = scope
 	}
@@ -2240,9 +2256,9 @@ func (s *Server) handleLogsShow(c *gin.Context) {
 	data["Scope"] = scopeDisplay
 	data["Lines"] = strconv.Itoa(lines)
 	data["Logs"] = logs
-	data["Title"] = "PiSCSI System Logs"
+	data["Title"] = systemLogsTitle
 
-	c.HTML(http.StatusOK, "logs.html", data)
+	c.HTML(http.StatusOK, logsTemplate, data)
 }
 
 // restarts the system
