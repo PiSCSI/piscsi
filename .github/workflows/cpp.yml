@@ -146,5 +146,5 @@ jobs:
             --define sonar.sources=cpp,go
             --define sonar.cfamily.gcov.reportsPath=cpp
             --define sonar.go.coverage.reportPaths=go/coverage.txt
-            --define sonar.coverage.exclusions=cpp/test/**
+            --define sonar.coverage.exclusions=cpp/test/**,go/**/*_test.go
             --define sonar.cpd.exclusions=cpp/test/**
