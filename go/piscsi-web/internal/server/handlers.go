@@ -537,12 +537,12 @@ type deviceParameterControl struct {
 }
 
 type deviceCatalogEntry struct {
-	Key           string
-	Name          string
-	MaxLUN        int32
-	Removable     bool
-	SupportsFile  bool
-	Parameters    []deviceParameterControl
+	Key                 string
+	Name                string
+	MaxLUN              int32
+	Removable           bool
+	SupportsFile        bool
+	Parameters          []deviceParameterControl
 	UsesNetworkTopology bool
 	NetworkProfiles     []networkTopology
 	Files               []map[string]interface{}
