@@ -774,7 +774,7 @@ private:
 	CRing m_cRing;							///< For attaching to CHostPath
 	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
 	bool m_bVolumeCache = false;						///< TRUE if the volume label has been read
-	TCHAR m_szVolumeCache[VOLUME_LABEL_MAX] = {};			///< Volume label cache
+	TCHAR m_szVolumeCache[VOLUME_LABEL_MAX] = {}; //NOSONAR: fixed Human68k volume-label C-string cache.
 	TCHAR m_szBase[FILEPATH_MAX] = {};					///< Base path
 };
 

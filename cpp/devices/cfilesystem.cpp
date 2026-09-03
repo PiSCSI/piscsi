@@ -1236,7 +1236,7 @@ CHostPath::~CHostPath()
 //---------------------------------------------------------------------------
 CHostPath::ring_t* CHostPath::Alloc()	// static
 {
-	auto p = new (std::nothrow) ring_t;
+	auto p = new (std::nothrow) ring_t; //NOSONAR: intrusive ring owns these entries explicitly.
 	if (p == nullptr)
 		return nullptr;
 
@@ -1254,7 +1254,7 @@ void CHostPath::Free(ring_t* pRing)	// static
 {
 	assert(pRing);
 
-	delete pRing;
+	delete pRing; //NOSONAR: intrusive ring releases its explicitly owned entries.
 }
 
 //---------------------------------------------------------------------------
@@ -1587,7 +1587,7 @@ void CHostPath::Refresh()
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
 	for (int i = 0; i < maxent; i++) {
 		if (pd == nullptr) {
-			char utf8_host[IC_BUF_SIZE];
+			char utf8_host[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and scandir.
 			if (!S2U(m_szHost, utf8_host, sizeof(utf8_host)))
 				break;
 			nument = scandir(utf8_host, &pd, nullptr, AsciiSort);
@@ -1607,7 +1607,7 @@ void CHostPath::Refresh()
 		}
 
 		// Get file name
-		TCHAR filename[IC_BUF_SIZE];
+		TCHAR filename[IC_BUF_SIZE]; //NOSONAR: fixed Shift-JIS C string required by iconv.
 		if (!U2S(pe->d_name, filename, sizeof(filename)))
 			continue;
 		if (const size_t filename_length = strnlen(filename, FILEPATH_MAX); filename_length == FILEPATH_MAX)
@@ -1657,7 +1657,7 @@ void CHostPath::Refresh()
 						if (const size_t human_length = strnlen((const char*)pFilename->GetHuman(), 24);
 							!BuildPath(szPath, m_szHost, std::string_view((const char*)pFilename->GetHuman(), human_length)))
 							break;	// Discover available patterns
-						char utf8_path[IC_BUF_SIZE];
+						char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and stat.
 						if (!S2U(szPath, utf8_path, sizeof(utf8_path)))
 							break;	// Discover available patterns
 						if (struct stat sb; stat(utf8_path, &sb))
@@ -1674,7 +1674,7 @@ void CHostPath::Refresh()
 
 		// Get data
 		TCHAR szPath[FILEPATH_MAX];
-		TCHAR host_name[IC_BUF_SIZE];
+		TCHAR host_name[IC_BUF_SIZE]; //NOSONAR: fixed Shift-JIS C string required by iconv.
 		if (!U2S(pe->d_name, host_name, sizeof(host_name)))
 			continue;
 		if (const size_t host_name_length = strnlen(host_name, IC_BUF_SIZE); host_name_length == IC_BUF_SIZE ||
@@ -1682,7 +1682,7 @@ void CHostPath::Refresh()
 			continue;
 
 		struct stat sb;
-		if (char utf8_path[IC_BUF_SIZE] = {};
+		if (char utf8_path[IC_BUF_SIZE] = {}; //NOSONAR: fixed C string required by iconv and stat.
 			!S2U(szPath, utf8_path, sizeof(utf8_path)) || stat(utf8_path, &sb))
 			continue;
 
@@ -1761,7 +1761,7 @@ void CHostPath::Backup()
 		len--;
 		assert(szPath[len] == '/');
 		szPath[len] = '\0';
-		char utf8_path[IC_BUF_SIZE];
+		char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and stat.
 		if (S2U(szPath, utf8_path, sizeof(utf8_path))) {
 			struct stat sb;
 			if (stat(utf8_path, &sb) == 0)
@@ -2397,7 +2397,7 @@ bool CHostFcb::Create(uint32_t, bool bForce)
 
 	// Duplication check
 	if (!bForce) {
-		char utf8_filename[IC_BUF_SIZE];
+		char utf8_filename[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and stat.
 		if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
 			return false;
 		if (struct stat sb; stat(utf8_filename, &sb) == 0)
@@ -2405,7 +2405,7 @@ bool CHostFcb::Create(uint32_t, bool bForce)
 	}
 
 	// Create file
-	char utf8_filename[IC_BUF_SIZE];
+	char utf8_filename[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and fopen.
 	if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
 		return false;
 	m_pFile = fopen(utf8_filename, "w+b");	/// @warning The ideal operation is to overwrite each attribute
@@ -2426,7 +2426,7 @@ bool CHostFcb::Open()
 	if (m_pFile != nullptr)
 		return true;
 
-	char utf8_filename[IC_BUF_SIZE];
+	char utf8_filename[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and fopen.
 	if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
 		return m_bFlag;
 
@@ -2832,7 +2832,7 @@ int CFileSys::MakeDir(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 		return FS_INVALIDPATH;
 
 	// Create directory
-	char utf8_path[IC_BUF_SIZE];
+	char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and mkdir.
 	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || mkdir(utf8_path, 0777)) //NOSONAR needed for host filesystem
 		return FS_INVALIDPATH;
 
@@ -2882,7 +2882,7 @@ int CFileSys::RemoveDir(uint32_t nUnit, const Human68k::namests_t* pNamests) con
 	m_cEntry.DeleteCache(nUnit, szHuman);
 
 	// Delete directory
-	if (char utf8_path[IC_BUF_SIZE] = {};
+	if (char utf8_path[IC_BUF_SIZE] = {}; //NOSONAR: fixed C string required by iconv and rmdir.
 		!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || rmdir(utf8_path))
 		return FS_CANTDELETE;
 
@@ -2983,7 +2983,7 @@ int CFileSys::Delete(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 		return FS_FILENOTFND;
 
 	// Delete file
-	if (char utf8_path[IC_BUF_SIZE] = {};
+	if (char utf8_path[IC_BUF_SIZE] = {}; //NOSONAR: fixed C string required by iconv and unlink.
 		!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || unlink(utf8_path))
 		return FS_CANTDELETE;
 
@@ -3034,7 +3034,7 @@ int CFileSys::Attribute(uint32_t nUnit, const Human68k::namests_t* pNamests, uin
 	// Generate attribute
 	if (uint32_t nAttribute = (nHumanAttribute & Human68k::AT_READONLY) | (f.GetAttribute() & ~Human68k::AT_READONLY);
 		f.GetAttribute() != nAttribute) {
-		char utf8_path[IC_BUF_SIZE];
+		char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv, stat, and chmod.
 		if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)))
 			return FS_FILENOTFND;
 		struct stat sb;
@@ -4052,7 +4052,7 @@ bool CFileSys::FilesVolume(uint32_t nUnit, Human68k::files_t* pFiles) const
 	assert(pFiles);
 
 	// Get volume label
-	TCHAR szVolume[VOLUME_LABEL_MAX];
+	TCHAR szVolume[VOLUME_LABEL_MAX]; //NOSONAR: fixed C string passed through the Human68k volume-label path.
 	if (bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume, ARRAY_SIZE(szVolume)); !bResult) {
 		// Carry out an extra media check here because it may be skipped when doing a manual eject
 		if (!m_cEntry.isEnable(nUnit))
