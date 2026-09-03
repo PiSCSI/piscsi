@@ -16,10 +16,11 @@
 //---------------------------------------------------------------------------
 
 #include "cfilesystem.h"
+#include <array>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <iconv.h>
-#include <utime.h>
 
 #include <new>
 #include <string>
@@ -1781,21 +1782,16 @@ void CHostPath::Restore() const
 {
 	assert(m_szHost);
 
-	TCHAR szPath[FILEPATH_MAX];
-	if (!CopyString(szPath, m_szHost))
-		return;
-	size_t len = strlen(szPath);
+	std::string path(m_szHost);
+	if (m_tBackup && path.size() > 1) {
+		assert(path.back() == '/');
+		path.pop_back();
 
-	if (m_tBackup) {
-		assert(len);
-		len--;
-		assert(szPath[len] == '/');
-		szPath[len] = '\0';
-
-		utimbuf ut;
-		ut.actime = m_tBackup;
-		ut.modtime = m_tBackup;
-		utime(szPath, &ut);
+		std::array<char, IC_BUF_SIZE> utf8_path;
+		if (S2U(path.c_str(), utf8_path.data(), utf8_path.size())) {
+			const timespec times[2] = {{m_tBackup, 0}, {m_tBackup, 0}};
+			utimensat(AT_FDCWD, utf8_path.data(), times, 0);
+		}
 	}
 }
 
@@ -2556,16 +2552,10 @@ bool CHostFcb::TimeStamp(uint32_t nHumanTime) const
 	time_t ti = mktime(&t);
 	if (ti == (time_t)-1)
 		return false;
-	utimbuf ut;
-	ut.actime = ti;
-	ut.modtime = ti;
-
 	// This is for preventing the last updated time stamp to be overwritten upon closing.
 	// Flush and synchronize before updating the time stamp.
-	fflush(m_pFile);
-
-	char utf8_filename[IC_BUF_SIZE];
-	return (S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)) && utime(utf8_filename, &ut) == 0) || m_bFlag;
+	const timespec times[2] = {{ti, 0}, {ti, 0}};
+	return (m_pFile != nullptr && fflush(m_pFile) == 0 && futimens(fileno(m_pFile), times) == 0) || m_bFlag;
 }
 
 //---------------------------------------------------------------------------
