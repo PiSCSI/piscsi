@@ -18,6 +18,7 @@
 #include "controllers/scsi_controller.h"
 #include "devices/device_logger.h"
 #include "devices/scsi_host_bridge.h"
+#include "devices/host_services.h"
 #include "devices/storage_device.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
@@ -349,7 +350,7 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 	return true;
 }
 
-bool Piscsi::ExecuteCommand(const CommandContext& context)
+bool Piscsi::ExecuteCommand(const CommandContext& context, bool lock)
 {
 	const PbCommand& command = context.GetCommand();
 	const PbOperation operation = command.operation();
@@ -481,8 +482,17 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			return executor->ProcessCmd(context);
 
 		default:
-			// The remaining commands may only be executed when the target is idle
-			if (!ExecuteWithLock(context)) {
+			// Socket commands must not race the SCSI command loop. Host Services
+			// commands already execute under execution_locker.
+			bool success;
+			if (lock) {
+				success = ExecuteWithLock(context);
+			}
+			else {
+				success = executor->ProcessCmd(context);
+				ConfigureRasctlControlChannels();
+			}
+			if (!success) {
 				return false;
 			}
 
@@ -490,6 +500,12 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 	}
 
 	return true;
+}
+
+bool Piscsi::ExecuteHostServiceCommand(const PbCommand& command, PbResult& result)
+{
+	const CommandContext context(command, piscsi_image.GetDefaultFolder(), GetParam(command, "locale"), &result);
+	return ExecuteCommand(context, false) && result.status();
 }
 
 bool Piscsi::ExecuteWithLock(const CommandContext& context)
@@ -500,8 +516,12 @@ bool Piscsi::ExecuteWithLock(const CommandContext& context)
 	return success;
 }
 
-bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation operation) const
+bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation operation)
 {
+	if (operation == ATTACH) {
+		ConfigureHostServices();
+	}
+
 	// ATTACH and DETACH return the resulting device list
 	if (operation == ATTACH || operation == DETACH) {
 		// A command with an empty device list is required here in order to return data for all devices
@@ -513,6 +533,17 @@ bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation o
 	}
 
 	return true;
+}
+
+void Piscsi::ConfigureHostServices()
+{
+	for (const auto& device : controller_manager.GetAllDevices()) {
+		if (const auto services = dynamic_pointer_cast<HostServices>(device); services != nullptr) {
+			services->SetCommandExecutor([this] (const PbCommand& command, PbResult& result) {
+				return ExecuteHostServiceCommand(command, result);
+			});
+		}
+	}
 }
 
 int Piscsi::run(span<char *> args)
@@ -578,6 +609,8 @@ int Piscsi::run(span<char *> args)
 			return EXIT_FAILURE;
 		}
 	}
+
+	ConfigureHostServices();
 
 	ConfigureRasctlControlChannels();
 

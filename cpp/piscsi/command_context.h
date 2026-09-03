@@ -21,7 +21,8 @@ class CommandContext
 
 public:
 
-	CommandContext(const PbCommand& cmd, string_view f, string_view l) : command(cmd), default_folder(f), locale(l) {}
+	CommandContext(const PbCommand& cmd, string_view f, string_view l, PbResult *r = nullptr)
+		: command(cmd), default_folder(f), locale(l), output_result(r) {}
 	explicit CommandContext(int f) : fd(f) {}
 	~CommandContext() = default;
 
@@ -50,4 +51,7 @@ private:
 	string locale;
 
 	int fd = -1;
+
+	// Host Services uses the existing command router without its socket transport.
+	PbResult *output_result = nullptr;
 };

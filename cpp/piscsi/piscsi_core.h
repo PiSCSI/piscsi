@@ -54,9 +54,11 @@ private:
 	bool ShutDown(AbstractController::piscsi_shutdown_mode);
 	bool ShutDown(const CommandContext&, const string&);
 
-	bool ExecuteCommand(const CommandContext&);
+	bool ExecuteCommand(const CommandContext&, bool = true);
+	bool ExecuteHostServiceCommand(const PbCommand&, PbResult&);
 	bool ExecuteWithLock(const CommandContext&);
-	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
+	bool HandleDeviceListChange(const CommandContext&, PbOperation);
+	void ConfigureHostServices();
 	// Translates the historic X68000 RASCTL text protocol into normal PiSCSI commands.
 	void ProcessRasctlControlCommands();
 	string ExecuteRasctlControlCommand(const string&, SCSIBR::rasctl_shutdown_mode&);

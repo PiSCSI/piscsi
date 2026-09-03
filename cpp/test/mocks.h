@@ -157,6 +157,10 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(HostServicesTest, ModeSense6);
 	FRIEND_TEST(HostServicesTest, ModeSense10);
 	FRIEND_TEST(HostServicesTest, SetUpModePages);
+	FRIEND_TEST(HostServicesTest, RemoteCommandExecution);
+	FRIEND_TEST(HostServicesTest, RemoteCommandTextFormats);
+	FRIEND_TEST(HostServicesTest, RemoteCommandRejectsInvalidFormat);
+	FRIEND_TEST(HostServicesTest, RemoteCommandRejectsMalformedPayload);
 	FRIEND_TEST(ScsiPrinterTest, Print);
 	FRIEND_TEST(ScsiCdTest, ReadToc);
 	FRIEND_TEST(ScsiCdTest, ReadTocAllocationLength);
