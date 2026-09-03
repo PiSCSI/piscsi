@@ -769,8 +769,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 		memcpy(szHumanPath + nHumanPath, szHumanFilename, n + 1);
 		nHumanPath += n;
 
-		const std::string_view host_filename(pFilename->GetHost());
-		if (!AppendString(szHostPath, ARRAY_SIZE(szHostPath), host_filename))
+		if (const std::string_view host_filename(pFilename->GetHost());
+			!AppendString(szHostPath, ARRAY_SIZE(szHostPath), host_filename))
 			return nullptr;				// Error: Host side path is too long
 
 		// PLEASE CONTINUE
@@ -1786,8 +1786,8 @@ void CHostPath::Restore() const
 
 		std::array<char, IC_BUF_SIZE> utf8_path;
 		if (S2U(path.c_str(), utf8_path.data(), utf8_path.size())) {
-			const timespec times[2] = {{m_tBackup, 0}, {m_tBackup, 0}};
-			utimensat(AT_FDCWD, utf8_path.data(), times, 0);
+			const std::array<timespec, 2> times = {{{m_tBackup, 0}, {m_tBackup, 0}}};
+			utimensat(AT_FDCWD, utf8_path.data(), times.data(), 0);
 		}
 	}
 }
@@ -2550,8 +2550,8 @@ bool CHostFcb::TimeStamp(uint32_t nHumanTime) const
 		return false;
 	// This is for preventing the last updated time stamp to be overwritten upon closing.
 	// Flush and synchronize before updating the time stamp.
-	const timespec times[2] = {{ti, 0}, {ti, 0}};
-	return (m_pFile != nullptr && fflush(m_pFile) == 0 && futimens(fileno(m_pFile), times) == 0) || m_bFlag;
+	const std::array<timespec, 2> times = {{{ti, 0}, {ti, 0}}};
+	return (m_pFile != nullptr && fflush(m_pFile) == 0 && futimens(fileno(m_pFile), times.data()) == 0) || m_bFlag;
 }
 
 //---------------------------------------------------------------------------
