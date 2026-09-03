@@ -22,6 +22,7 @@
 #include <utime.h>
 
 #include <new>
+#include <string>
 #include <string_view>
 
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
@@ -122,7 +123,11 @@ static bool convert(const char *src, const char *dest, const char *inbuf, char *
 		return false;
 
 	*outbuf = '\0';
-	size_t in = strlen(inbuf);
+	// POSIX iconv advances its input pointer through a mutable character buffer,
+	// even though it does not modify the input bytes. Own that buffer rather
+	// than casting away the constness of the caller's string.
+	std::string input_buffer(inbuf);
+	size_t in = input_buffer.size();
 	size_t out = outsize - 1;
 
 	iconv_t cd = iconv_open(dest, src);
@@ -130,7 +135,7 @@ static bool convert(const char *src, const char *dest, const char *inbuf, char *
 		return false;
 	}
 
-	char *input = const_cast<char *>(inbuf); // iconv() does not modify the input bytes.
+	char *input = input_buffer.data();
 	const size_t result = iconv(cd, &input, &in, &outbuf, &out);
 	iconv_close(cd);
 	*outbuf = '\0';
