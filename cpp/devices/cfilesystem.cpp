@@ -137,7 +137,7 @@ static bool convert(const char *src, const char *dest, const char *inbuf, char *
 	}
 
 	char *input = input_buffer.data();
-	const size_t result = iconv(cd, &input, &in, &outbuf, &out);
+	const auto result = iconv(cd, &input, &in, &outbuf, &out);
 	iconv_close(cd);
 	*outbuf = '\0';
 	return result != static_cast<size_t>(-1) && in == 0;
@@ -770,7 +770,6 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 		nHumanPath += n;
 
 		const std::string_view host_filename(pFilename->GetHost());
-		n = host_filename.size();
 		if (!AppendString(szHostPath, ARRAY_SIZE(szHostPath), host_filename))
 			return nullptr;				// Error: Host side path is too long
 
@@ -1567,8 +1566,8 @@ int AsciiSort(const dirent **a, const dirent **b)
 //---------------------------------------------------------------------------
 void CHostPath::Refresh()
 {
-	const size_t host_length = strnlen(m_szHost, ARRAY_SIZE(m_szHost));
-	if (host_length == ARRAY_SIZE(m_szHost) || host_length > ARRAY_SIZE(m_szHost) - 1 - 22)
+	if (const size_t host_length = strnlen(m_szHost, ARRAY_SIZE(m_szHost));
+		host_length == ARRAY_SIZE(m_szHost) || host_length > ARRAY_SIZE(m_szHost) - 1 - 22)
 		return;
 
 	// Store time stamp
@@ -1611,8 +1610,7 @@ void CHostPath::Refresh()
 		TCHAR filename[IC_BUF_SIZE];
 		if (!U2S(pe->d_name, filename, sizeof(filename)))
 			continue;
-		const size_t filename_length = strnlen(filename, FILEPATH_MAX);
-		if (filename_length == FILEPATH_MAX)
+		if (const size_t filename_length = strnlen(filename, FILEPATH_MAX); filename_length == FILEPATH_MAX)
 			continue;
 
 		// Allocate file name memory
@@ -1656,8 +1654,8 @@ void CHostPath::Refresh()
 					if (pCheck == nullptr) {
 						// If no match, confirm existence of real file
 						TCHAR szPath[FILEPATH_MAX];
-						const size_t human_length = strnlen((const char*)pFilename->GetHuman(), 24);
-						if (!BuildPath(szPath, m_szHost, std::string_view((const char*)pFilename->GetHuman(), human_length)))
+						if (const size_t human_length = strnlen((const char*)pFilename->GetHuman(), 24);
+							!BuildPath(szPath, m_szHost, std::string_view((const char*)pFilename->GetHuman(), human_length)))
 							break;	// Discover available patterns
 						char utf8_path[IC_BUF_SIZE];
 						if (!S2U(szPath, utf8_path, sizeof(utf8_path)))
@@ -1679,14 +1677,13 @@ void CHostPath::Refresh()
 		TCHAR host_name[IC_BUF_SIZE];
 		if (!U2S(pe->d_name, host_name, sizeof(host_name)))
 			continue;
-		const size_t host_name_length = strnlen(host_name, IC_BUF_SIZE);
-		if (host_name_length == IC_BUF_SIZE ||
+		if (const size_t host_name_length = strnlen(host_name, IC_BUF_SIZE); host_name_length == IC_BUF_SIZE ||
 			!BuildPath(szPath, m_szHost, std::string_view(host_name, host_name_length)))
 			continue;
 
 		struct stat sb;
-		char utf8_path[IC_BUF_SIZE];
-		if (!S2U(szPath, utf8_path, sizeof(utf8_path)) || stat(utf8_path, &sb))
+		if (char utf8_path[IC_BUF_SIZE] = {};
+			!S2U(szPath, utf8_path, sizeof(utf8_path)) || stat(utf8_path, &sb))
 			continue;
 
 		uint8_t nHumanAttribute = Human68k::AT_ARCHIVE;
@@ -2437,8 +2434,7 @@ bool CHostFcb::Open()
 	if (file == nullptr)
 		return m_bFlag;
 
-	struct stat st;
-	if (fstat(fileno(file), &st) != 0 || S_ISDIR(st.st_mode)) {
+	if (struct stat st = {}; fstat(fileno(file), &st) != 0 || S_ISDIR(st.st_mode)) {
 		fclose(file);
 		return m_bFlag;
 	}
@@ -2886,8 +2882,8 @@ int CFileSys::RemoveDir(uint32_t nUnit, const Human68k::namests_t* pNamests) con
 	m_cEntry.DeleteCache(nUnit, szHuman);
 
 	// Delete directory
-	char utf8_path[IC_BUF_SIZE];
-	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || rmdir(utf8_path))
+	if (char utf8_path[IC_BUF_SIZE] = {};
+		!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || rmdir(utf8_path))
 		return FS_CANTDELETE;
 
 	// Update cache
@@ -2987,8 +2983,8 @@ int CFileSys::Delete(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 		return FS_FILENOTFND;
 
 	// Delete file
-	char utf8_path[IC_BUF_SIZE];
-	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || unlink(utf8_path))
+	if (char utf8_path[IC_BUF_SIZE] = {};
+		!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || unlink(utf8_path))
 		return FS_CANTDELETE;
 
 	// Update cache
@@ -3990,7 +3986,7 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 		if (argument.empty())
 			break;
 
-		const uint8_t c = (uint8_t)argument.front();
+		const auto c = static_cast<uint8_t>(argument.front());
 
 		uint32_t nMode;
 		if (c == '+') {
@@ -3999,10 +3995,8 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 			nMode = 0;
 		} else if (c == '/') {
 			// Specify default base path
-			if (m_nDrives < CHostEntry::DRIVE_MAX) {
-				if (CopyString(m_szBase[m_nDrives], argument))
-					m_nDrives++;
-			}
+			if (m_nDrives < CHostEntry::DRIVE_MAX && CopyString(m_szBase[m_nDrives], argument))
+				m_nDrives++;
 			continue;
 		} else {
 			// Continue since no option is specified
@@ -4010,10 +4004,10 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 		}
 
 		for (size_t index = 1; index < argument.size(); index++) {
-			const uint8_t c = (uint8_t)argument[index];
+			const auto option_char = static_cast<uint8_t>(argument[index]);
 
 			uint32_t nBit = 0;
-			switch (c) {
+			switch (option_char) {
 				case 'A': case 'a': nBit = WINDRV_OPT_CONVERT_LENGTH; break;
 				case 'T': case 't': nBit = WINDRV_OPT_COMPARE_LENGTH; nMode ^= 1; break;
 				case 'C': case 'c': nBit = WINDRV_OPT_ALPHABET; break;
