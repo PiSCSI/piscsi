@@ -15,6 +15,8 @@
 #include <span>
 #include <vector>
 #include <map>
+#include <functional>
+#include <utility>
 
 class HostServices: public ModePageDevice
 {
@@ -28,6 +30,12 @@ public:
 
 	vector<uint8_t> InquiryInternal() const override;
 	void TestUnitReady() override;
+
+	// Executes a remote-interface command without using its socket transport.
+	using command_executor = function<bool(const PbCommand&, PbResult&)>;
+	void SetCommandExecutor(command_executor executor) { execute_command = std::move(executor); }
+
+	bool WriteByteSequence(span<const uint8_t>) override;
 
 protected:
 
@@ -49,8 +57,20 @@ private:
 	};
 
 	void StartStopUnit() const;
+	void ExecuteOperation();
+	void ReceiveOperationResults();
 	int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
+	bool ParseCommand(span<const uint8_t>, PbCommand&) const;
+	int GetTransferLength() const;
+
+	enum class protobuf_format { binary = 0x01, json = 0x02, text = 0x04 };
+	protobuf_format ConvertFormat() const;
+
+	// Operation results are isolated by initiator ID.
+	unordered_map<int, string> execution_results;
+	command_executor execute_command;
+	protobuf_format input_format = protobuf_format::binary;
 };

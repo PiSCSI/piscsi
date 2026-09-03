@@ -10,6 +10,9 @@
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
 #include "devices/host_services.h"
+#include <array>
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/util/json_util.h>
 
 using namespace std;
 
@@ -102,7 +105,12 @@ TEST(HostServicesTest, ModeSense6)
     EXPECT_CALL(*controller, DataIn());
     services->Dispatch(scsi_command::eCmdModeSense6);
 	buffer = controller->GetBuffer();
-	EXPECT_EQ(0x02, buffer[0]);
+	EXPECT_EQ(0x01, buffer[0]);
+
+	controller->SetCmdByte(3, 1);
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
 
 TEST(HostServicesTest, ModeSense10)
@@ -139,12 +147,131 @@ TEST(HostServicesTest, ModeSense10)
 	// Day
 	EXPECT_NE(0x00, buffer[14]);
 
-    // ALLOCATION LENGTH
-	controller->SetCmdByte(8, 2);
+    // ALLOCATION LENGTH (the two-byte header must fit in the response)
+	controller->SetCmdByte(8, 4);
     EXPECT_CALL(*controller, DataIn());
     services->Dispatch(scsi_command::eCmdModeSense10);
 	buffer = controller->GetBuffer();
 	EXPECT_EQ(0x02, buffer[1]);
+
+	controller->SetCmdByte(3, 1);
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+}
+
+TEST(HostServicesTest, RemoteCommandExecution)
+{
+	auto [controller, services] = CreateDevice(SCHS);
+	EXPECT_TRUE(services->Init({}));
+
+	PbCommand command;
+	(*command.mutable_params())["locale"] = "en";
+	(*command.mutable_params())["payload"] = string(5000, 'x');
+	const string data = command.SerializeAsString();
+
+	controller->SetCmdByte(0, static_cast<int>(scsi_command::eCmdExecuteOperation));
+	controller->SetCmdByte(1, 0x01);
+	controller->SetCmdByte(7, static_cast<int>(data.size() >> 8));
+	controller->SetCmdByte(8, static_cast<int>(data.size()));
+	EXPECT_CALL(*controller, DataOut());
+	services->Dispatch(scsi_command::eCmdExecuteOperation);
+
+	auto host_services = dynamic_pointer_cast<HostServices>(services);
+	host_services->SetCommandExecutor([] (const PbCommand& received, PbResult& result) {
+		EXPECT_EQ("en", received.params().at("locale"));
+		EXPECT_EQ(5000, received.params().at("payload").size());
+		result.set_status(true);
+		result.set_msg("executed");
+		return true;
+	});
+	EXPECT_TRUE(host_services->WriteByteSequence(span(reinterpret_cast<const uint8_t*>(data.data()), data.size())));
+	EXPECT_LE(data.size(), controller->GetBuffer().size());
+
+	controller->SetCmdByte(0, static_cast<int>(scsi_command::eCmdReceiveOperationResults));
+	controller->SetCmdByte(1, 0x01);
+	controller->SetCmdByte(7, 0x04);
+	controller->SetCmdByte(8, 0x00);
+	EXPECT_CALL(*controller, DataIn());
+	services->Dispatch(scsi_command::eCmdReceiveOperationResults);
+
+	PbResult result;
+	EXPECT_TRUE(result.ParseFromArray(controller->GetBuffer().data(), controller->GetLength()));
+	EXPECT_TRUE(result.status());
+	EXPECT_EQ("executed", result.msg());
+
+	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdReceiveOperationResults); }, Throws<scsi_exception>(AllOf(
+		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+		Property(&scsi_exception::get_asc, asc::data_currently_unavailable))));
+}
+
+TEST(HostServicesTest, RemoteCommandRejectsInvalidFormat)
+{
+	auto [controller, services] = CreateDevice(SCHS);
+	EXPECT_TRUE(services->Init({}));
+
+	controller->SetCmdByte(1, 0x03);
+	controller->SetCmdByte(8, 1);
+	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdExecuteOperation); }, Throws<scsi_exception>(AllOf(
+		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+		Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+}
+
+TEST(HostServicesTest, RemoteCommandRejectsMalformedPayload)
+{
+	auto [controller, services] = CreateDevice(SCHS);
+	EXPECT_TRUE(services->Init({}));
+
+	controller->SetCmdByte(0, static_cast<int>(scsi_command::eCmdExecuteOperation));
+	controller->SetCmdByte(1, 0x01);
+	controller->SetCmdByte(8, 1);
+	EXPECT_CALL(*controller, DataOut());
+	services->Dispatch(scsi_command::eCmdExecuteOperation);
+
+	const array<uint8_t, 1> payload = { 0xff };
+	EXPECT_THAT([&] { services->WriteByteSequence(payload); }, Throws<scsi_exception>(AllOf(
+		Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
+		Property(&scsi_exception::get_asc, asc::internal_target_failure))));
+}
+
+TEST(HostServicesTest, RemoteCommandTextFormats)
+{
+	auto [controller, services] = CreateDevice(SCHS);
+	EXPECT_TRUE(services->Init({}));
+
+	PbCommand command;
+	(*command.mutable_params())["locale"] = "en";
+	string data;
+	ASSERT_TRUE(google::protobuf::util::MessageToJsonString(command, &data).ok());
+
+	controller->SetCmdByte(0, static_cast<int>(scsi_command::eCmdExecuteOperation));
+	controller->SetCmdByte(1, 0x02);
+	controller->SetCmdByte(7, static_cast<int>(data.size() >> 8));
+	controller->SetCmdByte(8, static_cast<int>(data.size()));
+	EXPECT_CALL(*controller, DataOut());
+	services->Dispatch(scsi_command::eCmdExecuteOperation);
+
+	auto host_services = dynamic_pointer_cast<HostServices>(services);
+	host_services->SetCommandExecutor([] (const PbCommand& received, PbResult& result) {
+		EXPECT_EQ("en", received.params().at("locale"));
+		result.set_status(true);
+		result.set_msg("text result");
+		return true;
+	});
+	EXPECT_TRUE(host_services->WriteByteSequence(span(reinterpret_cast<const uint8_t*>(data.data()), data.size())));
+
+	controller->SetCmdByte(0, static_cast<int>(scsi_command::eCmdReceiveOperationResults));
+	controller->SetCmdByte(1, 0x04);
+	controller->SetCmdByte(7, 0x04);
+	controller->SetCmdByte(8, 0x00);
+	EXPECT_CALL(*controller, DataIn());
+	services->Dispatch(scsi_command::eCmdReceiveOperationResults);
+
+	PbResult result;
+	EXPECT_TRUE(google::protobuf::TextFormat::ParseFromString(
+		string(reinterpret_cast<const char*>(controller->GetBuffer().data()), controller->GetLength()), &result));
+	EXPECT_TRUE(result.status());
+	EXPECT_EQ("text result", result.msg());
 }
 
 TEST(HostServicesTest, SetUpModePages)

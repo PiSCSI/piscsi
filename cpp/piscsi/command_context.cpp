@@ -37,6 +37,11 @@ bool CommandContext::ReadCommand()
 
 void CommandContext::WriteResult(const PbResult& result) const
 {
+	if (output_result != nullptr) {
+		*output_result = result;
+		return;
+	}
+
 	// The descriptor is -1 when devices are not attached via the remote interface but by the piscsi tool
 	if (fd != -1) {
 		SerializeMessage(fd, result);
@@ -78,7 +83,14 @@ bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode er
 		spdlog::error(msg);
 	}
 
-	if (fd == -1) {
+	if (output_result != nullptr) {
+		PbResult response;
+		response.set_status(status);
+		response.set_error_code(error_code);
+		response.set_msg(msg);
+		WriteResult(response);
+	}
+	else if (fd == -1) {
 		if (!msg.empty()) {
 			cerr << "Error: " << msg << endl;
 		}

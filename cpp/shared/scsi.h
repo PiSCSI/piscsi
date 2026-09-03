@@ -118,6 +118,9 @@ enum class scsi_command {
     eCmdReadCapacity16_ReadLong16  = 0x9E,
     eCmdWriteLong16                = 0x9F,
     eCmdReportLuns                 = 0xA0,
+    // Host Services vendor-specific remote command interface
+    eCmdExecuteOperation           = 0xC0,
+    eCmdReceiveOperationResults    = 0xC1,
     // SASI/OMTI Assign Disk Parameters. The CDB is six bytes and is followed
     // by a ten-byte parameter list in the data-out phase.
     eCmdAssignDiskParameters       = 0xC2
@@ -154,7 +157,9 @@ enum class asc {
     not_ready_to_ready_change       = 0x28,
     power_on_or_reset               = 0x29,
     medium_not_present              = 0x3a,
-    load_or_eject_failed            = 0x53
+    internal_target_failure         = 0x44,
+    load_or_eject_failed            = 0x53,
+    data_currently_unavailable     = 0x55
 };
 
 static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
@@ -202,5 +207,7 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdReadCapacity16_ReadLong16, make_pair(16, "ReadCapacity16/ReadLong16")},
     {scsi_command::eCmdWriteLong16, make_pair(16, "WriteLong16")},
     {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")},
+    {scsi_command::eCmdExecuteOperation, make_pair(10, "ExecuteOperation")},
+    {scsi_command::eCmdReceiveOperationResults, make_pair(10, "ReceiveOperationResults")},
     {scsi_command::eCmdAssignDiskParameters, make_pair(6, "AssignDiskParameters")}};
 }; // namespace scsi_defs
