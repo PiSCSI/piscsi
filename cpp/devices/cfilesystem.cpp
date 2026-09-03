@@ -2389,9 +2389,10 @@ bool CHostFcb::SetHumanPath(const uint8_t* szHumanPath)
 /// Return false if error is thrown.
 //
 //---------------------------------------------------------------------------
-bool CHostFcb::Create(uint32_t, bool bForce)
+bool CHostFcb::Create(uint32_t nHumanAttribute, bool bForce)
 {
-	assert((Human68k::AT_DIRECTORY | Human68k::AT_VOLUME) == 0);
+	static_cast<void>(nHumanAttribute);
+	assert((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
 	assert(strlen(m_szFilename) > 0);
 	assert(m_pFile == nullptr);
 
