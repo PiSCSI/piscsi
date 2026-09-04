@@ -525,7 +525,7 @@ func deviceTypeName(deviceType pb.PbDeviceType) string {
 	case pb.PbDeviceType_SCTP:
 		return "SCSI Tape"
 	case pb.PbDeviceType_SCPV:
-		return "Display Adapter"
+		return "PowerView Display Adapter"
 	default:
 		return deviceType.String()
 	}
@@ -539,12 +539,12 @@ type deviceParameterControl struct {
 }
 
 type deviceCatalogEntry struct {
-	Key           string
-	Name          string
-	MaxLUN        int32
-	Removable     bool
-	SupportsFile  bool
-	Parameters    []deviceParameterControl
+	Key                 string
+	Name                string
+	MaxLUN              int32
+	Removable           bool
+	SupportsFile        bool
+	Parameters          []deviceParameterControl
 	UsesNetworkTopology bool
 	NetworkProfiles     []networkTopology
 	Files               []map[string]interface{}

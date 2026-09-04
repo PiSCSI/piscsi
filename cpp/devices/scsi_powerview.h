@@ -83,6 +83,7 @@ private:
 
 	vector<uint8_t> InquiryInternal() const override;
 
+	void Read6() const;
 	void ReadConfiguration();
 	void WriteConfiguration();
 	void WriteFrameBuffer();
