@@ -38,7 +38,7 @@ bool GPIOBUS::Init(mode_e mode)
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
+int GPIOBUS::CommandHandShake(vector<uint8_t> &buf, bool is_powerview)
 {
     // Only works in TARGET mode
 	assert(actmode == mode_e::TARGET);
@@ -111,7 +111,9 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
         }
     }
 
-    const int command_byte_count = GetCommandByteCount(buf[0]);
+    // PowerView firmware 2.1 uses a four-byte CDB for C2, while the
+    // otherwise shared C2 opcode is SASI Assign Disk Parameters (six bytes).
+    const int command_byte_count = is_powerview && buf[0] == 0xc2 ? 4 : GetCommandByteCount(buf[0]);
     if (command_byte_count == 0) {
         EnableIRQ();
 

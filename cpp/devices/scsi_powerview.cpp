@@ -19,6 +19,7 @@
 #include "scsi_powerview.h"
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -41,6 +42,16 @@ constexpr array<uint8_t, 0x4b> inquiry_response = {
 	0x05, 0x00, 0x00, 0x00, 0x00, 0x06, 0x43, 0xf9,
 	0x00, 0x00, 0xff
 };
+
+constexpr array<SCSIPowerView::mode_descriptor_t, 7> monitor_modes = {{
+	{ 0,  640, 480 },
+	{ 1,  624, 840 },
+	{ 2,  800, 600 },
+	{ 3,  640, 400 },
+	{ 4,  624, 840 },
+	{ 5,  640, 400 },
+	{ 6, 1152, 882 }
+}};
 
 string FormatBytes(span<const uint8_t> data, size_t maximum = 16)
 {
@@ -89,6 +100,33 @@ bool SCSIPowerView::Init(const param_map& params)
 		snapshot_interval = chrono::milliseconds(interval);
 	}
 
+	const string revision = GetParam("firmware_revision");
+	if (revision == "1.0") {
+		firmware_v21 = false;
+	}
+	else if (revision == "2.1") {
+		firmware_v21 = true;
+	}
+	else {
+		LogError("Invalid PowerView firmware_revision");
+		return false;
+	}
+
+	const auto configured_mode = ParseMonitorMode(GetParam("monitor_mode"));
+	if (!configured_mode) {
+		LogError("Invalid PowerView monitor_mode");
+		return false;
+	}
+	monitor_mode = *configured_mode;
+
+	if (int sense; !GetAsUnsignedInt(GetParam("legacy_monitor_sense"), sense) || sense < 0 || sense > 8) {
+		LogError("Invalid PowerView legacy_monitor_sense");
+		return false;
+	}
+	else {
+		legacy_monitor_sense = static_cast<uint8_t>(sense);
+	}
+
 	const string full_refresh_only = GetParam("snapshot_full_refresh_only");
 	if (full_refresh_only == "true") {
 		snapshot_full_refresh_only = true;
@@ -119,11 +157,16 @@ bool SCSIPowerView::Init(const param_map& params)
 	}
 
 	AddCommand(scsi_command::eCmdRead6, [this] { Read6(); });
+	AddCommand(scsi_command::eCmdPowerViewV21ReadMode, [this] { ReadV21MonitorMode(); });
+	AddCommand(scsi_command::eCmdPowerViewV21Write, [this] { WriteV21Handshake(); });
+	AddCommand(scsi_command::eCmdPowerViewV21ModeSet, [this] { V21ModeSet(); });
 	AddCommand(scsi_command::eCmdPowerViewReadConfig, [this] { ReadConfiguration(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteConfig, [this] { WriteConfiguration(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteFrameBuffer, [this] { WriteFrameBuffer(); });
 	AddCommand(scsi_command::eCmdPowerViewWriteColorPalette, [this] { WriteColorPalette(); });
 	AddCommand(scsi_command::eCmdPowerViewUnknownCC, [this] { WriteUnknownCC(); });
+	AddCommand(scsi_command::eCmdPowerViewQuadraSetup, [this] { QuadraSetup(); });
+	ClearVideoState();
 
 	return true;
 }
@@ -133,7 +176,10 @@ param_map SCSIPowerView::GetDefaultParams() const
 	return {
 		{ "snapshot", "" },
 		{ "snapshot_interval", "250" },
-		{ "snapshot_full_refresh_only", "false" }
+		{ "snapshot_full_refresh_only", "false" },
+		{ "firmware_revision", "1.0" },
+		{ "monitor_mode", "640x480" },
+		{ "legacy_monitor_sense", "8" }
 	};
 }
 
@@ -149,7 +195,14 @@ void SCSIPowerView::Reset()
 
 vector<uint8_t> SCSIPowerView::InquiryInternal() const
 {
-	return { inquiry_response.begin(), inquiry_response.end() };
+	auto response = vector<uint8_t>(inquiry_response.begin(), inquiry_response.end());
+	if (firmware_v21) {
+		response[32] = 'V';
+		response[33] = '2';
+		response[34] = '.';
+		response[35] = '1';
+	}
+	return response;
 }
 
 void SCSIPowerView::Read6() const
@@ -173,7 +226,16 @@ void SCSIPowerView::ReadConfiguration()
 	if (GetController()->GetCmdByte(3) == 0x31) {
 		switch (GetController()->GetCmdByte(4)) {
 		case 0x00: {
-			constexpr array<uint8_t, 3> response = { 0x01, 0x09, 0x08 };
+			array<uint8_t, 3> response = { 0x01, 0x09, 0x08 };
+			if (firmware_v21) {
+				// Sense code 7 selects RadiusWare's enhanced C4/C3/C2 path.
+				response = { 0x09, 0x09, 0x09 };
+			}
+			else if (legacy_monitor_sense != 8) {
+				response = { static_cast<uint8_t>(0x08 | (legacy_monitor_sense & 1)),
+						static_cast<uint8_t>(0x08 | ((legacy_monitor_sense >> 1) & 1)),
+						static_cast<uint8_t>(0x08 | ((legacy_monitor_sense >> 2) & 1)) };
+			}
 			copy_n(response.begin(), min(response.size(), length), buffer.begin());
 			break;
 		}
@@ -185,7 +247,13 @@ void SCSIPowerView::ReadConfiguration()
 			break;
 
 		case 0x83:
-			// The recorded response is all zeroes.
+			// A clear bit forces legacy extended sense. V2.1 needs the base
+			// sense value 7 so RadiusWare performs the enhanced handshake.
+			if (firmware_v21 || legacy_monitor_sense != 8) {
+				if (length) {
+					buffer[0] = 0x01;
+				}
+			}
 			break;
 
 		default:
@@ -197,6 +265,46 @@ void SCSIPowerView::ReadConfiguration()
 	GetController()->SetBlocks(1);
 	GetController()->SetLength(static_cast<uint32_t>(length));
 	EnterDataInPhase();
+}
+
+void SCSIPowerView::ReadV21MonitorMode()
+{
+	if (!firmware_v21) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
+	}
+	GetController()->AllocateBuffer(1);
+	GetController()->GetBuffer()[0] = monitor_mode;
+	GetController()->SetBlocks(1);
+	GetController()->SetLength(1);
+	EnterDataInPhase();
+}
+
+void SCSIPowerView::WriteV21Handshake()
+{
+	if (!firmware_v21) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
+	}
+	StartDataOut(transfer_t::v21_write, 1);
+}
+
+void SCSIPowerView::V21ModeSet()
+{
+	if (!firmware_v21) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
+	}
+	const int operation = GetController()->GetCmdByte(1);
+	if (operation != 0 && operation != 1) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+	}
+	EnterStatusPhase();
+}
+
+void SCSIPowerView::QuadraSetup()
+{
+	if (!firmware_v21) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
+	}
+	EnterStatusPhase();
 }
 
 void SCSIPowerView::WriteConfiguration()
@@ -231,7 +339,15 @@ void SCSIPowerView::WriteFrameBuffer()
 	// CA is an 11-byte CDB. The legacy implementation (and RadiusWare) use
 	// byte 9 to distinguish a complete refresh from an update at offset zero.
 	if (!offset && !GetController()->GetCmdByte(9)) {
-		SetScreenDimensions(width_bytes * pixels_per_byte, height);
+		if (firmware_v21) {
+			const auto& mode = GetActiveMode();
+			if (width_bytes != mode.width / pixels_per_byte || height != mode.height) {
+				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+			}
+		}
+		else if (!SetScreenDimensions(width_bytes * pixels_per_byte, height)) {
+			throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+		}
 	}
 
 	const auto update = GetFrameBufferUpdate();
@@ -310,6 +426,10 @@ bool SCSIPowerView::WriteByteSequence(span<const uint8_t> data)
 	case transfer_t::configuration:
 		configuration_data.assign(data.begin(), data.end());
 		LogDebug("PowerView: C9 payload " + FormatBytes(data));
+		break;
+
+	case transfer_t::v21_write:
+		LogDebug("PowerView: C3 V2.1 handshake payload " + FormatBytes(data));
 		break;
 
 	case transfer_t::palette:
@@ -414,7 +534,10 @@ optional<SCSIPowerView::framebuffer_update_t> SCSIPowerView::GetFrameBufferUpdat
 
 bool SCSIPowerView::SetScreenDimensions(size_t width, size_t height)
 {
-	if (!((width == 640 && (height == 400 || height == 480)) || (width == 800 && height == 600))) {
+	const auto mode = find_if(monitor_modes.begin(), monitor_modes.end(), [width, height] (const auto& candidate) {
+		return candidate.width == width && candidate.height == height;
+	});
+	if (mode == monitor_modes.end()) {
 		return false;
 	}
 
@@ -426,10 +549,41 @@ bool SCSIPowerView::SetScreenDimensions(size_t width, size_t height)
 	return true;
 }
 
+const SCSIPowerView::mode_descriptor_t& SCSIPowerView::GetActiveMode() const
+{
+	const auto mode = GetMode(monitor_mode);
+	assert(mode);
+	return *find_if(monitor_modes.begin(), monitor_modes.end(), [mode] (const auto& candidate) {
+		return candidate.code == mode->code;
+	});
+}
+
+optional<SCSIPowerView::mode_descriptor_t> SCSIPowerView::GetMode(uint8_t code)
+{
+	const auto mode = find_if(monitor_modes.begin(), monitor_modes.end(), [code] (const auto& candidate) {
+		return candidate.code == code;
+	});
+	return mode == monitor_modes.end() ? nullopt : optional<mode_descriptor_t>(*mode);
+}
+
+optional<uint8_t> SCSIPowerView::ParseMonitorMode(const string& value)
+{
+	if (value.size() == 1 && value[0] >= '0' && value[0] <= '6') {
+		return static_cast<uint8_t>(value[0] - '0');
+	}
+	for (const auto& mode : monitor_modes) {
+		if (value == to_string(mode.width) + "x" + to_string(mode.height)) {
+			return mode.code;
+		}
+	}
+	return nullopt;
+}
+
 void SCSIPowerView::ClearVideoState()
 {
-	screen_width = 640;
-	screen_height = 400;
+	const auto& mode = firmware_v21 ? GetActiveMode() : mode_descriptor_t { 3, 640, 400 };
+	screen_width = mode.width;
+	screen_height = mode.height;
 	pixel_format = pixel_format_t::one_bit;
 	framebuffer.fill(0);
 	palette.fill({});

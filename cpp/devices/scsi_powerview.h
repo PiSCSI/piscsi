@@ -33,8 +33,8 @@ class SCSIPowerView : public PrimaryDevice
 public:
 	using color_t = array<uint8_t, 3>;
 
-	static constexpr size_t MAX_WIDTH = 800;
-	static constexpr size_t MAX_HEIGHT = 600;
+	static constexpr size_t MAX_WIDTH = 1152;
+	static constexpr size_t MAX_HEIGHT = 882;
 	static constexpr size_t MAX_FRAMEBUFFER_BYTES = MAX_WIDTH * MAX_HEIGHT;
 	explicit SCSIPowerView(int lun);
 	~SCSIPowerView() override;
@@ -50,6 +50,12 @@ public:
 	uint8_t GetPixel(size_t x, size_t y) const { return framebuffer[y * MAX_WIDTH + x]; }
 	const array<color_t, 256>& GetPalette() const { return palette; }
 
+	struct mode_descriptor_t {
+		uint8_t code;
+		uint16_t width;
+		uint16_t height;
+	};
+
 private:
 	enum class pixel_format_t {
 		one_bit,
@@ -60,6 +66,7 @@ private:
 	enum class transfer_t {
 		none,
 		configuration,
+		v21_write,
 		framebuffer,
 		palette,
 		unknown_cc
@@ -86,6 +93,10 @@ private:
 	void Read6() const;
 	void ReadConfiguration();
 	void WriteConfiguration();
+	void ReadV21MonitorMode();
+	void WriteV21Handshake();
+	void V21ModeSet();
+	void QuadraSetup();
 	void WriteFrameBuffer();
 	void WriteColorPalette();
 	void WriteUnknownCC();
@@ -93,6 +104,9 @@ private:
 	void ApplyFrameBufferUpdate(span<const uint8_t>);
 	void ApplyPalette(span<const uint8_t>);
 	optional<framebuffer_update_t> GetFrameBufferUpdate() const;
+	const mode_descriptor_t& GetActiveMode() const;
+	static optional<mode_descriptor_t> GetMode(uint8_t);
+	static optional<uint8_t> ParseMonitorMode(const string&);
 	bool SetScreenDimensions(size_t width, size_t height);
 	void ClearVideoState();
 	void QueueSnapshot(bool);
@@ -108,6 +122,9 @@ private:
 	pixel_format_t pixel_format = pixel_format_t::one_bit;
 	array<uint8_t, MAX_FRAMEBUFFER_BYTES> framebuffer {};
 	array<color_t, 256> palette {};
+	bool firmware_v21 = false;
+	uint8_t monitor_mode = 0;
+	uint8_t legacy_monitor_sense = 8;
 
 	string snapshot_path;
 	chrono::milliseconds snapshot_interval { 250 };

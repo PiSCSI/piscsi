@@ -122,11 +122,17 @@ enum class scsi_command {
     // by a ten-byte parameter list in the data-out phase.
     eCmdAssignDiskParameters       = 0xC2,
     // Radius PowerView vendor-specific commands
+    // C2 shares its opcode with SASI Assign Disk Parameters, but PowerView
+    // uses a four-byte CDB. The controller selects that CDB length for SCPV.
+    eCmdPowerViewV21ReadMode       = 0xC2,
+    eCmdPowerViewV21Write          = 0xC3,
+    eCmdPowerViewV21ModeSet        = 0xC4,
     eCmdPowerViewReadConfig        = 0xC8,
     eCmdPowerViewWriteConfig       = 0xC9,
     eCmdPowerViewWriteFrameBuffer  = 0xCA,
     eCmdPowerViewWriteColorPalette = 0xCB,
-    eCmdPowerViewUnknownCC         = 0xCC
+    eCmdPowerViewUnknownCC         = 0xCC,
+    eCmdPowerViewQuadraSetup       = 0xCF
 };
 
 enum class status {
@@ -216,5 +222,8 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     {scsi_command::eCmdPowerViewWriteConfig, make_pair(8, "PowerViewWriteConfig")},
     {scsi_command::eCmdPowerViewWriteFrameBuffer, make_pair(11, "PowerViewWriteFrameBuffer")},
     {scsi_command::eCmdPowerViewWriteColorPalette, make_pair(6, "PowerViewWriteColorPalette")},
-    {scsi_command::eCmdPowerViewUnknownCC, make_pair(4, "PowerViewUnknownCC")}};
+    {scsi_command::eCmdPowerViewUnknownCC, make_pair(4, "PowerViewUnknownCC")},
+    {scsi_command::eCmdPowerViewV21Write, make_pair(4, "PowerViewV21Write")},
+    {scsi_command::eCmdPowerViewV21ModeSet, make_pair(4, "PowerViewV21ModeSet")},
+    {scsi_command::eCmdPowerViewQuadraSetup, make_pair(6, "PowerViewQuadraSetup")}};
 }; // namespace scsi_defs

@@ -54,7 +54,7 @@ public:
 	MOCK_METHOD(uint8_t, GetDAT, (), (override));
 	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
 	MOCK_METHOD(uint32_t, Acquire, (), (override));
-	MOCK_METHOD(int, CommandHandShake, (vector<uint8_t>&), (override));
+	MOCK_METHOD(int, CommandHandShake, (vector<uint8_t>&, bool), (override));
 	MOCK_METHOD(int, ReceiveHandShake, (uint8_t *, int), (override));
 	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
 	MOCK_METHOD(bool, GetSignal, (int), (const override));
@@ -159,6 +159,8 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(HostServicesTest, SetUpModePages);
 	FRIEND_TEST(ScsiPrinterTest, Print);
 	FRIEND_TEST(ScsiPowerViewTest, Inquiry);
+	FRIEND_TEST(ScsiPowerViewTest, V21ExtendedModeHandshake);
+	FRIEND_TEST(ScsiPowerViewTest, V21ModeGeometry);
 	FRIEND_TEST(ScsiPowerViewTest, ReadConfiguration);
 	FRIEND_TEST(ScsiPowerViewTest, DataOutCommands);
 	FRIEND_TEST(ScsiPowerViewTest, DecodesPaletteAndFrameBufferUpdates);

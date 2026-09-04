@@ -125,7 +125,7 @@ class GPIOBUS : public BUS
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     // Command receive handshake
-    int CommandHandShake(vector<uint8_t>&) override;
+    int CommandHandShake(vector<uint8_t>&, bool) override;
     // Data receive handshake
     int ReceiveHandShake(uint8_t *, int) override;
     // Data transmission handshake

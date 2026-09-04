@@ -45,6 +45,84 @@ TEST(ScsiPowerViewTest, Read6ReportsNoMediumForRadiusWareProbe)
 			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 }
 
+TEST(ScsiPowerViewTest, V21ExtendedModeHandshake)
+{
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
+	auto power_view = make_shared<SCSIPowerView>(0);
+	EXPECT_TRUE(power_view->Init({ { "firmware_revision", "2.1" }, { "monitor_mode", "1152x882" } }));
+	EXPECT_TRUE(controller->AddDevice(power_view));
+
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 0x4b);
+	EXPECT_CALL(*controller, DataIn());
+	power_view->Dispatch(scsi_command::eCmdInquiry);
+	EXPECT_EQ("V2.1", string(controller->GetBuffer().begin() + 32, controller->GetBuffer().begin() + 36));
+
+	controller->SetCmdByte(3, 0x31);
+	controller->SetCmdByte(4, 0x00);
+	controller->SetCmdByte(6, 3);
+	EXPECT_CALL(*controller, DataIn());
+	power_view->Dispatch(scsi_command::eCmdPowerViewReadConfig);
+	EXPECT_EQ((vector<uint8_t> { 0x09, 0x09, 0x09 }), controller->GetBuffer());
+
+	controller->SetCmdByte(4, 0x83);
+	controller->SetCmdByte(6, 1);
+	EXPECT_CALL(*controller, DataIn());
+	power_view->Dispatch(scsi_command::eCmdPowerViewReadConfig);
+	EXPECT_EQ(0x01, controller->GetBuffer()[0]);
+
+	controller->SetCmdByte(1, 0);
+	EXPECT_CALL(*controller, Status());
+	power_view->Dispatch(scsi_command::eCmdPowerViewV21ModeSet);
+
+	EXPECT_CALL(*controller, DataOut());
+	power_view->Dispatch(scsi_command::eCmdPowerViewV21Write);
+	EXPECT_EQ(1, controller->GetLength());
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t> { 0x71 }));
+
+	EXPECT_CALL(*controller, DataIn());
+	power_view->Dispatch(scsi_command::eCmdPowerViewV21ReadMode);
+	EXPECT_EQ(1, controller->GetLength());
+	EXPECT_EQ(6, controller->GetBuffer()[0]);
+
+	EXPECT_CALL(*controller, Status());
+	power_view->Dispatch(scsi_command::eCmdPowerViewQuadraSetup);
+}
+
+TEST(ScsiPowerViewTest, V21ModeGeometry)
+{
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
+	auto power_view = make_shared<SCSIPowerView>(0);
+	EXPECT_TRUE(power_view->Init({ { "firmware_revision", "2.1" }, { "monitor_mode", "1152x882" } }));
+	EXPECT_TRUE(controller->AddDevice(power_view));
+
+	controller->SetCmdByte(3, 1);
+	controller->SetCmdByte(4, 0);
+	EXPECT_CALL(*controller, DataOut());
+	power_view->Dispatch(scsi_command::eCmdPowerViewWriteColorPalette);
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(256 * 4)));
+
+	controller->SetCmdByte(1, 0);
+	controller->SetCmdByte(2, 0);
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 0x04);
+	controller->SetCmdByte(5, 0x80);
+	controller->SetCmdByte(6, 0x03);
+	controller->SetCmdByte(7, 0x72);
+	controller->SetCmdByte(9, 0);
+	EXPECT_CALL(*controller, DataOut());
+	power_view->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer);
+	EXPECT_EQ(1152 * 882, controller->GetLength());
+	EXPECT_TRUE(power_view->WriteByteSequence(vector<uint8_t>(1152 * 882)));
+	EXPECT_EQ(1152, power_view->GetScreenWidth());
+	EXPECT_EQ(882, power_view->GetScreenHeight());
+
+	controller->SetCmdByte(5, 0x7f);
+	EXPECT_THAT([&] { power_view->Dispatch(scsi_command::eCmdPowerViewWriteFrameBuffer); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+}
+
 TEST(ScsiPowerViewTest, ReadConfiguration)
 {
 	auto [controller, device] = CreateDevice(SCPV);

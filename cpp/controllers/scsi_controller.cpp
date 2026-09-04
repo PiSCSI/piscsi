@@ -146,7 +146,10 @@ void ScsiController::Command()
 		GetBus().SetCD(true);
 		GetBus().SetIO(false);
 
-		const int actual_count = GetBus().CommandHandShake(GetBuffer());
+		const auto devices = GetDevices();
+		const bool is_powerview = !devices.empty() && all_of(devices.begin(), devices.end(),
+				[] (const shared_ptr<PrimaryDevice>& device) { return device->GetType() == SCPV; });
+		const int actual_count = GetBus().CommandHandShake(GetBuffer(), is_powerview);
 		if (actual_count == 0) {
 			stringstream s;
 			s << "Received unknown command: $" << setfill('0') << setw(2) << hex << static_cast<unsigned int>(GetBuffer()[0]);
@@ -156,7 +159,7 @@ void ScsiController::Command()
 			return;
 		}
 
-		const int command_byte_count = BUS::GetCommandByteCount(GetBuffer()[0]);
+		const int command_byte_count = is_powerview && GetBuffer()[0] == 0xc2 ? 4 : BUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
@@ -186,7 +189,12 @@ void ScsiController::Execute()
         stringstream s;
         s << "Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $"
             << setfill('0') << hex;
-        for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
+        const auto devices = GetDevices();
+        const bool is_powerview = !devices.empty() && all_of(devices.begin(), devices.end(),
+                [] (const shared_ptr<PrimaryDevice>& device) { return device->GetType() == SCPV; });
+        const int command_byte_count = is_powerview && GetOpcode() == scsi_command::eCmdPowerViewV21ReadMode ? 4 :
+                BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode()));
+        for (int i = 0; i < command_byte_count; i++) {
             s << setw(2) << GetCmdByte(i);
         }
         LogTrace(s.str());
