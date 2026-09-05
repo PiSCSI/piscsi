@@ -16,40 +16,157 @@
 //---------------------------------------------------------------------------
 
 #include "cfilesystem.h"
+#include <array>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <iconv.h>
-#include <utime.h>
+#include <spdlog/spdlog.h>
+
+#include <new>
+#include <string>
+#include <string_view>
 
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
+
+//---------------------------------------------------------------------------
+//
+// Bounded C string helpers
+//
+// The Human68k protocol uses NUL-terminated byte strings, but those strings
+// are not necessarily supplied by trusted host code. Keep the byte semantics
+// while making every fixed-size destination explicit.
+//
+//---------------------------------------------------------------------------
+template <size_t N>
+static bool CopyString(TCHAR (&destination)[N], std::string_view source)
+{
+	static_assert(N > 0);
+	if (source.size() >= N)
+		return false;
+
+	memcpy(destination, source.data(), source.size());
+	destination[source.size()] = '\0';
+	return true;
+}
+
+static bool CopyString(TCHAR* destination, size_t destination_size, std::string_view source)
+{
+	if (destination == nullptr || destination_size == 0 || source.size() >= destination_size)
+		return false;
+
+	memcpy(destination, source.data(), source.size());
+	destination[source.size()] = '\0';
+	return true;
+}
+
+template <size_t N>
+static bool CopyString(TCHAR (&destination)[N], const TCHAR* source)
+{
+	if (source == nullptr)
+		return false;
+
+	const size_t length = strnlen(source, N);
+	if (length == N)
+		return false;
+
+	return CopyString(destination, std::string_view(source, length));
+}
+
+template <size_t N>
+static bool CopyBytes(uint8_t (&destination)[N], const uint8_t* source)
+{
+	if (source == nullptr)
+		return false;
+
+	const size_t length = strnlen((const char*)source, N);
+	if (length == N)
+		return false;
+
+	memcpy(destination, source, length + 1);
+	return true;
+}
+
+static const uint8_t* FindNul(const uint8_t* first, const uint8_t* last)
+{
+	const auto length = static_cast<size_t>(last - first);
+	return static_cast<const uint8_t*>(memchr(first, '\0', length));
+}
+
+// TEMPORARY: Keep filesystem protocol values observable while investigating
+// corrupted directory entries reported by an X68000 user. Remove after a
+// trace from affected hardware has been captured.
+static std::string HexBytes(const uint8_t* bytes, size_t capacity)
+{
+	static constexpr char hex[] = "0123456789ABCDEF";
+	std::string result;
+	for (size_t index = 0; index < capacity; index++) {
+		const uint8_t byte = bytes[index];
+		if (!result.empty())
+			result += ' ';
+		result += hex[byte >> 4];
+		result += hex[byte & 0x0f];
+		if (byte == '\0')
+			break;
+	}
+	return result;
+}
+
+static void TraceFileSearchResult(const char* operation, uint32_t key, const Human68k::files_t& files)
+{
+	spdlog::trace("TEMP cfilesystem {} key={:#010x} attr={:#04x} date={:#06x} time={:#06x} size={} full=[{}]", operation,
+		key, files.attr, files.date, files.time, files.size, HexBytes(files.full, sizeof(files.full)));
+}
+
+static bool AppendString(TCHAR* destination, size_t destination_size, std::string_view source)
+{
+	if (destination_size == 0)
+		return false;
+
+	const size_t length = strnlen(destination, destination_size);
+	if (length == destination_size || source.size() >= destination_size - length)
+		return false;
+
+	memcpy(destination + length, source.data(), source.size());
+	destination[length + source.size()] = '\0';
+	return true;
+}
+
+template <size_t N>
+static bool BuildPath(TCHAR (&destination)[N], const TCHAR* base, std::string_view component)
+{
+	return CopyString(destination, base) && AppendString(destination, N, component);
+}
 
 //---------------------------------------------------------------------------
 //
 //  Kanji code conversion
 //
 //---------------------------------------------------------------------------
-static const int IC_BUF_SIZE = 1024;
-static char convert_buf[IC_BUF_SIZE];
-#define CONVERT(src, dest, inbuf, outbuf, outsize) \
-	convert(src, dest, (char *)inbuf, outbuf, outsize)
-static void convert(char const *src, char const *dest,
-	char *inbuf, char *outbuf, size_t outsize)
+static constexpr size_t IC_BUF_SIZE = 1024;
+static bool convert(const char *src, const char *dest, const char *inbuf, char *outbuf, size_t outsize)
 {
+	if (inbuf == nullptr || outbuf == nullptr || outsize == 0)
+		return false;
+
 	*outbuf = '\0';
-	size_t in = strlen(inbuf);
+	// POSIX iconv advances its input pointer through a mutable character buffer,
+	// even though it does not modify the input bytes. Own that buffer rather
+	// than casting away the constness of the caller's string.
+	std::string input_buffer(inbuf);
+	size_t in = input_buffer.size();
 	size_t out = outsize - 1;
 
 	iconv_t cd = iconv_open(dest, src);
 	if (cd == (iconv_t)-1) {
-		return;
+		return false;
 	}
 
-	if (const size_t ret = iconv(cd, &inbuf, &in, &outbuf, &out); ret == (size_t)-1) {
-		return;
-	}
-
+	char *input = input_buffer.data();
+	const auto result = iconv(cd, &input, &in, &outbuf, &out);
 	iconv_close(cd);
 	*outbuf = '\0';
+	return result != static_cast<size_t>(-1) && in == 0;
 }
 
 //---------------------------------------------------------------------------
@@ -57,10 +174,9 @@ static void convert(char const *src, char const *dest,
 // SJIS->UTF8 conversion
 //
 //---------------------------------------------------------------------------
-static char* SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
+static bool SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
 {
-	CONVERT("SJIS", "UTF-8", sjis, utf8, bufsize);
-	return convert_buf;
+	return convert("SJIS", "UTF-8", sjis, utf8, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -68,10 +184,9 @@ static char* SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
 // UTF8->SJIS conversion
 //
 //---------------------------------------------------------------------------
-static char* UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
+static bool UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
 {
-	CONVERT("UTF-8", "SJIS", utf8, sjis, bufsize);
-	return convert_buf;
+	return convert("UTF-8", "SJIS", utf8, sjis, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -79,10 +194,9 @@ static char* UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
 // SJIS->UTF8 conversion (simplified versoin)
 //
 //---------------------------------------------------------------------------
-static char* S2U(const char *sjis)
+static bool S2U(const char *sjis, char *utf8, size_t bufsize)
 {
-	SJIS2UTF8(sjis, convert_buf, IC_BUF_SIZE);
-	return convert_buf;
+	return SJIS2UTF8(sjis, utf8, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -90,10 +204,9 @@ static char* S2U(const char *sjis)
 // UTF8->SJIS conversion (simplified version)
 //
 //---------------------------------------------------------------------------
-static char* U2S(const char *utf8)
+static bool U2S(const char *utf8, char *sjis, size_t bufsize)
 {
-	UTF82SJIS(utf8, convert_buf, IC_BUF_SIZE);
-	return convert_buf;
+	return UTF82SJIS(utf8, sjis, bufsize);
 }
 
 //---------------------------------------------------------------------------
@@ -225,7 +338,6 @@ CHostDrv::~CHostDrv()
 void CHostDrv::Init(const TCHAR* szBase, uint32_t nFlag)
 {
 	assert(szBase);
-	assert(strlen(szBase) < FILEPATH_MAX);
 	assert(!m_bWriteProtect);
 	assert(!m_bEnable);
 	assert(m_capCache.sectors == 0);
@@ -240,9 +352,10 @@ void CHostDrv::Init(const TCHAR* szBase, uint32_t nFlag)
 	m_capCache.sectors = 0;
 
 	// Receive parameters
+	if (!CopyString(m_szBase, szBase))
+		return;
 	if (nFlag & FSFLAG_WRITE_PROTECT)
 		m_bWriteProtect = true;
-	strcpy(m_szBase, szBase);
 
 	// Remove the last path delimiter in the base path
 	// @warning needs to be modified when using Unicode
@@ -366,24 +479,27 @@ void CHostDrv::Eject()
 // Get volume label
 //
 //---------------------------------------------------------------------------
-void CHostDrv::GetVolume(TCHAR* szLabel)
+bool CHostDrv::GetVolume(TCHAR* szLabel, size_t label_size)
 {
 	assert(szLabel);
 	assert(m_bEnable);
 
 	// Get volume label
-	strcpy(m_szVolumeCache, "RASDRV ");
+	if (!CopyString(m_szVolumeCache, std::string_view("RASDRV ")))
+		return false;
 	if (m_szBase[0]) {
-		strcat(m_szVolumeCache, m_szBase);
+		if (!AppendString(m_szVolumeCache, ARRAY_SIZE(m_szVolumeCache), m_szBase))
+			return false;
 	} else {
-		strcat(m_szVolumeCache, "/");
+		if (!AppendString(m_szVolumeCache, ARRAY_SIZE(m_szVolumeCache), "/"))
+			return false;
 	}
 
 	// Cache update
 	m_bVolumeCache = true;
 
 	// Transfer content
-	strcpy(szLabel, m_szVolumeCache);
+	return CopyString(szLabel, label_size, m_szVolumeCache);
 }
 
 //---------------------------------------------------------------------------
@@ -394,12 +510,13 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 /// Return true if the cache contents are valid.
 //
 //---------------------------------------------------------------------------
-bool CHostDrv::GetVolumeCache(TCHAR* szLabel) const
+bool CHostDrv::GetVolumeCache(TCHAR* szLabel, size_t label_size) const
 {
 	assert(szLabel);
 
 	// Transfer contents
-	strcpy(szLabel, m_szVolumeCache);
+	if (!CopyString(szLabel, label_size, m_szVolumeCache))
+		return false;
 
 	return m_bVolumeCache;
 }
@@ -566,7 +683,8 @@ CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 	}
 
 	// Store the host side path
-	pFiles->SetResult(pPath->GetHost());
+	if (!pFiles->SetResult(pPath->GetHost()))
+		return nullptr;
 
 	return pPath;
 }
@@ -604,8 +722,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	size_t nHumanPath = 0;
 
 	TCHAR szHostPath[FILEPATH_MAX];
-	strcpy(szHostPath, m_szBase);
-	size_t nHostPath = strlen(szHostPath);
+	if (!CopyString(szHostPath, std::string_view(m_szBase)))
+		return nullptr;
 
 	CHostPath* pPath;
 	const uint8_t* p = pFiles->GetHumanPath();
@@ -615,10 +733,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 			return nullptr;				// Error: The Human68k path is too long
 		szHumanPath[nHumanPath++] = '/';
 		szHumanPath[nHumanPath] = '\0';
-		if (nHostPath + 1 >= FILEPATH_MAX)
+		if (!AppendString(szHostPath, ARRAY_SIZE(szHostPath), "/"))
 			return nullptr;				// Error: The host side path is too long
-		szHostPath[nHostPath++] = '/';
-		szHostPath[nHostPath] = '\0';
 
 		// Insert one file
 		uint8_t szHumanFilename[24];		// File name part
@@ -643,8 +759,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 				assert(pPath);
 				m_nRing++;
 			}
-			pPath->SetHuman(szHumanPath);
-			pPath->SetHost(szHostPath);
+			if (!pPath->SetHuman(szHumanPath) || !pPath->SetHost(szHostPath))
+				return nullptr;
 
 			// Update status
 			pPath->Refresh();
@@ -676,14 +792,12 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 			return nullptr;				// Error: Could not find path or file names in the middle
 
 		// Link path name
-		strcpy((char*)szHumanPath + nHumanPath, (const char*)szHumanFilename);
+		memcpy(szHumanPath + nHumanPath, szHumanFilename, n + 1);
 		nHumanPath += n;
 
-		n = strlen(pFilename->GetHost());
-		if (nHostPath + n >= FILEPATH_MAX)
+		if (const std::string_view host_filename(pFilename->GetHost());
+			!AppendString(szHostPath, ARRAY_SIZE(szHostPath), host_filename))
 			return nullptr;				// Error: Host side path is too long
-		strcpy(szHostPath + nHostPath, pFilename->GetHost());
-		nHostPath += n;
 
 		// PLEASE CONTINUE
 		if (*p == '\0')
@@ -691,7 +805,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	}
 
 	// Store the host side path name
-	pFiles->SetResult(szHostPath);
+	if (!pFiles->SetResult(szHostPath))
+		return nullptr;
 
 	return pPath;
 }
@@ -718,7 +833,8 @@ bool CHostDrv::Find(CHostFiles* pFiles)
 	}
 
 	// Store host side path
-	pFiles->SetResult(pPath->GetHost());
+	if (!pFiles->SetResult(pPath->GetHost()))
+		return false;
 
 	// Exit if only path name
 	if (pFiles->isPathOnly()) {
@@ -735,7 +851,8 @@ bool CHostDrv::Find(CHostFiles* pFiles)
 	pFiles->SetEntry(pFilename);
 
 	// Store the host side full path name
-	pFiles->AddResult(pFilename->GetHost());
+	if (!pFiles->AddResult(pFilename->GetHost()))
+		return false;
 
 	return true;
 }
@@ -751,12 +868,11 @@ bool CHostDrv::Find(CHostFiles* pFiles)
 /// Set host side name
 //
 //---------------------------------------------------------------------------
-void CHostFilename::SetHost(const TCHAR* szHost)
+bool CHostFilename::SetHost(const TCHAR* szHost)
 {
 	assert(szHost);
-	assert(strlen(szHost) < FILEPATH_MAX);
 
-	strcpy(m_szHost, szHost);
+	return CopyString(m_szHost, szHost);
 }
 
 //---------------------------------------------------------------------------
@@ -795,7 +911,10 @@ void CHostFilename::ConvertHuman(int nCount)
 	// Don't do conversion for special directory names
 	if (m_szHost[0] == '.' &&
 		(m_szHost[1] == '\0' || (m_szHost[1] == '.' && m_szHost[2] == '\0'))) {
-		strcpy((char*)m_szHuman, m_szHost);
+		if (!CopyBytes(m_szHuman, (const uint8_t*)m_szHost)) {
+			m_bCorrect = false;
+			return;
+		}
 
 		m_bCorrect = true;
 		m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
@@ -837,9 +956,7 @@ void CHostFilename::ConvertHuman(int nCount)
 	uint8_t* pExt = nullptr;
 
 	{
-		char szHost[FILEPATH_MAX];
-		strcpy(szHost, m_szHost);
-		auto pRead = (const uint8_t*)szHost;
+		auto pRead = (const uint8_t*)m_szHost;
 		uint8_t* pWrite = szHuman;
 		const auto pPeriod = SeparateExt(pRead);
 
@@ -1019,11 +1136,19 @@ void CHostFilename::ConvertHuman(int nCount)
 void CHostFilename::CopyHuman(const uint8_t* szHuman)
 {
 	assert(szHuman);
-	assert(strlen((const char*)szHuman) < 23);
+	const size_t length = strnlen((const char*)szHuman, ARRAY_SIZE(m_szHuman));
+	assert(length < 23);
+	if (length >= 23) {
+		m_szHuman[0] = '\0';
+		m_bCorrect = false;
+		m_pszHumanLast = m_szHuman;
+		m_pszHumanExt = m_szHuman;
+		return;
+	}
 
-	strcpy((char*)m_szHuman, (const char*)szHuman);
+	memcpy(m_szHuman, szHuman, length + 1);
 	m_bCorrect = true;
-	m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
+	m_pszHumanLast = m_szHuman + length;
 	m_pszHumanExt = SeparateExt(m_szHuman);
 }
 
@@ -1131,18 +1256,15 @@ CHostPath::~CHostPath()
 //
 /// File name memory allocation
 ///
-/// In most cases, the length of the host side file name is way shorter
-/// than the size of the buffer. In addition, file names may be created in huge volumes.
-/// Therefore, allocate variable lengths that correspond to the number of chars.
+/// A directory entry contains a CHostFilename object. Allocate and construct
+/// the complete object so that its C++ lifetime and storage are both valid.
 //
 //---------------------------------------------------------------------------
-CHostPath::ring_t* CHostPath::Alloc(size_t nLength)	// static
+CHostPath::ring_t* CHostPath::Alloc()	// static
 {
-	assert(nLength < FILEPATH_MAX);
-
-	const size_t n = offsetof(ring_t, f) + CHostFilename::Offset() + (nLength + 1) * sizeof(TCHAR);
-	auto p = (ring_t*)malloc(n);
-	assert(p);
+	auto p = new (std::nothrow) ring_t; //NOSONAR: intrusive ring owns these entries explicitly.
+	if (p == nullptr)
+		return nullptr;
 
 	p->r.Init();	// This is nothing to worry about!
 
@@ -1158,8 +1280,7 @@ void CHostPath::Free(ring_t* pRing)	// static
 {
 	assert(pRing);
 
-	pRing->~ring_t();
-	free(pRing);
+	delete pRing; //NOSONAR: intrusive ring releases its explicitly owned entries.
 }
 
 //---------------------------------------------------------------------------
@@ -1183,12 +1304,11 @@ void CHostPath::Clean()
 /// Specify Human68k side names directly
 //
 //---------------------------------------------------------------------------
-void CHostPath::SetHuman(const uint8_t* szHuman)
+bool CHostPath::SetHuman(const uint8_t* szHuman)
 {
 	assert(szHuman);
-	assert(strlen((const char*)szHuman) < HUMAN68K_PATH_MAX);
 
-	strcpy((char*)m_szHuman, (const char*)szHuman);
+	return CopyBytes(m_szHuman, szHuman);
 }
 
 //---------------------------------------------------------------------------
@@ -1196,12 +1316,11 @@ void CHostPath::SetHuman(const uint8_t* szHuman)
 /// Specify host side names directly
 //
 //---------------------------------------------------------------------------
-void CHostPath::SetHost(const TCHAR* szHost)
+bool CHostPath::SetHost(const TCHAR* szHost)
 {
 	assert(szHost);
-	assert(strlen(szHost) < FILEPATH_MAX);
 
-	strcpy(m_szHost, szHost);
+	return CopyString(m_szHost, szHost);
 }
 
 //---------------------------------------------------------------------------
@@ -1473,13 +1592,12 @@ int AsciiSort(const dirent **a, const dirent **b)
 //---------------------------------------------------------------------------
 void CHostPath::Refresh()
 {
-	assert(strlen(m_szHost) + 22 < FILEPATH_MAX);
+	if (const size_t host_length = strnlen(m_szHost, ARRAY_SIZE(m_szHost));
+		host_length == ARRAY_SIZE(m_szHost) || host_length > ARRAY_SIZE(m_szHost) - 1 - 22)
+		return;
 
 	// Store time stamp
 	Backup();
-
-	TCHAR szPath[FILEPATH_MAX];
-	strcpy(szPath, m_szHost);
 
 	// Update refresh flag
 	m_bRefresh = false;
@@ -1494,9 +1612,11 @@ void CHostPath::Refresh()
 	int nument = 0;
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
 	for (int i = 0; i < maxent; i++) {
-		TCHAR szFilename[FILEPATH_MAX];
 		if (pd == nullptr) {
-			nument = scandir(S2U(szPath), &pd, nullptr, AsciiSort);
+			char utf8_host[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and scandir.
+			if (!S2U(m_szHost, utf8_host, sizeof(utf8_host)))
+				break;
+			nument = scandir(utf8_host, &pd, nullptr, AsciiSort);
 			if (nument == -1) {
 				pd = nullptr;
 				break;
@@ -1513,12 +1633,21 @@ void CHostPath::Refresh()
 		}
 
 		// Get file name
-		strcpy(szFilename, U2S(pe->d_name));
+		TCHAR filename[IC_BUF_SIZE]; //NOSONAR: fixed Shift-JIS C string required by iconv.
+		if (!U2S(pe->d_name, filename, sizeof(filename)))
+			continue;
+		if (const size_t filename_length = strnlen(filename, FILEPATH_MAX); filename_length == FILEPATH_MAX)
+			continue;
 
 		// Allocate file name memory
-		ring_t* pRing = Alloc(strlen(szFilename));
+		ring_t* pRing = Alloc();
+		if (pRing == nullptr)
+			break;
 		CHostFilename* pFilename = &pRing->f;
-		pFilename->SetHost(szFilename);
+		if (!pFilename->SetHost(filename)) {
+			Free(pRing);
+			continue;
+		}
 
 		// If there is a relevant file name in the previous cache, prioritize that for the Human68k name
 		auto pCache = (ring_t*)cRingBackup.Next();
@@ -1550,9 +1679,14 @@ void CHostPath::Refresh()
 					const CHostFilename* pCheck = FindFilename(pFilename->GetHuman());
 					if (pCheck == nullptr) {
 						// If no match, confirm existence of real file
-						strcpy(szPath, m_szHost);
-						strcat(szPath, (const char*)pFilename->GetHuman());
-						if (struct stat sb; stat(S2U(szPath), &sb))
+						TCHAR szPath[FILEPATH_MAX];
+						if (const size_t human_length = strnlen((const char*)pFilename->GetHuman(), 24);
+							!BuildPath(szPath, m_szHost, std::string_view((const char*)pFilename->GetHuman(), human_length)))
+							break;	// Discover available patterns
+						char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and stat.
+						if (!S2U(szPath, utf8_path, sizeof(utf8_path)))
+							break;	// Discover available patterns
+						if (struct stat sb; stat(utf8_path, &sb))
 							break;	// Discover available patterns
 					}
 				}
@@ -1565,11 +1699,17 @@ void CHostPath::Refresh()
 		pFilename->SetEntryName();
 
 		// Get data
-		strcpy(szPath, m_szHost);
-		strcat(szPath, U2S(pe->d_name));
+		TCHAR szPath[FILEPATH_MAX];
+		TCHAR host_name[IC_BUF_SIZE]; //NOSONAR: fixed Shift-JIS C string required by iconv.
+		if (!U2S(pe->d_name, host_name, sizeof(host_name)))
+			continue;
+		if (const size_t host_name_length = strnlen(host_name, IC_BUF_SIZE); host_name_length == IC_BUF_SIZE ||
+			!BuildPath(szPath, m_szHost, std::string_view(host_name, host_name_length)))
+			continue;
 
 		struct stat sb;
-		if (stat(S2U(szPath), &sb))
+		if (char utf8_path[IC_BUF_SIZE] = {}; //NOSONAR: fixed C string required by iconv and stat.
+			!S2U(szPath, utf8_path, sizeof(utf8_path)) || stat(utf8_path, &sb))
 			continue;
 
 		uint8_t nHumanAttribute = Human68k::AT_ARCHIVE;
@@ -1636,10 +1776,10 @@ void CHostPath::Refresh()
 void CHostPath::Backup()
 {
 	assert(m_szHost);
-	assert(strlen(m_szHost) < FILEPATH_MAX);
 
 	TCHAR szPath[FILEPATH_MAX];
-	strcpy(szPath, m_szHost);
+	if (!CopyString(szPath, m_szHost))
+		return;
 	size_t len = strlen(szPath);
 
 	m_tBackup = 0;
@@ -1647,8 +1787,12 @@ void CHostPath::Backup()
 		len--;
 		assert(szPath[len] == '/');
 		szPath[len] = '\0';
-		if (struct stat sb; stat(S2U(szPath), &sb) == 0)
-			m_tBackup = sb.st_mtime;
+		char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and stat.
+		if (S2U(szPath, utf8_path, sizeof(utf8_path))) {
+			struct stat sb;
+			if (stat(utf8_path, &sb) == 0)
+				m_tBackup = sb.st_mtime;
+		}
 	}
 }
 
@@ -1660,22 +1804,17 @@ void CHostPath::Backup()
 void CHostPath::Restore() const
 {
 	assert(m_szHost);
-	assert(strlen(m_szHost) < FILEPATH_MAX);
 
-	TCHAR szPath[FILEPATH_MAX];
-	strcpy(szPath, m_szHost);
-	size_t len = strlen(szPath);
+	std::string path(m_szHost);
+	if (m_tBackup && path.size() > 1) {
+		assert(path.back() == '/');
+		path.pop_back();
 
-	if (m_tBackup) {
-		assert(len);
-		len--;
-		assert(szPath[len] == '/');
-		szPath[len] = '\0';
-
-		utimbuf ut;
-		ut.actime = m_tBackup;
-		ut.modtime = m_tBackup;
-		utime(szPath, &ut);
+		std::array<char, IC_BUF_SIZE> utf8_path;
+		if (S2U(path.c_str(), utf8_path.data(), utf8_path.size())) {
+			const std::array<timespec, 2> times = {{{m_tBackup, 0}, {m_tBackup, 0}}};
+			utimensat(AT_FDCWD, utf8_path.data(), times.data(), 0);
+		}
 	}
 }
 
@@ -1929,12 +2068,12 @@ void CHostEntry::Eject(uint32_t nUnit) const
 /// Get volume label
 //
 //---------------------------------------------------------------------------
-void CHostEntry::GetVolume(uint32_t nUnit, TCHAR* szLabel) const
+bool CHostEntry::GetVolume(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const
 {
 	assert(nUnit < DRIVE_MAX);
 	assert(m_pDrv[nUnit]);
 
-	m_pDrv[nUnit]->GetVolume(szLabel);
+	return m_pDrv[nUnit]->GetVolume(szLabel, label_size);
 }
 
 //---------------------------------------------------------------------------
@@ -1942,12 +2081,12 @@ void CHostEntry::GetVolume(uint32_t nUnit, TCHAR* szLabel) const
 /// Get volume label from cache
 //
 //---------------------------------------------------------------------------
-bool CHostEntry::GetVolumeCache(uint32_t nUnit, TCHAR* szLabel) const
+bool CHostEntry::GetVolumeCache(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const
 {
 	assert(nUnit < DRIVE_MAX);
 	assert(m_pDrv[nUnit]);
 
-	return m_pDrv[nUnit]->GetVolumeCache(szLabel);
+	return m_pDrv[nUnit]->GetVolumeCache(szLabel, label_size);
 }
 
 //---------------------------------------------------------------------------
@@ -2087,7 +2226,8 @@ void CHostFiles::SetEntry(const CHostFilename* pFilename)
 	memcpy(&m_dirHuman, pFilename->GetEntry(), sizeof(m_dirHuman));
 
 	// Stire Human68k file name
-	strcpy((char*)m_szHumanResult, (const char*)pFilename->GetHuman());
+	if (!CopyBytes(m_szHumanResult, pFilename->GetHuman()))
+		m_szHumanResult[0] = '\0';
 }
 
 //---------------------------------------------------------------------------
@@ -2095,12 +2235,11 @@ void CHostFiles::SetEntry(const CHostFilename* pFilename)
 /// Set host side name
 //
 //---------------------------------------------------------------------------
-void CHostFiles::SetResult(const TCHAR* szPath)
+bool CHostFiles::SetResult(const TCHAR* szPath)
 {
 	assert(szPath);
-	assert(strlen(szPath) < FILEPATH_MAX);
 
-	strcpy(m_szHostResult, szPath);
+	return CopyString(m_szHostResult, szPath);
 }
 
 //---------------------------------------------------------------------------
@@ -2108,12 +2247,14 @@ void CHostFiles::SetResult(const TCHAR* szPath)
 /// Add file name to the host side name
 //
 //---------------------------------------------------------------------------
-void CHostFiles::AddResult(const TCHAR* szPath)
+bool CHostFiles::AddResult(const TCHAR* szPath)
 {
 	assert(szPath);
-	assert(strlen(m_szHostResult) + strlen(szPath) < FILEPATH_MAX);
 
-	strcat(m_szHostResult, szPath);
+	if (szPath == nullptr)
+		return false;
+	const size_t length = strnlen(szPath, FILEPATH_MAX);
+	return length < FILEPATH_MAX && AppendString(m_szHostResult, ARRAY_SIZE(m_szHostResult), std::string_view(szPath, length));
 }
 
 //---------------------------------------------------------------------------
@@ -2121,10 +2262,11 @@ void CHostFiles::AddResult(const TCHAR* szPath)
 /// Add a new Human68k file name to the host side name
 //
 //---------------------------------------------------------------------------
-void CHostFiles::AddFilename()
+bool CHostFiles::AddFilename()
 {
-	assert(strlen(m_szHostResult) + strlen((const char*)m_szHumanFilename) < FILEPATH_MAX);
-	strncat(m_szHostResult, (const char*)m_szHumanFilename, ARRAY_SIZE(m_szHumanFilename));
+	const size_t length = strnlen((const char*)m_szHumanFilename, ARRAY_SIZE(m_szHumanFilename));
+	return length < ARRAY_SIZE(m_szHumanFilename) &&
+		AppendString(m_szHostResult, ARRAY_SIZE(m_szHostResult), std::string_view((const char*)m_szHumanFilename, length));
 }
 
 //===========================================================================
@@ -2180,8 +2322,16 @@ CHostFiles* CHostFilesManager::Alloc(uint32_t nKey)
 {
 	assert(nKey);
 
-	// Select from the end
+	// Select an unused entry from the end. Do not evict an active search:
+	// callers may still use its key for _NFILES or pseudo-sector reads.
 	auto p = (ring_t*)m_cRing.Prev();
+	while (p != (ring_t*)&m_cRing && !p->f.isSameKey(0))
+		p = (ring_t*)p->r.Prev();
+	if (p == (ring_t*)&m_cRing)
+	{
+		spdlog::trace("TEMP cfilesystem _FILES allocation exhausted for key={:#010x}", nKey);
+		return nullptr;
+	}
 
 	// Move to the start of the ring
 	p->r.Insert(&m_cRing);
@@ -2252,20 +2402,18 @@ bool CHostFcb::SetMode(uint32_t nHumanMode)
 	return true;
 }
 
-void CHostFcb::SetFilename(const TCHAR* szFilename)
+bool CHostFcb::SetFilename(const TCHAR* szFilename)
 {
 	assert(szFilename);
-	assert(strlen(szFilename) < FILEPATH_MAX);
 
-	strcpy(m_szFilename, szFilename);
+	return CopyString(m_szFilename, szFilename);
 }
 
-void CHostFcb::SetHumanPath(const uint8_t* szHumanPath)
+bool CHostFcb::SetHumanPath(const uint8_t* szHumanPath)
 {
 	assert(szHumanPath);
-	assert(strlen((const char*)szHumanPath) < HUMAN68K_PATH_MAX);
 
-	strcpy((char*)m_szHumanPath, (const char*)szHumanPath);
+	return CopyBytes(m_szHumanPath, szHumanPath);
 }
 
 //---------------------------------------------------------------------------
@@ -2275,20 +2423,27 @@ void CHostFcb::SetHumanPath(const uint8_t* szHumanPath)
 /// Return false if error is thrown.
 //
 //---------------------------------------------------------------------------
-bool CHostFcb::Create(uint32_t, bool bForce)
+bool CHostFcb::Create(uint32_t nHumanAttribute, bool bForce)
 {
-	assert((Human68k::AT_DIRECTORY | Human68k::AT_VOLUME) == 0);
+	static_cast<void>(nHumanAttribute);
+	assert((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
 	assert(strlen(m_szFilename) > 0);
 	assert(m_pFile == nullptr);
 
 	// Duplication check
 	if (!bForce) {
-		if (struct stat sb; stat(S2U(m_szFilename), &sb) == 0)
+		char utf8_filename[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and stat.
+		if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
+			return false;
+		if (struct stat sb; stat(utf8_filename, &sb) == 0)
 			return false;
 	}
 
 	// Create file
-	m_pFile = fopen(S2U(m_szFilename), "w+b");	/// @warning The ideal operation is to overwrite each attribute
+	char utf8_filename[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and fopen.
+	if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
+		return false;
+	m_pFile = fopen(utf8_filename, "w+b");	/// @warning The ideal operation is to overwrite each attribute
 
 	return m_pFile != nullptr;
 }
@@ -2303,17 +2458,24 @@ bool CHostFcb::Create(uint32_t, bool bForce)
 bool CHostFcb::Open()
 {
 	assert(strlen(m_szFilename) > 0);
+	if (m_pFile != nullptr)
+		return true;
 
-	// Fail if directory
-	if (struct stat st; stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
-		return false || m_bFlag;
+	char utf8_filename[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and fopen.
+	if (!S2U(m_szFilename, utf8_filename, sizeof(utf8_filename)))
+		return m_bFlag;
+
+	FILE* file = fopen(utf8_filename, m_pszMode);
+	if (file == nullptr)
+		return m_bFlag;
+
+	if (struct stat st = {}; fstat(fileno(file), &st) != 0 || S_ISDIR(st.st_mode)) {
+		fclose(file);
+		return m_bFlag;
 	}
 
-	// File open
-	if (m_pFile == nullptr)
-		m_pFile = fopen(S2U(m_szFilename), m_pszMode);
-
-	return m_pFile != nullptr || m_bFlag;
+	m_pFile = file;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -2421,15 +2583,10 @@ bool CHostFcb::TimeStamp(uint32_t nHumanTime) const
 	time_t ti = mktime(&t);
 	if (ti == (time_t)-1)
 		return false;
-	utimbuf ut;
-	ut.actime = ti;
-	ut.modtime = ti;
-
 	// This is for preventing the last updated time stamp to be overwritten upon closing.
 	// Flush and synchronize before updating the time stamp.
-	fflush(m_pFile);
-
-	return utime(S2U(m_szFilename), &ut) == 0 || m_bFlag;
+	const std::array<timespec, 2> times = {{{ti, 0}, {ti, 0}}};
+	return (m_pFile != nullptr && fflush(m_pFile) == 0 && futimens(fileno(m_pFile), times.data()) == 0) || m_bFlag;
 }
 
 //---------------------------------------------------------------------------
@@ -2567,7 +2724,10 @@ void CFileSys::Reset()
 {
 	// Initialize virtual sectors
 	m_nHostSectorCount = 0;
-	memset(m_nHostSectorBuffer, 0, sizeof(m_nHostSectorBuffer));
+	for (auto& sector : m_hostSector) {
+		sector.path[0] = '\0';
+		sector.valid = false;
+	}
 
 	// File search memory - release (on startup and reset)
 	m_cFiles.Clean();
@@ -2606,7 +2766,8 @@ void CFileSys::Init()
 	uint32_t nDrives = m_nDrives;
 	if (nDrives == 0) {
 		// Use root directory instead of per-path settings
-		strcpy(m_szBase[0], "/");
+		m_szBase[0][0] = '/';
+		m_szBase[0][1] = '\0';
 		m_nFlag[0] = 0;
 		nDrives++;
 	}
@@ -2705,10 +2866,12 @@ int CFileSys::MakeDir(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 	f.SetPathOnly();
 	if (!f.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
-	f.AddFilename();
+	if (!f.AddFilename())
+		return FS_INVALIDPATH;
 
 	// Create directory
-	if (mkdir(S2U(f.GetPath()), 0777))
+	char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv and mkdir.
+	if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || mkdir(utf8_path, 0777)) //NOSONAR needed for host filesystem
 		return FS_INVALIDPATH;
 
 	// Update cache
@@ -2750,15 +2913,15 @@ int CFileSys::RemoveDir(uint32_t nUnit, const Human68k::namests_t* pNamests) con
 
 	// Delete cache
 	uint8_t szHuman[HUMAN68K_PATH_MAX + 24];
-	assert(strlen((const char*)f.GetHumanPath()) +
-		strlen((const char*)f.GetHumanFilename()) < HUMAN68K_PATH_MAX + 24);
-	strcpy((char*)szHuman, (const char*)f.GetHumanPath());
-	strcat((char*)szHuman, (const char*)f.GetHumanFilename());
-	strcat((char*)szHuman, "/");
+	if (!CopyBytes(szHuman, f.GetHumanPath()) ||
+		!AppendString((char*)szHuman, ARRAY_SIZE(szHuman), (const char*)f.GetHumanFilename()) ||
+		!AppendString((char*)szHuman, ARRAY_SIZE(szHuman), "/"))
+		return FS_INVALIDPATH;
 	m_cEntry.DeleteCache(nUnit, szHuman);
 
 	// Delete directory
-	if (rmdir(S2U(f.GetPath())))
+	if (char utf8_path[IC_BUF_SIZE] = {}; //NOSONAR: fixed C string required by iconv and rmdir.
+		!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || rmdir(utf8_path))
 		return FS_CANTDELETE;
 
 	// Update cache
@@ -2803,7 +2966,8 @@ int CFileSys::Rename(uint32_t nUnit, const Human68k::namests_t* pNamests, const 
 	fNew.SetPathOnly();
 	if (!fNew.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
-	fNew.AddFilename();
+	if (!fNew.AddFilename())
+		return FS_INVALIDPATH;
 
 	// Update cache
 	if (f.GetAttribute() & Human68k::AT_DIRECTORY)
@@ -2812,8 +2976,9 @@ int CFileSys::Rename(uint32_t nUnit, const Human68k::namests_t* pNamests, const 
 	// Change file name
 	char szFrom[FILENAME_MAX];
 	char szTo[FILENAME_MAX];
-	SJIS2UTF8(f.GetPath(), szFrom, FILENAME_MAX);
-	SJIS2UTF8(fNew.GetPath(), szTo, FILENAME_MAX);
+	if (!SJIS2UTF8(f.GetPath(), szFrom, sizeof(szFrom)) ||
+		!SJIS2UTF8(fNew.GetPath(), szTo, sizeof(szTo)))
+		return FS_INVALIDPATH;
 	if (rename(szFrom, szTo)) {
 		return FS_FILENOTFND;
 	}
@@ -2856,7 +3021,8 @@ int CFileSys::Delete(uint32_t nUnit, const Human68k::namests_t* pNamests) const
 		return FS_FILENOTFND;
 
 	// Delete file
-	if (unlink(S2U(f.GetPath())))
+	if (char utf8_path[IC_BUF_SIZE] = {}; //NOSONAR: fixed C string required by iconv and unlink.
+		!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)) || unlink(utf8_path))
 		return FS_CANTDELETE;
 
 	// Update cache
@@ -2906,8 +3072,11 @@ int CFileSys::Attribute(uint32_t nUnit, const Human68k::namests_t* pNamests, uin
 	// Generate attribute
 	if (uint32_t nAttribute = (nHumanAttribute & Human68k::AT_READONLY) | (f.GetAttribute() & ~Human68k::AT_READONLY);
 		f.GetAttribute() != nAttribute) {
+		char utf8_path[IC_BUF_SIZE]; //NOSONAR: fixed C string required by iconv, stat, and chmod.
+		if (!S2U(f.GetPath(), utf8_path, sizeof(utf8_path)))
+			return FS_FILENOTFND;
 		struct stat sb;
-		if (stat(S2U(f.GetPath()), &sb))
+		if (stat(utf8_path, &sb))
 			return FS_FILENOTFND;
 		mode_t m = sb.st_mode & 0777;
 		if (nAttribute & Human68k::AT_READONLY)
@@ -2916,7 +3085,7 @@ int CFileSys::Attribute(uint32_t nUnit, const Human68k::namests_t* pNamests, uin
 			m |= 0200;	// u+w
 
 		// Set attribute
-		if (chmod(S2U(f.GetPath()), m))
+		if (chmod(utf8_path, m))
 			return FS_FILENOTFND;
 	}
 
@@ -3007,11 +3176,15 @@ int CFileSys::Files(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* pN
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
 	pFiles->size = pHostFiles->GetSize();
-	strcpy((char*)pFiles->full, (const char*)pHostFiles->GetHumanResult());
+	if (!CopyBytes(pFiles->full, pHostFiles->GetHumanResult())) {
+		m_cFiles.Free(pHostFiles);
+		return FS_INVALIDPATH;
+	}
 
 	// Specify pseudo-directory entry
 	pFiles->sector = nKey;
 	pFiles->offset = 0;
+	TraceFileSearchResult("_FILES", nKey, *pFiles);
 
 	return 0;
 }
@@ -3055,7 +3228,11 @@ int CFileSys::NFiles(uint32_t nUnit, uint32_t nKey, Human68k::files_t* pFiles)
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
 	pFiles->size = pHostFiles->GetSize();
-	strcpy((char*)pFiles->full, (const char*)pHostFiles->GetHumanResult());
+	if (!CopyBytes(pFiles->full, pHostFiles->GetHumanResult())) {
+		m_cFiles.Free(pHostFiles);
+		return FS_INVALIDPATH;
+	}
+	TraceFileSearchResult("_NFILES", nKey, *pFiles);
 
 	return 0;
 }
@@ -3096,7 +3273,8 @@ int CFileSys::Create(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* p
 	f.SetPathOnly();
 	if (!f.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
-	f.AddFilename();
+	if (!f.AddFilename())
+		return FS_INVALIDPATH;
 
 	// Attribute check
 	if (nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME))
@@ -3106,8 +3284,10 @@ int CFileSys::Create(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* p
 	CHostFcb* pHostFcb = m_cFcb.Alloc(nKey);
 	if (pHostFcb == nullptr)
 		return FS_OUTOFMEM;
-	pHostFcb->SetFilename(f.GetPath());
-	pHostFcb->SetHumanPath(f.GetHumanPath());
+	if (!pHostFcb->SetFilename(f.GetPath()) || !pHostFcb->SetHumanPath(f.GetHumanPath())) {
+		m_cFcb.Free(pHostFcb);
+		return FS_INVALIDPATH;
+	}
 
 	// Set open mode
 	pFcb->mode = (uint16_t)((pFcb->mode & ~Human68k::OP_MASK) | Human68k::OP_FULL);
@@ -3181,8 +3361,10 @@ int CFileSys::Open(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* pNa
 	CHostFcb* pHostFcb = m_cFcb.Alloc(nKey);
 	if (pHostFcb == nullptr)
 		return FS_OUTOFMEM;
-	pHostFcb->SetFilename(f.GetPath());
-	pHostFcb->SetHumanPath(f.GetHumanPath());
+	if (!pHostFcb->SetFilename(f.GetPath()) || !pHostFcb->SetHumanPath(f.GetHumanPath())) {
+		m_cFcb.Free(pHostFcb);
+		return FS_INVALIDPATH;
+	}
 
 	// Set open mode
 	if (!pHostFcb->SetMode(pFcb->mode)) {
@@ -3597,6 +3779,26 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 	// Access pseudo-directory entry
 	const CHostFiles* pHostFiles = m_cFiles.Search(nSector);
 	if (pHostFiles) {
+		// Allocate an unused virtual sector. Never overwrite an outstanding
+		// mapping: doing so can return another file's bytes for this entry.
+		auto slot = m_nHostSectorCount;
+		uint32_t attempts = 0;
+		for (; attempts < XM6_HOST_PSEUDO_CLUSTER_MAX; attempts++) {
+			if (!m_hostSector[slot].valid)
+				break;
+			slot = (slot + 1) % XM6_HOST_PSEUDO_CLUSTER_MAX;
+		}
+		if (attempts == XM6_HOST_PSEUDO_CLUSTER_MAX)
+	{
+			spdlog::trace("TEMP cfilesystem pseudo-sector allocation exhausted for key={:#010x}", nSector);
+			return FS_OUTOFMEM;
+	}
+
+		if (!CopyString(m_hostSector[slot].path, pHostFiles->GetPath()))
+			return FS_INVALIDPRM;
+		m_hostSector[slot].valid = true;
+		m_nHostSectorCount = (slot + 1) % XM6_HOST_PSEUDO_CLUSTER_MAX;
+
 		// Generate pseudo-directory entry
 		auto dir = (Human68k::dirent_t*)pBuffer;
 		memcpy(pBuffer, pHostFiles->GetEntry(), sizeof(*dir));
@@ -3606,10 +3808,10 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 		// Note that in lzdsys the sector number to read is calculated by the following formula:
 		// (dirent.cluster - 2) * (dpb.cluster_size + 1) + dpb.data_sector
 		/// @warning little endian only
-		dir->cluster = (uint16_t)(m_nHostSectorCount + 2);		// Pseudo-sector number
-		m_nHostSectorBuffer[m_nHostSectorCount] = nSector;	// Entity that points to the pseudo-sector
-		m_nHostSectorCount++;
-		m_nHostSectorCount %= XM6_HOST_PSEUDO_CLUSTER_MAX;
+		dir->cluster = (uint16_t)(slot + 2);				// Pseudo-sector number
+		spdlog::trace("TEMP cfilesystem pseudo-directory key={:#010x} slot={} path=[{}] attr={:#04x} date={:#06x} time={:#06x} size={}",
+			nSector, slot, HexBytes((const uint8_t*)m_hostSector[slot].path, FILEPATH_MAX), dir->attr, dir->date,
+			dir->time, dir->size);
 
 		return 0;
 	}
@@ -3625,11 +3827,14 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 
 	// Access the file entity
 	if (nMod == 0 && n < XM6_HOST_PSEUDO_CLUSTER_MAX) {
-		pHostFiles = m_cFiles.Search(m_nHostSectorBuffer[n]);	// Find entity
-		if (pHostFiles) {
+		auto& sector = m_hostSector[n];
+		if (sector.valid) {
+			spdlog::trace("TEMP cfilesystem pseudo-data slot={} path=[{}]", n,
+				HexBytes((const uint8_t*)sector.path, FILEPATH_MAX));
 			// Generate pseudo-sector
 			CHostFcb f;
-			f.SetFilename(pHostFiles->GetPath());
+			if (!f.SetFilename(sector.path))
+				return FS_INVALIDPRM;
 			f.SetMode(Human68k::OP_READ);
 			if (!f.Open())
 				return FS_INVALIDPRM;
@@ -3638,6 +3843,10 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 			f.Close();
 			if (nResult == (uint32_t)-1)
 				return FS_INVALIDPRM;
+
+			sector.path[0] = '\0';
+			sector.valid = false;
+			spdlog::trace("TEMP cfilesystem pseudo-data slot={} bytes={}", n, nResult);
 
 			return 0;
 		}
@@ -3825,16 +4034,25 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 	// Initialize number of drives
 	m_nDrives = 0;
 
-	const uint8_t* pp = pArgument->buf;
-	pp += strlen((const char*)pp) + 1;
+	const uint8_t* const begin = pArgument->buf;
+	const uint8_t* const end = begin + sizeof(pArgument->buf);
+	const uint8_t* pp = FindNul(begin, end);
+	if (pp == nullptr)
+		return; // The program name is not terminated inside the protocol buffer.
+	pp++;
 
 	uint32_t nOption = m_nOptionDefault;
-	for (;;) {
-		assert(pp < pArgument->buf + sizeof(*pArgument));
-		const uint8_t* p = pp;
-		uint8_t c = *p++;
-		if (c == '\0')
+	while (pp < end) {
+		const uint8_t* const terminator = FindNul(pp, end);
+		if (terminator == nullptr)
+			return; // Never scan beyond the fixed 256-byte argument buffer.
+
+		const std::string_view argument((const char*)pp, (size_t)(terminator - pp));
+		pp = terminator + 1;
+		if (argument.empty())
 			break;
+
+		const auto c = static_cast<uint8_t>(argument.front());
 
 		uint32_t nMode;
 		if (c == '+') {
@@ -3843,26 +4061,19 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 			nMode = 0;
 		} else if (c == '/') {
 			// Specify default base path
-			if (m_nDrives < CHostEntry::DRIVE_MAX) {
-				p--;
-				strcpy(m_szBase[m_nDrives], (const char *)p);
+			if (m_nDrives < CHostEntry::DRIVE_MAX && CopyString(m_szBase[m_nDrives], argument))
 				m_nDrives++;
-			}
-			pp += strlen((const char*)pp) + 1;
 			continue;
 		} else {
 			// Continue since no option is specified
-			pp += strlen((const char*)pp) + 1;
 			continue;
 		}
 
-		for (;;) {
-			c = *p++;
-			if (c == '\0')
-				break;
+		for (size_t index = 1; index < argument.size(); index++) {
+			const auto option_char = static_cast<uint8_t>(argument[index]);
 
 			uint32_t nBit = 0;
-			switch (c) {
+			switch (option_char) {
 				case 'A': case 'a': nBit = WINDRV_OPT_CONVERT_LENGTH; break;
 				case 'T': case 't': nBit = WINDRV_OPT_COMPARE_LENGTH; nMode ^= 1; break;
 				case 'C': case 'c': nBit = WINDRV_OPT_ALPHABET; break;
@@ -3889,8 +4100,6 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 			else
 				nOption &= ~nBit;
 		}
-
-		pp = p;
 	}
 
 	// Set options
@@ -3909,8 +4118,8 @@ bool CFileSys::FilesVolume(uint32_t nUnit, Human68k::files_t* pFiles) const
 	assert(pFiles);
 
 	// Get volume label
-	TCHAR szVolume[32];
-	if (bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); !bResult) {
+	TCHAR szVolume[VOLUME_LABEL_MAX]; //NOSONAR: fixed C string passed through the Human68k volume-label path.
+	if (bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume, ARRAY_SIZE(szVolume)); !bResult) {
 		// Carry out an extra media check here because it may be skipped when doing a manual eject
 		if (!m_cEntry.isEnable(nUnit))
 			return false;
@@ -3920,7 +4129,8 @@ bool CFileSys::FilesVolume(uint32_t nUnit, Human68k::files_t* pFiles) const
 			return false;
 
 		// Get volume label
-		m_cEntry.GetVolume(nUnit, szVolume);
+		if (!m_cEntry.GetVolume(nUnit, szVolume, ARRAY_SIZE(szVolume)))
+			return false;
 	}
 	if (szVolume[0] == '\0')
 		return false;
@@ -3931,9 +4141,11 @@ bool CFileSys::FilesVolume(uint32_t nUnit, Human68k::files_t* pFiles) const
 	pFiles->size = 0;
 
 	CHostFilename fname;
-	fname.SetHost(szVolume);
+	if (!fname.SetHost(szVolume))
+		return false;
 	fname.ConvertHuman();
-	strcpy((char*)pFiles->full, (const char*)fname.GetHuman());
+	if (!CopyBytes(pFiles->full, fname.GetHuman()))
+		return false;
 
 	return true;
 }
