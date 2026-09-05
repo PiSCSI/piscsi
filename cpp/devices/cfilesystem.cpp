@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <iconv.h>
+#include <spdlog/spdlog.h>
 
 #include <new>
 #include <string>
@@ -90,6 +91,31 @@ static const uint8_t* FindNul(const uint8_t* first, const uint8_t* last)
 {
 	const auto length = static_cast<size_t>(last - first);
 	return static_cast<const uint8_t*>(memchr(first, '\0', length));
+}
+
+// TEMPORARY: Keep filesystem protocol values observable while investigating
+// corrupted directory entries reported by an X68000 user. Remove after a
+// trace from affected hardware has been captured.
+static std::string HexBytes(const uint8_t* bytes, size_t capacity)
+{
+	static constexpr char hex[] = "0123456789ABCDEF";
+	std::string result;
+	for (size_t index = 0; index < capacity; index++) {
+		const uint8_t byte = bytes[index];
+		if (!result.empty())
+			result += ' ';
+		result += hex[byte >> 4];
+		result += hex[byte & 0x0f];
+		if (byte == '\0')
+			break;
+	}
+	return result;
+}
+
+static void TraceFileSearchResult(const char* operation, uint32_t key, const Human68k::files_t& files)
+{
+	spdlog::trace("TEMP cfilesystem {} key={:#010x} attr={:#04x} date={:#06x} time={:#06x} size={} full=[{}]", operation,
+		key, files.attr, files.date, files.time, files.size, HexBytes(files.full, sizeof(files.full)));
 }
 
 static bool AppendString(TCHAR* destination, size_t destination_size, std::string_view source)
@@ -2302,7 +2328,10 @@ CHostFiles* CHostFilesManager::Alloc(uint32_t nKey)
 	while (p != (ring_t*)&m_cRing && !p->f.isSameKey(0))
 		p = (ring_t*)p->r.Prev();
 	if (p == (ring_t*)&m_cRing)
+	{
+		spdlog::trace("TEMP cfilesystem _FILES allocation exhausted for key={:#010x}", nKey);
 		return nullptr;
+	}
 
 	// Move to the start of the ring
 	p->r.Insert(&m_cRing);
@@ -3155,6 +3184,7 @@ int CFileSys::Files(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* pN
 	// Specify pseudo-directory entry
 	pFiles->sector = nKey;
 	pFiles->offset = 0;
+	TraceFileSearchResult("_FILES", nKey, *pFiles);
 
 	return 0;
 }
@@ -3202,6 +3232,7 @@ int CFileSys::NFiles(uint32_t nUnit, uint32_t nKey, Human68k::files_t* pFiles)
 		m_cFiles.Free(pHostFiles);
 		return FS_INVALIDPATH;
 	}
+	TraceFileSearchResult("_NFILES", nKey, *pFiles);
 
 	return 0;
 }
@@ -3758,7 +3789,10 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 			slot = (slot + 1) % XM6_HOST_PSEUDO_CLUSTER_MAX;
 		}
 		if (attempts == XM6_HOST_PSEUDO_CLUSTER_MAX)
+	{
+			spdlog::trace("TEMP cfilesystem pseudo-sector allocation exhausted for key={:#010x}", nSector);
 			return FS_OUTOFMEM;
+	}
 
 		if (!CopyString(m_hostSector[slot].path, pHostFiles->GetPath()))
 			return FS_INVALIDPRM;
@@ -3775,6 +3809,9 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 		// (dirent.cluster - 2) * (dpb.cluster_size + 1) + dpb.data_sector
 		/// @warning little endian only
 		dir->cluster = (uint16_t)(slot + 2);				// Pseudo-sector number
+		spdlog::trace("TEMP cfilesystem pseudo-directory key={:#010x} slot={} path=[{}] attr={:#04x} date={:#06x} time={:#06x} size={}",
+			nSector, slot, HexBytes((const uint8_t*)m_hostSector[slot].path, FILEPATH_MAX), dir->attr, dir->date,
+			dir->time, dir->size);
 
 		return 0;
 	}
@@ -3792,6 +3829,8 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 	if (nMod == 0 && n < XM6_HOST_PSEUDO_CLUSTER_MAX) {
 		auto& sector = m_hostSector[n];
 		if (sector.valid) {
+			spdlog::trace("TEMP cfilesystem pseudo-data slot={} path=[{}]", n,
+				HexBytes((const uint8_t*)sector.path, FILEPATH_MAX));
 			// Generate pseudo-sector
 			CHostFcb f;
 			if (!f.SetFilename(sector.path))
@@ -3807,6 +3846,7 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 
 			sector.path[0] = '\0';
 			sector.valid = false;
+			spdlog::trace("TEMP cfilesystem pseudo-data slot={} bytes={}", n, nResult);
 
 			return 0;
 		}

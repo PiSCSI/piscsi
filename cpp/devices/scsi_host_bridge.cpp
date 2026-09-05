@@ -21,10 +21,29 @@
 #include "scsi_host_bridge.h"
 #include <arpa/inet.h>
 #include <algorithm>
+#include <spdlog/spdlog.h>
+#include <string>
 
 using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
+
+// TEMPORARY: Capture the exact _FILES/_NFILES response bytes while diagnosing
+// corrupt directory entries reported from an X68000. Remove with the matching
+// temporary CFileSys logging after collecting a hardware trace.
+static string HexBytes(const uint8_t* bytes, size_t size)
+{
+	static constexpr char hex[] = "0123456789ABCDEF";
+	string result;
+	for (size_t index = 0; index < size; index++) {
+		if (!result.empty())
+			result += ' ';
+		const uint8_t byte = bytes[index];
+		result += hex[byte >> 4];
+		result += hex[byte & 0x0f];
+	}
+	return result;
+}
 
 SCSIBR::SCSIBR(int lun) : PrimaryDevice(SCBR, lun)
 {
@@ -579,6 +598,8 @@ void SCSIBR::FS_Files(vector<uint8_t>& buf)
 	files->time = htons(files->time);
 	files->date = htons(files->date);
 	files->size = htonl(files->size);
+	spdlog::trace("TEMP host bridge _FILES key={:#010x} result={:#010x} response=[{}]", nKey, fsresult,
+		HexBytes((const uint8_t*)files, sizeof(*files)));
 
 	i = 0;
 	memcpy(&fsout[i], files, sizeof(Human68k::files_t));
@@ -617,6 +638,8 @@ void SCSIBR::FS_NFiles(vector<uint8_t>& buf)
 	files->time = htons(files->time);
 	files->date = htons(files->date);
 	files->size = htonl(files->size);
+	spdlog::trace("TEMP host bridge _NFILES key={:#010x} result={:#010x} response=[{}]", nKey, fsresult,
+		HexBytes((const uint8_t*)files, sizeof(*files)));
 
 	i = 0;
 	memcpy(&fsout[i], files, sizeof(Human68k::files_t));
