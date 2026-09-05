@@ -240,11 +240,13 @@ static const int XM6_HOST_FCB_MAX = 100;
 /// Max number of virtual clusters and sectors
 /**
 Number of virtual sectors used for accessing the first sector of a file entity.
-Allocating a generous amount to exceed the number of threads lzdsys uses for access.
+Each entry retains a snapshot of the host path named by its pseudo-directory
+entry until its data-sector read completes. This must accommodate entries whose
+data-sector read is delayed while a directory search proceeds.
 
-Default is 10 sectors.
+Default is 64 sectors.
 */
-static const int XM6_HOST_PSEUDO_CLUSTER_MAX = 10;
+static const int XM6_HOST_PSEUDO_CLUSTER_MAX = 64;
 
 /// Number of caches for directory entries
 /**
@@ -923,14 +925,19 @@ private:
 	uint32_t m_nKernel = 0;							///< Counter for kernel check
 	uint32_t m_nKernelSearch = 0;						///< Initial address for NUL device
 
-	uint32_t m_nHostSectorCount = 0;					///< Virtual sector identifier
+	struct pseudo_sector_t {
+		TCHAR path[FILEPATH_MAX] = {};					///< Host path captured for this pseudo-sector
+		bool valid = false;							///< TRUE while the captured path is available
+	};
+
+	uint32_t m_nHostSectorCount = 0;					///< Next virtual-sector identifier
 
 	CHostFilesManager m_cFiles;						///< File search memory
 	CHostFcbManager m_cFcb;							///< FCB operation memory
 	CHostEntry m_cEntry;							///< Drive object and directory entry
 
-	uint32_t m_nHostSectorBuffer[XM6_HOST_PSEUDO_CLUSTER_MAX];
-										///< Entity that the virtual sector points to
+	pseudo_sector_t m_hostSector[XM6_HOST_PSEUDO_CLUSTER_MAX];
+										///< Host paths captured for virtual sectors
 
 	uint32_t m_nFlag[DriveMax] = {};					///< Candidate runtime flag for base path restoration
 	TCHAR m_szBase[DriveMax][FILEPATH_MAX] = {};	///< Candidate for base path restoration

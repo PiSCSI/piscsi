@@ -333,3 +333,53 @@ TEST_F(CFileSysTest, ReadsPseudoDirectoryAndFileSectors)
 	ASSERT_EQ(0, filesystem_.DiskRead(0, file_sector_data.data(), file_sector, 1));
 	EXPECT_TRUE(std::equal(content.begin(), content.end(), file_sector_data.begin()));
 }
+
+TEST_F(CFileSysTest, RetainsPseudoSectorPathAfterSearchStateIsReused)
+{
+	std::ofstream(root_ / "alpha.bin", std::ios::binary) << "alpha";
+	std::ofstream(root_ / "beta.bin", std::ios::binary) << "beta";
+
+	Human68k::files_t files = {};
+	files.fatr = Human68k::AT_ARCHIVE;
+	constexpr uint32_t key = 0x500;
+	const auto alpha = MakeName("/", "alpha.bin");
+	ASSERT_EQ(0, filesystem_.Files(0, key, &alpha, &files));
+
+	std::array<uint8_t, 0x200> directory_sector = {};
+	ASSERT_EQ(0, filesystem_.DiskRead(0, directory_sector.data(), key, 1));
+	Human68k::dirent_t entry = {};
+	memcpy(&entry, directory_sector.data(), sizeof(entry));
+
+	// A subsequent search with the same key replaces its CHostFiles state. The
+	// pseudo-sector must still address the file named by the first entry.
+	const auto beta = MakeName("/", "beta.bin");
+	ASSERT_EQ(0, filesystem_.Files(0, key, &beta, &files));
+
+	Human68k::dpb_t dpb = {};
+	ASSERT_EQ(0, filesystem_.GetDPB(0, &dpb));
+	const uint32_t file_sector = (entry.cluster - 2) * (dpb.cluster_size + 1) + dpb.data_sector;
+	std::array<uint8_t, 0x200> file_sector_data = {};
+	ASSERT_EQ(0, filesystem_.DiskRead(0, file_sector_data.data(), file_sector, 1));
+	EXPECT_EQ("alpha", std::string((const char*)file_sector_data.data(), 5));
+}
+
+TEST_F(CFileSysTest, RefusesToEvictActiveFileSearches)
+{
+	std::ofstream(root_ / "entry.bin", std::ios::binary) << "entry";
+	const auto entry = MakeName("/", "entry.bin");
+
+	for (uint32_t index = 0; index < XM6_HOST_FILES_MAX; index++) {
+		Human68k::files_t files = {};
+		files.fatr = Human68k::AT_ARCHIVE;
+		ASSERT_EQ(0, filesystem_.Files(0, 0x600 + index, &entry, &files));
+	}
+
+	Human68k::files_t overflow = {};
+	overflow.fatr = Human68k::AT_ARCHIVE;
+	EXPECT_EQ(FS_OUTOFMEM, filesystem_.Files(0, 0x700, &entry, &overflow));
+
+	// Finishing one search releases exactly one slot for reuse.
+	Human68k::files_t completed = {};
+	EXPECT_EQ(FS_FILENOTFND, filesystem_.NFiles(0, 0x600, &completed));
+	EXPECT_EQ(0, filesystem_.Files(0, 0x700, &entry, &overflow));
+}

@@ -2296,8 +2296,13 @@ CHostFiles* CHostFilesManager::Alloc(uint32_t nKey)
 {
 	assert(nKey);
 
-	// Select from the end
+	// Select an unused entry from the end. Do not evict an active search:
+	// callers may still use its key for _NFILES or pseudo-sector reads.
 	auto p = (ring_t*)m_cRing.Prev();
+	while (p != (ring_t*)&m_cRing && !p->f.isSameKey(0))
+		p = (ring_t*)p->r.Prev();
+	if (p == (ring_t*)&m_cRing)
+		return nullptr;
 
 	// Move to the start of the ring
 	p->r.Insert(&m_cRing);
@@ -2690,7 +2695,10 @@ void CFileSys::Reset()
 {
 	// Initialize virtual sectors
 	m_nHostSectorCount = 0;
-	memset(m_nHostSectorBuffer, 0, sizeof(m_nHostSectorBuffer));
+	for (auto& sector : m_hostSector) {
+		sector.path[0] = '\0';
+		sector.valid = false;
+	}
 
 	// File search memory - release (on startup and reset)
 	m_cFiles.Clean();
@@ -3740,6 +3748,23 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 	// Access pseudo-directory entry
 	const CHostFiles* pHostFiles = m_cFiles.Search(nSector);
 	if (pHostFiles) {
+		// Allocate an unused virtual sector. Never overwrite an outstanding
+		// mapping: doing so can return another file's bytes for this entry.
+		auto slot = m_nHostSectorCount;
+		uint32_t attempts = 0;
+		for (; attempts < XM6_HOST_PSEUDO_CLUSTER_MAX; attempts++) {
+			if (!m_hostSector[slot].valid)
+				break;
+			slot = (slot + 1) % XM6_HOST_PSEUDO_CLUSTER_MAX;
+		}
+		if (attempts == XM6_HOST_PSEUDO_CLUSTER_MAX)
+			return FS_OUTOFMEM;
+
+		if (!CopyString(m_hostSector[slot].path, pHostFiles->GetPath()))
+			return FS_INVALIDPRM;
+		m_hostSector[slot].valid = true;
+		m_nHostSectorCount = (slot + 1) % XM6_HOST_PSEUDO_CLUSTER_MAX;
+
 		// Generate pseudo-directory entry
 		auto dir = (Human68k::dirent_t*)pBuffer;
 		memcpy(pBuffer, pHostFiles->GetEntry(), sizeof(*dir));
@@ -3749,10 +3774,7 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 		// Note that in lzdsys the sector number to read is calculated by the following formula:
 		// (dirent.cluster - 2) * (dpb.cluster_size + 1) + dpb.data_sector
 		/// @warning little endian only
-		dir->cluster = (uint16_t)(m_nHostSectorCount + 2);		// Pseudo-sector number
-		m_nHostSectorBuffer[m_nHostSectorCount] = nSector;	// Entity that points to the pseudo-sector
-		m_nHostSectorCount++;
-		m_nHostSectorCount %= XM6_HOST_PSEUDO_CLUSTER_MAX;
+		dir->cluster = (uint16_t)(slot + 2);				// Pseudo-sector number
 
 		return 0;
 	}
@@ -3768,11 +3790,11 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 
 	// Access the file entity
 	if (nMod == 0 && n < XM6_HOST_PSEUDO_CLUSTER_MAX) {
-		pHostFiles = m_cFiles.Search(m_nHostSectorBuffer[n]);	// Find entity
-		if (pHostFiles) {
+		auto& sector = m_hostSector[n];
+		if (sector.valid) {
 			// Generate pseudo-sector
 			CHostFcb f;
-			if (!f.SetFilename(pHostFiles->GetPath()))
+			if (!f.SetFilename(sector.path))
 				return FS_INVALIDPRM;
 			f.SetMode(Human68k::OP_READ);
 			if (!f.Open())
@@ -3782,6 +3804,9 @@ int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint3
 			f.Close();
 			if (nResult == (uint32_t)-1)
 				return FS_INVALIDPRM;
+
+			sector.path[0] = '\0';
+			sector.valid = false;
 
 			return 0;
 		}
