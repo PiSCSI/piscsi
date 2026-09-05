@@ -33,16 +33,16 @@ TEST(ScsiPowerViewTest, Inquiry)
 	EXPECT_EQ("V1.0", string(buffer.begin() + 32, buffer.begin() + 36));
 }
 
-TEST(ScsiPowerViewTest, Read6ReportsNoMediumForRadiusWareProbe)
+TEST(ScsiPowerViewTest, Read6IsUnsupportedForProcessorDevice)
 {
 	auto [controller, device] = CreateDevice(SCPV);
 
-	// The SE/30's RadiusWare startup probe is READ(6), LBA 0, one block:
-	// 08 00 00 00 01 00. The legacy PowerView reports an empty medium rather
-	// than an unsupported opcode, letting the driver continue to its vendor CDBs.
+	// BlueSCSI's working V2.1 implementation, corroborated by Snow, treats
+	// PowerView as a storage-less processor device: READ(6) must not acquire
+	// disk semantics or report a missing medium.
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
-			Property(&scsi_exception::get_asc, asc::medium_not_present))));
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 }
 
 TEST(ScsiPowerViewTest, V21ExtendedModeHandshake)

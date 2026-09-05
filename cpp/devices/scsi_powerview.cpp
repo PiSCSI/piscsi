@@ -156,7 +156,6 @@ bool SCSIPowerView::Init(const param_map& params)
 		snapshot_worker = jthread([this] (stop_token stop) { ProcessSnapshots(stop); });
 	}
 
-	AddCommand(scsi_command::eCmdRead6, [this] { Read6(); });
 	AddCommand(scsi_command::eCmdPowerViewV21ReadMode, [this] { ReadV21MonitorMode(); });
 	AddCommand(scsi_command::eCmdPowerViewV21Write, [this] { WriteV21Handshake(); });
 	AddCommand(scsi_command::eCmdPowerViewV21ModeSet, [this] { V21ModeSet(); });
@@ -203,14 +202,6 @@ vector<uint8_t> SCSIPowerView::InquiryInternal() const
 		response[35] = '1';
 	}
 	return response;
-}
-
-void SCSIPowerView::Read6() const
-{
-	// RadiusWare probes the PowerView processor target with READ(6) during
-	// startup. The legacy card reports that probe as an empty medium; returning
-	// INVALID COMMAND makes the SE/30 driver retry and abandon initialization.
-	throw scsi_exception(sense_key::not_ready, asc::medium_not_present);
 }
 
 void SCSIPowerView::ReadConfiguration()
