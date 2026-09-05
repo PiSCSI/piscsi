@@ -22,6 +22,7 @@
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"
 #include "scsi_controller.h"
+#include <algorithm>
 #include <sstream>
 #include <iomanip>
 #ifdef __linux__
@@ -148,7 +149,7 @@ void ScsiController::Command()
 
 		const auto devices = GetDevices();
 		const bool is_powerview = !devices.empty() && all_of(devices.begin(), devices.end(),
-				[] (const shared_ptr<PrimaryDevice>& device) { return device->GetType() == SCPV; });
+				[] (const shared_ptr<PrimaryDevice>& device) { return device->GetType() == piscsi_interface::SCPV; });
 		const int actual_count = GetBus().CommandHandShake(GetBuffer(), is_powerview);
 		if (actual_count == 0) {
 			stringstream s;
@@ -191,7 +192,7 @@ void ScsiController::Execute()
             << setfill('0') << hex;
         const auto devices = GetDevices();
         const bool is_powerview = !devices.empty() && all_of(devices.begin(), devices.end(),
-                [] (const shared_ptr<PrimaryDevice>& device) { return device->GetType() == SCPV; });
+                [] (const shared_ptr<PrimaryDevice>& device) { return device->GetType() == piscsi_interface::SCPV; });
         const int command_byte_count = is_powerview && GetOpcode() == scsi_command::eCmdPowerViewV21ReadMode ? 4 :
                 BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode()));
         for (int i = 0; i < command_byte_count; i++) {

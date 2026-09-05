@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include "devices/scsi_powerview.h"
 #include "shared/scsi.h"
 #include "shared/piscsi_exceptions.h"
 #include "controllers/scsi_controller.h"
@@ -150,13 +151,33 @@ TEST(ScsiControllerTest, Command)
 	EXPECT_EQ(phase_t::command, controller.GetPhase());
 
 	controller.SetPhase(phase_t::reserved);
-	ON_CALL(*bus, CommandHandShake).WillByDefault(Return(6));
+	ON_CALL(*bus, CommandHandShake(_, _)).WillByDefault(Return(6));
 	EXPECT_CALL(*bus, SetMSG(false));
 	EXPECT_CALL(*bus, SetCD(true));
 	EXPECT_CALL(*bus, SetIO(false));
 	EXPECT_CALL(controller, Execute);
 	controller.Command();
 	EXPECT_EQ(phase_t::command, controller.GetPhase());
+}
+
+TEST(ScsiControllerTest, PowerViewV21ReadModeUsesFourByteCdb)
+{
+	auto bus = make_shared<NiceMock<MockBus>>();
+	MockScsiController controller(bus, 0);
+	auto power_view = make_shared<SCSIPowerView>(0);
+	ASSERT_TRUE(power_view->Init({ { "firmware_revision", "2.1" } }));
+	ASSERT_TRUE(controller.AddDevice(power_view));
+
+	controller.SetPhase(phase_t::reserved);
+	EXPECT_CALL(*bus, SetMSG(false));
+	EXPECT_CALL(*bus, SetCD(true));
+	EXPECT_CALL(*bus, SetIO(false));
+	EXPECT_CALL(*bus, CommandHandShake(_, true)).WillOnce([] (vector<uint8_t>& buffer, bool) {
+		buffer[0] = 0xc2;
+		return 4;
+	});
+	EXPECT_CALL(controller, Execute);
+	controller.Command();
 }
 
 TEST(ScsiControllerTest, MsgIn)

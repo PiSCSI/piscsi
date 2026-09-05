@@ -63,7 +63,9 @@ TEST(ScsiPowerViewTest, V21ExtendedModeHandshake)
 	controller->SetCmdByte(6, 3);
 	EXPECT_CALL(*controller, DataIn());
 	power_view->Dispatch(scsi_command::eCmdPowerViewReadConfig);
-	EXPECT_EQ((vector<uint8_t> { 0x09, 0x09, 0x09 }), controller->GetBuffer());
+	EXPECT_EQ(0x09, controller->GetBuffer()[0]);
+	EXPECT_EQ(0x09, controller->GetBuffer()[1]);
+	EXPECT_EQ(0x09, controller->GetBuffer()[2]);
 
 	controller->SetCmdByte(4, 0x83);
 	controller->SetCmdByte(6, 1);

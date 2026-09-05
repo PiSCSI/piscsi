@@ -206,6 +206,7 @@ class MockScsiController : public ScsiController
 	FRIEND_TEST(ScsiControllerTest, BusFree);
 	FRIEND_TEST(ScsiControllerTest, Selection);
 	FRIEND_TEST(ScsiControllerTest, Command);
+	FRIEND_TEST(ScsiControllerTest, PowerViewV21ReadModeUsesFourByteCdb);
 	FRIEND_TEST(ScsiControllerTest, MsgIn);
 	FRIEND_TEST(ScsiControllerTest, MsgOut);
 	FRIEND_TEST(ScsiControllerTest, DataIn);
