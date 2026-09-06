@@ -268,6 +268,38 @@ TEST(ScsiControllerTest, Error)
 	EXPECT_EQ(phase_t::reserved, controller.GetPhase());
 }
 
+TEST(ScsiControllerTest, AbortSendTransfer)
+{
+	auto bus = make_shared<NiceMock<MockBus>>();
+	MockScsiController controller(bus, 0);
+
+	controller.SetPhase(phase_t::datain);
+	controller.SetLength(2048);
+	ON_CALL(*bus, GetREQ).WillByDefault(Return(false));
+	ON_CALL(*bus, GetIO).WillByDefault(Return(true));
+	ON_CALL(*bus, SendHandShake).WillByDefault(Return(512));
+
+	EXPECT_CALL(controller, Reset);
+	EXPECT_CALL(controller, Status).Times(0);
+	controller.DataIn();
+}
+
+TEST(ScsiControllerTest, AbortReceiveTransfer)
+{
+	auto bus = make_shared<NiceMock<MockBus>>();
+	MockScsiController controller(bus, 0);
+
+	controller.SetPhase(phase_t::dataout);
+	controller.SetLength(2048);
+	ON_CALL(*bus, GetREQ).WillByDefault(Return(false));
+	ON_CALL(*bus, GetIO).WillByDefault(Return(false));
+	ON_CALL(*bus, ReceiveHandShake).WillByDefault(Return(512));
+
+	EXPECT_CALL(controller, Reset);
+	EXPECT_CALL(controller, Status).Times(0);
+	controller.DataOut();
+}
+
 TEST(ScsiControllerTest, RequestSense)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();

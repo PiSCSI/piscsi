@@ -51,6 +51,11 @@ const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS         = 20;
 const static int SCSI_DELAY_FAST_HOLD_TIME_NS            = 10;
 const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
 
+// REQ/ACK handshakes normally complete in microseconds. A missing response
+// means the initiator has abandoned the transfer, so do not busy-poll for the
+// multi-second command timeout while PiSCSI is running with real-time priority.
+const static int SCSI_HANDSHAKE_TIMEOUT_MS               = 100;
+
 // The DaynaPort SCSI Link do a short delay in the middle of transfering
 // a packet. This is the number of uS that will be delayed between the
 // header and the actual data.
