@@ -21,9 +21,32 @@ using namespace scsi_defs;
 //---------------------------------------------------------------------------
 int BUS::GetCommandByteCount(uint8_t opcode)
 {
-	const auto& mapping = command_mapping.find(static_cast<scsi_command>(opcode));
+	if (const auto& mapping = command_mapping.find(static_cast<scsi_command>(opcode));
+		mapping != command_mapping.end()) {
+		return mapping->second.first;
+	}
 
-	return mapping != command_mapping.end() ? mapping->second.first : 0;
+	// The CDB length is defined by the SCSI command group, not by whether this target implements
+	// the command. Receive a complete standard CDB so that an unsupported command can be rejected
+	// cleanly instead of leaving its remaining bytes on the bus.
+	//
+	// $1f is an exception: GPIOBUS recognizes it as the Atari ICD prefix before this method is
+	// called for the actual SCSI command.
+	switch (opcode >> 5) { //NOSONAR: opcode is a numeric SCSI command field, not raw byte storage
+		case 0:
+			return opcode == 0x1f ? 0 : 6;
+		case 1:
+		case 2:
+		case 3:
+			return 10;
+		case 4:
+			return 16;
+		case 5:
+			return 12;
+		default:
+			// Groups 6 and 7 are vendor-specific, for which no common CDB length exists.
+			return 0;
+	}
 }
 
 //---------------------------------------------------------------------------

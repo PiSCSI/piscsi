@@ -47,6 +47,7 @@ TEST(BusTest, GetCommandByteCount)
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x3f));
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x43));
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x4a));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x51));
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x55));
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x5a));
     EXPECT_EQ(12, BUS::GetCommandByteCount(0xa0));
@@ -57,7 +58,11 @@ TEST(BusTest, GetCommandByteCount)
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x9e));
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x9f));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0xc2));
-    EXPECT_EQ(0, BUS::GetCommandByteCount(0x1f));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x20));
+	EXPECT_EQ(16, BUS::GetCommandByteCount(0x80));
+	EXPECT_EQ(12, BUS::GetCommandByteCount(0xa1));
+	EXPECT_EQ(0, BUS::GetCommandByteCount(0x1f));
+	EXPECT_EQ(0, BUS::GetCommandByteCount(0xe0));
 }
 
 TEST(BusTest, GetPhase)

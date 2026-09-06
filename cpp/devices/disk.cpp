@@ -301,9 +301,13 @@ int Disk::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
 		size = 12;
 	}
 
-	size = AddModePages(cdb, buf, size, length, 255);
+	// Page code 0 requests only the mode parameter header and block descriptor.
+	if (cdb[2] & 0x3f) {
+		size = AddModePages(cdb, buf, size, length, 255);
+	}
 
-	buf[0] = (uint8_t)size;
+	// MODE DATA LENGTH does not include this byte.
+	buf[0] = static_cast<uint8_t>(size - 1);
 
 	return size;
 }
@@ -355,9 +359,13 @@ int Disk::ModeSense10(cdb_t cdb, vector<uint8_t>& buf) const
 		}
 	}
 
-	size = AddModePages(cdb, buf, size, length, 65535);
+	// Page code 0 requests only the mode parameter header and block descriptor.
+	if (cdb[2] & 0x3f) {
+		size = AddModePages(cdb, buf, size, length, 65535);
+	}
 
-	SetInt16(buf, 0, size);
+	// MODE DATA LENGTH does not include the two-byte length field itself.
+	SetInt16(buf, 0, size - 2);
 
 	return size;
 }

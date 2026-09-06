@@ -137,6 +137,17 @@ TEST(ScsiCommandUtilTest, ModeSelectRejectsTruncatedParameterList)
 		<< "Truncated mode page header was accepted";
 }
 
+TEST(ScsiCommandUtilTest, ModeSelectAcceptsHeaderAndBlockDescriptorWithoutPages)
+{
+	vector<int> cdb(6);
+	cdb[1] = 0x10;
+	vector<uint8_t> buf(12);
+	buf[3] = 8;
+	buf[10] = 2;
+
+	EXPECT_TRUE(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, static_cast<int>(buf.size()), 512).empty());
+}
+
 TEST(ScsiCommandUtilTest, ModeSelectRejectsFormatDevicePageWithInvalidLength)
 {
 	vector<int> cdb(6);

@@ -184,8 +184,10 @@ void ScsiController::Execute()
 {
     if (spdlog::get_level() == spdlog::level::trace) {
         stringstream s;
-        s << "Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $"
-            << setfill('0') << hex;
+        const auto command = command_mapping.find(GetOpcode());
+        s << "Controller is executing "
+            << (command != command_mapping.end() ? command->second.second : "UnknownCommand")
+            << ", CDB $" << setfill('0') << hex;
         for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
             s << setw(2) << GetCmdByte(i);
         }

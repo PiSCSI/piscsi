@@ -17,6 +17,7 @@
 #include "scsicd.h"
 #include <array>
 #include <fstream>
+#include <limits>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
@@ -163,6 +164,68 @@ void SCSICD::ReadToc()
 vector<uint8_t> SCSICD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::cd_rom, scsi_level, true);
+}
+
+void SCSICD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length)
+{
+	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, GetSectorSizeInBytes());
+		!result.empty()) {
+		LogWarn(result);
+	}
+
+	const int header_length = cmd == scsi_command::eCmdModeSelect10 ? 8 : 4;
+	const int descriptor_length = cmd == scsi_command::eCmdModeSelect10 ? GetInt16(buf, 6) : buf[3];
+	if (!descriptor_length) {
+		return;
+	}
+
+	// SCSI block descriptors are eight bytes. PiSCSI has one logical block size, so all supplied
+	// descriptors must request the same supported size.
+	if (descriptor_length % 8) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+	}
+
+	const uint32_t sector_size = GetInt24(buf, header_length + 5);
+	for (int offset = header_length + 8; offset < header_length + descriptor_length; offset += 8) {
+		if (GetInt24(buf, offset + 5) != static_cast<int>(sector_size)) {
+			throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+		}
+	}
+
+	if (!sector_size || sector_size == GetSectorSizeInBytes()) {
+		return;
+	}
+	if (!GetSupportedSectorSizes().contains(sector_size) || (rawfile && sector_size != 2048)) {
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+	}
+
+	const uint32_t old_sector_size = GetSectorSizeInBytes();
+	uint64_t block_count = GetBlockCount();
+	if (sector_size > old_sector_size) {
+		const uint32_t ratio = sector_size / old_sector_size;
+		if (block_count % ratio) {
+			throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+		}
+		block_count /= ratio;
+	}
+	else {
+		const uint32_t ratio = old_sector_size / sector_size;
+		if (block_count > numeric_limits<uint64_t>::max() / ratio) {
+			throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+		}
+		block_count *= ratio;
+	}
+
+	if (IsReady()) {
+		FlushCache();
+	}
+	SetSectorSizeInBytes(sector_size);
+	SetBlockCount(block_count);
+	if (IsReady()) {
+		ClearTrack();
+		CreateDataTrack();
+		ResizeCache(GetFilename(), rawfile);
+	}
 }
 
 void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
