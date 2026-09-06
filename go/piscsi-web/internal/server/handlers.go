@@ -1309,7 +1309,7 @@ func (s *Server) handleFilesUpload(c *gin.Context) {
 
 	s.logger.Info("File uploaded", "filename", filename, "size", fileSize, "destination", filepath.Dir(fullPath))
 	s.respond(c, ResponseOptions{
-		Message:     "File uploaded successfully",
+		Message:     fmt.Sprintf("File %q uploaded successfully to %q", filename, filepath.Dir(fullPath)),
 		RedirectURL: "/upload",
 	})
 }

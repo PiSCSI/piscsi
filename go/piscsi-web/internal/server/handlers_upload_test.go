@@ -155,7 +155,7 @@ func TestHandleFilesUploadReturnsJSONForProgressRequest(t *testing.T) {
 	if contentType := recorder.Header().Get("Content-Type"); !strings.HasPrefix(contentType, "application/json") {
 		t.Fatalf("Content-Type = %q, want JSON", contentType)
 	}
-	if !strings.Contains(recorder.Body.String(), `"message":"File uploaded successfully"`) {
+	if !strings.Contains(recorder.Body.String(), `"message":"File \"disk.hda\" uploaded successfully to \"`+imageDir+`\""`) {
 		t.Fatalf("response = %s", recorder.Body.String())
 	}
 	if _, err := os.Stat(filepath.Join(imageDir, "disk.hda")); err != nil {

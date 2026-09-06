@@ -5,6 +5,12 @@
 
 <div class="content">
 <h2>Upload File from Local Computer</h2>
+<p>Select the destination directory for the uploaded file according to its purpose:</p>
+<ul>
+    <li><strong>images</strong> are disk images to be mounted as a SCSI storage device</li>
+    <li><strong>shared</strong> is for files to be shared with the host through network file sharing or used to create an ISO</li>
+    <li><strong>config</strong> is meant for PiSCSI configuration files</li>
+</ul>
 <form id="upload-form" action="/files/upload" method="post" enctype="multipart/form-data">
     <label for="destination">To directory:</label>
     <select name="destination" id="destination">
@@ -49,13 +55,13 @@
         });
     };
 
-    const showFailure = (message) => {
+    const showFailure = (filename, message) => {
         uploading = false;
         setFieldsDisabled(false);
-        status.textContent = message;
+        status.textContent = filename ? `Failed to upload ${filename}: ${message}` : message;
     };
 
-    const startUpload = (formData) => {
+    const startUpload = (formData, filename) => {
         progressContainer.hidden = false;
         progress.value = 0;
         progressText.textContent = "0%";
@@ -95,11 +101,11 @@
                 return;
             }
 
-            showFailure(response.message || "Upload failed.");
+            showFailure(filename, response.message || "Upload failed.");
         });
 
-        request.addEventListener("error", () => showFailure("Upload failed."));
-        request.addEventListener("abort", () => showFailure("Upload canceled."));
+        request.addEventListener("error", () => showFailure(filename, "Upload failed."));
+        request.addEventListener("abort", () => showFailure(filename, "Upload canceled."));
         request.send(formData);
     };
 
@@ -116,6 +122,7 @@
         progressText.textContent = "0%";
         status.textContent = "Checking destination…";
         const formData = new FormData(form);
+        const filename = formData.get("file").name;
         setFieldsDisabled(true);
 
         const check = new XMLHttpRequest();
@@ -130,19 +137,19 @@
             }
 
             if (check.status >= 200 && check.status < 300 && !response.error && !response.exists) {
-                startUpload(formData);
+                startUpload(formData, filename);
                 return;
             }
 
-            showFailure(response.message || "A file with this name already exists.");
+            showFailure(filename, response.message || "A file with this name already exists.");
         });
 
-        check.addEventListener("error", () => showFailure("Could not check the upload destination."));
+        check.addEventListener("error", () => showFailure(filename, "Could not check the upload destination."));
         const checkFields = [
             ["destination", formData.get("destination")],
             ["images_subdir", formData.get("images_subdir")],
             ["shared_subdir", formData.get("shared_subdir")],
-            ["filename", formData.get("file").name],
+            ["filename", filename],
         ];
         check.send(checkFields.map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value || "")}`).join("&"));
     });
