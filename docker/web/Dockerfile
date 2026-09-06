@@ -1,7 +1,7 @@
 ARG GO_VERSION=1.25.13
-ARG OS_VERSION=bullseye
+ARG OS_VERSION=trixie
 
-FROM golang:${GO_VERSION}-bookworm AS build
+FROM golang:${GO_VERSION}-trixie AS build
 
 WORKDIR /src
 
@@ -31,7 +31,6 @@ RUN apt-get update \
         disktype \
         dosfstools \
         genisoimage \
-        hfsutils \
         kpartx \
         man2html \
         openssl \
@@ -43,22 +42,19 @@ RUN apt-get update \
 RUN groupadd --system pi \
     && useradd --system --create-home --home-dir /home/pi --shell /usr/sbin/nologin --gid pi pi \
     && install -d --owner=pi --group=pi --mode=0777 \
-        /home/pi/images \
-        /home/pi/shared_files \
-        /home/pi/.config/piscsi \
-    && install -d --owner=pi --group=pi \
-        /home/pi/web/templates \
-        /home/pi/web/static
+        /var/lib/piscsi/images \
+        /var/lib/piscsi/shared \
+        /var/lib/piscsi/config \
+    && install -d --mode=0755 /opt/piscsi-web
 
 COPY --from=build /out/piscsi-web /usr/local/bin/piscsi-web
 COPY --from=build /out/mock-piscsi /usr/local/bin/mock-piscsi
-COPY --from=build /src/go/piscsi-web/drive_properties.json /home/pi/drive_properties.json
+COPY --from=build /src/go/piscsi-web/drive_properties.json /opt/piscsi-web/drive_properties.json
 COPY docker/web/web_start_wrapper.sh /usr/local/bin/web_start_wrapper.sh
-RUN chown pi:pi /home/pi/drive_properties.json \
-    && chmod 0755 /usr/local/bin/piscsi-web /usr/local/bin/mock-piscsi /usr/local/bin/web_start_wrapper.sh
+RUN chmod 0755 /usr/local/bin/piscsi-web /usr/local/bin/mock-piscsi /usr/local/bin/web_start_wrapper.sh
 
 USER pi
-WORKDIR /home/pi
+WORKDIR /opt/piscsi-web
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/web_start_wrapper.sh"]

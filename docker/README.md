@@ -15,7 +15,7 @@ Additions, amendments and contributions for additional workflows are most welcom
 
 The easiest way to launch a new environment is to use Docker Compose.
 
-```
+```sh
 cd docker
 docker compose up
 ```
@@ -35,7 +35,7 @@ The following environment variables are available when using Docker Compose:
 
 | Environment Variable | Default  |
 | -------------------- |----------|
-| `OS_VERSION`         | bullseye |
+| `OS_VERSION`         | trixie   |
 | `WEB_HTTP_PORT`      | 8080     |
 | `BACKEND_HOST`       | backend  |
 | `BACKEND_PORT`       | 6868     |
@@ -46,9 +46,10 @@ The following environment variables are available when using Docker Compose:
 
 **Examples:**
 
-Run Debian "bullseye":
-```
-OS_VERSION=bullseye docker compose up
+Run Debian "trixie":
+
+```sh
+OS_VERSION=trixie docker compose up
 ```
 
 The Docker entrypoint generates an ephemeral session key for local development.
@@ -56,7 +57,7 @@ Set `SESSION_KEY` yourself if browser sessions must survive a container restart.
 
 Run the Go web-client test suite with:
 
-```
+```sh
 docker compose --profile webui-tests run --rm go-test
 ```
 
@@ -66,9 +67,8 @@ When using Docker Compose the following volumes will be mounted automatically:
 
 | Local Path              | Container Path           |
 | ----------------------- | ------------------------ |
-| docker/volumes/images/  | /home/pi/images/         |
-| docker/volumes/config/  | /home/pi/.config/piscsi/ |
-
+| docker/volumes/images/  | /var/lib/piscsi/images/  |
+| docker/volumes/config/  | /var/lib/piscsi/config/  |
 
 ## How To
 
@@ -77,7 +77,7 @@ When using Docker Compose the following volumes will be mounted automatically:
 You should rebuild the container images after checking out a different version of
 PiSCSI or making changes to the Go web client or its runtime dependencies.
 
-```
+```sh
 docker compose up --build
 ```
 
@@ -85,7 +85,7 @@ docker compose up --build
 
 Run the following command, replacing `[CONTAINER]` with `backend` or `web`.
 
-```
+```sh
 docker compose exec [CONTAINER] bash
 ```
 
@@ -98,7 +98,8 @@ The web binary embeds templates and static assets, so rebuild and restart the
 `web` service after editing Go web-client files.
 
 **Example:**
-```
+
+```yaml
 services:
   go-test:
     volumes:
@@ -110,6 +111,6 @@ services:
 This can be useful for testing, but there are some caveats, e.g. the PiSCSI and the
 web UI will be accessing separate `images` directories.
 
-```
+```sh
 BACKEND_HOST=foo BACKEND_PASSWORD=bar docker compose up
 ```
