@@ -317,8 +317,11 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
             buf++;
         }
 
-        // Wait for ACK to clear
-        WaitACK(OFF);
+        // The final ACK deassertion completes a successful transfer. A failed
+        // handshake is reset by the controller, so it must not wait again.
+        if (i == count) {
+            WaitACK(OFF);
+        }
     } else {
         // Get Phase
         Acquire();
@@ -412,7 +415,9 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
     const auto now = chrono::steady_clock::now();
 
-    // Wait up to 3 s
+    // A REQ/ACK handshake is a short, bus-level operation. Longer command
+    // timeouts must not be implemented by busy-polling here: the caller has
+    // disabled IRQs and PiSCSI may be scheduled SCHED_FIFO.
     do {
         Acquire();
 
@@ -424,7 +429,8 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
         if (GetRST()) {
             return false;
         }
-    } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
+    } while ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - now).count())
+            < SCSI_HANDSHAKE_TIMEOUT_MS);
 
     return false;
 }

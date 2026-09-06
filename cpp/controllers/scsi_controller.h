@@ -102,6 +102,7 @@ private:
 	bool XferOut(bool);
 	bool XferOutBlockOriented(bool);
 	void ReceiveBytes();
+	void AbortTransfer(const char*, uint32_t, uint32_t);
 
 	void DataOutNonBlockOriented() const;
 	void Receive();

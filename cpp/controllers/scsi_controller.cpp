@@ -444,8 +444,7 @@ void ScsiController::Send()
 		if (const int len = GetBus().SendHandShake(GetBuffer().data() + GetOffset(), GetLength(),
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != static_cast<int>(GetLength())) {
-			// If you cannot send all, move to status phase
-			Error(sense_key::aborted_command);
+			AbortTransfer("send", len, GetLength());
 			return;
 		}
 
@@ -507,6 +506,18 @@ void ScsiController::Send()
 	}
 }
 
+void ScsiController::AbortTransfer(const char* direction, uint32_t transferred, uint32_t expected)
+{
+	LogWarn("SCSI " + string(direction) + " handshake aborted after " + to_string(transferred) + " of "
+			+ to_string(expected) + " byte(s); releasing the bus");
+
+	// The initiator has stopped participating in this REQ/ACK handshake. Do
+	// not try to send CHECK CONDITION or MESSAGE IN: either transfer would wait
+	// for the same missing ACK. Reset releases all target signals and leaves the
+	// controller in bus-free state so the initiator can recover or retry.
+	Reset();
+}
+
 void ScsiController::Receive()
 {
 	assert(!GetBus().GetREQ());
@@ -515,11 +526,9 @@ void ScsiController::Receive()
 	if (HasValidLength()) {
 		LogTrace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
 
-		// If not able to receive all, move to status phase
+		// An incomplete REQ/ACK handshake cannot be recovered with a status phase.
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
-			LogError("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
-					+ to_string(len));
-			Error(sense_key::aborted_command);
+			AbortTransfer("receive", len, GetLength());
 			return;
 		}
 	}
