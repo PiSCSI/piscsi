@@ -186,6 +186,7 @@ func (s *Server) handleIndex(c *gin.Context) {
 	data["ShowUnits"] = showUnits
 	data["Files"] = files
 	data["FilesBySubdir"] = filesBySubdir
+	data["SharedFiles"] = sharedFiles(s.config.SharedDir)
 	data["ImageDir"] = s.config.BaseDir
 	data["ImageDirExists"] = imageDirExists
 	data["ImageRootDir"] = s.config.BaseDir
@@ -3128,6 +3129,24 @@ func transferSubdirectories(root string) []string {
 	return subdirectories
 }
 
+// sharedFiles returns the visible regular files directly in the shared
+// directory. These are available as sources when creating CD-ROM images.
+func sharedFiles(root string) []string {
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return []string{}
+	}
+
+	files := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), ".") || !entry.Type().IsRegular() {
+			continue
+		}
+		files = append(files, entry.Name())
+	}
+	return files
+}
+
 // displays disk image information
 func (s *Server) handleFilesDiskinfo(c *gin.Context) {
 	fileName := c.PostForm("file_name")
@@ -3502,9 +3521,9 @@ func (s *Server) handleFilesCreateISO(c *gin.Context) {
 			isoPath, err = resolvePathWithin(s.config.BaseDir, fileName+".iso")
 		}
 	} else {
-		sourcePath, err = resolvePathWithin(s.config.BaseDir, localFile)
+		sourcePath, err = resolvePathWithin(s.config.SharedDir, localFile)
 		if err == nil {
-			isoPath, err = resolvePathWithin(s.config.BaseDir, localFile+".iso")
+			isoPath, err = resolvePathWithin(s.config.BaseDir, filepath.Base(localFile)+".iso")
 		}
 	}
 	if err != nil {
