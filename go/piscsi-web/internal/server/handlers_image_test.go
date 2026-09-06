@@ -175,14 +175,18 @@ func TestHandleFilesCreateISOLocalFile(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	root := t.TempDir()
 	imageDir := filepath.Join(root, "images")
+	sharedDir := filepath.Join(root, "shared")
 	binDir := filepath.Join(root, "bin")
 	if err := os.MkdirAll(imageDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(sharedDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.MkdirAll(binDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(imageDir, "software.hds"), []byte("software"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(sharedDir, "software.hds"), []byte("software"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	fakeGenisoimage := "#!/bin/sh\nwhile [ \"$1\" != \"-o\" ]; do shift; done\nshift\n: > \"$1\"\n"
@@ -192,7 +196,7 @@ func TestHandleFilesCreateISOLocalFile(t *testing.T) {
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 
 	server := &Server{
-		config:       &config.Config{BaseDir: imageDir, TemplatesDir: filepath.Join(root, "web", "templates")},
+		config:       &config.Config{BaseDir: imageDir, SharedDir: sharedDir, TemplatesDir: filepath.Join(root, "web", "templates")},
 		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
 		sessionStore: sessions.NewCookieStore([]byte("test-secret-key")),
 	}
@@ -214,6 +218,27 @@ func TestHandleFilesCreateISOLocalFile(t *testing.T) {
 	message, _ := GetFlashesForTemplate(session)
 	if message != "CD-ROM image software.hds.iso with type Joliet was created." {
 		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestSharedFilesListsVisibleRegularFiles(t *testing.T) {
+	sharedDir := t.TempDir()
+	for name, content := range map[string][]byte{
+		"document.txt": []byte("document"),
+		".hidden":      []byte("hidden"),
+		"archive.zip":  []byte("archive"),
+	} {
+		if err := os.WriteFile(filepath.Join(sharedDir, name), content, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Mkdir(filepath.Join(sharedDir, "folder"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"archive.zip", "document.txt"}
+	if got := sharedFiles(sharedDir); !reflect.DeepEqual(got, want) {
+		t.Fatalf("sharedFiles() = %v, want %v", got, want)
 	}
 }
 
