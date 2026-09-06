@@ -1,6 +1,6 @@
 ARG DEBIAN_FRONTEND=noninteractive
 
-FROM debian:bullseye AS build
+FROM debian:trixie AS build
 RUN apt-get update && apt-get install --assume-yes --no-install-recommends sudo
 RUN groupadd pi \
     && useradd --create-home --shell /bin/bash -g pi pi \
@@ -15,14 +15,14 @@ COPY --chown=pi:pi doc doc
 COPY --chown=pi:pi proto proto
 RUN ./easyinstall.sh --run_choice=15 --cores=`nproc`
 
-FROM debian:bullseye-slim AS runner
+FROM debian:trixie-slim AS runner
 USER root
 WORKDIR /home/pi
 
 COPY --from=build /home/pi/piscsi/cpp/bin/* /usr/local/bin/
 COPY docker/backend/piscsi_wrapper.sh /usr/local/bin/piscsi_wrapper.sh
 RUN chmod +x /usr/local/bin/*
-RUN mkdir -p /home/pi/images
+RUN mkdir -p /var/lib/piscsi/images /var/lib/piscsi/config
 
 RUN apt-get update \
     && apt-get install --no-install-recommends --assume-yes libpcap-dev libprotobuf-dev \
@@ -31,7 +31,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 6868
-ENTRYPOINT ["/usr/local/bin/piscsi_wrapper.sh", "-r", "7", "-F", "/home/pi/images"]
+ENTRYPOINT ["/usr/local/bin/piscsi_wrapper.sh", "-r", "7", "-F", "/var/lib/piscsi/images"]
 CMD ["-L", "trace"]
 
 HEALTHCHECK --interval=5m --timeout=1s CMD scsictl -v

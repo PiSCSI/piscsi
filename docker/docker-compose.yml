@@ -7,8 +7,8 @@ services:
       context: ..
       dockerfile: docker/backend/Dockerfile
     volumes:
-      - ./volumes/images:/home/pi/images:delegated
-      - ./volumes/config:/home/pi/.config/piscsi:delegated
+      - ./volumes/images:/var/lib/piscsi/images:delegated
+      - ./volumes/config:/var/lib/piscsi/config:delegated
     ports:
       - "127.0.0.1:${BACKEND_PORT:-6868}:6868"
     environment:
@@ -27,10 +27,10 @@ services:
       context: ..
       dockerfile: docker/web/Dockerfile
       args:
-        - OS_VERSION=${OS_VERSION:-bullseye}
+        - OS_VERSION=${OS_VERSION:-trixie}
     volumes:
-      - ./volumes/images:/home/pi/images:delegated
-      - ./volumes/config:/home/pi/.config/piscsi:delegated
+      - ./volumes/images:/var/lib/piscsi/images:delegated
+      - ./volumes/config:/var/lib/piscsi/config:delegated
     ports:
       - "127.0.0.1:${WEB_HTTP_PORT:-8080}:8080"
     environment:
@@ -38,9 +38,9 @@ services:
       PISCSI_PORT: ${BACKEND_PORT:-6868}
       PISCSI_TOKEN: ${BACKEND_PASSWORD:-}
       SERVER_PORT: 8080
-      BASE_DIR: /home/pi/images
-      SHARED_DIR: /home/pi/shared_files
-      CONFIG_DIR: /home/pi/.config/piscsi
+      BASE_DIR: /var/lib/piscsi/images
+      SHARED_DIR: /var/lib/piscsi/shared
+      CONFIG_DIR: /var/lib/piscsi/config
       SESSION_KEY: ${SESSION_KEY:-}
     user: "${PISCSI_DOCKER_UID:-1000}:${PISCSI_DOCKER_GID:-1000}"
     init: true

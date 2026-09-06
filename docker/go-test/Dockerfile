@@ -1,6 +1,6 @@
 ARG GO_VERSION=1.25.13
 
-FROM golang:${GO_VERSION}-bookworm
+FROM golang:${GO_VERSION}-trixie
 
 WORKDIR /src
 

@@ -8,7 +8,7 @@ services:
       dockerfile: docker/backend/Dockerfile
     init: true
     volumes:
-      - ./volumes/images:/home/pi/images:delegated
+      - ./volumes/images:/var/lib/piscsi/images:delegated
     healthcheck:
       interval: 5s
       start_period: 5s
@@ -27,18 +27,18 @@ services:
       context: ..
       dockerfile: docker/web/Dockerfile
       args:
-        - OS_VERSION=bullseye
+        - OS_VERSION=trixie
     volumes:
-      - ./volumes/images:/home/pi/images:delegated
+      - ./volumes/images:/var/lib/piscsi/images:delegated
     user: "${PISCSI_DOCKER_UID:-1000}:${PISCSI_DOCKER_GID:-1000}"
     init: true
     environment:
       PISCSI_HOST: mock-backend
       PISCSI_PORT: 6868
       SERVER_PORT: 8080
-      BASE_DIR: /home/pi/images
-      SHARED_DIR: /home/pi/shared_files
-      CONFIG_DIR: /home/pi/.config/piscsi
+      BASE_DIR: /var/lib/piscsi/images
+      SHARED_DIR: /var/lib/piscsi/shared
+      CONFIG_DIR: /var/lib/piscsi/config
     healthcheck:
       interval: 5s
       start_period: 5s
