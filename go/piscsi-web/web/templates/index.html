@@ -279,6 +279,12 @@ Please create the PiSCSI configuration dir to use configurations: {{.ConfigDir}}
             <td>
                 {{if .InUse}}
                     In use
+                    {{if not .IsArchive}}
+                    <form action="/files/diskinfo" method="post" class="file-info">
+                        <input name="file_name" type="hidden" value="{{.Name}}">
+                        <input type="submit" value="?" title="Info">
+                    </form>
+                    {{end}}
                 {{else}}
                 {{if .IsArchive}}
                 {{if .ArchiveContents}}
