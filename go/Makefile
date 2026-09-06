@@ -59,21 +59,21 @@ mock: proto
 	@echo "Run with: ./$(MOCK_BINARY)"
 
 build-linux-arm64: proto
-	@echo "Building for ARM64 (Raspberry Pi 4/5)..."
+	@echo "Building for ARM64..."
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
 	  $(GOBUILD) $(WEB_TAG_FLAGS) $(WEB_LDFLAGS) -o $(BINARY_NAME)-arm64 ./piscsi-web/cmd/piscsi-web
 	@echo "✅ ARM64 binary created"
 	@ls -lh $(BINARY_NAME)-arm64
 
 build-linux-armv7: proto
-	@echo "Building for ARMv7 (Raspberry Pi 2/3)..."
+	@echo "Building for ARMv7..."
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 \
 	  $(GOBUILD) $(WEB_TAG_FLAGS) $(WEB_LDFLAGS) -o $(BINARY_NAME)-armv7 ./piscsi-web/cmd/piscsi-web
 	@echo "✅ ARMv7 binary created"
 	@ls -lh $(BINARY_NAME)-armv7
 
 build-linux-arm64-static: proto
-	@echo "Building static ARM64 binary (Raspberry Pi 4/5)..."
+	@echo "Building static ARM64 binary..."
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
 	  $(GOBUILD) $(STATIC_WEB_TAG_FLAGS) $(STATIC_WEB_LDFLAGS) -o $(BINARY_NAME)-arm64-static ./piscsi-web/cmd/piscsi-web
 	@echo "✅ Static ARM64 binary created: $(BINARY_NAME)-arm64-static"
@@ -81,7 +81,7 @@ build-linux-arm64-static: proto
 	@ls -lh $(BINARY_NAME)-arm64-static
 
 build-linux-armv7-static: proto
-	@echo "Building static ARMv7 binary (Raspberry Pi 2/3)..."
+	@echo "Building static ARMv7 binary..."
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 \
 	  $(GOBUILD) $(STATIC_WEB_TAG_FLAGS) $(STATIC_WEB_LDFLAGS) -o $(BINARY_NAME)-armv7-static ./piscsi-web/cmd/piscsi-web
 
