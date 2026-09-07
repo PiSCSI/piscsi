@@ -119,6 +119,35 @@ TEST(ScsiCdTest, Open)
 	remove(filename);
 }
 
+TEST(ScsiCdTest, ModeSelect)
+{
+	MockSCSICD cd(0);
+	ASSERT_TRUE(cd.SetConfiguredSectorSize(512));
+
+	const path filename = CreateTempFile(2 * 2048);
+	cd.SetFilename(string(filename));
+	cd.Open();
+	EXPECT_EQ(512, cd.GetSectorSizeInBytes());
+	EXPECT_EQ(8, cd.GetBlockCount());
+
+	vector<int> cdb(6);
+	cdb[0] = static_cast<int>(scsi_command::eCmdModeSelect6);
+	cdb[1] = 0x10; // PF
+	vector<uint8_t> buf(12);
+	buf[3] = 8;
+	buf[10] = 8;
+	cd.ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, static_cast<int>(buf.size()));
+	EXPECT_EQ(2048, cd.GetSectorSizeInBytes());
+	EXPECT_EQ(2, cd.GetBlockCount());
+
+	buf[10] = 2;
+	cd.ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, static_cast<int>(buf.size()));
+	EXPECT_EQ(512, cd.GetSectorSizeInBytes());
+	EXPECT_EQ(8, cd.GetBlockCount());
+
+	remove(filename);
+}
+
 TEST(ScsiCdTest, ReadToc)
 {
 	auto controller = make_shared<MockAbstractController>();

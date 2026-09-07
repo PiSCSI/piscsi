@@ -92,7 +92,9 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 		offset += size;
 	}
 
-	if (!has_valid_page_code) {
+	// A MODE SELECT parameter list may legally contain only its header and block descriptors.
+	// Unknown mode pages remain invalid, but an empty page list is not one.
+	if (!has_valid_page_code && !result.empty()) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 	}
 

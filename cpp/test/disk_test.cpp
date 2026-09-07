@@ -746,6 +746,35 @@ TEST(DiskTest, ModeSense10)
 	DiskTest_ValidateCachePage(*controller, 16);
 }
 
+TEST(DiskTest, ModeSensePageZero)
+{
+	auto [controller, disk] = CreateDisk();
+	disk->SetReady(true);
+	disk->SetBlockCount(2);
+	disk->SetSectorSizeInBytes(512);
+
+	// MODE SENSE(6), page 0, with room for the header and one short block descriptor.
+	controller->SetCmdByte(1, 0);
+	controller->SetCmdByte(2, 0);
+	controller->SetCmdByte(4, 12);
+	disk->Dispatch(scsi_command::eCmdModeSense6);
+	const auto& sense6 = controller->GetBuffer();
+	EXPECT_EQ(12, controller->GetLength());
+	EXPECT_EQ(11, sense6[0]);
+	EXPECT_EQ(8, sense6[3]);
+	EXPECT_EQ(512, GetInt16(sense6, 10));
+
+	// MODE SENSE(10) uses the same page request and excludes its two-byte length field.
+	controller->SetCmdByte(7, 0);
+	controller->SetCmdByte(8, 16);
+	disk->Dispatch(scsi_command::eCmdModeSense10);
+	const auto& sense10 = controller->GetBuffer();
+	EXPECT_EQ(16, controller->GetLength());
+	EXPECT_EQ(14, GetInt16(sense10, 0));
+	EXPECT_EQ(8, sense10[7]);
+	EXPECT_EQ(512, GetInt16(sense10, 14));
+}
+
 TEST(DiskTest, SynchronizeCache)
 {
 	auto [controller, disk] = CreateDisk();

@@ -145,6 +145,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(DiskTest, StartStopUnit);
 	FRIEND_TEST(DiskTest, ModeSense6);
 	FRIEND_TEST(DiskTest, ModeSense10);
+	FRIEND_TEST(DiskTest, ModeSensePageZero);
 	FRIEND_TEST(ScsiDaynaportTest, Read);
 	FRIEND_TEST(ScsiDaynaportTest, Write);
 	FRIEND_TEST(ScsiDaynaportTest, Read6);
@@ -350,6 +351,7 @@ class MockDisk : public Disk
 	FRIEND_TEST(DiskTest, Eject);
 	FRIEND_TEST(DiskTest, ModeSense6);
 	FRIEND_TEST(DiskTest, ModeSense10);
+	FRIEND_TEST(DiskTest, ModeSensePageZero);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
 	FRIEND_TEST(DiskTest, SectorSize);
