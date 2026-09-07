@@ -21,6 +21,7 @@
 #include "scsi_host_bridge.h"
 #include <arpa/inet.h>
 #include <algorithm>
+#include <spdlog/spdlog.h>
 
 using namespace std;
 using namespace scsi_defs;
@@ -240,6 +241,9 @@ bool SCSIBR::ReadWrite(cdb_t cdb, vector<uint8_t>& buf)
 
 	// Get the number of lights
 	const int len = GetInt24(cdb, 6);
+	spdlog::trace("TEMP SCBR data-out complete: sequence=" + to_string(data_out_sequence) +
+		", type=" + to_string(type) + ", function=" + to_string(func) + ", phase=" + to_string(phase) +
+		", length=" + to_string(len));
 
 	switch (type) {
 		case 0: { // RASCTL compatibility control channel
@@ -344,11 +348,25 @@ void SCSIBR::GetMessage10()
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10() const
+void SCSIBR::SendMessage10()
 {
-	GetController()->SetLength(GetInt24(GetController()->GetCmd(), 6));
+	const auto& cdb = GetController()->GetCmd();
+	const int length = GetInt24(cdb, 6);
+	GetController()->SetLength(length);
 	if (GetController()->GetLength() <= 0) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+	}
+
+	data_out_sequence++;
+	spdlog::trace("TEMP SCBR data-out begin: sequence=" + to_string(data_out_sequence) +
+		", type=" + to_string(cdb[2]) + ", function=" + to_string(cdb[3]) +
+		", phase=" + to_string(cdb[9]) + ", length=" + to_string(length));
+	if (cdb[2] == 2 && cdb[9] == 1) {
+		fsopt_sequence = data_out_sequence;
+		fsopt_expected_length = length;
+		fsopt_completed_length = 0;
+		fsopt_completed = false;
+		fsopt_consumed = false;
 	}
 
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
@@ -809,6 +827,14 @@ void SCSIBR::FS_Write(vector<uint8_t>& buf)
 
 	dp = (uint32_t*)&(buf.data()[i]);
 	const uint32_t nSize = ntohl(*dp);
+	const bool stale_payload = nSize != 0 &&
+		(!fsopt_completed || fsopt_consumed || fsopt_completed_length != nSize);
+	spdlog::trace("TEMP SCBR filesystem write: payload_sequence=" + to_string(fsopt_sequence) +
+		", expected=" + to_string(fsopt_expected_length) + ", completed=" + to_string(fsopt_completed) +
+		", completed_length=" + to_string(fsopt_completed_length) +
+		", consumed=" + to_string(fsopt_consumed) + ", requested=" + to_string(nSize) +
+		", stale=" + to_string(stale_payload));
+	fsopt_consumed = true;
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -1235,4 +1261,8 @@ void SCSIBR::WriteFs(int func, vector<uint8_t>& buf)
 void SCSIBR::WriteFsOpt(const vector<uint8_t>& buf, int num)
 {
 	copy_n(buf.begin(), num, fsopt.begin());
+	fsopt_completed_length = num;
+	fsopt_completed = true;
+	spdlog::trace("TEMP SCBR optional write payload complete: sequence=" + to_string(fsopt_sequence) +
+		", expected=" + to_string(fsopt_expected_length) + ", length=" + to_string(num));
 }

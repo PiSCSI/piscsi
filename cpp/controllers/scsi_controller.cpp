@@ -444,6 +444,8 @@ void ScsiController::Send()
 		if (const int len = GetBus().SendHandShake(GetBuffer().data() + GetOffset(), GetLength(),
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != static_cast<int>(GetLength())) {
+			LogError("Not able to send " + to_string(GetLength()) + " byte(s) of data, only sent " +
+					to_string(len));
 			// If you cannot send all, move to status phase
 			Error(sense_key::aborted_command);
 			return;

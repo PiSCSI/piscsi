@@ -59,7 +59,7 @@ public:
 	bool ReadWrite(cdb_t, vector<uint8_t>&);
 	void TestUnitReady() override;
 	void GetMessage10();
-	void SendMessage10() const;
+	void SendMessage10();
 	// RASCTL compatibility transport on the X68000 bridge's type-0 control channel.
 	void SetRasctlControlMode(rasctl_control_mode mode) { rasctl_mode = mode; }
 	bool IsRasctlControlEnabled() const { return rasctl_mode != rasctl_control_mode::disabled; }
@@ -123,6 +123,12 @@ private:
 	uint32_t fsoutlen = 0;						// File system access result buffer size
 	array<uint8_t, 0x1000000> fsopt;				// File system access buffer
 	uint32_t fsoptlen = 0;						// File system access buffer size
+	uint64_t data_out_sequence = 0;				// Diagnostic sequence for bridge Data Out transfers
+	uint64_t fsopt_sequence = 0;					// Sequence for the latest optional write payload
+	uint32_t fsopt_expected_length = 0;			// Declared length of the latest optional write payload
+	uint32_t fsopt_completed_length = 0;			// Length that reached WriteFsOpt()
+	bool fsopt_completed = false;					// TRUE if the latest payload reached WriteFsOpt()
+	bool fsopt_consumed = true;					// TRUE if a write command already consumed the payload
 	rasctl_control_mode rasctl_mode = rasctl_control_mode::disabled;
 	optional<string> rasctl_control_request;
 	string rasctl_control_response;
