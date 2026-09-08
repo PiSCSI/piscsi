@@ -29,6 +29,25 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 
+namespace {
+
+// Ensure that GPIO and interrupt-controller MMIO writes have completed before
+// the handshake code performs the next bus operation. The original RaSCSI
+// implementation used the ARMv6 CP15 equivalent after these writes.
+inline void MemoryBarrier()
+{
+#if defined(__aarch64__)
+    asm volatile("dmb sy" ::: "memory");
+#elif defined(__arm__)
+    uint32_t value = 0;
+    asm volatile("mcr p15, 0, %0, c7, c10, 5" : : "r"(value) : "memory");
+#else
+    __sync_synchronize();
+#endif
+}
+
+} // namespace
+
 //---------------------------------------------------------------------------
 //
 //	imported from bcm_host.c
@@ -614,6 +633,8 @@ void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
     fsel |= tblDatSet[2][dat];
     gpfsel[2] = fsel;
     gpio[GPIO_FSEL_2] = fsel;
+
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------
@@ -694,6 +715,7 @@ void GPIOBUS_Raspberry::MakeTable(void)
 void GPIOBUS_Raspberry::SetControl(int pin, bool ast)
 {
     PinSetSignal(pin, ast);
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------
@@ -719,6 +741,7 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
     }
     gpio[index]   = data;
     gpfsel[index] = data;
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------
@@ -751,6 +774,7 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
     }
     gpio[index]   = data;
     gpfsel[index] = data;
+    MemoryBarrier();
 }
 
 void GPIOBUS_Raspberry::DisableIRQ()
@@ -773,6 +797,7 @@ void GPIOBUS_Raspberry::DisableIRQ()
 #else
     (void)0;
 #endif
+    MemoryBarrier();
 }
 
 void GPIOBUS_Raspberry::EnableIRQ()
@@ -787,6 +812,7 @@ void GPIOBUS_Raspberry::EnableIRQ()
         // Restart the system timer interrupt with the interrupt controller
         irpctl[IRPT_ENB_IRQ_1] = irptenb & 0xf;
     }
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------
