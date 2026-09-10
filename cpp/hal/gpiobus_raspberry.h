@@ -163,6 +163,8 @@ class GPIOBUS_Raspberry : public GPIOBUS
     uint32_t signals = 0;
     // GPIO input level
     volatile uint32_t *level = nullptr;
+    // System timer low counter
+    volatile uint32_t *system_timer_low = nullptr;
 
   private:
     // SCSI I/O signal control
@@ -176,6 +178,8 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // Get SCSI input signal value
     void SetSignal(int pin, bool ast) override;
     // Set SCSI output signal value
+    bool WaitSignal(int pin, bool ast) override;
+    // Wait for a signal to change
 
     // Interrupt control
     void DisableIRQ() override;
@@ -260,6 +264,7 @@ class GPIOBUS_Raspberry : public GPIOBUS
     const static int GPIO_PUPPDN1    = 58;
     const static int GPIO_PUPPDN3    = 59;
     const static int GPIO_PUPPDN4    = 60;
+    const static int SYST_CLO        = 1;
     const static int PAD_0_27        = 11;
     const static int IRPT_PND_IRQ_B  = 0;
     const static int IRPT_PND_IRQ_1  = 1;
@@ -276,6 +281,7 @@ class GPIOBUS_Raspberry : public GPIOBUS
 
     const static uint32_t IRPT_OFFSET = 0x0000B200;
     const static uint32_t PADS_OFFSET = 0x00100000;
+    const static uint32_t SYST_OFFSET = 0x00003000;
     const static uint32_t GPIO_OFFSET = 0x00200000;
     const static uint32_t QA7_OFFSET  = 0x01000000;
 };

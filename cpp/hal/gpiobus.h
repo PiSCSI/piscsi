@@ -139,7 +139,7 @@ class GPIOBUS : public BUS
 
     bool GetSignal(int pin) const override     = 0;
     void SetSignal(int pin, bool ast) override = 0;
-    bool WaitSignal(int pin, bool ast);
+    virtual bool WaitSignal(int pin, bool ast);
 
     // Wait for a signal to change
     virtual bool WaitREQ(bool ast) = 0;

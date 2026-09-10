@@ -129,6 +129,10 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     gpio += GPIO_OFFSET / sizeof(uint32_t);
     level = &gpio[GPIO_LEV_0];
 
+    // System timer low counter for the handshake polling loop
+    system_timer_low = (uint32_t *)map;
+    system_timer_low += SYST_OFFSET / sizeof(uint32_t) + SYST_CLO;
+
     // PADS
     pads = (uint32_t *)map;
     pads += PADS_OFFSET / sizeof(uint32_t);
@@ -752,6 +756,34 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
 bool GPIOBUS_Raspberry::GetSignal(int pin) const
 {
     return (signals >> pin) & 1;
+}
+
+bool GPIOBUS_Raspberry::WaitSignal(int pin, bool ast)
+{
+    // Development hosts do not map the Raspberry Pi system timer.
+    if (!system_timer_low) {
+        return GPIOBUS::WaitSignal(pin, ast);
+    }
+
+    constexpr uint32_t SIGNAL_TIMEOUT_US = 3'000'000;
+    const uint32_t start = *system_timer_low;
+
+    do {
+        // Poll the GPIO level register directly. All supported profiles use
+        // active-low SCSI signaling.
+        signals = ~*level;
+
+        // Match the archived RaSCSI loop by giving reset precedence.
+        if (signals & (1U << PIN_RST)) {
+            return false;
+        }
+
+        if (static_cast<bool>(signals & (1U << pin)) == ast) {
+            return true;
+        }
+    } while (*system_timer_low - start < SIGNAL_TIMEOUT_US);
+
+    return false;
 }
 
 //---------------------------------------------------------------------------
