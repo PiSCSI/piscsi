@@ -25,6 +25,10 @@ using namespace std;
 
 namespace {
 
+// Keep this experiment scoped to target-mode data reception. The archived
+// RaSCSI implementation used a 50 ns settling delay at this point.
+constexpr uint32_t TARGET_RECEIVE_SETTLING_DELAY_NS = 50;
+
 struct handshake_failure_t {
     const char *stage = nullptr;
     int byte_index = 0;
@@ -210,7 +214,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             }
 
             // Wait until the signal line stabilizes
-            SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+            SysTimer::SleepNsec(TARGET_RECEIVE_SETTLING_DELAY_NS);
 
             // Get data
             *buf = GetDAT();
