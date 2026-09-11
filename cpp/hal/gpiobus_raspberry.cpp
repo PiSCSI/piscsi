@@ -29,6 +29,25 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 
+namespace {
+
+// Ensure that GPIO and interrupt-controller MMIO writes have completed before
+// the handshake code performs the next bus operation. The original RaSCSI
+// implementation used the ARMv6 CP15 equivalent after these writes.
+inline void MemoryBarrier()
+{
+#if defined(__aarch64__)
+    asm volatile("dmb sy" ::: "memory");
+#elif defined(__arm__)
+    uint32_t value = 0;
+    asm volatile("mcr p15, 0, %0, c7, c10, 5" : : "r"(value) : "memory");
+#else
+    __sync_synchronize();
+#endif
+}
+
+} // namespace
+
 //---------------------------------------------------------------------------
 //
 //	imported from bcm_host.c
@@ -109,6 +128,10 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     gpio = (uint32_t *)map;
     gpio += GPIO_OFFSET / sizeof(uint32_t);
     level = &gpio[GPIO_LEV_0];
+
+    // System timer low counter for the handshake polling loop
+    system_timer_low = (uint32_t *)map;
+    system_timer_low += SYST_OFFSET / sizeof(uint32_t) + SYST_CLO;
 
     // PADS
     pads = (uint32_t *)map;
@@ -614,6 +637,8 @@ void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
     fsel |= tblDatSet[2][dat];
     gpfsel[2] = fsel;
     gpio[GPIO_FSEL_2] = fsel;
+
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------
@@ -694,6 +719,7 @@ void GPIOBUS_Raspberry::MakeTable(void)
 void GPIOBUS_Raspberry::SetControl(int pin, bool ast)
 {
     PinSetSignal(pin, ast);
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------
@@ -719,6 +745,7 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
     }
     gpio[index]   = data;
     gpfsel[index] = data;
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------
@@ -729,6 +756,34 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
 bool GPIOBUS_Raspberry::GetSignal(int pin) const
 {
     return (signals >> pin) & 1;
+}
+
+bool GPIOBUS_Raspberry::WaitSignal(int pin, bool ast)
+{
+    // Development hosts do not map the Raspberry Pi system timer.
+    if (!system_timer_low) {
+        return GPIOBUS::WaitSignal(pin, ast);
+    }
+
+    constexpr uint32_t SIGNAL_TIMEOUT_US = 3'000'000;
+    const uint32_t start = *system_timer_low;
+
+    do {
+        // Poll the GPIO level register directly. All supported profiles use
+        // active-low SCSI signaling.
+        signals = ~*level;
+
+        // Match the archived RaSCSI loop by giving reset precedence.
+        if (signals & (1U << PIN_RST)) {
+            return false;
+        }
+
+        if (static_cast<bool>(signals & (1U << pin)) == ast) {
+            return true;
+        }
+    } while (*system_timer_low - start < SIGNAL_TIMEOUT_US);
+
+    return false;
 }
 
 //---------------------------------------------------------------------------
@@ -751,6 +806,7 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
     }
     gpio[index]   = data;
     gpfsel[index] = data;
+    MemoryBarrier();
 }
 
 void GPIOBUS_Raspberry::DisableIRQ()
@@ -773,6 +829,7 @@ void GPIOBUS_Raspberry::DisableIRQ()
 #else
     (void)0;
 #endif
+    MemoryBarrier();
 }
 
 void GPIOBUS_Raspberry::EnableIRQ()
@@ -787,6 +844,7 @@ void GPIOBUS_Raspberry::EnableIRQ()
         // Restart the system timer interrupt with the interrupt controller
         irpctl[IRPT_ENB_IRQ_1] = irptenb & 0xf;
     }
+    MemoryBarrier();
 }
 
 //---------------------------------------------------------------------------

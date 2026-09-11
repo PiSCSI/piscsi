@@ -23,6 +23,33 @@
 
 using namespace std;
 
+namespace {
+
+// Keep this experiment scoped to target-mode data reception. The archived
+// RaSCSI implementation used a 50 ns settling delay at this point.
+constexpr uint32_t TARGET_RECEIVE_SETTLING_DELAY_NS = 50;
+
+struct handshake_failure_t {
+    const char *stage = nullptr;
+    int byte_index = 0;
+    uint32_t signals = 0;
+    bool req = false;
+    bool ack = false;
+    bool rst = false;
+};
+
+void LogHandshakeFailure(const char *direction, int count, const handshake_failure_t& failure)
+{
+    if (failure.stage) {
+        spdlog::warn("TEMP GPIO target " + string(direction) + " handshake stopped: stage=" + failure.stage +
+            ", byte_index=" + to_string(failure.byte_index) + ", expected=" + to_string(count) +
+            ", signals=" + to_string(failure.signals) + ", REQ=" + to_string(failure.req) +
+            ", ACK=" + to_string(failure.ack) + ", RST=" + to_string(failure.rst));
+    }
+}
+
+}
+
 bool GPIOBUS::Init(mode_e mode)
 {
     GPIO_FUNCTION_TRACE
@@ -167,6 +194,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
     GPIO_FUNCTION_TRACE
     int i;
+    handshake_failure_t failure;
 
     // Disable IRQs
     DisableIRQ();
@@ -179,8 +207,14 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             // Wait for ACK
             bool ret = WaitACK(ON);
 
+            if (!ret) {
+                failure = { "ack_assert", i, Acquire(), GetREQ(), GetACK(), GetRST() };
+                SetREQ(OFF);
+                break;
+            }
+
             // Wait until the signal line stabilizes
-            SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+            SysTimer::SleepNsec(TARGET_RECEIVE_SETTLING_DELAY_NS);
 
             // Get data
             *buf = GetDAT();
@@ -188,16 +222,12 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             // Clear the REQ signal
             SetREQ(OFF);
 
-            // Check for timeout waiting for ACK signal
-            if (!ret) {
-                break;
-            }
-
             // Wait for ACK to clear
             ret = WaitACK(OFF);
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
+                failure = { "ack_deassert", i, Acquire(), GetREQ(), GetACK(), GetRST() };
                 break;
             }
 
@@ -258,6 +288,10 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
     // Re-enable IRQ
     EnableIRQ();
 
+    if (actmode == mode_e::TARGET) {
+        LogHandshakeFailure("receive", count, failure);
+    }
+
     // Return the number of bytes received
     return i;
 }
@@ -271,6 +305,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 {
     GPIO_FUNCTION_TRACE
     int i;
+    handshake_failure_t failure;
 
     // Disable IRQs
     DisableIRQ();
@@ -294,6 +329,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
+                failure = { "ack_deassert_before_req", i, Acquire(), GetREQ(), GetACK(), GetRST() };
                 break;
             }
 
@@ -305,20 +341,23 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
             // Wait for ACK
             ret = WaitACK(ON);
 
-            // Clear REQ signal
-            SetREQ(OFF);
-
-            // Check for timeout waiting for ACK to clear
             if (!ret) {
+                failure = { "ack_assert", i, Acquire(), GetREQ(), GetACK(), GetRST() };
+                SetREQ(OFF);
                 break;
             }
+            SetREQ(OFF);
 
             // Advance the data buffer pointer to receive the next byte
             buf++;
         }
 
-        // Wait for ACK to clear
-        WaitACK(OFF);
+        // Expose a missed final transition that would otherwise be
+        // attributed to the next phase.
+        const bool final_ack_cleared = WaitACK(OFF);
+        if (!failure.stage && !final_ack_cleared) {
+            failure = { "final_ack_deassert", i, Acquire(), GetREQ(), GetACK(), GetRST() };
+        }
     } else {
         // Get Phase
         Acquire();
@@ -376,6 +415,10 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 
     // Re-enable IRQ
     EnableIRQ();
+
+    if (actmode == mode_e::TARGET) {
+        LogHandshakeFailure("send", count, failure);
+    }
 
     // Return number of transmissions
     return i;

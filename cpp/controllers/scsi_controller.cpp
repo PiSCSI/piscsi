@@ -22,6 +22,7 @@
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"
 #include "scsi_controller.h"
+#include <algorithm>
 #include <sstream>
 #include <iomanip>
 #ifdef __linux__
@@ -29,6 +30,14 @@
 #endif
 
 using namespace scsi_defs;
+
+namespace {
+
+// Keep long transfers from holding interrupts disabled for the entire data
+// phase. Disk transfers already reach the GPIO layer one sector at a time.
+constexpr uint32_t HANDSHAKE_SLICE_SIZE = 512;
+
+}
 
 ScsiController::ScsiController(BUS& bus, int target_id) : ScsiController(bus, target_id, ControllerManager::GetScsiLunMax())
 {
@@ -441,12 +450,26 @@ void ScsiController::Send()
 
 		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (const int len = GetBus().SendHandShake(GetBuffer().data() + GetOffset(), GetLength(),
-				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
-			len != static_cast<int>(GetLength())) {
-			// If you cannot send all, move to status phase
-			Error(sense_key::aborted_command);
-			return;
+		const uint32_t length = GetLength();
+		const int send_delay = HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0;
+		uint32_t sent = 0;
+		while (sent < length) {
+			const uint32_t slice_length = min(HANDSHAKE_SLICE_SIZE, length - sent);
+			const int slice_delay = send_delay >= static_cast<int>(sent) &&
+					send_delay < static_cast<int>(sent + slice_length) ? send_delay - static_cast<int>(sent) :
+					BUS::SEND_NO_DELAY;
+			const int slice_sent = GetBus().SendHandShake(GetBuffer().data() + GetOffset() + sent,
+					slice_length, slice_delay);
+			if (slice_sent != static_cast<int>(slice_length)) {
+				sent += slice_sent;
+				LogError("Not able to send " + to_string(length) + " byte(s) of data, only sent " +
+						to_string(sent));
+				// If you cannot send all, move to status phase
+				Error(sense_key::aborted_command);
+				return;
+			}
+
+			sent += slice_length;
 		}
 
 		UpdateOffsetAndLength();
@@ -515,12 +538,21 @@ void ScsiController::Receive()
 	if (HasValidLength()) {
 		LogTrace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
 
-		// If not able to receive all, move to status phase
-		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
-			LogError("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
-					+ to_string(len));
-			Error(sense_key::aborted_command);
-			return;
+		const uint32_t length = GetLength();
+		uint32_t received = 0;
+		while (received < length) {
+			const uint32_t slice_length = min(HANDSHAKE_SLICE_SIZE, length - received);
+			const int slice_received = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset() + received,
+					slice_length);
+			if (slice_received != static_cast<int>(slice_length)) {
+				received += slice_received;
+				LogError("Not able to receive " + to_string(length) + " byte(s) of data, only received " +
+						to_string(received));
+				Error(sense_key::aborted_command);
+				return;
+			}
+
+			received += slice_length;
 		}
 	}
 

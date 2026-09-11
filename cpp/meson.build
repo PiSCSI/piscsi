@@ -100,6 +100,7 @@ protobuf_src = [
 test_src = [
     'test/abstract_controller_test.cpp',
     'test/bus_test.cpp',
+    'test/cfilesystem_test.cpp',
     'test/command_context_test.cpp',
     'test/connection_profile_test.cpp',
     'test/controller_manager_test.cpp',

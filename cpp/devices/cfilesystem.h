@@ -27,6 +27,7 @@
 using TCHAR = char;
 
 static const int FILEPATH_MAX = 260;
+static const int VOLUME_LABEL_MAX = FILEPATH_MAX + 8;
 
 //---------------------------------------------------------------------------
 //
@@ -239,11 +240,13 @@ static const int XM6_HOST_FCB_MAX = 100;
 /// Max number of virtual clusters and sectors
 /**
 Number of virtual sectors used for accessing the first sector of a file entity.
-Allocating a generous amount to exceed the number of threads lzdsys uses for access.
+Each entry retains a snapshot of the host path named by its pseudo-directory
+entry until its data-sector read completes. This must accommodate entries whose
+data-sector read is delayed while a directory search proceeds.
 
-Default is 10 sectors.
+Default is 64 sectors.
 */
-static const int XM6_HOST_PSEUDO_CLUSTER_MAX = 10;
+static const int XM6_HOST_PSEUDO_CLUSTER_MAX = 64;
 
 /// Number of caches for directory entries
 /**
@@ -429,9 +432,7 @@ public:
 	CHostFilename() = default;
 	~CHostFilename() = default;
 
-	static size_t Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
-
-	void SetHost(const TCHAR* szHost);					///< Set the name of the host
+	bool SetHost(const TCHAR* szHost);					///< Set the name of the host
 	const TCHAR* GetHost() const { return m_szHost; }	///< Get the name of the host
 	void ConvertHuman(int nCount = -1);					///< Convert the Human68k name
 	void CopyHuman(const uint8_t* szHuman);					///< Copy the Human68k name
@@ -521,8 +522,8 @@ public:
 
 	void Clean();								///< Initialialize for reuse
 
-	void SetHuman(const uint8_t* szHuman);					///< Directly specify the name on the Human68k side
-	void SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
+	bool SetHuman(const uint8_t* szHuman);					///< Directly specify the name on the Human68k side
+	bool SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
 	bool isSameHuman(const uint8_t* szHuman) const;				///< Compare the name on the Human68k side
 	bool isSameChild(const uint8_t* szHuman) const;				///< Compare the name on the Human68k side
 	const TCHAR* GetHost() const { return m_szHost; }	///< Obtain the name on the host side
@@ -540,7 +541,7 @@ public:
 	static void InitId() { g_nId = 0; }					///< Initialize the counter for the unique ID generation
 
 private:
-	static ring_t* Alloc(size_t nLength);					///< Allocate memory for the file name
+	static ring_t* Alloc();									///< Allocate memory for the file name
 	static void Free(ring_t* pRing);					///< Release memory for the file name
 	static int Compare(const uint8_t* pFirst, const uint8_t* pLast, const uint8_t* pBufFirst, const uint8_t* pBufLast);
 										///< Compare string (with support for wildcards)
@@ -594,9 +595,9 @@ public:
 	bool Find(uint32_t nUnit, const class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
 	const CHostFilename* Find(const CHostPath* pPath);					///< Find file name
 	void SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
-	void SetResult(const TCHAR* szPath);						///< Set names on the host side
-	void AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
-	void AddFilename();								///< Add the new Human68k file name to the name on the host side
+	bool SetResult(const TCHAR* szPath);						///< Set names on the host side
+	bool AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
+	bool AddFilename();								///< Add the new Human68k file name to the name on the host side
 
 	const TCHAR* GetPath() const { return m_szHostResult; }		///< Get the name on the host side
 
@@ -667,8 +668,8 @@ public:
 	void SetUpdate() { m_bUpdate = true; }				///< Update
 	bool isUpdate() const { return m_bUpdate; }			///< Get update state
 	bool SetMode(uint32_t nHumanMode);						///< Set file open mode
-	void SetFilename(const TCHAR* szFilename);					///< Set file name
-	void SetHumanPath(const uint8_t* szHumanPath);					///< Set Human68k path name
+	bool SetFilename(const TCHAR* szFilename);					///< Set file name
+	bool SetHumanPath(const uint8_t* szHumanPath);					///< Set Human68k path name
 	const uint8_t* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
 	bool Create(uint32_t nHumanAttribute, bool bForce);	///< Create file
@@ -743,8 +744,8 @@ public:
 	bool CheckMedia();							///< Check if media was changed
 	void Update();								///< Update media status
 	void Eject();
-	void GetVolume(TCHAR* szLabel);					///< Get volume label
-	bool GetVolumeCache(TCHAR* szLabel) const;				///< Get volume label from cache
+	bool GetVolume(TCHAR* szLabel, size_t label_size);			///< Get volume label
+	bool GetVolumeCache(TCHAR* szLabel, size_t label_size) const;		///< Get volume label from cache
 	uint32_t GetCapacity(Human68k::capacity_t* pCapacity);
 	bool GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
 
@@ -773,9 +774,9 @@ private:
 	bool m_bEnable = false;							///< TRUE if media is usable
 	uint32_t m_nRing = 0;							///< Number of stored path names
 	CRing m_cRing;							///< For attaching to CHostPath
-	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
+	Human68k::capacity_t m_capCache = {};			///< Sector data cache: if "sectors == 0" then not cached
 	bool m_bVolumeCache = false;						///< TRUE if the volume label has been read
-	TCHAR m_szVolumeCache[24] = {};					///< Volume label cache
+	TCHAR m_szVolumeCache[VOLUME_LABEL_MAX] = {}; //NOSONAR: fixed Human68k volume-label C-string cache.
 	TCHAR m_szBase[FILEPATH_MAX] = {};					///< Base path
 };
 
@@ -817,8 +818,8 @@ public:
 	uint32_t GetStatus(uint32_t nUnit) const;					///< Get drive status
 	bool CheckMedia(uint32_t nUnit) const;						///< Media change check
 	void Eject(uint32_t nUnit) const;
-	void GetVolume(uint32_t nUnit, TCHAR* szLabel) const;				///< Get volume label
-	bool GetVolumeCache(uint32_t nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
+	bool GetVolume(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const;		///< Get volume label
+	bool GetVolumeCache(uint32_t nUnit, TCHAR* szLabel, size_t label_size) const;	///< Get volume label from cache
 	uint32_t GetCapacity(uint32_t nUnit, Human68k::capacity_t* pCapacity) const;
 	bool GetCapacityCache(uint32_t nUnit, Human68k::capacity_t* pCapacity) const;		///< Get cluster size from cache
 
@@ -924,14 +925,19 @@ private:
 	uint32_t m_nKernel = 0;							///< Counter for kernel check
 	uint32_t m_nKernelSearch = 0;						///< Initial address for NUL device
 
-	uint32_t m_nHostSectorCount = 0;					///< Virtual sector identifier
+	struct pseudo_sector_t {
+		TCHAR path[FILEPATH_MAX] = {};					///< Host path captured for this pseudo-sector
+		bool valid = false;							///< TRUE while the captured path is available
+	};
+
+	uint32_t m_nHostSectorCount = 0;					///< Next virtual-sector identifier
 
 	CHostFilesManager m_cFiles;						///< File search memory
 	CHostFcbManager m_cFcb;							///< FCB operation memory
 	CHostEntry m_cEntry;							///< Drive object and directory entry
 
-	uint32_t m_nHostSectorBuffer[XM6_HOST_PSEUDO_CLUSTER_MAX];
-										///< Entity that the virtual sector points to
+	pseudo_sector_t m_hostSector[XM6_HOST_PSEUDO_CLUSTER_MAX];
+										///< Host paths captured for virtual sectors
 
 	uint32_t m_nFlag[DriveMax] = {};					///< Candidate runtime flag for base path restoration
 	TCHAR m_szBase[DriveMax][FILEPATH_MAX] = {};	///< Candidate for base path restoration

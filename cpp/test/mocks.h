@@ -202,6 +202,8 @@ class MockScsiController : public ScsiController
 	FRIEND_TEST(ScsiControllerTest, MsgOut);
 	FRIEND_TEST(ScsiControllerTest, DataIn);
 	FRIEND_TEST(ScsiControllerTest, DataOut);
+	FRIEND_TEST(ScsiControllerTest, SendSlicesLongTransfers);
+	FRIEND_TEST(ScsiControllerTest, ReceiveSlicesLongTransfers);
 	FRIEND_TEST(ScsiControllerTest, Error);
 	FRIEND_TEST(ScsiControllerTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
