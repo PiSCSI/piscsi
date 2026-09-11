@@ -229,6 +229,42 @@ TEST(ScsiControllerTest, DataOut)
 	EXPECT_EQ(0, controller.GetOffset());
 }
 
+TEST(ScsiControllerTest, SendSlicesLongTransfers)
+{
+	auto bus = make_shared<NiceMock<MockBus>>();
+	MockScsiController controller(bus, 0);
+
+	controller.Init();
+	controller.SetPhase(phase_t::datain);
+	controller.SetLength(1025);
+	ON_CALL(*bus, GetIO).WillByDefault(Return(true));
+	EXPECT_CALL(*bus, SendHandShake(_, 512, 0)).WillOnce(Return(512));
+	EXPECT_CALL(*bus, SendHandShake(_, 512, BUS::SEND_NO_DELAY)).WillOnce(Return(512));
+	EXPECT_CALL(*bus, SendHandShake(_, 1, BUS::SEND_NO_DELAY)).WillOnce(Return(1));
+
+	EXPECT_TRUE(controller.Process(0));
+
+	EXPECT_EQ(0, controller.GetLength());
+	EXPECT_EQ(1025, controller.GetOffset());
+}
+
+TEST(ScsiControllerTest, ReceiveSlicesLongTransfers)
+{
+	auto bus = make_shared<NiceMock<MockBus>>();
+	MockScsiController controller(bus, 0);
+
+	controller.Init();
+	controller.SetPhase(phase_t::dataout);
+	controller.SetLength(1025);
+	EXPECT_CALL(*bus, ReceiveHandShake(_, 512)).Times(2).WillRepeatedly(Return(512));
+	EXPECT_CALL(*bus, ReceiveHandShake(_, 1)).WillOnce(Return(1));
+
+	EXPECT_TRUE(controller.Process(0));
+
+	EXPECT_EQ(0, controller.GetLength());
+	EXPECT_EQ(1025, controller.GetOffset());
+}
+
 TEST(ScsiControllerTest, Error)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
